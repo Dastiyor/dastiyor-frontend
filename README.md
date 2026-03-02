@@ -98,8 +98,8 @@ A full-featured online services marketplace platform where customers post servic
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/BalwinderCa/dastiyor.git
-cd dastiyor
+git clone https://github.com/MaNami192/Dastiyor.git
+cd Dastiyor
 ```
 
 ### 2. Install Dependencies

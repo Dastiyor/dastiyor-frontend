@@ -116,14 +116,14 @@ pnpm install
 
 ### 3. Set Up Environment Variables
 
-Create a `.env` file in the root directory. For local development with Supabase Postgres:
+Create a `.env` file in the root directory. **This project uses Supabase (Postgres) only** — there is no separate local database; dev and deploy both use the same Supabase project.
 
 ```env
 # Required
 JWT_SECRET="your-super-secret-jwt-key-change-this-in-production"
 NODE_ENV="development"
 
-# Database (Supabase Postgres or local Postgres)
+# Database (Supabase Postgres)
 DATABASE_URL="postgresql://..."
 POSTGRES_PRISMA_URL="postgresql://..."
 POSTGRES_URL_NON_POOLING="postgresql://..."
@@ -136,16 +136,18 @@ NEXT_PUBLIC_SUPABASE_URL="https://xxx.supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="..."
 ```
 
-**Important**: Use a strong `JWT_SECRET` in production and never commit real keys.
+**Important**: Use a strong `JWT_SECRET` and never commit real keys.
 
-### 4. Set Up Database
+### 4. Set Up Database (Supabase)
+
+Migrations and seed run against the Supabase database in your `.env`:
 
 ```bash
 # Generate Prisma Client
 npx prisma generate
 
-# Run migrations
-npx prisma migrate dev
+# Run migrations (against Supabase)
+npx prisma migrate deploy
 
 # Seed sample data (users + tasks so /tasks feed is not empty)
 npx prisma db seed
@@ -317,17 +319,17 @@ npx prisma generate
 
 ### QA / Deployment verification
 
-When testing the app (especially after deploy):
+We use **Supabase only** (no local DB). When testing:
 
 - **Empty task list on `/tasks`**  
-  The feed loads tasks from the API. If the database has no tasks, the page shows **sample task cards** and a hint to run the seed. To get real tasks in any environment (local or production), run:
+  The feed reads from Supabase. If there are no tasks, the page shows **sample task cards** and a hint. To add real tasks, run once:
   ```bash
   npx prisma db seed
   ```
-  Use the same DB URL (e.g. production `DATABASE_URL`) for the environment you’re testing.
+  This seeds the Supabase database in your `.env`.
 
 - **“Load more” (lazy loading)**  
-  The tasks feed shows 6 tasks per page. The **“Загрузить ещё”** button appears only when there are more than 6 tasks. So you need at least 7 tasks (e.g. after running the seed once) to see the button and verify lazy loading.
+  The feed shows 6 tasks per page. The **“Загрузить ещё”** button appears when there are more than 6 tasks (e.g. after running the seed, which adds 7 tasks).
 
 - **Password validation**  
   Registration and reset password require at least 8 characters, one uppercase, one lowercase, and one number. Weak or short passwords are rejected on both client and server.

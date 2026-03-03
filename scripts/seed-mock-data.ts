@@ -474,6 +474,7 @@ async function seedMockData() {
                     subcategory: template.subcategory,
                     budgetType: template.budgetType,
                     budgetAmount: template.budgetAmount,
+                    budgetAmountNum: template.budgetAmount ? parseInt(template.budgetAmount, 10) : null,
                     city: template.city,
                     address: `ул. Примерная, д. ${Math.floor(Math.random() * 100)}`,
                     urgency: template.urgency,
@@ -506,10 +507,13 @@ async function seedMockData() {
                     // Only accept one response per task
                     const shouldAccept = !acceptedTaskId && Math.random() > 0.6;
 
+                    const priceNum = parseInt(price, 10);
                     const response = await prisma.response.create({
                         data: {
                             taskId: task.id,
                             userId: provider.id,
+                            price,
+                            priceNum: !isNaN(priceNum) ? priceNum : null,
                             message: [
                                 'Готов выполнить работу качественно и в срок.',
                                 'Имею большой опыт в данной области, выполню быстро и качественно.',
@@ -517,7 +521,6 @@ async function seedMockData() {
                                 'Предлагаю оптимальное решение по доступной цене.',
                                 'Работаю профессионально, гарантирую качество.',
                             ][Math.floor(Math.random() * 5)],
-                            price: price,
                             estimatedTime: [
                                 '1 день',
                                 '2-3 дня',

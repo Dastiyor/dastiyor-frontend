@@ -73,65 +73,62 @@ export default async function TasksPage({ searchParams }: Props) {
         ];
     }
 
-    // Determine sort order
-    let orderBy: any = { createdAt: 'desc' };
-    if (sort === 'budget-high') {
-        orderBy = { budgetAmount: 'desc' };
-    } else if (sort === 'budget-low') {
-        orderBy = { budgetAmount: 'asc' };
-    }
-
-
-    // Get total count for pagination (initially all matching non-budget criteria)
-    // We will fetch ALL tasks matching the non-budget criteria to filter in memory
-    // and then paginate manually. This is necessary because budgetAmount is a String
-    // in the DB, making precise numeric filtering impossible efficiently with Prisma/SQLite
-    // string comparison logic (e.g. "100" < "2" lexicographically).
-
-    const allMatchingTasks = await prisma.task.findMany({
-        where,
-        orderBy,
-        include: {
-            _count: {
-                select: { responses: true }
-            },
-            user: {
-                select: { fullName: true }
-            },
-            responses: {
-                include: {
-                    user: {
-                        include: {
-                            subscription: true
-                        }
-                    }
-                }
-            }
-        }
-    });
-
-    // In-memory budget filtering
-    let filteredTasks = allMatchingTasks;
-
+    // Budget filter in DB using numeric column (AND with other filters so query search is preserved)
     if (minBudget || maxBudget) {
-        const min = minBudget ? parseInt(minBudget) : 0;
-        const max = maxBudget ? parseInt(maxBudget) : Infinity;
-
-        filteredTasks = allMatchingTasks.filter(task => {
-            if (task.budgetType === 'negotiable') return true; // Include negotiable for now, or decide based on logic
-            if (task.budgetType === 'fixed' && task.budgetAmount) {
-                const amount = parseInt(task.budgetAmount);
-                return !isNaN(amount) && amount >= min && amount <= max;
-            }
-            return false;
+        const min = minBudget ? parseInt(minBudget, 10) : 0;
+        const max = maxBudget ? parseInt(maxBudget, 10) : undefined;
+        where.AND = where.AND || [];
+        where.AND.push({
+            OR: [
+                { budgetType: 'negotiable' },
+                {
+                    budgetType: 'fixed',
+                    budgetAmountNum: {
+                        ...(minBudget ? { gte: min } : {}),
+                        ...(maxBudget ? { lte: max } : {}),
+                    },
+                },
+            ],
         });
     }
 
-    const totalTasks = filteredTasks.length;
-    const tasks = filteredTasks.slice(skip, skip + TASKS_PER_PAGE);
+    // Determine sort order (use numeric column for budget)
+    let orderBy: any = { createdAt: 'desc' };
+    if (sort === 'budget-high') {
+        orderBy = [{ budgetAmountNum: 'desc' }, { createdAt: 'desc' }];
+    } else if (sort === 'budget-low') {
+        orderBy = [{ budgetAmountNum: 'asc' }, { createdAt: 'desc' }];
+    }
 
-    // Sort tasks: Premium subscribers' responses first
-    const sortedTasks = tasks.sort((a, b) => {
+    const [tasksForPage, totalTasks] = await Promise.all([
+        prisma.task.findMany({
+            where,
+            orderBy,
+            skip,
+            take: TASKS_PER_PAGE,
+            include: {
+                _count: {
+                    select: { responses: true },
+                },
+                user: {
+                    select: { fullName: true },
+                },
+                responses: {
+                    include: {
+                        user: {
+                            include: {
+                                subscription: true,
+                            },
+                        },
+                    },
+                },
+            },
+        }),
+        prisma.task.count({ where }),
+    ]);
+
+    // Sort tasks: Premium subscribers' responses first (in-memory only for current page)
+    const sortedTasks = tasksForPage.sort((a, b) => {
         const aHasPremium = a.responses.some((r: any) =>
             r.user.subscription &&
             r.user.subscription.plan === 'premium' &&
@@ -147,7 +144,7 @@ export default async function TasksPage({ searchParams }: Props) {
 
         if (aHasPremium && !bHasPremium) return -1;
         if (!aHasPremium && bHasPremium) return 1;
-        return 0; // Maintain original order for same priority
+        return 0;
     });
 
     // Get category counts for sidebar

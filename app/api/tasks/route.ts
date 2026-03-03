@@ -54,6 +54,7 @@ export async function POST(request: Request) {
             title, description, category, budget, amount, userId: payload.id
         });
 
+        const amountNum = amount != null && amount !== '' ? parseInt(String(amount), 10) : null;
         const task = await prisma.task.create({
             data: {
                 title,
@@ -62,6 +63,7 @@ export async function POST(request: Request) {
                 subcategory: subcategory || null,
                 budgetType: String(budget),
                 budgetAmount: amount ? String(amount) : null,
+                budgetAmountNum: amountNum != null && !isNaN(amountNum) ? amountNum : null,
                 city,
                 address,
                 userId: payload.id as string,

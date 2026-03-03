@@ -55,7 +55,8 @@ model Task {
   category    String     @default("Other")
   subcategory String?    // Subcategory field
   budgetType  String     // 'fixed' or 'negotiable'
-  budgetAmount String?
+  budgetAmount String?   // Display string (e.g. "100" or "negotiable")
+  budgetAmountNum Int?   // Numeric value for filtering/sorting (TJS)
   city        String
   address     String?
   images      String?    // JSON array of image URLs
@@ -80,6 +81,13 @@ model Task {
   
   // Favorites
   favorites TaskFavorite[]
+
+  @@index([status])
+  @@index([category])
+  @@index([city])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([status, category, city])
 }
 
 // Response Model (Offers from Providers)
@@ -87,6 +95,7 @@ model Response {
   id            String   @id @default(cuid())
   message       String
   price         String
+  priceNum      Int?     // Numeric price (TJS) for sorting/filtering
   estimatedTime String?  // Estimated completion time (e.g., "2 hours", "1 day")
   status        String   @default("PENDING") // PENDING, ACCEPTED, REJECTED
   createdAt     DateTime @default(now())
@@ -97,6 +106,9 @@ model Response {
   task      Task     @relation(fields: [taskId], references: [id])
   userId    String
   user      User     @relation(fields: [userId], references: [id])
+
+  @@index([taskId])
+  @@index([userId])
 }
 
 // Subscription Model (for Providers)

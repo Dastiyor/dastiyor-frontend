@@ -135,13 +135,15 @@ export async function POST(request: Request) {
             );
         }
 
-        // Create response
+        const priceStr = price.toString();
+        const priceNum = parseInt(priceStr, 10);
         const response = await prisma.response.create({
             data: {
                 taskId,
                 userId: payload.id as string,
                 message,
-                price: price.toString(),
+                price: priceStr,
+                priceNum: !isNaN(priceNum) ? priceNum : null,
                 estimatedTime: estimatedTime || null,
                 status: 'PENDING'
             }

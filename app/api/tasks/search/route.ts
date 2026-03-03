@@ -37,23 +37,21 @@ export async function GET(request: Request) {
         }
 
         if (minBudget || maxBudget) {
+            const min = minBudget ? parseInt(minBudget, 10) : undefined;
+            const max = maxBudget ? parseInt(maxBudget, 10) : undefined;
             where.AND = where.AND || [];
-            if (minBudget) {
-                where.AND.push({
-                    OR: [
-                        { budgetType: 'negotiable' },
-                        { budgetAmount: { gte: minBudget } }
-                    ]
-                });
-            }
-            if (maxBudget) {
-                where.AND.push({
-                    OR: [
-                        { budgetType: 'negotiable' },
-                        { budgetAmount: { lte: maxBudget } }
-                    ]
-                });
-            }
+            where.AND.push({
+                OR: [
+                    { budgetType: 'negotiable' },
+                    {
+                        budgetType: 'fixed',
+                        budgetAmountNum: {
+                            ...(min != null && !isNaN(min) ? { gte: min } : {}),
+                            ...(max != null && !isNaN(max) ? { lte: max } : {}),
+                        },
+                    },
+                ],
+            });
         }
 
         const [tasks, total] = await Promise.all([

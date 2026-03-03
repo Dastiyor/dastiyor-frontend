@@ -70,9 +70,10 @@ export async function GET(request: Request) {
             {
                 title: 'Починить кран на кухне',
                 description: 'Капает кран на кухне, нужно заменить прокладку или смеситель целиком.',
-                category: 'Home Repair', // Matching Filter Enum/String
+                category: 'Home Repair',
                 budgetType: 'fixed',
                 budgetAmount: '150',
+                budgetAmountNum: 150,
                 city: 'Душанбе',
                 urgency: 'normal',
                 status: 'OPEN',
@@ -92,6 +93,7 @@ export async function GET(request: Request) {
                 category: 'Delivery',
                 budgetType: 'fixed',
                 budgetAmount: '50',
+                budgetAmountNum: 50,
                 city: 'Душанбе',
                 urgency: 'urgent',
                 status: 'OPEN',
@@ -111,6 +113,7 @@ export async function GET(request: Request) {
                 category: 'Home Repair',
                 budgetType: 'fixed',
                 budgetAmount: '200',
+                budgetAmountNum: 200,
                 city: 'Душанбе',
                 urgency: 'normal',
                 status: 'OPEN',

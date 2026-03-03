@@ -23,15 +23,15 @@ export async function GET(request: Request) {
 
         const where: any = { status: 'OPEN' };
         if (category) where.category = category;
-        if (city) where.city = { contains: city };
+        if (city) where.city = { contains: city, mode: 'insensitive' };
         if (urgency) {
             const values = urgency.split(',').filter(Boolean);
             if (values.length) where.urgency = { in: values };
         }
         if (query) {
             where.OR = [
-                { title: { contains: query } },
-                { description: { contains: query } }
+                { title: { contains: query, mode: 'insensitive' } },
+                { description: { contains: query, mode: 'insensitive' } }
             ];
         }
         if (minBudget || maxBudget) {

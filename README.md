@@ -315,6 +315,23 @@ npx prisma generate
 - [ ] Enable HTTPS
 - [ ] Set up monitoring and logging
 
+### QA / Deployment verification
+
+When testing the app (especially after deploy):
+
+- **Empty task list on `/tasks`**  
+  The feed loads tasks from the API. If the database has no tasks, the page shows **sample task cards** and a hint to run the seed. To get real tasks in any environment (local or production), run:
+  ```bash
+  npx prisma db seed
+  ```
+  Use the same DB URL (e.g. production `DATABASE_URL`) for the environment you’re testing.
+
+- **“Load more” (lazy loading)**  
+  The tasks feed shows 6 tasks per page. The **“Загрузить ещё”** button appears only when there are more than 6 tasks. So you need at least 7 tasks (e.g. after running the seed once) to see the button and verify lazy loading.
+
+- **Password validation**  
+  Registration and reset password require at least 8 characters, one uppercase, one lowercase, and one number. Weak or short passwords are rejected on both client and server.
+
 ## 🔧 Development
 
 ### Available Scripts

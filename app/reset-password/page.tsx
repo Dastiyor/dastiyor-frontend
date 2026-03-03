@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { validatePassword } from '@/lib/validation';
+import { validatePassword, checkPasswordStrength } from '@/lib/validation';
 
 function ResetPasswordForm() {
     const searchParams = useSearchParams();
@@ -12,6 +12,7 @@ function ResetPasswordForm() {
 
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [passwordFeedback, setPasswordFeedback] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
     const [validating, setValidating] = useState(true);
     const [isValid, setIsValid] = useState(false);
@@ -231,18 +232,42 @@ function ResetPasswordForm() {
                         <input
                             type="password"
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Min 8 characters, letter and number"
+                            onChange={(e) => {
+                                const p = e.target.value;
+                                setPassword(p);
+                                if (!p) {
+                                    setPasswordFeedback([]);
+                                    return;
+                                }
+                                const { isStrong, feedback } = checkPasswordStrength(p);
+                                setPasswordFeedback(isStrong ? [] : feedback);
+                            }}
+                            onBlur={() => {
+                                if (!password) return;
+                                const { isStrong, feedback } = checkPasswordStrength(password);
+                                setPasswordFeedback(isStrong ? [] : feedback);
+                            }}
+                            placeholder="Min 8 characters, uppercase, lowercase, number"
                             required
                             minLength={8}
                             style={{
                                 width: '100%',
                                 padding: '14px 16px',
                                 borderRadius: '12px',
-                                border: '1px solid var(--border)',
+                                border: `1px solid ${passwordFeedback.length > 0 ? '#ef4444' : 'var(--border)'}`,
                                 fontSize: '1rem'
                             }}
                         />
+                        {passwordFeedback.length > 0 && (
+                            <ul style={{ margin: '8px 0 0', paddingLeft: '18px', fontSize: '0.85rem', color: '#c62828' }}>
+                                {passwordFeedback.map((msg, i) => (
+                                    <li key={i}>{msg}</li>
+                                ))}
+                            </ul>
+                        )}
+                        {password.length >= 8 && passwordFeedback.length === 0 && (
+                            <span style={{ display: 'block', marginTop: '6px', fontSize: '0.85rem', color: '#059669', fontWeight: '500' }}>✓ Password meets requirements</span>
+                        )}
                     </div>
 
                     <div style={{ marginBottom: '24px' }}>

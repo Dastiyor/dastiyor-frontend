@@ -3,8 +3,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import TaskCard, { type Task } from '@/components/tasks/TaskCard';
+import { PREVIEW_TASKS } from '@/lib/landing-tasks';
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 6;
 
 function getQueryString(searchParams: URLSearchParams, pageNum: number): string {
     const params = new URLSearchParams();
@@ -116,23 +117,43 @@ export default function TasksFeed() {
     }
 
     if (tasks.length === 0) {
+        const sampleTasks: Task[] = PREVIEW_TASKS.map((t, i) => ({
+            id: `preview-${i}`,
+            title: t.title,
+            category: t.category,
+            budget: t.budget,
+            city: t.location,
+            postedAt: t.timeAgo,
+            description: t.description,
+            urgency: 'normal',
+            responseCount: 0,
+            status: 'OPEN',
+            hasPremiumResponse: false,
+        }));
         return (
-            <div style={{
-                textAlign: 'center',
-                padding: '80px 40px',
-                backgroundColor: 'white',
-                borderRadius: '16px',
-                border: '1px solid var(--border)',
-            }}>
-                <div style={{ fontSize: '4rem', marginBottom: '16px' }}>🔍</div>
-                <h3 className="heading-md" style={{ marginBottom: '8px' }}>Задания не найдены</h3>
-                <p style={{ color: 'var(--text-light)', maxWidth: '400px', margin: '0 auto' }}>
-                    Попробуйте изменить фильтры или расширить критерии поиска.
-                </p>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-light)', marginTop: '12px' }}>
-                    Для демо-данных выполните: <code style={{ background: '#f3f4f6', padding: '2px 6px', borderRadius: '4px' }}>npx prisma db seed</code>
-                </p>
-            </div>
+            <>
+                <div style={{
+                    textAlign: 'center',
+                    padding: '24px 16px',
+                    backgroundColor: 'white',
+                    borderRadius: '16px',
+                    border: '1px solid var(--border)',
+                    marginBottom: '24px',
+                }}>
+                    <h3 className="heading-md" style={{ marginBottom: '8px' }}>Примеры заданий</h3>
+                    <p style={{ color: 'var(--text-light)', fontSize: '0.9rem', marginBottom: '8px' }}>
+                        Пока в базе нет заданий. Ниже — примеры для просмотра.
+                    </p>
+                    <p style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>
+                        Для загрузки демо-данных: <code style={{ background: '#f3f4f6', padding: '2px 6px', borderRadius: '4px' }}>npx prisma db seed</code>
+                    </p>
+                </div>
+                <div style={{ display: 'grid', gap: '16px' }}>
+                    {sampleTasks.map((task) => (
+                        <TaskCard key={task.id} task={task} />
+                    ))}
+                </div>
+            </>
         );
     }
 

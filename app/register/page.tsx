@@ -259,10 +259,25 @@ export default function RegisterPage() {
                         placeholder="Min 8 characters, include letter and number"
                         required
                         minLength={8}
+                        onChange={(e) => {
+                            const p = e.target.value;
+                            if (!p) {
+                                setPasswordFeedback([]);
+                                return;
+                            }
+                            const { isStrong, feedback } = checkPasswordStrength(p);
+                            setPasswordFeedback(isStrong ? [] : feedback);
+                        }}
+                        onBlur={(e) => {
+                            const p = e.target.value;
+                            if (!p) return;
+                            const { isStrong, feedback } = checkPasswordStrength(p);
+                            setPasswordFeedback(isStrong ? [] : feedback);
+                        }}
                         style={{
                             padding: '12px 16px',
                             borderRadius: '8px',
-                            border: '1px solid var(--border)',
+                            border: `1px solid ${passwordFeedback.length > 0 ? '#ef4444' : 'var(--border)'}`,
                             fontSize: '1rem',
                             outline: 'none',
                         }}
@@ -270,12 +285,16 @@ export default function RegisterPage() {
                     <span style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>
                         At least 8 characters, one uppercase, one lowercase, one number
                     </span>
-                    {passwordFeedback.length > 0 && (
+                    {passwordFeedback.length > 0 ? (
                         <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '0.85rem', color: '#c62828' }}>
                             {passwordFeedback.map((msg, i) => (
                                 <li key={i}>{msg}</li>
                             ))}
                         </ul>
+                    ) : (
+                        <span style={{ fontSize: '0.8rem', color: '#059669', fontWeight: '500' }}>
+                            ✓ Реальная проверка: слабый пароль не будет принят
+                        </span>
                     )}
                 </div>
 

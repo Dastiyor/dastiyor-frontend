@@ -1,8 +1,10 @@
 'use client';
 import Link from 'next/link';
 import { MapPin, Clock, Wallet } from 'lucide-react';
+import { PREVIEW_TASKS } from '@/lib/landing-tasks';
 
 export default function PopularTasks() {
+    const tasks = PREVIEW_TASKS.slice(0, 3);
     return (
         <section style={{ padding: '100px 0', backgroundColor: '#F9FAFB' }}>
             <div className="container">
@@ -23,7 +25,7 @@ export default function PopularTasks() {
                     gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
                     gap: '24px'
                 }}>
-                    {tasks.slice(0, 3).map((task, index) => (
+                    {tasks.map((task, index) => (
                         <div key={index} className="card-hover" style={{
                             backgroundColor: 'white',
                             borderRadius: '16px',
@@ -92,37 +94,3 @@ export default function PopularTasks() {
     );
 }
 
-const tasks = [
-    {
-        title: "Генеральная уборка 3-х комнатной квартиры после ремонта",
-        category: "Уборка",
-        budget: "450 TJS",
-        location: "Душанбе, Центр",
-        deadline: "Сегодня",
-        timeAgo: "10 мин назад"
-    },
-    {
-        title: "Заменить смеситель в ванной и починить розетку",
-        category: "Сантехника",
-        budget: "150 TJS",
-        location: "Душанбе, 46 мкр",
-        deadline: "Завтра",
-        timeAgo: "25 мин назад"
-    },
-    {
-        title: "Нужен репетитор по английскому языку для ребенка",
-        category: "Обучение",
-        budget: "80 TJS / час",
-        location: "Онлайн",
-        deadline: "Гибкий график",
-        timeAgo: "1 час назад"
-    },
-    {
-        title: "Помочь с переездом (погрузка и разгрузка вещей)",
-        category: "Грузчики",
-        budget: "300 TJS",
-        location: "Душанбе, Зарафшон",
-        deadline: "Суббота",
-        timeAgo: "3 часа назад"
-    }
-];

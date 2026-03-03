@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { signJWT } from '@/lib/auth';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
+import { validatePassword } from '@/lib/validation';
 
 export async function POST(request: Request) {
     try {
@@ -20,6 +21,14 @@ export async function POST(request: Request) {
         if (!email || !password || !fullName) {
             return NextResponse.json(
                 { error: 'Missing required fields' },
+                { status: 400 }
+            );
+        }
+
+        const passwordValidation = validatePassword(String(password));
+        if (!passwordValidation.valid) {
+            return NextResponse.json(
+                { error: passwordValidation.error },
                 { status: 400 }
             );
         }

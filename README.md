@@ -66,7 +66,7 @@ A full-featured online services marketplace platform where customers post servic
 - Real-time notification bell
 - Notification types: NEW_OFFER, OFFER_ACCEPTED, OFFER_REJECTED, NEW_MESSAGE, TASK_COMPLETED
 - Email notification service structure (ready for integration)
-- SMS notification service structure (ready for integration)
+- SMS via MessageBird (verification codes, task/offer notifications)
 
 #### Admin Panel
 - Dashboard with platform statistics
@@ -81,15 +81,17 @@ A full-featured online services marketplace platform where customers post servic
 - **Framework**: Next.js 16.1.4 (App Router)
 - **Language**: TypeScript 5
 - **UI Library**: React 19.2.3
-- **Database**: SQLite (Prisma ORM)
+- **Database**: PostgreSQL (Supabase, Prisma ORM)
+- **Hosting**: Vercel
 - **Authentication**: JWT (jose library)
 - **Password Hashing**: bcryptjs
+- **SMS**: MessageBird
 - **Icons**: Lucide React
 - **Styling**: CSS Modules + Inline Styles
 
 ## 📋 Prerequisites
 
-- Node.js 20.x or higher
+- Node.js 24.x or higher
 - npm, yarn, pnpm, or bun
 - Git
 
@@ -114,15 +116,27 @@ pnpm install
 
 ### 3. Set Up Environment Variables
 
-Create a `.env` file in the root directory:
+Create a `.env` file in the root directory. For local development with Supabase Postgres:
 
 ```env
-DATABASE_URL="file:./dev.db"
+# Required
 JWT_SECRET="your-super-secret-jwt-key-change-this-in-production"
 NODE_ENV="development"
+
+# Database (Supabase Postgres or local Postgres)
+DATABASE_URL="postgresql://..."
+POSTGRES_PRISMA_URL="postgresql://..."
+POSTGRES_URL_NON_POOLING="postgresql://..."
+
+# Optional: SMS (MessageBird)
+MESSAGEBIRD_API_KEY="your-messagebird-api-key"
+
+# Optional: Supabase API/Auth (if using Supabase client)
+NEXT_PUBLIC_SUPABASE_URL="https://xxx.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="..."
 ```
 
-**Important**: Change `JWT_SECRET` to a strong, random string in production!
+**Important**: Use a strong `JWT_SECRET` in production and never commit real keys.
 
 ### 4. Set Up Database
 
@@ -132,6 +146,9 @@ npx prisma generate
 
 # Run migrations
 npx prisma migrate dev
+
+# Seed sample data (users + tasks so /tasks feed is not empty)
+npx prisma db seed
 
 # (Optional) Open Prisma Studio to view/edit data
 npx prisma studio
@@ -179,6 +196,7 @@ dastiyor/
 ├── lib/                     # Utility libraries
 │   ├── auth.ts             # JWT authentication
 │   ├── prisma.ts           # Prisma client
+│   ├── messagebird.ts      # MessageBird SMS client
 │   ├── rate-limit.ts       # Rate limiting
 │   ├── validation.ts       # Input validation
 │   ├── notifications/      # Email & SMS services
@@ -228,6 +246,10 @@ dastiyor/
 ### Upload
 - `POST /api/upload` - Upload images (max 5MB)
 
+### Admin (requires admin JWT)
+- `POST /api/admin/test-sms` - Send test SMS (phone + message body)
+- `POST /api/admin/bulk` - Bulk operations (users, tasks, etc.)
+
 ## 🗄️ Database Schema
 
 ### Main Models
@@ -246,13 +268,16 @@ See `prisma/schema.prisma` for complete schema definition.
 
 | Variable | Description | Required |
 |----------|-------------|----------|
-| `DATABASE_URL` | Prisma database connection string | Yes |
+| `DATABASE_URL` | Postgres connection string (Supabase or other) | Yes |
+| `POSTGRES_PRISMA_URL` | Postgres URL for Prisma (pooler when using Supabase) | Yes |
+| `POSTGRES_URL_NON_POOLING` | Direct Postgres URL (migrations, etc.) | Yes |
 | `JWT_SECRET` | Secret key for JWT token signing | Yes |
-| `NODE_ENV` | Environment (development/production) | Yes |
+| `NODE_ENV` | Environment (development/production) | No (defaults) |
 
-### Optional (for production)
-- `EMAIL_SERVICE_API_KEY` - For email notifications
-- `SMS_SERVICE_API_KEY` - For SMS notifications
+### Optional
+- `MESSAGEBIRD_API_KEY` - MessageBird API key for SMS (verification, task/offer notifications)
+- `NEXT_PUBLIC_SUPABASE_*` / `SUPABASE_*` - Supabase project URL and keys (if using Supabase client)
+- `EMAIL_SERVICE_*` - For email notifications (structure ready)
 - `PAYMENT_GATEWAY_KEY` - For payment processing
 
 ## 🚢 Deployment
@@ -272,7 +297,7 @@ npx prisma generate
 ```
 
 ### Recommended Platforms
-- **Vercel** (recommended for Next.js)
+- **Vercel** (recommended; set Node.js version to 24.x in Project Settings)
 - **Netlify**
 - **Railway**
 - **DigitalOcean App Platform**
@@ -280,10 +305,11 @@ npx prisma generate
 
 ### Production Checklist
 - [ ] Set strong `JWT_SECRET`
-- [ ] Use PostgreSQL or MySQL (not SQLite)
-- [ ] Configure email service (SendGrid/AWS SES)
-- [ ] Configure SMS service (Twilio/AWS SNS)
-- [ ] Set up payment gateway (Stripe/PayPal)
+- [ ] Use PostgreSQL (e.g. Supabase)
+- [ ] Set `DATABASE_URL`, `POSTGRES_PRISMA_URL`, `POSTGRES_URL_NON_POOLING` for production DB
+- [ ] Set `MESSAGEBIRD_API_KEY` for SMS (MessageBird)
+- [ ] Configure email service if needed (SendGrid/AWS SES)
+- [ ] Set up payment gateway if needed (Stripe/PayPal)
 - [ ] Configure cloud storage for uploads (S3/DigitalOcean Spaces)
 - [ ] Set up proper CORS policies
 - [ ] Enable HTTPS
@@ -294,10 +320,13 @@ npx prisma generate
 ### Available Scripts
 
 ```bash
-npm run dev      # Start development server
-npm run build    # Build for production
-npm run start    # Start production server
-npm run lint     # Run ESLint
+npm run dev           # Start development server
+npm run build         # Build for production
+npm run start         # Start production server
+npm run lint          # Run ESLint
+npm test              # Run tests
+npm run test:watch    # Run tests in watch mode
+npm run test:coverage # Run tests with coverage
 ```
 
 ### Database Commands
@@ -330,9 +359,11 @@ npx prisma db push           # Push schema changes (dev only)
 - Sidebar navigation for Customer & Provider
 - Estimated completion time
 
+✅ **Integrated**
+- SMS notifications (MessageBird)
+
 🔧 **Ready for Integration**
 - Email notifications (service structure ready)
-- SMS notifications (service structure ready)
 - Payment gateway (service structure ready)
 
 ## 🤝 Contributing

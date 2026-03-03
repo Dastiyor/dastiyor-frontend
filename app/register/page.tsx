@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import AuthLayout from '@/components/auth/AuthLayout';
-
 import { useRouter } from 'next/navigation';
+import { checkPasswordStrength } from '@/lib/validation';
 
 type Role = 'customer' | 'provider' | null;
 
@@ -12,20 +12,30 @@ export default function RegisterPage() {
     const [role, setRole] = useState<Role>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    const [passwordFeedback, setPasswordFeedback] = useState<string[]>([]);
     const router = useRouter();
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         setIsLoading(true);
         setError('');
+        setPasswordFeedback([]);
 
         const formData = new FormData(e.currentTarget);
+        const password = String(formData.get('password') || '');
+        const { isStrong, feedback } = checkPasswordStrength(password);
+        if (!isStrong || password.length < 8) {
+            setPasswordFeedback(feedback.length ? feedback : ['Password must be at least 8 characters']);
+            setIsLoading(false);
+            return;
+        }
+
         const data = {
             fullName: formData.get('fullName'),
             email: formData.get('email'),
             phone: formData.get('phone'),
-            password: formData.get('password'),
-            role: role
+            password,
+            role
         };
 
         try {
@@ -246,8 +256,9 @@ export default function RegisterPage() {
                     <input
                         name="password"
                         type="password"
-                        placeholder="Create a password"
+                        placeholder="Min 8 characters, include letter and number"
                         required
+                        minLength={8}
                         style={{
                             padding: '12px 16px',
                             borderRadius: '8px',
@@ -256,6 +267,16 @@ export default function RegisterPage() {
                             outline: 'none',
                         }}
                     />
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>
+                        At least 8 characters, one uppercase, one lowercase, one number
+                    </span>
+                    {passwordFeedback.length > 0 && (
+                        <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '0.85rem', color: '#c62828' }}>
+                            {passwordFeedback.map((msg, i) => (
+                                <li key={i}>{msg}</li>
+                            ))}
+                        </ul>
+                    )}
                 </div>
 
                 <button

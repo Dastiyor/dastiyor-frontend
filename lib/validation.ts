@@ -57,6 +57,18 @@ export function checkPasswordStrength(password: string): {
     };
 }
 
+/** Validate password for registration and reset: min 8 chars, at least one letter and one number. */
+export function validatePassword(password: string): { valid: boolean; error?: string } {
+    if (!password || password.length < 8) {
+        return { valid: false, error: 'Password must be at least 8 characters' };
+    }
+    const { isStrong, feedback } = checkPasswordStrength(password);
+    if (!isStrong) {
+        return { valid: false, error: 'Use at least one uppercase letter, one lowercase letter, and one number' };
+    }
+    return { valid: true };
+}
+
 // Sanitize string to prevent XSS
 export function sanitizeString(input: string): string {
     return input

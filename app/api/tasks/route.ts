@@ -4,6 +4,121 @@ import { verifyJWT } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import { logger } from '@/lib/logger';
 
+const TASKS_PER_PAGE = 20;
+
+/** GET - Public paginated task list for feed / lazy loading */
+export async function GET(request: Request) {
+    try {
+        const { searchParams } = new URL(request.url);
+        const category = searchParams.get('category');
+        const query = searchParams.get('query');
+        const city = searchParams.get('city');
+        const minBudget = searchParams.get('minBudget');
+        const maxBudget = searchParams.get('maxBudget');
+        const urgency = searchParams.get('urgency');
+        const sort = searchParams.get('sort') || 'newest';
+        const page = parseInt(searchParams.get('page') || '1', 10);
+        const limit = Math.min(parseInt(searchParams.get('limit') || String(TASKS_PER_PAGE), 10), 50);
+        const skip = (page - 1) * limit;
+
+        const where: any = { status: 'OPEN' };
+        if (category) where.category = category;
+        if (city) where.city = { contains: city };
+        if (urgency) {
+            const values = urgency.split(',').filter(Boolean);
+            if (values.length) where.urgency = { in: values };
+        }
+        if (query) {
+            where.OR = [
+                { title: { contains: query } },
+                { description: { contains: query } }
+            ];
+        }
+        if (minBudget || maxBudget) {
+            where.AND = where.AND || [];
+            where.AND.push({
+                OR: [
+                    { budgetType: 'negotiable' },
+                    {
+                        budgetType: 'fixed',
+                        budgetAmountNum: {
+                            ...(minBudget ? { gte: parseInt(minBudget, 10) } : {}),
+                            ...(maxBudget ? { lte: parseInt(maxBudget, 10) } : {}),
+                        },
+                    },
+                ],
+            });
+        }
+
+        let orderBy: any = { createdAt: 'desc' };
+        if (sort === 'budget-high') orderBy = [{ budgetAmountNum: 'desc' }, { createdAt: 'desc' }];
+        else if (sort === 'budget-low') orderBy = [{ budgetAmountNum: 'asc' }, { createdAt: 'desc' }];
+
+        const [tasksForPage, total] = await Promise.all([
+            prisma.task.findMany({
+                where,
+                orderBy,
+                skip,
+                take: limit,
+                include: {
+                    _count: { select: { responses: true } },
+                    user: { select: { fullName: true } },
+                    responses: {
+                        include: {
+                            user: {
+                                include: { subscription: true },
+                            },
+                        },
+                    },
+                },
+            }),
+            prisma.task.count({ where }),
+        ]);
+
+        const sortedTasks = tasksForPage.sort((a: any, b: any) => {
+            const aHasPremium = a.responses?.some((r: any) =>
+                r.user?.subscription?.plan === 'premium' && r.user?.subscription?.isActive && new Date(r.user.subscription.endDate) > new Date()
+            );
+            const bHasPremium = b.responses?.some((r: any) =>
+                r.user?.subscription?.plan === 'premium' && r.user?.subscription?.isActive && new Date(r.user.subscription.endDate) > new Date()
+            );
+            if (aHasPremium && !bHasPremium) return -1;
+            if (!aHasPremium && bHasPremium) return 1;
+            return 0;
+        });
+
+        const tasks = sortedTasks.map((task: any) => ({
+            id: task.id,
+            title: task.title,
+            category: task.category,
+            budget: task.budgetType === 'fixed' ? `${task.budgetAmount} с.` : 'Договорная',
+            city: task.city,
+            postedAt: new Date(task.createdAt).toLocaleDateString('ru-RU'),
+            description: task.description,
+            urgency: task.urgency,
+            responseCount: task._count.responses,
+            status: task.status,
+            hasPremiumResponse: task.responses?.some((r: any) =>
+                r.user?.subscription?.plan === 'premium' && r.user?.subscription?.isActive && new Date(r.user.subscription.endDate) > new Date()
+            ),
+        }));
+
+        return NextResponse.json({
+            tasks,
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit),
+                hasMore: page * limit < total,
+            },
+        });
+    } catch (error: any) {
+        logger.error('Tasks list error', { error: error.message });
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}
+
 export async function POST(request: Request) {
     try {
         // 1. Authenticate Request

@@ -19,6 +19,13 @@ jest.mock('@/lib/rate-limit', () => ({
     rateLimitExceededResponse: jest.fn(),
 }));
 
+jest.mock('@/lib/validation', () => ({
+    validatePassword: jest.fn((p: string) => ({
+        valid: p.length >= 8 && /[A-Z]/.test(p) && /[a-z]/.test(p) && /[0-9]/.test(p),
+        error: undefined,
+    })),
+}));
+
 describe('/api/auth/register', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -49,7 +56,7 @@ describe('/api/auth/register', () => {
             method: 'POST',
             body: JSON.stringify({
                 email: 'existing@example.com',
-                password: 'password123',
+                password: 'Password123',
                 fullName: 'Test User',
             }),
         });
@@ -75,7 +82,7 @@ describe('/api/auth/register', () => {
             method: 'POST',
             body: JSON.stringify({
                 email: 'newuser@example.com',
-                password: 'password123',
+                password: 'Password123',
                 fullName: 'New User',
             }),
         });
@@ -102,7 +109,7 @@ describe('/api/auth/register', () => {
             method: 'POST',
             body: JSON.stringify({
                 email: 'newuser@example.com',
-                password: 'password123',
+                password: 'Password123',
                 fullName: 'New User',
             }),
         });
@@ -111,6 +118,6 @@ describe('/api/auth/register', () => {
 
         expect(prisma.user.create).toHaveBeenCalled();
         const createCall = (prisma.user.create as jest.Mock).mock.calls[0][0];
-        expect(createCall.data.password).not.toBe('password123');
+        expect(createCall.data.password).not.toBe('Password123');
     });
 });

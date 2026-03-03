@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { validatePassword } from '@/lib/validation';
 
 // POST - Reset password with token
 export async function POST(request: Request) {
@@ -12,8 +13,9 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Token and password are required' }, { status: 400 });
         }
 
-        if (password.length < 6) {
-            return NextResponse.json({ error: 'Password must be at least 6 characters' }, { status: 400 });
+        const passwordValidation = validatePassword(password);
+        if (!passwordValidation.valid) {
+            return NextResponse.json({ error: passwordValidation.error }, { status: 400 });
         }
 
         // Find valid reset token

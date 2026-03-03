@@ -345,9 +345,11 @@ export default function CreateTaskPage() {
                                 />
                             </div>
 
-                            {/* Map Placeholder */}
-                            <div style={{ height: '200px', backgroundColor: '#EFF6FF', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3B82F6', border: '2px dashed #BFDBFE' }}>
-                                Карта (Здесь будет интерактивная карта)
+                            {/* Map – coming later */}
+                            <div style={{ height: '200px', backgroundColor: '#F3F4F6', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#6B7280', border: '1px solid #E5E7EB', gap: '8px' }}>
+                                <span style={{ fontSize: '2rem' }}>📍</span>
+                                <span style={{ fontWeight: '600', fontSize: '0.95rem' }}>Карта</span>
+                                <span style={{ fontSize: '0.85rem' }}>Укажите адрес выше. Интерактивная карта будет добавлена в следующей версии.</span>
                             </div>
                         </div>
 

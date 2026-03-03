@@ -44,9 +44,7 @@ async function main() {
 
     console.log({ customer, provider });
 
-    // 3. Create Tasks
-    const categories = ['Ремонт', 'Уборка', 'Доставка', 'IT и Веб'];
-
+    // 3. Create Tasks (sample data so /tasks feed is not empty)
     const tasksData = [
         {
             title: 'Fix Leaking Faucet',
@@ -86,6 +84,39 @@ async function main() {
             budgetType: 'negotiable',
             city: 'Remote',
             urgency: 'normal',
+            status: 'OPEN',
+        },
+        {
+            title: 'Генеральная уборка 3-х комнатной квартиры после ремонта',
+            description: 'Требуется качественная уборка после ремонта: мытьё окон, полов, стен, санузла. Площадь около 80 м².',
+            category: 'Уборка',
+            budgetType: 'fixed',
+            budgetAmount: '450',
+            budgetAmountNum: 450,
+            city: 'Душанбе, Центр',
+            urgency: 'normal',
+            status: 'OPEN',
+        },
+        {
+            title: 'Заменить смеситель в ванной и починить розетку',
+            description: 'Нужен сантехник и электрик: замена смесителя, ремонт розетки в ванной.',
+            category: 'Сантехника',
+            budgetType: 'fixed',
+            budgetAmount: '150',
+            budgetAmountNum: 150,
+            city: 'Душанбе, 46 мкр',
+            urgency: 'normal',
+            status: 'OPEN',
+        },
+        {
+            title: 'Нужен репетитор по английскому языку для ребенка',
+            description: 'Ищем репетитора английского для ребёнка 10 лет. Занятия онлайн 2–3 раза в неделю.',
+            category: 'Обучение',
+            budgetType: 'fixed',
+            budgetAmount: '80',
+            budgetAmountNum: 80,
+            city: 'Онлайн',
+            urgency: 'low',
             status: 'OPEN',
         },
     ];

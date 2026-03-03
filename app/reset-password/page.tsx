@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { validatePassword } from '@/lib/validation';
 
 function ResetPasswordForm() {
     const searchParams = useSearchParams();
@@ -42,8 +43,9 @@ function ResetPasswordForm() {
         e.preventDefault();
         setError('');
 
-        if (password.length < 6) {
-            setError('Password must be at least 6 characters');
+        const { valid, error: validationError } = validatePassword(password);
+        if (!valid) {
+            setError(validationError || 'Password too weak');
             return;
         }
 
@@ -230,9 +232,9 @@ function ResetPasswordForm() {
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Enter new password"
+                            placeholder="Min 8 characters, letter and number"
                             required
-                            minLength={6}
+                            minLength={8}
                             style={{
                                 width: '100%',
                                 padding: '14px 16px',

@@ -1,8 +1,7 @@
 import { prisma } from '@/lib/prisma';
-import TaskCard from '@/components/tasks/TaskCard';
 import TaskFilterSidebar from '@/components/tasks/TaskFilterSidebar';
 import TaskSortSelect from '@/components/tasks/TaskSortSelect';
-import Pagination from '@/components/ui/Pagination';
+import TasksFeed from '@/components/tasks/TasksFeed';
 import { Suspense } from 'react';
 
 type Props = {
@@ -20,134 +19,11 @@ type Props = {
     }
 }
 
-const TASKS_PER_PAGE = 20;
-
 export default async function TasksPage({ searchParams }: Props) {
     const params = await searchParams;
-    const { category, query, city, minBudget, maxBudget, urgency, sort, page } = params;
-    const currentPage = parseInt(page || '1', 10);
-    const skip = (currentPage - 1) * TASKS_PER_PAGE;
+    const { category, city, minBudget, maxBudget, urgency, sort } = params;
 
-    // Build filter
-    const where: any = { status: 'OPEN' };
-
-    // Category filter
-    if (category) {
-        where.category = category;
-    }
-
-    // City filter
-    if (city) {
-        where.city = { contains: city };
-    }
-
-    // Budget filter
-
-
-    // Urgency filter
-    if (urgency) {
-        const urgencyValues = urgency.split(',').filter(Boolean);
-        if (urgencyValues.length > 0) {
-            where.urgency = { in: urgencyValues };
-        }
-    }
-
-    // Date filter
-    const dateFrom = params.dateFrom;
-    const dateTo = params.dateTo;
-    if (dateFrom || dateTo) {
-        where.dueDate = {};
-        if (dateFrom) {
-            where.dueDate.gte = new Date(dateFrom);
-        }
-        if (dateTo) {
-            where.dueDate.lte = new Date(dateTo);
-        }
-    }
-
-    // Search query
-    if (query) {
-        where.OR = [
-            { title: { contains: query } },
-            { description: { contains: query } }
-        ];
-    }
-
-    // Budget filter in DB using numeric column (AND with other filters so query search is preserved)
-    if (minBudget || maxBudget) {
-        const min = minBudget ? parseInt(minBudget, 10) : 0;
-        const max = maxBudget ? parseInt(maxBudget, 10) : undefined;
-        where.AND = where.AND || [];
-        where.AND.push({
-            OR: [
-                { budgetType: 'negotiable' },
-                {
-                    budgetType: 'fixed',
-                    budgetAmountNum: {
-                        ...(minBudget ? { gte: min } : {}),
-                        ...(maxBudget ? { lte: max } : {}),
-                    },
-                },
-            ],
-        });
-    }
-
-    // Determine sort order (use numeric column for budget)
-    let orderBy: any = { createdAt: 'desc' };
-    if (sort === 'budget-high') {
-        orderBy = [{ budgetAmountNum: 'desc' }, { createdAt: 'desc' }];
-    } else if (sort === 'budget-low') {
-        orderBy = [{ budgetAmountNum: 'asc' }, { createdAt: 'desc' }];
-    }
-
-    const [tasksForPage, totalTasks] = await Promise.all([
-        prisma.task.findMany({
-            where,
-            orderBy,
-            skip,
-            take: TASKS_PER_PAGE,
-            include: {
-                _count: {
-                    select: { responses: true },
-                },
-                user: {
-                    select: { fullName: true },
-                },
-                responses: {
-                    include: {
-                        user: {
-                            include: {
-                                subscription: true,
-                            },
-                        },
-                    },
-                },
-            },
-        }),
-        prisma.task.count({ where }),
-    ]);
-
-    // Sort tasks: Premium subscribers' responses first (in-memory only for current page)
-    const sortedTasks = tasksForPage.sort((a, b) => {
-        const aHasPremium = a.responses.some((r: any) =>
-            r.user.subscription &&
-            r.user.subscription.plan === 'premium' &&
-            r.user.subscription.isActive &&
-            new Date(r.user.subscription.endDate) > new Date()
-        );
-        const bHasPremium = b.responses.some((r: any) =>
-            r.user.subscription &&
-            r.user.subscription.plan === 'premium' &&
-            r.user.subscription.isActive &&
-            new Date(r.user.subscription.endDate) > new Date()
-        );
-
-        if (aHasPremium && !bHasPremium) return -1;
-        if (!aHasPremium && bHasPremium) return 1;
-        return 0;
-    });
-
-    // Get category counts for sidebar
+    // Get category counts and total for sidebar (lightweight queries)
     const categoryCounts = await prisma.task.groupBy({
         by: ['category'],
         where: { status: 'OPEN' },
@@ -255,59 +131,13 @@ export default async function TasksPage({ searchParams }: Props) {
                         </Suspense>
                     </aside>
 
-                    {/* Feed */}
+                    {/* Feed – lazy loaded via API */}
                     <main>
-                        {sortedTasks.length === 0 ? (
-                            <div style={{
-                                textAlign: 'center',
-                                padding: '80px 40px',
-                                backgroundColor: 'white',
-                                borderRadius: '16px',
-                                border: '1px solid var(--border)'
-                            }}>
-                                <div style={{ fontSize: '4rem', marginBottom: '16px' }}>🔍</div>
-                                <h3 className="heading-md" style={{ marginBottom: '8px' }}>Задания не найдены</h3>
-                                <p style={{ color: 'var(--text-light)', maxWidth: '400px', margin: '0 auto' }}>
-                                    Попробуйте изменить фильтры или расширить критерии поиска.
-                                </p>
-                            </div>
-                        ) : (
-                            <div style={{ display: 'grid', gap: '16px' }}>
-                                {sortedTasks.map((task: any) => {
-                                    const hasPremiumResponse = task.responses.some((r: any) =>
-                                        r.user.subscription &&
-                                        r.user.subscription.plan === 'premium' &&
-                                        r.user.subscription.isActive &&
-                                        new Date(r.user.subscription.endDate) > new Date()
-                                    );
-
-                                    return (
-                                        <TaskCard
-                                            key={task.id}
-                                            task={{
-                                                id: task.id,
-                                                title: task.title,
-                                                category: task.category,
-                                                budget: task.budgetType === 'fixed' ? `${task.budgetAmount} с.` : 'Договорная',
-                                                city: task.city,
-                                                postedAt: new Date(task.createdAt).toLocaleDateString('ru-RU'),
-                                                description: task.description,
-                                                urgency: task.urgency,
-                                                responseCount: task._count.responses,
-                                                status: task.status,
-                                                hasPremiumResponse
-                                            }}
-                                        />
-                                    );
-                                })}
-                            </div>
-                        )}
-
-                        {sortedTasks.length > 20 && (
-                            <div style={{ textAlign: 'center', marginTop: '40px' }}>
-                                <button className="btn btn-outline">Загрузить больше</button>
-                            </div>
-                        )}
+                        <Suspense fallback={
+                            <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--text-light)' }}>Загрузка...</div>
+                        }>
+                            <TasksFeed />
+                        </Suspense>
                     </main>
                 </div>
             </div>

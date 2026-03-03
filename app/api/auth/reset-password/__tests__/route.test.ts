@@ -33,17 +33,17 @@ describe('/api/auth/reset-password', () => {
             expect(res2.status).toBe(400);
         });
 
-        it('should return 400 if password is shorter than 6 characters', async () => {
+        it('should return 400 if password is shorter than 8 characters', async () => {
             const request = new NextRequest('http://localhost/api/auth/reset-password', {
                 method: 'POST',
-                body: JSON.stringify({ token: 'valid-token', password: '12345' }),
+                body: JSON.stringify({ token: 'valid-token', password: '1234567' }),
             });
 
             const response = await POST(request);
             const data = await response.json();
 
             expect(response.status).toBe(400);
-            expect(data.error).toContain('at least 6 characters');
+            expect(data.error).toContain('at least 8 characters');
         });
 
         it('should return 400 if token is invalid or expired', async () => {
@@ -106,14 +106,14 @@ describe('/api/auth/reset-password', () => {
                 user: { id: 'user-1' },
             });
             (prisma.user.update as jest.Mock).mockImplementation((args: any) => {
-                expect(args.data.password).not.toBe('plaintext');
+                expect(args.data.password).not.toBe('Plaintext1');
                 return Promise.resolve({});
             });
             (prisma.passwordReset.update as jest.Mock).mockResolvedValue({});
 
             const request = new NextRequest('http://localhost/api/auth/reset-password', {
                 method: 'POST',
-                body: JSON.stringify({ token: 'valid-token', password: 'plaintext' }),
+                body: JSON.stringify({ token: 'valid-token', password: 'Plaintext1' }),
             });
 
             await POST(request);

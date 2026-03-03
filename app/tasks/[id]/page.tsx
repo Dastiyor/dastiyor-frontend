@@ -7,6 +7,8 @@ import ReviewForm from '@/components/reviews/ReviewForm';
 import { cookies } from 'next/headers';
 import { verifyJWT } from '@/lib/auth';
 import Link from 'next/link';
+import { PREVIEW_TASKS } from '@/lib/landing-tasks';
+import { MapPin, Clock, Wallet } from 'lucide-react';
 
 type Props = {
     params: {
@@ -16,6 +18,79 @@ type Props = {
 
 export default async function TaskDetailsPage({ params }: Props) {
     const { id } = await params;
+
+    // Handle static preview links from landing (e.g. /tasks/preview-0, preview-1, preview-2)
+    const previewMatch = id.match(/^preview-(\d)$/);
+    if (previewMatch) {
+        const index = parseInt(previewMatch[1], 10);
+        if (index >= 0 && index < PREVIEW_TASKS.length) {
+            const task = PREVIEW_TASKS[index];
+            return (
+                <div style={{ backgroundColor: 'var(--secondary)', minHeight: '100vh', padding: '40px 0' }}>
+                    <div className="container">
+                        <div style={{ marginBottom: '24px', fontSize: '0.9rem', color: 'var(--text-light)' }}>
+                            <Link href="/" style={{ color: 'var(--primary)', textDecoration: 'none' }}>Главная</Link>
+                            {' / '}
+                            <Link href="/tasks" style={{ color: 'var(--primary)', textDecoration: 'none' }}>Задания</Link>
+                            {' / '}
+                            <span>{task.title}</span>
+                        </div>
+                        <div style={{
+                            backgroundColor: 'white',
+                            borderRadius: '16px',
+                            padding: '40px',
+                            border: '1px solid var(--border)',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+                            maxWidth: '720px',
+                        }}>
+                            <span style={{
+                                backgroundColor: '#EFF6FF',
+                                color: 'var(--primary)',
+                                fontSize: '0.8rem',
+                                fontWeight: '600',
+                                padding: '4px 12px',
+                                borderRadius: '20px',
+                            }}>
+                                {task.category}
+                            </span>
+                            <h1 style={{ fontSize: '1.75rem', fontWeight: '700', marginTop: '16px', marginBottom: '24px' }}>
+                                {task.title}
+                            </h1>
+                            <p style={{ color: 'var(--text)', lineHeight: '1.6', marginBottom: '24px' }}>
+                                {task.description}
+                            </p>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginBottom: '24px', color: 'var(--text-light)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <MapPin size={18} />
+                                    {task.location}
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <Clock size={18} />
+                                    {task.deadline}
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#059669', fontWeight: '700' }}>
+                                    <Wallet size={18} />
+                                    {task.budget}
+                                </div>
+                            </div>
+                            <p style={{ fontSize: '0.9rem', color: 'var(--text-light)', marginBottom: '24px' }}>
+                                {task.timeAgo}
+                            </p>
+                            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                                <Link href="/tasks" className="btn btn-primary">
+                                    Смотреть все задания
+                                </Link>
+                                <Link href="/register" className="btn btn-outline">
+                                    Зарегистрироваться
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+    }
+
     const task = await prisma.task.findUnique({
         where: { id },
         include: {

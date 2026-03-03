@@ -50,3 +50,4 @@ prisma/*.db
 
 # uploads
 public/uploads/
+.env*.local

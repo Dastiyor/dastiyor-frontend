@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { verifyJWT } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
+import { sendTaskResponseNotification } from '@/lib/notifications/email';
 
 export async function POST(request: Request) {
     try {
@@ -122,10 +123,10 @@ export async function POST(request: Request) {
             );
         }
 
-        // Fetch the task to get its owner and title for notification
+        // Fetch the task and its owner for notification
         const task = await prisma.task.findUnique({
             where: { id: taskId },
-            select: { userId: true, title: true }
+            select: { userId: true, title: true, user: { select: { email: true } } }
         });
 
         if (!task) {
@@ -159,6 +160,18 @@ export async function POST(request: Request) {
                 link: `/tasks/${taskId}`
             }
         });
+
+        // Send email notification to task owner (non-blocking)
+        if (task.user?.email) {
+            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dastiyor.com';
+            sendTaskResponseNotification(
+                task.user.email,
+                task.title,
+                user.fullName || 'Исполнитель',
+                priceStr,
+                `${baseUrl}/tasks/${taskId}`
+            ).catch(err => console.error('Email notification error:', err));
+        }
 
         return NextResponse.json({
             message: 'Response submitted successfully',

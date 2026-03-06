@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyJWT } from '@/lib/auth';
 import { cookies } from 'next/headers';
+import { sendNewReviewNotification } from '@/lib/notifications/email';
 
 // GET - Fetch reviews for a user
 export async function GET(request: Request) {
@@ -127,6 +128,23 @@ export async function POST(request: Request) {
                 }
             }
         });
+
+        // Send email notification to reviewed provider (non-blocking)
+        const reviewed = await prisma.user.findUnique({
+            where: { id: task.assignedUserId },
+            select: { email: true }
+        });
+        if (reviewed?.email) {
+            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dastiyor.com';
+            sendNewReviewNotification(
+                reviewed.email,
+                review.reviewer.fullName,
+                task.title,
+                rating,
+                comment || null,
+                `${baseUrl}/provider/reviews`
+            ).catch(err => console.error('Email notification error:', err));
+        }
 
         return NextResponse.json({
             message: 'Review submitted successfully',

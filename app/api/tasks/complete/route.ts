@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyJWT } from '@/lib/auth';
 import { cookies } from 'next/headers';
+import { sendTaskCompletedNotification } from '@/lib/notifications/email';
 
 export async function POST(request: Request) {
     try {
@@ -79,6 +80,22 @@ export async function POST(request: Request) {
                     link: `/tasks/${taskId}`
                 }
             });
+
+            // Send email notification to provider (non-blocking)
+            const provider = await prisma.user.findUnique({
+                where: { id: task.assignedUserId },
+                select: { email: true }
+            });
+            if (provider?.email) {
+                const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dastiyor.com';
+                const earnings = task.budgetType === 'fixed' && task.budgetAmount ? task.budgetAmount : undefined;
+                sendTaskCompletedNotification(
+                    provider.email,
+                    task.title,
+                    `${baseUrl}/tasks/${taskId}`,
+                    earnings
+                ).catch(err => console.error('Email notification error:', err));
+            }
         }
 
         return NextResponse.json({ message: 'Task completed', task: updatedTask });

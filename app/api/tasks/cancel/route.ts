@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyJWT } from '@/lib/auth';
 import { cookies } from 'next/headers';
+import { sendTaskCancelledNotification } from '@/lib/notifications/email';
 
 // POST - Cancel a task
 export async function POST(request: Request) {
@@ -52,6 +53,22 @@ export async function POST(request: Request) {
             where: { id: taskId },
             data: { status: 'CANCELLED' }
         });
+
+        // Notify providers who had pending responses (non-blocking)
+        const pendingResponses = await prisma.response.findMany({
+            where: { taskId, status: 'PENDING' },
+            include: { user: { select: { email: true } } }
+        });
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dastiyor.com';
+        for (const resp of pendingResponses) {
+            if (resp.user?.email) {
+                sendTaskCancelledNotification(
+                    resp.user.email,
+                    task.title,
+                    `${baseUrl}/tasks`
+                ).catch(err => console.error('Email notification error:', err));
+            }
+        }
 
         return NextResponse.json({
             message: 'Task cancelled successfully'

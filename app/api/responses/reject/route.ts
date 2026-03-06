@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyJWT } from '@/lib/auth';
 import { cookies } from 'next/headers';
+import { sendOfferRejectedNotification } from '@/lib/notifications/email';
 
 export async function POST(request: Request) {
     try {
@@ -63,6 +64,20 @@ export async function POST(request: Request) {
                 link: `/tasks/${response.taskId}`
             }
         });
+
+        // Send email notification to provider (non-blocking)
+        const provider = await prisma.user.findUnique({
+            where: { id: response.userId },
+            select: { email: true }
+        });
+        if (provider?.email) {
+            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dastiyor.com';
+            sendOfferRejectedNotification(
+                provider.email,
+                response.task.title,
+                `${baseUrl}/tasks`
+            ).catch(err => console.error('Email notification error:', err));
+        }
 
         return NextResponse.json({
             message: 'Response rejected successfully'

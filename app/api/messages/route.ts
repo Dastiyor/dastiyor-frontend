@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyJWT } from '@/lib/auth';
 import { cookies } from 'next/headers';
+import { sendNewMessageNotification } from '@/lib/notifications/email';
 
 // GET - Fetch messages for a conversation (between current user and another user, optionally for a task)
 export async function GET(request: Request) {
@@ -114,6 +115,21 @@ export async function POST(request: Request) {
                 }
             }
         });
+
+        // Send email notification to receiver (non-blocking)
+        const receiver = await prisma.user.findUnique({
+            where: { id: receiverId },
+            select: { email: true }
+        });
+        if (receiver?.email && content) {
+            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dastiyor.com';
+            sendNewMessageNotification(
+                receiver.email,
+                message.sender.fullName,
+                content,
+                `${baseUrl}/messages?userId=${senderId}${taskId ? `&taskId=${taskId}` : ''}`
+            ).catch(err => console.error('Email notification error:', err));
+        }
 
         return NextResponse.json({ message }, { status: 201 });
 

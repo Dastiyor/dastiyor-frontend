@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import { signJWT } from '@/lib/auth';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 import { validatePassword } from '@/lib/validation';
+import { sendWelcomeEmail } from '@/lib/notifications/email';
 
 export async function POST(request: Request) {
     try {
@@ -87,6 +88,10 @@ export async function POST(request: Request) {
             maxAge: 86400, // 1 day
             path: '/',
         });
+
+        // Send welcome email (non-blocking)
+        sendWelcomeEmail(user.email, user.fullName, user.role)
+            .catch(err => console.error('Welcome email error:', err));
 
         return response;
 

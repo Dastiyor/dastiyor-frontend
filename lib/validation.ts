@@ -62,6 +62,9 @@ export function validatePassword(password: string): { valid: boolean; error?: st
     if (!password || password.length < 8) {
         return { valid: false, error: 'Password must be at least 8 characters' };
     }
+    if (password.length > 70) {
+        return { valid: false, error: 'Password must not exceed 70 characters' };
+    }
     const { isStrong, feedback } = checkPasswordStrength(password);
     if (!isStrong) {
         return { valid: false, error: 'Use at least one uppercase letter, one lowercase letter, and one number' };

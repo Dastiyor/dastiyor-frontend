@@ -5,6 +5,10 @@ import * as bcrypt from 'bcryptjs';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
+    if (process.env.NODE_ENV === 'production') {
+        return NextResponse.json({ error: 'Seed endpoint disabled in production' }, { status: 403 });
+    }
+
     const { searchParams } = new URL(request.url);
     const secret = searchParams.get('secret');
 

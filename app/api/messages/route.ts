@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { verifyJWT } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import { sendNewMessageNotification } from '@/lib/notifications/email';
+import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 
 // GET - Fetch messages for a conversation (between current user and another user, optionally for a task)
 export async function GET(request: Request) {
@@ -23,6 +24,8 @@ export async function GET(request: Request) {
         const { searchParams } = new URL(request.url);
         const otherId = searchParams.get('userId');
         const taskId = searchParams.get('taskId');
+        const limitStr = searchParams.get('limit');
+        const limit = limitStr ? Math.max(1, Math.min(parseInt(limitStr, 10), 100)) : 50;
 
         if (!otherId) {
             return NextResponse.json({ error: 'Missing userId parameter' }, { status: 400 });
@@ -42,13 +45,17 @@ export async function GET(request: Request) {
 
         const messages = await prisma.message.findMany({
             where: whereClause,
-            orderBy: { createdAt: 'asc' },
+            orderBy: { createdAt: 'desc' },
+            take: limit,
             include: {
                 sender: {
                     select: { id: true, fullName: true }
                 }
             }
         });
+
+        // Inverse sort so newest is at the bottom in the UI
+        messages.reverse();
 
         // Mark received messages as read
         await prisma.message.updateMany({
@@ -84,6 +91,14 @@ export async function POST(request: Request) {
         }
 
         const senderId = payload.id as string;
+
+        // Apply rate limiting (e.g. 20 messages per minute via 'upload' or a new 'messages' type in rate-limit, fallback to 'api')
+        const clientIP = getClientIP(request);
+        const rateLimitCheck = checkRateLimit(clientIP, 'api');
+        if (!rateLimitCheck.allowed) {
+            return rateLimitExceededResponse(rateLimitCheck.resetIn);
+        }
+
         const body = await request.json();
         const { receiverId, content, taskId, imageUrl } = body;
 

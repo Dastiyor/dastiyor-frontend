@@ -50,9 +50,15 @@ export async function POST(request: Request) {
             // Directory might already exist
         }
 
-        // Generate unique filename
+        // Generate unique filename securely from verified mime type
+        const typeToExt: Record<string, string> = {
+            'image/jpeg': 'jpg',
+            'image/png': 'png',
+            'image/gif': 'gif',
+            'image/webp': 'webp'
+        };
         const timestamp = Date.now();
-        const extension = file.name.split('.').pop();
+        const extension = typeToExt[file.type];
         const filename = `${payload.id}-${timestamp}.${extension}`;
         const filepath = join(uploadsDir, filename);
 

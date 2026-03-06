@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { verifyJWT } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import { logger } from '@/lib/logger';
+import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
+import { validateTaskInput } from '@/lib/validation';
 
 const TASKS_PER_PAGE = 20;
 
@@ -17,8 +19,8 @@ export async function GET(request: Request) {
         const maxBudget = searchParams.get('maxBudget');
         const urgency = searchParams.get('urgency');
         const sort = searchParams.get('sort') || 'newest';
-        const page = parseInt(searchParams.get('page') || '1', 10);
-        const limit = Math.min(parseInt(searchParams.get('limit') || String(TASKS_PER_PAGE), 10), 50);
+        const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+        const limit = Math.max(1, Math.min(parseInt(searchParams.get('limit') || String(TASKS_PER_PAGE), 10), 50));
         const skip = (page - 1) * limit;
 
         const where: any = { status: 'OPEN' };
@@ -141,6 +143,13 @@ export async function POST(request: Request) {
             );
         }
 
+        // Apply Rate Limiting
+        const clientIP = getClientIP(request);
+        const rateLimitCheck = checkRateLimit(clientIP, 'api');
+        if (!rateLimitCheck.allowed) {
+            return rateLimitExceededResponse(rateLimitCheck.resetIn);
+        }
+
         // 2. Parse Body
         const body = await request.json();
         const {
@@ -157,9 +166,11 @@ export async function POST(request: Request) {
             urgency
         } = body;
 
-        if (!title || !description || !category) {
+        // Validate Request using pre-defined schema
+        const validation = validateTaskInput({ title, description, category, city, budgetAmount: amount });
+        if (!validation.isValid) {
             return NextResponse.json(
-                { error: 'Missing required fields' },
+                { error: validation.errors.join(', ') },
                 { status: 400 }
             );
         }

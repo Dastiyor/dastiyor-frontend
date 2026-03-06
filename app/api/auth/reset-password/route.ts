@@ -37,17 +37,17 @@ export async function POST(request: Request) {
         // Hash new password
         const hashedPassword = await bcrypt.hash(password, 12);
 
-        // Update user password
-        await prisma.user.update({
-            where: { id: resetToken.userId },
-            data: { password: hashedPassword }
-        });
-
-        // Mark token as used
-        await prisma.passwordReset.update({
-            where: { id: resetToken.id },
-            data: { used: true }
-        });
+        // Update user password and mark token as used atomically
+        await prisma.$transaction([
+            prisma.user.update({
+                where: { id: resetToken.userId },
+                data: { password: hashedPassword }
+            }),
+            prisma.passwordReset.update({
+                where: { id: resetToken.id },
+                data: { used: true }
+            })
+        ]);
 
         return NextResponse.json({
             message: 'Password has been reset successfully. You can now login with your new password.'

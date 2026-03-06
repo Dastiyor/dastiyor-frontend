@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { sendVerificationCode } from '@/lib/notifications/sms';
+import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 import crypto from 'crypto';
 
 export async function POST(request: Request) {
@@ -13,6 +14,22 @@ export async function POST(request: Request) {
             return NextResponse.json(
                 { error: 'Phone number is required' },
                 { status: 400 }
+            );
+        }
+
+        // 1. IP-based rate limiting
+        const clientIP = getClientIP(request);
+        const ipLimit = checkRateLimit(clientIP, 'auth');
+        if (!ipLimit.allowed) {
+            return rateLimitExceededResponse(ipLimit.resetIn);
+        }
+
+        // 2. Phone-based SMS rate limiting
+        const phoneLimit = checkRateLimit(phone, 'sms');
+        if (!phoneLimit.allowed) {
+            return NextResponse.json(
+                { error: 'Too many SMS requests. Please try again in 15 minutes.' },
+                { status: 429 }
             );
         }
 

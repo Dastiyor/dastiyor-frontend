@@ -66,7 +66,7 @@ A full-featured online services marketplace platform where customers post servic
 - Real-time notification bell
 - Notification types: NEW_OFFER, OFFER_ACCEPTED, OFFER_REJECTED, NEW_MESSAGE, TASK_COMPLETED
 - Email notification service structure (ready for integration)
-- SMS via MessageBird (verification codes, task/offer notifications)
+- SMS via Brevo (verification codes, task/offer notifications)
 
 #### Admin Panel
 - Dashboard with platform statistics
@@ -85,7 +85,7 @@ A full-featured online services marketplace platform where customers post servic
 - **Hosting**: Vercel
 - **Authentication**: JWT (jose library)
 - **Password Hashing**: bcryptjs
-- **SMS**: MessageBird
+- **SMS**: Brevo
 - **Icons**: Lucide React
 - **Styling**: CSS Modules + Inline Styles
 
@@ -128,8 +128,8 @@ DATABASE_URL="postgresql://..."
 POSTGRES_PRISMA_URL="postgresql://..."
 POSTGRES_URL_NON_POOLING="postgresql://..."
 
-# Optional: SMS (MessageBird)
-MESSAGEBIRD_API_KEY="your-messagebird-api-key"
+# Optional: SMS Sender Name (Brevo)
+BREVO_SMS_SENDER="Dastiyor"
 
 # Optional: Email (Brevo) – for password reset and notifications
 BREVO_API_KEY="xkeysib-..."
@@ -203,7 +203,7 @@ dastiyor/
 ├── lib/                     # Utility libraries
 │   ├── auth.ts             # JWT authentication
 │   ├── prisma.ts           # Prisma client
-│   ├── messagebird.ts      # MessageBird SMS client
+│   ├── brevo-sms.ts        # Brevo SMS client
 │   ├── rate-limit.ts       # Rate limiting
 │   ├── validation.ts       # Input validation
 │   ├── notifications/      # Email & SMS services
@@ -282,7 +282,7 @@ See `prisma/schema.prisma` for complete schema definition.
 | `NODE_ENV` | Environment (development/production) | No (defaults) |
 
 ### Optional
-- `MESSAGEBIRD_API_KEY` - MessageBird API key for SMS (verification, task/offer notifications)
+- `BREVO_SMS_SENDER` - Brevo SMS sender name (custom sender ID, default "Dastiyor")
 - `NEXT_PUBLIC_SUPABASE_*` / `SUPABASE_*` - Supabase project URL and keys (if using Supabase client)
 - `EMAIL_SERVICE_*` - For email notifications (structure ready)
 - `PAYMENT_GATEWAY_KEY` - For payment processing
@@ -314,7 +314,7 @@ npx prisma generate
 - [ ] Set strong `JWT_SECRET`
 - [ ] Use PostgreSQL (e.g. Supabase)
 - [ ] Set `DATABASE_URL`, `POSTGRES_PRISMA_URL`, `POSTGRES_URL_NON_POOLING` for production DB
-- [ ] Set `MESSAGEBIRD_API_KEY` for SMS (MessageBird)
+- [ ] Set `BREVO_SMS_SENDER` for custom SMS sender (Brevo)
 - [ ] Configure email service if needed (SendGrid/AWS SES)
 - [ ] Set up payment gateway if needed (Stripe/PayPal)
 - [ ] Configure cloud storage for uploads (S3/DigitalOcean Spaces)
@@ -384,7 +384,7 @@ npx prisma db push           # Push schema changes (dev only)
 - Estimated completion time
 
 ✅ **Integrated**
-- SMS notifications (MessageBird)
+- SMS notifications (Brevo)
 
 🔧 **Ready for Integration**
 - Email notifications (service structure ready)

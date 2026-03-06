@@ -261,10 +261,10 @@ export default function AdminSettingsPage() {
                 <Mail size={20} color="#6366F1" style={{ marginTop: '2px' }} />
                 <div>
                     <p style={{ color: '#4338CA', fontWeight: '600', marginBottom: '4px' }}>
-                        Настройка email (Brevo)
+                        Настройка email и SMS (Brevo)
                     </p>
                     <p style={{ color: '#6366F1', fontSize: '0.9rem' }}>
-                        В .env задайте BREVO_API_KEY и BREVO_FROM_EMAIL (адрес проверенного отправителя в Brevo). Затем проверьте отправку через «Тест отправки email» выше.
+                        В .env задайте BREVO_API_KEY и BREVO_FROM_EMAIL (адрес проверенного отправителя в Brevo). Для SMS также можно задать BREVO_SMS_SENDER (по умолчанию &quot;Dastiyor&quot;). Затем проверьте отправку через тесты выше.
                     </p>
                 </div>
             </div>

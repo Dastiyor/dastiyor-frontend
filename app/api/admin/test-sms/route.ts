@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyJWT } from '@/lib/auth';
-import { sendSMS } from '@/lib/messagebird';
+import { sendSMS } from '@/lib/brevo-sms';
 
 export async function POST(request: Request) {
     try {

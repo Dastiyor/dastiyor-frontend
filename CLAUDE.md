@@ -61,8 +61,8 @@ No REST framework — each route is a standalone `route.ts` with exported `GET`/
 - `@/lib/validation.ts` — Input validation + sanitization (XSS, spam detection)
 - `@/lib/rate-limit.ts` — In-memory rate limiter
 - `@/lib/notifications/email.ts` — Brevo email service
-- `@/lib/notifications/sms.ts` — MessageBird SMS
-- `@/lib/messagebird.ts` — MessageBird client
+- `@/lib/notifications/sms.ts` — Brevo SMS notifications
+- `@/lib/brevo-sms.ts` — Brevo SMS client
 
 ### Path Alias
 
@@ -79,6 +79,5 @@ Jest + React Testing Library. Tests live in `__tests__/` directories adjacent to
 ### External Services
 
 - **Supabase**: PostgreSQL hosting (required)
-- **Brevo**: Transactional email (password reset) — optional
-- **MessageBird**: SMS verification — optional
+- **Brevo**: Transactional email + SMS — optional
 - **Vercel**: Deployment target (Node.js 24.x)

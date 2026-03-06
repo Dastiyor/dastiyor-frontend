@@ -16,6 +16,7 @@ export const RATE_LIMITS = {
     api: { requests: 100, windowMs: 60 * 1000 }, // 100 requests per minute for general API
     responses: { requests: 10, windowMs: 60 * 1000 }, // 10 responses per minute
     upload: { requests: 20, windowMs: 60 * 1000 }, // 20 uploads per minute
+    sms: { requests: 3, windowMs: 15 * 60 * 1000 }, // 3 SMS per 15 minutes per identifier (IP or phone)
 };
 
 export type RateLimitType = keyof typeof RATE_LIMITS;

@@ -1,12 +1,8 @@
 /**
  * SMS Notification Service
- * 
- * This service handles sending SMS notifications.
- * To use in production, integrate with a service like:
- * - Twilio (https://www.twilio.com)
- * - AWS SNS (https://aws.amazon.com/sns/)
- * - MessageBird (https://www.messagebird.com)
- * - Nexmo/Vonage (https://www.vonage.com)
+ *
+ * This service handles sending SMS notifications via Brevo (formerly Sendinblue).
+ * Requires BREVO_API_KEY to be set in environment variables.
  */
 
 interface SMSOptions {
@@ -27,8 +23,8 @@ export async function sendSMS(options: SMSOptions): Promise<boolean> {
             // return true;
         }
 
-        // Use our MessageBird integration
-        const { sendSMS: sendRealSMS } = require('@/lib/messagebird');
+        // Use our Brevo SMS integration
+        const { sendSMS: sendRealSMS } = require('@/lib/brevo-sms');
 
         try {
             await sendRealSMS({
@@ -37,7 +33,7 @@ export async function sendSMS(options: SMSOptions): Promise<boolean> {
             });
             return true;
         } catch (smsError) {
-            console.error('Failed to send SMS via MessageBird:', smsError);
+            console.error('Failed to send SMS via Brevo:', smsError);
             return false;
         }
     } catch (error) {

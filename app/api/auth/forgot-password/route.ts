@@ -1,6 +1,17 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import crypto from 'crypto';
+import { sendPasswordResetEmail } from '@/lib/notifications/email';
+
+function getResetLinkBase(request: Request): string {
+    const url = process.env.NEXT_PUBLIC_APP_URL;
+    if (url) return url.replace(/\/$/, '');
+    try {
+        const u = new URL(request.url);
+        if (u.origin && u.origin !== 'null') return u.origin;
+    } catch (_) {}
+    return process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000';
+}
 
 // POST - Request password reset
 export async function POST(request: Request) {
@@ -43,17 +54,19 @@ export async function POST(request: Request) {
             }
         });
 
-        // In production, you would send an email here
-        // For development, we'll log the reset link
-        const resetLink = `http://localhost:3000/reset-password?token=${token}`;
-        console.log('='.repeat(60));
-        console.log('PASSWORD RESET LINK (Development Mode):');
-        console.log(resetLink);
-        console.log('='.repeat(60));
+        const baseUrl = getResetLinkBase(request);
+        const resetLink = `${baseUrl}/reset-password?token=${token}`;
+        const sent = await sendPasswordResetEmail(user.email, resetLink);
+
+        if (!sent && process.env.NODE_ENV === 'development') {
+            console.log('='.repeat(60));
+            console.log('PASSWORD RESET LINK (Email not sent, fallback):');
+            console.log(resetLink);
+            console.log('='.repeat(60));
+        }
 
         return NextResponse.json({
             message: 'If an account exists with this email, a password reset link has been sent.',
-            // Only include token in development for testing
             ...(process.env.NODE_ENV === 'development' && { debug_token: token })
         });
 

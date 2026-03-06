@@ -131,6 +131,11 @@ POSTGRES_URL_NON_POOLING="postgresql://..."
 # Optional: SMS (MessageBird)
 MESSAGEBIRD_API_KEY="your-messagebird-api-key"
 
+# Optional: Email (Brevo) – for password reset and notifications
+BREVO_API_KEY="xkeysib-..."
+BREVO_FROM_EMAIL="noreply@yourdomain.com"   # Must be a verified sender in Brevo
+BREVO_FROM_NAME="Dastiyor"
+
 # Optional: Supabase API/Auth (if using Supabase client)
 NEXT_PUBLIC_SUPABASE_URL="https://xxx.supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="..."

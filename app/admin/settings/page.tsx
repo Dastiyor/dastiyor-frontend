@@ -147,6 +147,60 @@ export default function AdminSettingsPage() {
                         </div>
                     </div>
                 )}
+                <div style={{ marginTop: '16px', padding: '16px', backgroundColor: '#F9FAFB', borderRadius: '8px', border: '1px solid #E5E7EB' }}>
+                    <h4 style={{ margin: '0 0 12px 0', fontSize: '0.9rem', color: '#4B5563' }}>Тест отправки email (Brevo)</h4>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        <input
+                            type="email"
+                            placeholder="email@example.com"
+                            id="test-email-to"
+                            style={{
+                                flex: 1,
+                                padding: '8px 12px',
+                                borderRadius: '6px',
+                                border: '1px solid #D1D5DB',
+                                outline: 'none'
+                            }}
+                        />
+                        <button
+                            onClick={async () => {
+                                const input = document.getElementById('test-email-to') as HTMLInputElement;
+                                const to = input?.value?.trim();
+                                if (!to) return alert('Введите email');
+
+                                try {
+                                    const res = await fetch('/api/admin/test-email', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ to })
+                                    });
+                                    const data = await res.json();
+                                    if (data.success) {
+                                        alert('Письмо отправлено! Проверьте почту.');
+                                        input.value = '';
+                                    } else {
+                                        alert('Ошибка: ' + (data.error || 'Unknown error'));
+                                    }
+                                } catch (e) {
+                                    alert('Ошибка сети');
+                                    console.error(e);
+                                }
+                            }}
+                            style={{
+                                padding: '8px 16px',
+                                backgroundColor: '#059669',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                fontWeight: '500',
+                                fontSize: '0.9rem'
+                            }}
+                        >
+                            Отправить тест
+                        </button>
+                    </div>
+                </div>
             </SettingsSection>
 
             {/* Security Settings */}
@@ -207,10 +261,10 @@ export default function AdminSettingsPage() {
                 <Mail size={20} color="#6366F1" style={{ marginTop: '2px' }} />
                 <div>
                     <p style={{ color: '#4338CA', fontWeight: '600', marginBottom: '4px' }}>
-                        Настройка email уведомлений
+                        Настройка email (Brevo)
                     </p>
                     <p style={{ color: '#6366F1', fontSize: '0.9rem' }}>
-                        Для полноценной работы email уведомлений необходимо настроить SMTP сервер в переменных окружения.
+                        В .env задайте BREVO_API_KEY и BREVO_FROM_EMAIL (адрес проверенного отправителя в Brevo). Затем проверьте отправку через «Тест отправки email» выше.
                     </p>
                 </div>
             </div>

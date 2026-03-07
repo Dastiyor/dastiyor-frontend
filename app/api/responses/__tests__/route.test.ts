@@ -1,22 +1,11 @@
 import { POST } from '../route';
-import { prisma } from '@/lib/prisma';
+import { prismaMock } from '../../../../__tests__/mocks/prisma';
 import { verifyJWT } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
 
 // Mock dependencies
-jest.mock('@/lib/prisma', () => ({
-    prisma: {
-        response: {
-            findMany: jest.fn(),
-            create: jest.fn(),
-            count: jest.fn(),
-        },
-        user: { findUnique: jest.fn() },
-        task: { findUnique: jest.fn() },
-        notification: { create: jest.fn() },
-    },
-}));
+
 
 jest.mock('@/lib/auth', () => ({
     verifyJWT: jest.fn(),
@@ -44,14 +33,14 @@ describe('/api/responses', () => {
             getAll: jest.fn(() => []),
         });
         (verifyJWT as jest.Mock).mockResolvedValue(mockPayload);
-        (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+        (prismaMock.user.findUnique as jest.Mock).mockResolvedValue({
             id: mockUserId,
             role: 'PROVIDER',
             subscription: { isActive: true, endDate: new Date(Date.now() + 86400000), plan: 'standard' },
         });
-        (prisma.task.findUnique as jest.Mock).mockResolvedValue({ userId: 'owner-1', title: 'Test Task' });
-        (prisma.response.count as jest.Mock).mockResolvedValue(0);
-        (prisma.notification.create as jest.Mock).mockResolvedValue({});
+        (prismaMock.task.findUnique as jest.Mock).mockResolvedValue({ userId: 'owner-1', title: 'Test Task' });
+        (prismaMock.response.count as jest.Mock).mockResolvedValue(0);
+        (prismaMock.notification.create as jest.Mock).mockResolvedValue({});
     });
 
     describe('GET', () => {
@@ -93,7 +82,7 @@ describe('/api/responses', () => {
                 },
             ];
 
-            (prisma.response.findMany as jest.Mock).mockResolvedValue(mockResponses);
+            (prismaMock.response.findMany as jest.Mock).mockResolvedValue(mockResponses);
 
             const request = new NextRequest('http://localhost/api/responses?taskId=task-1');
             const response = await (await import('../route')).GET(request);
@@ -154,7 +143,7 @@ describe('/api/responses', () => {
                 createdAt: new Date(),
             };
 
-            (prisma.response.create as jest.Mock).mockResolvedValue(mockResponse);
+            (prismaMock.response.create as jest.Mock).mockResolvedValue(mockResponse);
 
             const request = new NextRequest('http://localhost/api/responses', {
                 method: 'POST',
@@ -171,11 +160,11 @@ describe('/api/responses', () => {
             expect(response.status).toBe(201);
             expect(data.response).toBeDefined();
             expect(data.response.message).toBe('I can help with this task');
-            expect(prisma.response.create).toHaveBeenCalled();
+            expect(prismaMock.response.create).toHaveBeenCalled();
         });
 
         it('should return 403 if user is not a provider', async () => {
-            (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+            (prismaMock.user.findUnique as jest.Mock).mockResolvedValue({
                 id: mockUserId,
                 role: 'CUSTOMER',
                 subscription: null,
@@ -199,7 +188,7 @@ describe('/api/responses', () => {
         });
 
         it('should return 403 if provider has no active subscription', async () => {
-            (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+            (prismaMock.user.findUnique as jest.Mock).mockResolvedValue({
                 id: mockUserId,
                 role: 'PROVIDER',
                 subscription: null,
@@ -223,7 +212,7 @@ describe('/api/responses', () => {
         });
 
         it('should return 403 if subscription is expired', async () => {
-            (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+            (prismaMock.user.findUnique as jest.Mock).mockResolvedValue({
                 id: mockUserId,
                 role: 'PROVIDER',
                 subscription: {
@@ -250,7 +239,7 @@ describe('/api/responses', () => {
         });
 
         it('should return 404 if task not found', async () => {
-            (prisma.task.findUnique as jest.Mock).mockResolvedValue(null);
+            (prismaMock.task.findUnique as jest.Mock).mockResolvedValue(null);
 
             const request = new NextRequest('http://localhost/api/responses', {
                 method: 'POST',
@@ -269,7 +258,7 @@ describe('/api/responses', () => {
         });
 
         it('should create notification for task owner when response is submitted', async () => {
-            (prisma.response.create as jest.Mock).mockResolvedValue({
+            (prismaMock.response.create as jest.Mock).mockResolvedValue({
                 id: 'resp-1',
                 taskId: 'task-1',
                 userId: mockUserId,
@@ -289,7 +278,7 @@ describe('/api/responses', () => {
 
             await POST(request);
 
-            expect(prisma.notification.create).toHaveBeenCalledWith(
+            expect(prismaMock.notification.create).toHaveBeenCalledWith(
                 expect.objectContaining({
                     data: expect.objectContaining({
                         userId: 'owner-1',

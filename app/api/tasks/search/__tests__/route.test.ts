@@ -1,12 +1,8 @@
 import { GET } from '../route';
-import { prisma } from '@/lib/prisma';
+import { prismaMock } from '../../../../../__tests__/mocks/prisma';
 import { NextRequest } from 'next/server';
 
-jest.mock('@/lib/prisma', () => ({
-    prisma: {
-        task: { findMany: jest.fn(), count: jest.fn() },
-    },
-}));
+
 
 describe('/api/tasks/search', () => {
     beforeEach(() => {
@@ -37,8 +33,8 @@ describe('/api/tasks/search', () => {
             },
         ];
 
-        (prisma.task.findMany as jest.Mock).mockResolvedValue(mockTasks);
-        (prisma.task.count as jest.Mock).mockResolvedValue(1);
+        (prismaMock.task.findMany as jest.Mock).mockResolvedValue(mockTasks);
+        (prismaMock.task.count as jest.Mock).mockResolvedValue(1);
 
         const request = new NextRequest('http://localhost/api/tasks/search?q=cleaning');
 
@@ -50,7 +46,7 @@ describe('/api/tasks/search', () => {
         expect(data.pagination).toBeDefined();
         expect(data.pagination.page).toBe(1);
         expect(data.pagination.total).toBe(1);
-        expect(prisma.task.findMany).toHaveBeenCalledWith(
+        expect(prismaMock.task.findMany).toHaveBeenCalledWith(
             expect.objectContaining({
                 where: expect.objectContaining({
                     status: 'OPEN',
@@ -63,14 +59,14 @@ describe('/api/tasks/search', () => {
     });
 
     it('should filter by category when provided', async () => {
-        (prisma.task.findMany as jest.Mock).mockResolvedValue([]);
-        (prisma.task.count as jest.Mock).mockResolvedValue(0);
+        (prismaMock.task.findMany as jest.Mock).mockResolvedValue([]);
+        (prismaMock.task.count as jest.Mock).mockResolvedValue(0);
 
         const request = new NextRequest('http://localhost/api/tasks/search?q=clean&category=Cleaning');
 
         await GET(request);
 
-        expect(prisma.task.findMany).toHaveBeenCalledWith(
+        expect(prismaMock.task.findMany).toHaveBeenCalledWith(
             expect.objectContaining({
                 where: expect.objectContaining({
                     category: 'Cleaning',
@@ -80,14 +76,14 @@ describe('/api/tasks/search', () => {
     });
 
     it('should filter by city when provided', async () => {
-        (prisma.task.findMany as jest.Mock).mockResolvedValue([]);
-        (prisma.task.count as jest.Mock).mockResolvedValue(0);
+        (prismaMock.task.findMany as jest.Mock).mockResolvedValue([]);
+        (prismaMock.task.count as jest.Mock).mockResolvedValue(0);
 
         const request = new NextRequest('http://localhost/api/tasks/search?q=task&city=Dushanbe');
 
         await GET(request);
 
-        expect(prisma.task.findMany).toHaveBeenCalledWith(
+        expect(prismaMock.task.findMany).toHaveBeenCalledWith(
             expect.objectContaining({
                 where: expect.objectContaining({
                     city: expect.objectContaining({ contains: 'Dushanbe', mode: 'insensitive' }),
@@ -97,8 +93,8 @@ describe('/api/tasks/search', () => {
     });
 
     it('should support pagination via page and limit', async () => {
-        (prisma.task.findMany as jest.Mock).mockResolvedValue([]);
-        (prisma.task.count as jest.Mock).mockResolvedValue(50);
+        (prismaMock.task.findMany as jest.Mock).mockResolvedValue([]);
+        (prismaMock.task.count as jest.Mock).mockResolvedValue(50);
 
         const request = new NextRequest('http://localhost/api/tasks/search?q=test&page=2&limit=10');
 
@@ -109,7 +105,7 @@ describe('/api/tasks/search', () => {
         expect(data.pagination.page).toBe(2);
         expect(data.pagination.limit).toBe(10);
         expect(data.pagination.totalPages).toBe(5);
-        expect(prisma.task.findMany).toHaveBeenCalledWith(
+        expect(prismaMock.task.findMany).toHaveBeenCalledWith(
             expect.objectContaining({
                 skip: 10,
                 take: 10,
@@ -118,7 +114,7 @@ describe('/api/tasks/search', () => {
     });
 
     it('should handle server errors', async () => {
-        (prisma.task.findMany as jest.Mock).mockRejectedValue(new Error('DB error'));
+        (prismaMock.task.findMany as jest.Mock).mockRejectedValue(new Error('DB error'));
 
         const request = new NextRequest('http://localhost/api/tasks/search?q=test');
 

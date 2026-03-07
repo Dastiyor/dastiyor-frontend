@@ -1,21 +1,23 @@
 import { POST } from '../login/route';
-import { prisma } from '@/lib/prisma';
+import { prismaMock } from '../../../../__tests__/mocks/prisma';
 import bcrypt from 'bcryptjs';
 import { NextRequest } from 'next/server';
+import { signJWT } from '@/lib/auth';
 
 // Mock dependencies
-jest.mock('@/lib/prisma', () => ({
-    prisma: {
-        user: {
-            findUnique: jest.fn(),
-        },
-    },
-}));
-
 jest.mock('@/lib/rate-limit', () => ({
     checkRateLimit: jest.fn(() => ({ allowed: true })),
     getClientIP: jest.fn(() => '127.0.0.1'),
     rateLimitExceededResponse: jest.fn(),
+}));
+
+jest.mock('@/lib/auth', () => ({
+    signJWT: jest.fn().mockResolvedValue('mock-jwt-token'),
+}));
+
+jest.mock('@/lib/audit', () => ({
+    logAction: jest.fn(),
+    getRequestIP: jest.fn(),
 }));
 
 describe('/api/auth/login', () => {
@@ -37,7 +39,7 @@ describe('/api/auth/login', () => {
     });
 
     it('should return 401 for invalid credentials', async () => {
-        (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+        prismaMock.user.findUnique.mockResolvedValue(null);
 
         const request = new NextRequest('http://localhost/api/auth/login', {
             method: 'POST',
@@ -56,13 +58,13 @@ describe('/api/auth/login', () => {
 
     it('should return 401 for incorrect password', async () => {
         const hashedPassword = await bcrypt.hash('correctpassword', 10);
-        (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+        prismaMock.user.findUnique.mockResolvedValue({
             id: 'user-1',
             email: 'test@example.com',
             password: hashedPassword,
             fullName: 'Test User',
             role: 'CUSTOMER',
-        });
+        } as any);
 
         const request = new NextRequest('http://localhost/api/auth/login', {
             method: 'POST',
@@ -81,13 +83,13 @@ describe('/api/auth/login', () => {
 
     it('should return 200 and set cookie for valid credentials', async () => {
         const hashedPassword = await bcrypt.hash('correctpassword', 10);
-        (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+        prismaMock.user.findUnique.mockResolvedValue({
             id: 'user-1',
             email: 'test@example.com',
             password: hashedPassword,
             fullName: 'Test User',
             role: 'CUSTOMER',
-        });
+        } as any);
 
         const request = new NextRequest('http://localhost/api/auth/login', {
             method: 'POST',
@@ -112,7 +114,7 @@ describe('/api/auth/login', () => {
     });
 
     it('should handle database errors gracefully', async () => {
-        (prisma.user.findUnique as jest.Mock).mockRejectedValue(
+        prismaMock.user.findUnique.mockRejectedValue(
             new Error('Database error')
         );
 

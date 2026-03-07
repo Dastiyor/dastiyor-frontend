@@ -1,18 +1,10 @@
 import { GET, POST, DELETE } from '../route';
-import { prisma } from '@/lib/prisma';
+import { prismaMock } from '../../../../__tests__/mocks/prisma';
 import { verifyJWT } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
 
-jest.mock('@/lib/prisma', () => ({
-    prisma: {
-        subscription: {
-            findUnique: jest.fn(),
-            create: jest.fn(),
-            update: jest.fn(),
-        },
-    },
-}));
+
 
 jest.mock('@/lib/auth', () => ({ verifyJWT: jest.fn() }));
 jest.mock('next/headers', () => ({ cookies: jest.fn() }));
@@ -41,7 +33,7 @@ describe('/api/subscription', () => {
         });
 
         it('should return null subscription when user has none', async () => {
-            (prisma.subscription.findUnique as jest.Mock).mockResolvedValue(null);
+            (prismaMock.subscription.findUnique as jest.Mock).mockResolvedValue(null);
 
             const response = await GET();
             const data = await response.json();
@@ -52,7 +44,7 @@ describe('/api/subscription', () => {
 
         it('should return subscription with isCurrentlyActive and daysRemaining', async () => {
             const futureEnd = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000);
-            (prisma.subscription.findUnique as jest.Mock).mockResolvedValue({
+            (prismaMock.subscription.findUnique as jest.Mock).mockResolvedValue({
                 id: 'sub-1',
                 userId: mockUserId,
                 plan: 'standard',
@@ -72,7 +64,7 @@ describe('/api/subscription', () => {
 
         it('should return isCurrentlyActive false when endDate passed', async () => {
             const pastEnd = new Date(Date.now() - 1000);
-            (prisma.subscription.findUnique as jest.Mock).mockResolvedValue({
+            (prismaMock.subscription.findUnique as jest.Mock).mockResolvedValue({
                 id: 'sub-1',
                 userId: mockUserId,
                 plan: 'basic',
@@ -121,8 +113,8 @@ describe('/api/subscription', () => {
         });
 
         it('should create new subscription for valid plan', async () => {
-            (prisma.subscription.findUnique as jest.Mock).mockResolvedValue(null);
-            (prisma.subscription.create as jest.Mock).mockResolvedValue({
+            (prismaMock.subscription.findUnique as jest.Mock).mockResolvedValue(null);
+            (prismaMock.subscription.create as jest.Mock).mockResolvedValue({
                 id: 'sub-1',
                 userId: mockUserId,
                 plan: 'basic',
@@ -143,12 +135,12 @@ describe('/api/subscription', () => {
             expect(data.message).toBe('Subscription activated successfully');
             expect(data.subscription).toBeDefined();
             expect(data.subscription.planDetails).toBeDefined();
-            expect(prisma.subscription.create).toHaveBeenCalled();
+            expect(prismaMock.subscription.create).toHaveBeenCalled();
         });
 
         it('should accept standard and premium plans', async () => {
-            (prisma.subscription.findUnique as jest.Mock).mockResolvedValue(null);
-            (prisma.subscription.create as jest.Mock).mockResolvedValue({
+            (prismaMock.subscription.findUnique as jest.Mock).mockResolvedValue(null);
+            (prismaMock.subscription.create as jest.Mock).mockResolvedValue({
                 id: 'sub-1',
                 userId: mockUserId,
                 plan: 'standard',
@@ -176,7 +168,7 @@ describe('/api/subscription', () => {
         });
 
         it('should return 404 if no subscription found', async () => {
-            (prisma.subscription.findUnique as jest.Mock).mockResolvedValue(null);
+            (prismaMock.subscription.findUnique as jest.Mock).mockResolvedValue(null);
 
             const response = await DELETE();
             const data = await response.json();
@@ -186,18 +178,18 @@ describe('/api/subscription', () => {
         });
 
         it('should set subscription isActive to false', async () => {
-            (prisma.subscription.findUnique as jest.Mock).mockResolvedValue({
+            (prismaMock.subscription.findUnique as jest.Mock).mockResolvedValue({
                 id: 'sub-1',
                 userId: mockUserId,
             });
-            (prisma.subscription.update as jest.Mock).mockResolvedValue({});
+            (prismaMock.subscription.update as jest.Mock).mockResolvedValue({});
 
             const response = await DELETE();
             const data = await response.json();
 
             expect(response.status).toBe(200);
             expect(data.message).toContain('cancelled');
-            expect(prisma.subscription.update).toHaveBeenCalledWith({
+            expect(prismaMock.subscription.update).toHaveBeenCalledWith({
                 where: { userId: mockUserId },
                 data: { isActive: false },
             });

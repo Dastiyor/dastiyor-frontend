@@ -1,16 +1,10 @@
 import { POST } from '../route';
-import { prisma } from '@/lib/prisma';
+import { prismaMock } from '../../../../../__tests__/mocks/prisma';
 import { verifyJWT } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
 
-jest.mock('@/lib/prisma', () => ({
-    prisma: {
-        task: { findUnique: jest.fn(), update: jest.fn() },
-        user: { update: jest.fn() },
-        notification: { create: jest.fn() },
-    },
-}));
+
 
 jest.mock('@/lib/auth', () => ({ verifyJWT: jest.fn() }));
 jest.mock('next/headers', () => ({ cookies: jest.fn() }));
@@ -53,7 +47,7 @@ describe('/api/tasks/complete', () => {
     });
 
     it('should return 404 if task not found', async () => {
-        (prisma.task.findUnique as jest.Mock).mockResolvedValue(null);
+        (prismaMock.task.findUnique as jest.Mock).mockResolvedValue(null);
 
         const request = new NextRequest('http://localhost/api/tasks/complete', {
             method: 'POST',
@@ -66,7 +60,7 @@ describe('/api/tasks/complete', () => {
     });
 
     it('should return 403 if user does not own the task', async () => {
-        (prisma.task.findUnique as jest.Mock).mockResolvedValue({
+        (prismaMock.task.findUnique as jest.Mock).mockResolvedValue({
             id: 'task-1',
             userId: 'other-owner',
             title: 'Task',
@@ -86,7 +80,7 @@ describe('/api/tasks/complete', () => {
     });
 
     it('should return 400 if task is not IN_PROGRESS', async () => {
-        (prisma.task.findUnique as jest.Mock).mockResolvedValue({
+        (prismaMock.task.findUnique as jest.Mock).mockResolvedValue({
             id: 'task-1',
             userId: mockUserId,
             title: 'Task',
@@ -116,13 +110,13 @@ describe('/api/tasks/complete', () => {
             budgetAmount: '500',
         };
 
-        (prisma.task.findUnique as jest.Mock).mockResolvedValue(mockTask);
-        (prisma.task.update as jest.Mock).mockResolvedValue({
+        (prismaMock.task.findUnique as jest.Mock).mockResolvedValue(mockTask);
+        (prismaMock.task.update as jest.Mock).mockResolvedValue({
             ...mockTask,
             status: 'COMPLETED',
         });
-        (prisma.user.update as jest.Mock).mockResolvedValue({});
-        (prisma.notification.create as jest.Mock).mockResolvedValue({});
+        (prismaMock.user.update as jest.Mock).mockResolvedValue({});
+        (prismaMock.notification.create as jest.Mock).mockResolvedValue({});
 
         const request = new NextRequest('http://localhost/api/tasks/complete', {
             method: 'POST',
@@ -135,11 +129,11 @@ describe('/api/tasks/complete', () => {
         expect(response.status).toBe(200);
         expect(data.message).toBe('Task completed');
         expect(data.task.status).toBe('COMPLETED');
-        expect(prisma.task.update).toHaveBeenCalledWith({
+        expect(prismaMock.task.update).toHaveBeenCalledWith({
             where: { id: 'task-1' },
             data: { status: 'COMPLETED' },
         });
-        expect(prisma.notification.create).toHaveBeenCalled();
+        expect(prismaMock.notification.create).toHaveBeenCalled();
     });
 
     it('should increment provider balance for fixed budget task', async () => {
@@ -153,10 +147,10 @@ describe('/api/tasks/complete', () => {
             budgetAmount: '500',
         };
 
-        (prisma.task.findUnique as jest.Mock).mockResolvedValue(mockTask);
-        (prisma.task.update as jest.Mock).mockResolvedValue({});
-        (prisma.user.update as jest.Mock).mockResolvedValue({});
-        (prisma.notification.create as jest.Mock).mockResolvedValue({});
+        (prismaMock.task.findUnique as jest.Mock).mockResolvedValue(mockTask);
+        (prismaMock.task.update as jest.Mock).mockResolvedValue({});
+        (prismaMock.user.update as jest.Mock).mockResolvedValue({});
+        (prismaMock.notification.create as jest.Mock).mockResolvedValue({});
 
         const request = new NextRequest('http://localhost/api/tasks/complete', {
             method: 'POST',
@@ -165,7 +159,7 @@ describe('/api/tasks/complete', () => {
 
         await POST(request);
 
-        expect(prisma.user.update).toHaveBeenCalledWith({
+        expect(prismaMock.user.update).toHaveBeenCalledWith({
             where: { id: 'provider-1' },
             data: { balance: { increment: 500 } },
         });

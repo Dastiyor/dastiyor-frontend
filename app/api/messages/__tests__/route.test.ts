@@ -1,19 +1,11 @@
 import { GET, POST } from '../route';
-import { prisma } from '@/lib/prisma';
+import { prismaMock } from '../../../../__tests__/mocks/prisma';
 import { verifyJWT } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
 
 // Mock dependencies
-jest.mock('@/lib/prisma', () => ({
-    prisma: {
-        message: {
-            findMany: jest.fn(),
-            create: jest.fn(),
-            updateMany: jest.fn(),
-        },
-    },
-}));
+
 
 jest.mock('@/lib/auth', () => ({
     verifyJWT: jest.fn(),
@@ -71,8 +63,8 @@ describe('/api/messages', () => {
                 },
             ];
 
-            (prisma.message.findMany as jest.Mock).mockResolvedValue(mockMessages);
-            (prisma.message.updateMany as jest.Mock).mockResolvedValue({ count: 0 });
+            (prismaMock.message.findMany as jest.Mock).mockResolvedValue(mockMessages);
+            (prismaMock.message.updateMany as jest.Mock).mockResolvedValue({ count: 0 });
 
             const request = new NextRequest('http://localhost/api/messages?userId=user-2');
             const response = await GET(request);
@@ -81,14 +73,14 @@ describe('/api/messages', () => {
             expect(response.status).toBe(200);
             expect(data.messages).toBeDefined();
             expect(data.messages).toHaveLength(1);
-            expect(prisma.message.findMany).toHaveBeenCalled();
+            expect(prismaMock.message.findMany).toHaveBeenCalled();
         });
 
         it('should filter messages by taskId when provided', async () => {
             const request = new NextRequest('http://localhost/api/messages?userId=user-2&taskId=task-1');
             await GET(request);
 
-            expect(prisma.message.findMany).toHaveBeenCalledWith(
+            expect(prismaMock.message.findMany).toHaveBeenCalledWith(
                 expect.objectContaining({
                     where: expect.objectContaining({
                         taskId: 'task-1',
@@ -98,13 +90,13 @@ describe('/api/messages', () => {
         });
 
         it('should mark messages as read', async () => {
-            (prisma.message.findMany as jest.Mock).mockResolvedValue([]);
-            (prisma.message.updateMany as jest.Mock).mockResolvedValue({ count: 2 });
+            (prismaMock.message.findMany as jest.Mock).mockResolvedValue([]);
+            (prismaMock.message.updateMany as jest.Mock).mockResolvedValue({ count: 2 });
 
             const request = new NextRequest('http://localhost/api/messages?userId=user-2');
             await GET(request);
 
-            expect(prisma.message.updateMany).toHaveBeenCalledWith(
+            expect(prismaMock.message.updateMany).toHaveBeenCalledWith(
                 expect.objectContaining({
                     where: {
                         receiverId: mockUserId,
@@ -194,7 +186,7 @@ describe('/api/messages', () => {
                 sender: { id: mockUserId, fullName: 'User 1' },
             };
 
-            (prisma.message.create as jest.Mock).mockResolvedValue(mockMessage);
+            (prismaMock.message.create as jest.Mock).mockResolvedValue(mockMessage);
 
             const request = new NextRequest('http://localhost/api/messages', {
                 method: 'POST',
@@ -210,7 +202,7 @@ describe('/api/messages', () => {
             expect(response.status).toBe(201);
             expect(data.message).toBeDefined();
             expect(data.message.content).toBe('Hello');
-            expect(prisma.message.create).toHaveBeenCalled();
+            expect(prismaMock.message.create).toHaveBeenCalled();
         });
 
         it('should create message with imageUrl', async () => {
@@ -224,7 +216,7 @@ describe('/api/messages', () => {
                 sender: { id: mockUserId, fullName: 'User 1' },
             };
 
-            (prisma.message.create as jest.Mock).mockResolvedValue(mockMessage);
+            (prismaMock.message.create as jest.Mock).mockResolvedValue(mockMessage);
 
             const request = new NextRequest('http://localhost/api/messages', {
                 method: 'POST',

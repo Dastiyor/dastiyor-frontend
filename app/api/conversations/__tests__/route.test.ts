@@ -1,15 +1,9 @@
 import { GET } from '../route';
-import { prisma } from '@/lib/prisma';
+import { prismaMock } from '../../../../__tests__/mocks/prisma';
 import { verifyJWT } from '@/lib/auth';
 import { cookies } from 'next/headers';
 
-jest.mock('@/lib/prisma', () => ({
-    prisma: {
-        message: {
-            findMany: jest.fn(),
-        },
-    },
-}));
+
 
 jest.mock('@/lib/auth', () => ({ verifyJWT: jest.fn() }));
 jest.mock('next/headers', () => ({ cookies: jest.fn() }));
@@ -52,7 +46,7 @@ describe('/api/conversations', () => {
             },
         ];
 
-        (prisma.message.findMany as jest.Mock).mockResolvedValue(mockMessages);
+        (prismaMock.message.findMany as jest.Mock).mockResolvedValue(mockMessages);
 
         const response = await GET();
         const data = await response.json();
@@ -60,7 +54,7 @@ describe('/api/conversations', () => {
         expect(response.status).toBe(200);
         expect(data.conversations).toBeDefined();
         expect(Array.isArray(data.conversations)).toBe(true);
-        expect(prisma.message.findMany).toHaveBeenCalledWith(
+        expect(prismaMock.message.findMany).toHaveBeenCalledWith(
             expect.objectContaining({
                 where: {
                     OR: [
@@ -74,7 +68,7 @@ describe('/api/conversations', () => {
     });
 
     it('should handle empty conversations', async () => {
-        (prisma.message.findMany as jest.Mock).mockResolvedValue([]);
+        (prismaMock.message.findMany as jest.Mock).mockResolvedValue([]);
 
         const response = await GET();
         const data = await response.json();
@@ -84,7 +78,7 @@ describe('/api/conversations', () => {
     });
 
     it('should handle server errors', async () => {
-        (prisma.message.findMany as jest.Mock).mockRejectedValue(new Error('DB error'));
+        (prismaMock.message.findMany as jest.Mock).mockRejectedValue(new Error('DB error'));
 
         const response = await GET();
         const data = await response.json();

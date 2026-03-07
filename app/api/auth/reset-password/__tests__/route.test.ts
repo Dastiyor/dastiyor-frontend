@@ -1,14 +1,9 @@
 import { POST, GET } from '../route';
-import { prisma } from '@/lib/prisma';
+import { prismaMock } from '../../../../../__tests__/mocks/prisma';
 import { NextRequest } from 'next/server';
 import bcrypt from 'bcryptjs';
 
-jest.mock('@/lib/prisma', () => ({
-    prisma: {
-        passwordReset: { findFirst: jest.fn(), update: jest.fn() },
-        user: { update: jest.fn() },
-    },
-}));
+
 
 describe('/api/auth/reset-password', () => {
     beforeEach(() => {
@@ -47,7 +42,7 @@ describe('/api/auth/reset-password', () => {
         });
 
         it('should return 400 if token is invalid or expired', async () => {
-            (prisma.passwordReset.findFirst as jest.Mock).mockResolvedValue(null);
+            (prismaMock.passwordReset.findFirst as jest.Mock).mockResolvedValue(null);
 
             const request = new NextRequest('http://localhost/api/auth/reset-password', {
                 method: 'POST',
@@ -63,7 +58,7 @@ describe('/api/auth/reset-password', () => {
 
         it('should reset password and mark token as used', async () => {
             const futureDate = new Date(Date.now() + 3600000);
-            (prisma.passwordReset.findFirst as jest.Mock).mockResolvedValue({
+            (prismaMock.passwordReset.findFirst as jest.Mock).mockResolvedValue({
                 id: 'reset-1',
                 userId: 'user-1',
                 token: 'valid-token',
@@ -71,8 +66,8 @@ describe('/api/auth/reset-password', () => {
                 expiresAt: futureDate,
                 user: { id: 'user-1' },
             });
-            (prisma.user.update as jest.Mock).mockResolvedValue({});
-            (prisma.passwordReset.update as jest.Mock).mockResolvedValue({});
+            (prismaMock.user.update as jest.Mock).mockResolvedValue({});
+            (prismaMock.passwordReset.update as jest.Mock).mockResolvedValue({});
 
             const request = new NextRequest('http://localhost/api/auth/reset-password', {
                 method: 'POST',
@@ -84,20 +79,20 @@ describe('/api/auth/reset-password', () => {
 
             expect(response.status).toBe(200);
             expect(data.message).toContain('reset successfully');
-            expect(prisma.user.update).toHaveBeenCalledWith({
+            expect(prismaMock.user.update).toHaveBeenCalledWith({
                 where: { id: 'user-1' },
                 data: expect.objectContaining({
                     password: expect.any(String),
                 }),
             });
-            expect(prisma.passwordReset.update).toHaveBeenCalledWith({
+            expect(prismaMock.passwordReset.update).toHaveBeenCalledWith({
                 where: { id: 'reset-1' },
                 data: { used: true },
             });
         });
 
         it('should hash the new password', async () => {
-            (prisma.passwordReset.findFirst as jest.Mock).mockResolvedValue({
+            (prismaMock.passwordReset.findFirst as jest.Mock).mockResolvedValue({
                 id: 'reset-1',
                 userId: 'user-1',
                 token: 'valid-token',
@@ -105,11 +100,11 @@ describe('/api/auth/reset-password', () => {
                 expiresAt: new Date(Date.now() + 3600000),
                 user: { id: 'user-1' },
             });
-            (prisma.user.update as jest.Mock).mockImplementation((args: any) => {
+            (prismaMock.user.update as jest.Mock).mockImplementation((args: any) => {
                 expect(args.data.password).not.toBe('Plaintext1');
                 return Promise.resolve({});
             });
-            (prisma.passwordReset.update as jest.Mock).mockResolvedValue({});
+            (prismaMock.passwordReset.update as jest.Mock).mockResolvedValue({});
 
             const request = new NextRequest('http://localhost/api/auth/reset-password', {
                 method: 'POST',
@@ -117,7 +112,7 @@ describe('/api/auth/reset-password', () => {
             });
 
             await POST(request);
-            expect(prisma.user.update).toHaveBeenCalled();
+            expect(prismaMock.user.update).toHaveBeenCalled();
         });
     });
 
@@ -134,7 +129,7 @@ describe('/api/auth/reset-password', () => {
         });
 
         it('should return valid: true when token is valid', async () => {
-            (prisma.passwordReset.findFirst as jest.Mock).mockResolvedValue({
+            (prismaMock.passwordReset.findFirst as jest.Mock).mockResolvedValue({
                 id: 'reset-1',
                 token: 'valid-token',
                 used: false,
@@ -151,7 +146,7 @@ describe('/api/auth/reset-password', () => {
         });
 
         it('should return valid: false when token is invalid or expired', async () => {
-            (prisma.passwordReset.findFirst as jest.Mock).mockResolvedValue(null);
+            (prismaMock.passwordReset.findFirst as jest.Mock).mockResolvedValue(null);
 
             const request = new NextRequest('http://localhost/api/auth/reset-password?token=invalid');
 

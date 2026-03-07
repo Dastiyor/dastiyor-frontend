@@ -1,15 +1,10 @@
 import { POST } from '../route';
-import { prisma } from '@/lib/prisma';
+import { prismaMock } from '../../../../../__tests__/mocks/prisma';
 import { verifyJWT } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
 
-jest.mock('@/lib/prisma', () => ({
-    prisma: {
-        response: { findUnique: jest.fn(), update: jest.fn() },
-        notification: { create: jest.fn() },
-    },
-}));
+
 
 jest.mock('@/lib/auth', () => ({ verifyJWT: jest.fn() }));
 jest.mock('next/headers', () => ({ cookies: jest.fn() }));
@@ -52,7 +47,7 @@ describe('/api/responses/reject', () => {
     });
 
     it('should return 404 if response not found', async () => {
-        (prisma.response.findUnique as jest.Mock).mockResolvedValue(null);
+        (prismaMock.response.findUnique as jest.Mock).mockResolvedValue(null);
 
         const request = new NextRequest('http://localhost/api/responses/reject', {
             method: 'POST',
@@ -67,7 +62,7 @@ describe('/api/responses/reject', () => {
     });
 
     it('should return 403 if user is not task owner', async () => {
-        (prisma.response.findUnique as jest.Mock).mockResolvedValue({
+        (prismaMock.response.findUnique as jest.Mock).mockResolvedValue({
             id: 'resp-1',
             userId: 'provider-1',
             taskId: 'task-1',
@@ -88,7 +83,7 @@ describe('/api/responses/reject', () => {
     });
 
     it('should return 400 if response is not PENDING', async () => {
-        (prisma.response.findUnique as jest.Mock).mockResolvedValue({
+        (prismaMock.response.findUnique as jest.Mock).mockResolvedValue({
             id: 'resp-1',
             userId: 'provider-1',
             taskId: 'task-1',
@@ -109,15 +104,15 @@ describe('/api/responses/reject', () => {
     });
 
     it('should reject response and notify provider', async () => {
-        (prisma.response.findUnique as jest.Mock).mockResolvedValue({
+        (prismaMock.response.findUnique as jest.Mock).mockResolvedValue({
             id: 'resp-1',
             userId: 'provider-1',
             taskId: 'task-1',
             status: 'PENDING',
             task: { userId: mockUserId, title: 'Test Task' },
         });
-        (prisma.response.update as jest.Mock).mockResolvedValue({});
-        (prisma.notification.create as jest.Mock).mockResolvedValue({});
+        (prismaMock.response.update as jest.Mock).mockResolvedValue({});
+        (prismaMock.notification.create as jest.Mock).mockResolvedValue({});
 
         const request = new NextRequest('http://localhost/api/responses/reject', {
             method: 'POST',
@@ -129,11 +124,11 @@ describe('/api/responses/reject', () => {
 
         expect(response.status).toBe(200);
         expect(data.message).toBe('Response rejected successfully');
-        expect(prisma.response.update).toHaveBeenCalledWith({
+        expect(prismaMock.response.update).toHaveBeenCalledWith({
             where: { id: 'resp-1' },
             data: { status: 'REJECTED' },
         });
-        expect(prisma.notification.create).toHaveBeenCalledWith(
+        expect(prismaMock.notification.create).toHaveBeenCalledWith(
             expect.objectContaining({
                 data: expect.objectContaining({
                     userId: 'provider-1',

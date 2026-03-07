@@ -1,18 +1,10 @@
 import { GET, POST } from '../route';
-import { prisma } from '@/lib/prisma';
+import { prismaMock } from '../../../../__tests__/mocks/prisma';
 import { verifyJWT } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
 
-jest.mock('@/lib/prisma', () => ({
-    prisma: {
-        review: {
-            findMany: jest.fn(),
-            create: jest.fn(),
-        },
-        task: { findUnique: jest.fn() },
-    },
-}));
+
 
 jest.mock('@/lib/auth', () => ({ verifyJWT: jest.fn() }));
 jest.mock('next/headers', () => ({ cookies: jest.fn() }));
@@ -55,7 +47,7 @@ describe('/api/reviews', () => {
                 },
             ];
 
-            (prisma.review.findMany as jest.Mock).mockResolvedValue(mockReviews);
+            (prismaMock.review.findMany as jest.Mock).mockResolvedValue(mockReviews);
 
             const request = new NextRequest('http://localhost/api/reviews?userId=provider-1');
 
@@ -71,7 +63,7 @@ describe('/api/reviews', () => {
         });
 
         it('should return average rating 0 when no reviews', async () => {
-            (prisma.review.findMany as jest.Mock).mockResolvedValue([]);
+            (prismaMock.review.findMany as jest.Mock).mockResolvedValue([]);
 
             const request = new NextRequest('http://localhost/api/reviews?userId=provider-1');
 
@@ -113,7 +105,7 @@ describe('/api/reviews', () => {
         });
 
         it('should return 400 if rating is not 1-5', async () => {
-            (prisma.task.findUnique as jest.Mock).mockResolvedValue({
+            (prismaMock.task.findUnique as jest.Mock).mockResolvedValue({
                 id: 'task-1',
                 userId: mockUserId,
                 status: 'COMPLETED',
@@ -134,7 +126,7 @@ describe('/api/reviews', () => {
         });
 
         it('should return 404 if task not found', async () => {
-            (prisma.task.findUnique as jest.Mock).mockResolvedValue(null);
+            (prismaMock.task.findUnique as jest.Mock).mockResolvedValue(null);
 
             const request = new NextRequest('http://localhost/api/reviews', {
                 method: 'POST',
@@ -146,7 +138,7 @@ describe('/api/reviews', () => {
         });
 
         it('should return 403 if user is not task owner', async () => {
-            (prisma.task.findUnique as jest.Mock).mockResolvedValue({
+            (prismaMock.task.findUnique as jest.Mock).mockResolvedValue({
                 id: 'task-1',
                 userId: 'other-owner',
                 status: 'COMPLETED',
@@ -167,7 +159,7 @@ describe('/api/reviews', () => {
         });
 
         it('should return 400 if task is not COMPLETED', async () => {
-            (prisma.task.findUnique as jest.Mock).mockResolvedValue({
+            (prismaMock.task.findUnique as jest.Mock).mockResolvedValue({
                 id: 'task-1',
                 userId: mockUserId,
                 status: 'IN_PROGRESS',
@@ -188,7 +180,7 @@ describe('/api/reviews', () => {
         });
 
         it('should return 400 if review already exists', async () => {
-            (prisma.task.findUnique as jest.Mock).mockResolvedValue({
+            (prismaMock.task.findUnique as jest.Mock).mockResolvedValue({
                 id: 'task-1',
                 userId: mockUserId,
                 status: 'COMPLETED',
@@ -209,14 +201,14 @@ describe('/api/reviews', () => {
         });
 
         it('should create review successfully', async () => {
-            (prisma.task.findUnique as jest.Mock).mockResolvedValue({
+            (prismaMock.task.findUnique as jest.Mock).mockResolvedValue({
                 id: 'task-1',
                 userId: mockUserId,
                 status: 'COMPLETED',
                 assignedUserId: 'provider-1',
                 review: null,
             });
-            (prisma.review.create as jest.Mock).mockResolvedValue({
+            (prismaMock.review.create as jest.Mock).mockResolvedValue({
                 id: 'rev-1',
                 rating: 5,
                 comment: 'Great',
@@ -238,7 +230,7 @@ describe('/api/reviews', () => {
             expect(data.message).toBe('Review submitted successfully');
             expect(data.review).toBeDefined();
             expect(data.review.rating).toBe(5);
-            expect(prisma.review.create).toHaveBeenCalledWith(
+            expect(prismaMock.review.create).toHaveBeenCalledWith(
                 expect.objectContaining({
                     data: expect.objectContaining({
                         rating: 5,

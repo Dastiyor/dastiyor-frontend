@@ -3,9 +3,9 @@ import '@testing-library/jest-dom'
 
 // Polyfill TextEncoder/TextDecoder for Node.js test environment
 if (typeof global.TextEncoder === 'undefined') {
-    const { TextEncoder, TextDecoder } = require('util');
-    global.TextEncoder = TextEncoder;
-    global.TextDecoder = TextDecoder;
+  const { TextEncoder, TextDecoder } = require('util');
+  global.TextEncoder = TextEncoder;
+  global.TextDecoder = TextDecoder;
 }
 
 // Polyfill for Request/Response (needed for Next.js API routes in tests)
@@ -81,30 +81,45 @@ jest.mock('next/navigation', () => ({
 
 // Mock jose library globally
 jest.mock('jose', () => ({
-    SignJWT: jest.fn().mockImplementation(() => ({
-        setProtectedHeader: jest.fn().mockReturnThis(),
-        setIssuedAt: jest.fn().mockReturnThis(),
-        setExpirationTime: jest.fn().mockReturnThis(),
-        sign: jest.fn().mockResolvedValue('mock.jwt.token'),
-    })),
-    jwtVerify: jest.fn().mockImplementation((token) => {
-        if (!token || token === '') {
-            return Promise.reject(new Error('Invalid token'));
+  SignJWT: jest.fn().mockImplementation(() => ({
+    setProtectedHeader: jest.fn().mockReturnThis(),
+    setIssuedAt: jest.fn().mockReturnThis(),
+    setExpirationTime: jest.fn().mockReturnThis(),
+    sign: jest.fn().mockResolvedValue('mock.jwt.token'),
+  })),
+  jwtVerify: jest.fn().mockImplementation((token) => {
+    if (!token || token === '') {
+      return Promise.reject(new Error('Invalid token'));
+    }
+    if (token === 'mock.jwt.token' || token.split('.').length === 3) {
+      return Promise.resolve({
+        payload: {
+          id: 'test-user-id',
+          email: 'test@example.com',
+          role: 'CUSTOMER'
         }
-        if (token === 'mock.jwt.token' || token.split('.').length === 3) {
-            return Promise.resolve({ 
-                payload: { 
-                    id: 'test-user-id', 
-                    email: 'test@example.com', 
-                    role: 'CUSTOMER' 
-                } 
-            });
-        }
-        return Promise.reject(new Error('Invalid token'));
-    }),
+      });
+    }
+    return Promise.reject(new Error('Invalid token'));
+  }),
 }));
 
 // Mock environment variables
 process.env.JWT_SECRET = 'test-secret-key'
 process.env.DATABASE_URL = 'file:./test.db'
 process.env.NODE_ENV = 'test'
+
+// globally mock prisma
+jest.mock('@/lib/prisma', () => {
+  const { mockDeep } = require('jest-mock-extended');
+  return {
+    __esModule: true,
+    prisma: mockDeep(),
+  };
+});
+
+// globally mock lib/audit to prevent missing catch undefined errors
+jest.mock('@/lib/audit', () => ({
+  logAction: jest.fn(),
+  getRequestIP: jest.fn(() => '127.0.0.1'),
+}));

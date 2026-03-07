@@ -1,14 +1,10 @@
 import { POST } from '../route';
-import { prisma } from '@/lib/prisma';
+import { prismaMock } from '../../../../../__tests__/mocks/prisma';
 import { verifyJWT } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
 
-jest.mock('@/lib/prisma', () => ({
-    prisma: {
-        task: { findUnique: jest.fn(), update: jest.fn() },
-    },
-}));
+
 
 jest.mock('@/lib/auth', () => ({ verifyJWT: jest.fn() }));
 jest.mock('next/headers', () => ({ cookies: jest.fn() }));
@@ -51,7 +47,7 @@ describe('/api/tasks/cancel', () => {
     });
 
     it('should return 404 if task not found', async () => {
-        (prisma.task.findUnique as jest.Mock).mockResolvedValue(null);
+        (prismaMock.task.findUnique as jest.Mock).mockResolvedValue(null);
 
         const request = new NextRequest('http://localhost/api/tasks/cancel', {
             method: 'POST',
@@ -66,7 +62,7 @@ describe('/api/tasks/cancel', () => {
     });
 
     it('should return 403 if user is not task owner', async () => {
-        (prisma.task.findUnique as jest.Mock).mockResolvedValue({
+        (prismaMock.task.findUnique as jest.Mock).mockResolvedValue({
             id: 'task-1',
             userId: 'other-owner',
             status: 'OPEN',
@@ -85,7 +81,7 @@ describe('/api/tasks/cancel', () => {
     });
 
     it('should return 400 if task is not OPEN', async () => {
-        (prisma.task.findUnique as jest.Mock).mockResolvedValue({
+        (prismaMock.task.findUnique as jest.Mock).mockResolvedValue({
             id: 'task-1',
             userId: mockUserId,
             status: 'IN_PROGRESS',
@@ -104,12 +100,13 @@ describe('/api/tasks/cancel', () => {
     });
 
     it('should cancel task and set status to CANCELLED', async () => {
-        (prisma.task.findUnique as jest.Mock).mockResolvedValue({
+        (prismaMock.task.findUnique as jest.Mock).mockResolvedValue({
             id: 'task-1',
             userId: mockUserId,
             status: 'OPEN',
         });
-        (prisma.task.update as jest.Mock).mockResolvedValue({
+        (prismaMock.response.findMany as jest.Mock).mockResolvedValue([]);
+        (prismaMock.task.update as jest.Mock).mockResolvedValue({
             id: 'task-1',
             status: 'CANCELLED',
         });
@@ -124,14 +121,14 @@ describe('/api/tasks/cancel', () => {
 
         expect(response.status).toBe(200);
         expect(data.message).toBe('Task cancelled successfully');
-        expect(prisma.task.update).toHaveBeenCalledWith({
+        expect(prismaMock.task.update).toHaveBeenCalledWith({
             where: { id: 'task-1' },
             data: { status: 'CANCELLED' },
         });
     });
 
     it('should handle server errors', async () => {
-        (prisma.task.findUnique as jest.Mock).mockRejectedValue(new Error('DB error'));
+        (prismaMock.task.findUnique as jest.Mock).mockRejectedValue(new Error('DB error'));
 
         const request = new NextRequest('http://localhost/api/tasks/cancel', {
             method: 'POST',

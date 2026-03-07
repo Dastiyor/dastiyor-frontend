@@ -1,17 +1,9 @@
 import { GET, PUT } from '../route';
-import { prisma } from '@/lib/prisma';
+import { prismaMock } from '../../../../__tests__/mocks/prisma';
 import { verifyJWT } from '@/lib/auth';
 import { cookies } from 'next/headers';
 
-jest.mock('@/lib/prisma', () => ({
-    prisma: {
-        notification: {
-            findMany: jest.fn(),
-            count: jest.fn(),
-            updateMany: jest.fn(),
-        },
-    },
-}));
+
 
 jest.mock('@/lib/auth', () => ({ verifyJWT: jest.fn() }));
 jest.mock('next/headers', () => ({ cookies: jest.fn() }));
@@ -51,8 +43,8 @@ describe('/api/notifications', () => {
                 },
             ];
 
-            (prisma.notification.findMany as jest.Mock).mockResolvedValue(mockNotifications);
-            (prisma.notification.count as jest.Mock).mockResolvedValue(1);
+            (prismaMock.notification.findMany as jest.Mock).mockResolvedValue(mockNotifications);
+            (prismaMock.notification.count as jest.Mock).mockResolvedValue(1);
 
             const response = await GET();
             const data = await response.json();
@@ -63,7 +55,7 @@ describe('/api/notifications', () => {
             expect(data.notifications[0].type).toBe('NEW_OFFER');
             expect(data.notifications[0].title).toBe('New offer');
             expect(data.unreadCount).toBe(1);
-            expect(prisma.notification.findMany).toHaveBeenCalledWith(
+            expect(prismaMock.notification.findMany).toHaveBeenCalledWith(
                 expect.objectContaining({
                     where: { userId: mockUserId },
                     orderBy: { createdAt: 'desc' },
@@ -85,14 +77,14 @@ describe('/api/notifications', () => {
         });
 
         it('should mark all notifications as read', async () => {
-            (prisma.notification.updateMany as jest.Mock).mockResolvedValue({ count: 5 });
+            (prismaMock.notification.updateMany as jest.Mock).mockResolvedValue({ count: 5 });
 
             const response = await PUT();
             const data = await response.json();
 
             expect(response.status).toBe(200);
             expect(data.success).toBe(true);
-            expect(prisma.notification.updateMany).toHaveBeenCalledWith({
+            expect(prismaMock.notification.updateMany).toHaveBeenCalledWith({
                 where: {
                     userId: mockUserId,
                     isRead: false,

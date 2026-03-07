@@ -1,18 +1,10 @@
 import { GET, POST } from '../route';
-import { prisma } from '@/lib/prisma';
+import { prismaMock } from '../../../../../__tests__/mocks/prisma';
 import { verifyJWT } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
 
-jest.mock('@/lib/prisma', () => ({
-    prisma: {
-        taskFavorite: {
-            findUnique: jest.fn(),
-            create: jest.fn(),
-            delete: jest.fn(),
-        },
-    },
-}));
+
 
 jest.mock('@/lib/auth', () => ({ verifyJWT: jest.fn() }));
 jest.mock('next/headers', () => ({ cookies: jest.fn() }));
@@ -53,7 +45,7 @@ describe('/api/tasks/favorite', () => {
         });
 
         it('should return isFavorite true when task is favorited', async () => {
-            (prisma.taskFavorite.findUnique as jest.Mock).mockResolvedValue({
+            (prismaMock.taskFavorite.findUnique as jest.Mock).mockResolvedValue({
                 id: 'fav-1',
                 userId: mockUserId,
                 taskId: 'task-1',
@@ -69,7 +61,7 @@ describe('/api/tasks/favorite', () => {
         });
 
         it('should return isFavorite false when task is not favorited', async () => {
-            (prisma.taskFavorite.findUnique as jest.Mock).mockResolvedValue(null);
+            (prismaMock.taskFavorite.findUnique as jest.Mock).mockResolvedValue(null);
 
             const request = new NextRequest('http://localhost/api/tasks/favorite?taskId=task-1');
 
@@ -108,8 +100,8 @@ describe('/api/tasks/favorite', () => {
         });
 
         it('should add favorite when not already favorited', async () => {
-            (prisma.taskFavorite.findUnique as jest.Mock).mockResolvedValue(null);
-            (prisma.taskFavorite.create as jest.Mock).mockResolvedValue({});
+            (prismaMock.taskFavorite.findUnique as jest.Mock).mockResolvedValue(null);
+            (prismaMock.taskFavorite.create as jest.Mock).mockResolvedValue({});
 
             const request = new NextRequest('http://localhost/api/tasks/favorite', {
                 method: 'POST',
@@ -122,18 +114,18 @@ describe('/api/tasks/favorite', () => {
             expect(response.status).toBe(200);
             expect(data.isFavorite).toBe(true);
             expect(data.message).toContain('Added');
-            expect(prisma.taskFavorite.create).toHaveBeenCalledWith({
+            expect(prismaMock.taskFavorite.create).toHaveBeenCalledWith({
                 data: { userId: mockUserId, taskId: 'task-1' },
             });
         });
 
         it('should remove favorite when already favorited', async () => {
-            (prisma.taskFavorite.findUnique as jest.Mock).mockResolvedValue({
+            (prismaMock.taskFavorite.findUnique as jest.Mock).mockResolvedValue({
                 id: 'fav-1',
                 userId: mockUserId,
                 taskId: 'task-1',
             });
-            (prisma.taskFavorite.delete as jest.Mock).mockResolvedValue({});
+            (prismaMock.taskFavorite.delete as jest.Mock).mockResolvedValue({});
 
             const request = new NextRequest('http://localhost/api/tasks/favorite', {
                 method: 'POST',
@@ -146,7 +138,7 @@ describe('/api/tasks/favorite', () => {
             expect(response.status).toBe(200);
             expect(data.isFavorite).toBe(false);
             expect(data.message).toContain('Removed');
-            expect(prisma.taskFavorite.delete).toHaveBeenCalledWith({
+            expect(prismaMock.taskFavorite.delete).toHaveBeenCalledWith({
                 where: { id: 'fav-1' },
             });
         });

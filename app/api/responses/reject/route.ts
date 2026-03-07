@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { verifyJWT } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import { sendOfferRejectedNotification } from '@/lib/notifications/email';
+import { logAction, getRequestIP } from '@/lib/audit';
 
 export async function POST(request: Request) {
     try {
@@ -78,6 +79,15 @@ export async function POST(request: Request) {
                 `${baseUrl}/tasks`
             ).catch(err => console.error('Email notification error:', err));
         }
+
+        logAction({
+            action: 'REJECT_RESPONSE',
+            userId,
+            entity: 'Response',
+            entityId: responseId,
+            details: { taskId: response.taskId, providerId: response.userId },
+            ipAddress: getRequestIP(request),
+        });
 
         return NextResponse.json({
             message: 'Response rejected successfully'

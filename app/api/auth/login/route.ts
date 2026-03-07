@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { signJWT } from '@/lib/auth';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
+import { logAction, getRequestIP } from '@/lib/audit';
 
 export async function POST(request: Request) {
     try {
@@ -40,6 +41,11 @@ export async function POST(request: Request) {
         const isValid = await bcrypt.compare(password, user.password);
 
         if (!isValid) {
+            logAction({
+                action: 'LOGIN_FAILED',
+                details: { email },
+                ipAddress: getRequestIP(request),
+            });
             return NextResponse.json(
                 { error: 'Invalid credentials' },
                 { status: 401 }
@@ -65,6 +71,14 @@ export async function POST(request: Request) {
             },
             { status: 200 }
         );
+
+        logAction({
+            action: 'LOGIN',
+            userId: user.id,
+            entity: 'User',
+            entityId: user.id,
+            ipAddress: getRequestIP(request),
+        });
 
         // Set cookie
         response.cookies.set('token', token, {

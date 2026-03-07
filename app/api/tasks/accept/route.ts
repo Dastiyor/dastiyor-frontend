@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { verifyJWT } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import { sendOfferAcceptedNotification } from '@/lib/notifications/email';
+import { logAction, getRequestIP } from '@/lib/audit';
+import { sendPushNotification } from '@/lib/web-push';
 
 export async function POST(request: Request) {
     try {
@@ -75,6 +77,22 @@ export async function POST(request: Request) {
                 `${baseUrl}/tasks/${taskId}`
             ).catch(err => console.error('Email notification error:', err));
         }
+
+        // Web push notification to provider (non-blocking)
+        sendPushNotification(providerId, {
+            title: 'Отклик принят!',
+            body: `Вас выбрали исполнителем задания "${task.title}"`,
+            url: `/tasks/${taskId}`,
+        }).catch(() => {});
+
+        logAction({
+            action: 'ACCEPT_RESPONSE',
+            userId: currentUserId,
+            entity: 'Task',
+            entityId: taskId,
+            details: { providerId },
+            ipAddress: getRequestIP(request),
+        });
 
         return NextResponse.json({ message: 'Task accepted', task: updatedTask });
 

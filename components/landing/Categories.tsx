@@ -1,15 +1,17 @@
 'use client';
 import Link from 'next/link';
 import { Wrench, SprayCan, Truck, BookOpen, Droplets, Zap, Sparkles, Monitor } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 
 export default function Categories() {
+    const { t } = useTranslation();
     return (
         <section style={{ padding: '100px 0', backgroundColor: 'var(--white)' }}>
             <div className="container">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', marginBottom: '50px' }}>
                     <div>
-                        <h2 className="heading-lg">Popular Categories</h2>
-                        <p style={{ color: 'var(--text-light)', marginTop: '10px' }}>Find help for almost anything you need</p>
+                        <h2 className="heading-lg">{t('popularCategories.title')}</h2>
+                        <p style={{ color: 'var(--text-light)', marginTop: '10px' }}>{t('popularCategories.subtitle')}</p>
                     </div>
                     <Link href="/tasks" style={{
                         color: 'var(--primary)',
@@ -18,7 +20,7 @@ export default function Categories() {
                         alignItems: 'center',
                         gap: '8px'
                     }}>
-                        View all categories <span>→</span>
+                        {t('popularCategories.viewAll')} <span>→</span>
                     </Link>
                 </div>
 
@@ -56,7 +58,7 @@ export default function Categories() {
                                 {cat.icon}
                             </div>
                             <h3 style={{ fontSize: '1.1rem', fontWeight: '600', marginBottom: '8px' }}>{cat.name}</h3>
-                            <span style={{ fontSize: '0.9rem', color: 'var(--text-light)' }}>{cat.count} listings</span>
+                            <span style={{ fontSize: '0.9rem', color: 'var(--text-light)' }}>{cat.count} {t('popularCategories.listings')}</span>
                         </Link>
                     ))}
                 </div>

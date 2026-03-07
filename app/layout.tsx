@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { ToastContainer } from "@/components/ui/Toast";
 import ClientLayoutWrapper from "@/components/ClientLayoutWrapper";
+import { I18nProvider } from "@/lib/i18n/context";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -23,12 +24,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="ru">
       <body className={manrope.className}>
-        <ClientLayoutWrapper header={<Header />} footer={<Footer />}>
-          {children}
-        </ClientLayoutWrapper>
-        <ToastContainer />
+        <I18nProvider>
+          <ClientLayoutWrapper header={<Header />} footer={<Footer />}>
+            {children}
+          </ClientLayoutWrapper>
+          <ToastContainer />
+        </I18nProvider>
       </body>
     </html>
   );

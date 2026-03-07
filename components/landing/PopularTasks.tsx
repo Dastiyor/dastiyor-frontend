@@ -2,21 +2,23 @@
 import Link from 'next/link';
 import { MapPin, Clock, Wallet } from 'lucide-react';
 import { PREVIEW_TASKS } from '@/lib/landing-tasks';
+import { useTranslation } from '@/lib/i18n';
 
 export default function PopularTasks() {
+    const { t } = useTranslation();
     const tasks = PREVIEW_TASKS.slice(0, 3);
     return (
         <section style={{ padding: '100px 0', backgroundColor: '#F9FAFB' }}>
             <div className="container">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', marginBottom: '40px' }}>
                     <div>
-                        <h2 className="heading-lg">Популярные Задания</h2>
+                        <h2 className="heading-lg">{t('popularTasks.title')}</h2>
                         <p style={{ color: 'var(--text-light)', marginTop: '8px' }}>
-                            Самые востребованные услуги в Dastiyor
+                            {t('popularTasks.subtitle')}
                         </p>
                     </div>
                     <Link href="/tasks" className="btn btn-outline" style={{ padding: '10px 24px', fontSize: '0.9rem' }}>
-                        Все задания
+                        {t('popularTasks.viewAll')}
                     </Link>
                 </div>
 
@@ -83,7 +85,7 @@ export default function PopularTasks() {
                                     fontWeight: '600',
                                     fontSize: '0.95rem'
                                 }}>
-                                    Посмотреть
+                                    {t('popularTasks.view')}
                                 </Link>
                             </div>
                         </div>

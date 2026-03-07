@@ -4,6 +4,7 @@ import { verifyJWT } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import { sendNewMessageNotification } from '@/lib/notifications/email';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
+import { sendPushNotification } from '@/lib/web-push';
 
 // GET - Fetch messages for a conversation (between current user and another user, optionally for a task)
 export async function GET(request: Request) {
@@ -145,6 +146,13 @@ export async function POST(request: Request) {
                 `${baseUrl}/messages?userId=${senderId}${taskId ? `&taskId=${taskId}` : ''}`
             ).catch(err => console.error('Email notification error:', err));
         }
+
+        // Web push notification to receiver (non-blocking)
+        sendPushNotification(receiverId, {
+            title: `${message.sender.fullName}`,
+            body: content || 'Отправил(а) изображение',
+            url: `/messages?userId=${senderId}${taskId ? `&taskId=${taskId}` : ''}`,
+        }).catch(() => {});
 
         return NextResponse.json({ message }, { status: 201 });
 

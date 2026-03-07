@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyJWT } from '@/lib/auth';
 import { cookies } from 'next/headers';
+import { logAction, getRequestIP } from '@/lib/audit';
 
 // GET - Get current user profile
 export async function GET() {
@@ -86,6 +87,14 @@ export async function PUT(request: Request) {
                 avatar: true,
                 role: true
             }
+        });
+
+        logAction({
+            action: 'UPDATE_PROFILE',
+            userId: payload.id as string,
+            entity: 'User',
+            entityId: payload.id as string,
+            ipAddress: getRequestIP(request),
         });
 
         return NextResponse.json({

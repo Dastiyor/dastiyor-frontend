@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { validatePassword } from '@/lib/validation';
+import { logAction, getRequestIP } from '@/lib/audit';
 
 // POST - Reset password with token
 export async function POST(request: Request) {
@@ -48,6 +49,14 @@ export async function POST(request: Request) {
                 data: { used: true }
             })
         ]);
+
+        logAction({
+            action: 'PASSWORD_RESET',
+            userId: resetToken.userId,
+            entity: 'User',
+            entityId: resetToken.userId,
+            ipAddress: getRequestIP(request),
+        });
 
         return NextResponse.json({
             message: 'Password has been reset successfully. You can now login with your new password.'

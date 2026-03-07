@@ -45,6 +45,12 @@ model User {
   
   // Favorites
   favoriteTasks   TaskFavorite[]
+
+  // Audit logs
+  actionLogs      ActionLog[]
+
+  // Push subscriptions
+  pushSubscriptions PushSubscription[]
 }
 
 // Task Model
@@ -206,6 +212,25 @@ model Notification {
   user      User     @relation(fields: [userId], references: [id])
 }
 
+// Action Log Model (Audit Trail)
+model ActionLog {
+  id        String   @id @default(cuid())
+  action    String   // e.g. 'LOGIN', 'REGISTER', 'CREATE_TASK', 'ACCEPT_RESPONSE', etc.
+  entity    String?  // e.g. 'Task', 'Response', 'User'
+  entityId  String?  // ID of the affected entity
+  details   String?  // JSON string with extra context
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  // Actor (optional — null for anonymous actions like failed logins)
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
 // Task Favorite Model (Bookmarks)
 model TaskFavorite {
   id        String   @id @default(cuid())
@@ -218,4 +243,18 @@ model TaskFavorite {
   task      Task     @relation(fields: [taskId], references: [id])
 
   @@unique([userId, taskId])
+}
+
+// Push Subscription Model (Web Push Notifications)
+model PushSubscription {
+  id        String   @id @default(cuid())
+  endpoint  String   @unique
+  p256dh    String   // Public key
+  auth      String   // Auth secret
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

@@ -3,7 +3,9 @@ import { prisma } from '@/lib/prisma';
 import { verifyJWT } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
+import { logAction, getRequestIP } from '@/lib/audit';
 import { sendTaskResponseNotification } from '@/lib/notifications/email';
+import { sendPushNotification } from '@/lib/web-push';
 
 export async function POST(request: Request) {
     try {
@@ -172,6 +174,22 @@ export async function POST(request: Request) {
                 `${baseUrl}/tasks/${taskId}`
             ).catch(err => console.error('Email notification error:', err));
         }
+
+        // Web push notification to task owner (non-blocking)
+        sendPushNotification(task.userId, {
+            title: 'Новое предложение',
+            body: `${user.fullName || 'Исполнитель'} предложил ${priceStr} с. за "${task.title}"`,
+            url: `/tasks/${taskId}`,
+        }).catch(() => {});
+
+        logAction({
+            action: 'SUBMIT_RESPONSE',
+            userId: payload.id as string,
+            entity: 'Response',
+            entityId: response.id,
+            details: { taskId, price: priceStr },
+            ipAddress: getRequestIP(request),
+        });
 
         return NextResponse.json({
             message: 'Response submitted successfully',

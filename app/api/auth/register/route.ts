@@ -5,6 +5,7 @@ import { signJWT } from '@/lib/auth';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 import { validatePassword } from '@/lib/validation';
 import { sendWelcomeEmail } from '@/lib/notifications/email';
+import { logAction, getRequestIP } from '@/lib/audit';
 
 export async function POST(request: Request) {
     try {
@@ -92,6 +93,15 @@ export async function POST(request: Request) {
         // Send welcome email (non-blocking)
         sendWelcomeEmail(user.email, user.fullName, user.role)
             .catch(err => console.error('Welcome email error:', err));
+
+        logAction({
+            action: 'REGISTER',
+            userId: user.id,
+            entity: 'User',
+            entityId: user.id,
+            details: { role: user.role },
+            ipAddress: clientIP,
+        });
 
         return response;
 

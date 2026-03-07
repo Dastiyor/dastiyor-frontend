@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { cookies } from 'next/headers';
 import { verifyJWT } from '@/lib/auth';
 import UserMenu from './UserMenu';
+import LanguageSwitcher from './LanguageSwitcher';
 import { LogIn, Heart } from 'lucide-react';
 
 export default async function Header() {
@@ -138,6 +139,8 @@ export default async function Header() {
                             Создать задание
                         </Link>
                     )}
+
+                    <LanguageSwitcher />
 
                     {user ? (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

@@ -2,9 +2,11 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { FileText, MessageSquare, Handshake, Search, UserCheck, Wallet } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 
 export default function HowItWorks() {
     const [activeTab, setActiveTab] = useState<'customer' | 'provider'>('customer');
+    const { t } = useTranslation();
 
     return (
         <section style={{ padding: '100px 0', backgroundColor: '#F9FAFB' }}>
@@ -16,8 +18,8 @@ export default function HowItWorks() {
                         textTransform: 'uppercase',
                         letterSpacing: '1px',
                         fontSize: '0.85rem'
-                    }}>Простой Процесс</span>
-                    <h2 className="heading-lg" style={{ marginTop: '12px', marginBottom: '40px' }}>Как работает Dastiyor</h2>
+                    }}>{t('howItWorks.sectionLabel')}</span>
+                    <h2 className="heading-lg" style={{ marginTop: '12px', marginBottom: '40px' }}>{t('howItWorks.title')}</h2>
 
                     {/* Tabs */}
                     <div style={{
@@ -50,7 +52,7 @@ export default function HowItWorks() {
                                 zIndex: 1
                             }}
                         >
-                            Для Заказчиков
+                            {t('howItWorks.forCustomers')}
                         </button>
                         <button
                             onClick={() => setActiveTab('provider')}
@@ -68,7 +70,7 @@ export default function HowItWorks() {
                                 zIndex: 1
                             }}
                         >
-                            Для Исполнителей
+                            {t('howItWorks.forProviders')}
                         </button>
                     </div>
                 </div>
@@ -80,12 +82,12 @@ export default function HowItWorks() {
                     position: 'relative'
                 }}>
                     {activeTab === 'customer' ? (
-                        customerSteps.map((step, index) => (
-                            <StepCard key={`customer-${index}`} step={step} index={index} />
+                        customerStepKeys.map((step, index) => (
+                            <StepCard key={`customer-${index}`} step={{ title: t(step.titleKey), description: t(step.descKey), icon: step.icon, color: step.color }} index={index} />
                         ))
                     ) : (
-                        providerSteps.map((step, index) => (
-                            <StepCard key={`provider-${index}`} step={step} index={index} />
+                        providerStepKeys.map((step, index) => (
+                            <StepCard key={`provider-${index}`} step={{ title: t(step.titleKey), description: t(step.descKey), icon: step.icon, color: step.color }} index={index} />
                         ))
                     )}
                 </div>
@@ -96,7 +98,7 @@ export default function HowItWorks() {
                         className="btn btn-primary"
                         style={{ padding: '14px 40px' }}
                     >
-                        {activeTab === 'customer' ? 'Создать задание бесплатно' : 'Стать исполнителем'}
+                        {activeTab === 'customer' ? t('howItWorks.createTaskFree') : t('howItWorks.becomeProvider')}
                     </Link>
                 </div>
             </div>
@@ -143,44 +145,14 @@ function StepCard({ step, index }: { step: any, index: number }) {
     );
 }
 
-const customerSteps = [
-    {
-        title: "Опишите задачу",
-        description: "Опишите, что нужно сделать, укажите время и бюджет. Это займет не более 2 минут.",
-        icon: <FileText size={36} />,
-        color: "var(--primary)"
-    },
-    {
-        title: "Получите предложения",
-        description: "Получайте отклики от проверенных специалистов. Сравнивайте рейтинг и отзывы.",
-        icon: <MessageSquare size={36} />,
-        color: "#F59E0B"
-    },
-    {
-        title: "Выберите лучшего",
-        description: "Выберите подходящего исполнителя и договоритесь о деталях в чате.",
-        icon: <Handshake size={36} />,
-        color: "#10B981"
-    }
+const customerStepKeys = [
+    { titleKey: 'howItWorks.customerStep1', descKey: 'howItWorks.customerStep1Desc', icon: <FileText size={36} />, color: "var(--primary)" },
+    { titleKey: 'howItWorks.customerStep2', descKey: 'howItWorks.customerStep2Desc', icon: <MessageSquare size={36} />, color: "#F59E0B" },
+    { titleKey: 'howItWorks.customerStep3', descKey: 'howItWorks.customerStep3Desc', icon: <Handshake size={36} />, color: "#10B981" },
 ];
 
-const providerSteps = [
-    {
-        title: "Создайте профиль",
-        description: "Зарегистрируйтесь как исполнитель, укажите свои навыки и заполните портфолио.",
-        icon: <UserCheck size={36} />,
-        color: "var(--primary)"
-    },
-    {
-        title: "Находите заказы",
-        description: "Просматривайте ленту заданий в вашей категории и откликайтесь на интересные.",
-        icon: <Search size={36} />,
-        color: "#F59E0B"
-    },
-    {
-        title: "Зарабатывайте",
-        description: "Выполняйте работу качественно, получайте оплату и повышайте свой рейтинг.",
-        icon: <Wallet size={36} />,
-        color: "#10B981"
-    }
+const providerStepKeys = [
+    { titleKey: 'howItWorks.providerStep1', descKey: 'howItWorks.providerStep1Desc', icon: <UserCheck size={36} />, color: "var(--primary)" },
+    { titleKey: 'howItWorks.providerStep2', descKey: 'howItWorks.providerStep2Desc', icon: <Search size={36} />, color: "#F59E0B" },
+    { titleKey: 'howItWorks.providerStep3', descKey: 'howItWorks.providerStep3Desc', icon: <Wallet size={36} />, color: "#10B981" },
 ];

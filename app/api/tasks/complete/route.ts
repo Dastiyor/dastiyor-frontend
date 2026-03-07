@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { verifyJWT } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import { sendTaskCompletedNotification } from '@/lib/notifications/email';
+import { logAction, getRequestIP } from '@/lib/audit';
 
 export async function POST(request: Request) {
     try {
@@ -97,6 +98,15 @@ export async function POST(request: Request) {
                 ).catch(err => console.error('Email notification error:', err));
             }
         }
+
+        logAction({
+            action: 'COMPLETE_TASK',
+            userId: currentUserId,
+            entity: 'Task',
+            entityId: taskId,
+            details: { assignedUserId: task.assignedUserId },
+            ipAddress: getRequestIP(request),
+        });
 
         return NextResponse.json({ message: 'Task completed', task: updatedTask });
 

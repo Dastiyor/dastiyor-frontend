@@ -1,7 +1,9 @@
 'use client';
 import { ShieldCheck, Lock, Headphones, CheckCircle, Shield, Zap } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 
 export default function Features() {
+    const { t } = useTranslation();
     return (
         <section style={{ padding: '100px 0', background: 'var(--white)' }}>
             <div className="container">
@@ -9,17 +11,17 @@ export default function Features() {
 
                     {/* Left Content */}
                     <div>
-                        <span style={{ color: 'var(--primary)', fontWeight: '600' }}>ПОЧЕМУ ВЫБИРАЮТ DASTIYOR</span>
+                        <span style={{ color: 'var(--primary)', fontWeight: '600' }}>{t('features.sectionLabel')}</span>
                         <h2 className="heading-lg" style={{ margin: '16px 0 24px' }}>
-                            Безопасно, Надежно и <br />
-                            <span style={{ color: 'var(--primary)' }}>Просто</span>
+                            {t('features.titleMain')} <br />
+                            <span style={{ color: 'var(--primary)' }}>{t('features.titleHighlight')}</span>
                         </h2>
                         <p style={{ color: 'var(--text-light)', fontSize: '1.1rem', marginBottom: '40px' }}>
-                            Мы проверяем каждого специалиста и гарантируем безопасность ваших платежей до полного завершения работы.
+                            {t('features.subtitle')}
                         </p>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
-                            {features.map((feature, index) => (
+                            {featureKeys.map((feature, index) => (
                                 <div key={index} style={{ display: 'flex', gap: '20px' }}>
                                     <div style={{
                                         width: '50px',
@@ -36,8 +38,8 @@ export default function Features() {
                                         {feature.icon}
                                     </div>
                                     <div>
-                                        <h4 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '8px' }}>{feature.title}</h4>
-                                        <p style={{ color: 'var(--text-light)', lineHeight: '1.5' }}>{feature.description}</p>
+                                        <h4 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '8px' }}>{t(feature.titleKey)}</h4>
+                                        <p style={{ color: 'var(--text-light)', lineHeight: '1.5' }}>{t(feature.descKey)}</p>
                                     </div>
                                 </div>
                             ))}
@@ -63,8 +65,8 @@ export default function Features() {
                             }}>
                                 <div style={{ background: '#D1FAE5', padding: '10px', borderRadius: '50%', color: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 0 }}><CheckCircle size={24} /></div>
                                 <div>
-                                    <div style={{ fontWeight: '600' }}>Проверенный Исполнитель</div>
-                                    <div style={{ fontSize: '0.9rem', color: 'var(--text-light)' }}>ID и навыки проверены</div>
+                                    <div style={{ fontWeight: '600' }}>{t('features.verifiedBadge')}</div>
+                                    <div style={{ fontSize: '0.9rem', color: 'var(--text-light)' }}>{t('features.verifiedBadgeDesc')}</div>
                                 </div>
                             </div>
 
@@ -79,8 +81,8 @@ export default function Features() {
                             }}>
                                 <div style={{ background: '#DBEAFE', padding: '10px', borderRadius: '50%', color: '#3B82F6', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 0 }}><Shield size={24} /></div>
                                 <div>
-                                    <div style={{ fontWeight: '600' }}>Безопасные Платежи</div>
-                                    <div style={{ fontSize: '0.9rem', color: 'var(--text-light)' }}>Деньги в безопасности</div>
+                                    <div style={{ fontWeight: '600' }}>{t('features.securePaymentsBadge')}</div>
+                                    <div style={{ fontSize: '0.9rem', color: 'var(--text-light)' }}>{t('features.securePaymentsBadgeDesc')}</div>
                                 </div>
                             </div>
 
@@ -93,8 +95,8 @@ export default function Features() {
                             }}>
                                 <div style={{ background: '#FEF3C7', padding: '10px', borderRadius: '50%', color: '#F59E0B', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 0 }}><Zap size={24} /></div>
                                 <div>
-                                    <div style={{ fontWeight: '600' }}>Быстрые Отклики</div>
-                                    <div style={{ fontSize: '0.9rem', color: 'var(--text-light)' }}>Предложения за минуты</div>
+                                    <div style={{ fontWeight: '600' }}>{t('features.fastResponses')}</div>
+                                    <div style={{ fontSize: '0.9rem', color: 'var(--text-light)' }}>{t('features.fastResponsesDesc')}</div>
                                 </div>
                             </div>
                         </div>
@@ -105,20 +107,8 @@ export default function Features() {
     );
 }
 
-const features = [
-    {
-        title: "Проверенные Исполнители",
-        description: "Мы проверяем документы и отзывы, чтобы вы могли уверенно нанимать специалистов.",
-        icon: <ShieldCheck size={28} />
-    },
-    {
-        title: "Безопасные Платежи",
-        description: "Средства надежно удерживаются и передаются только после вашего одобрения выполненной работы.",
-        icon: <Lock size={28} />
-    },
-    {
-        title: "Поддержка 24/7",
-        description: "Наша команда поддержки всегда готова помочь решить любые вопросы.",
-        icon: <Headphones size={28} />
-    }
+const featureKeys = [
+    { titleKey: 'features.verifiedProviders', descKey: 'features.verifiedProvidersDesc', icon: <ShieldCheck size={28} /> },
+    { titleKey: 'features.securePayments', descKey: 'features.securePaymentsDesc', icon: <Lock size={28} /> },
+    { titleKey: 'features.support247', descKey: 'features.support247Desc', icon: <Headphones size={28} /> },
 ];

@@ -5,6 +5,7 @@ import { cookies } from 'next/headers';
 import { logger } from '@/lib/logger';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 import { validateTaskInput } from '@/lib/validation';
+import { logAction, getRequestIP } from '@/lib/audit';
 
 const TASKS_PER_PAGE = 20;
 
@@ -197,6 +198,15 @@ export async function POST(request: Request) {
                 dueDate: dueDate ? new Date(dueDate) : null,
                 urgency: urgency || 'normal',
             },
+        });
+
+        logAction({
+            action: 'CREATE_TASK',
+            userId: payload.id as string,
+            entity: 'Task',
+            entityId: task.id,
+            details: { title, category, city },
+            ipAddress: clientIP,
         });
 
         return NextResponse.json(

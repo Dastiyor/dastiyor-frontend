@@ -1,7 +1,9 @@
 'use client';
 import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n';
 
 export default function CallToAction() {
+    const { t } = useTranslation();
     return (
         <section style={{ padding: '80px 0 100px' }}>
             <div className="container">
@@ -36,10 +38,10 @@ export default function CallToAction() {
 
                     <div style={{ position: 'relative', zIndex: 1, maxWidth: '700px', margin: '0 auto' }}>
                         <h2 style={{ fontSize: '2.5rem', fontWeight: '800', marginBottom: '20px', lineHeight: '1.2' }}>
-                            Ready to get your to-do list done?
+                            {t('cta.title')}
                         </h2>
                         <p style={{ fontSize: '1.2rem', opacity: '0.9', marginBottom: '40px' }}>
-                            Join thousands of people who use Dastiyor to find trusted professionals for their tasks.
+                            {t('cta.subtitle')}
                         </p>
                         <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap' }}>
                             <Link href="/create-task" className="btn" style={{
@@ -50,7 +52,7 @@ export default function CallToAction() {
                                 fontWeight: '600',
                                 border: 'none'
                             }}>
-                                Post a Task Now
+                                {t('cta.postTask')}
                             </Link>
                             <Link href="/register?type=provider" className="btn" style={{
                                 backgroundColor: 'rgba(255,255,255,0.2)',
@@ -60,7 +62,7 @@ export default function CallToAction() {
                                 border: '1px solid rgba(255,255,255,0.4)',
                                 backdropFilter: 'blur(10px)'
                             }}>
-                                Become a Pro
+                                {t('cta.becomePro')}
                             </Link>
                         </div>
                     </div>

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import crypto from 'crypto';
 import { sendPasswordResetEmail } from '@/lib/notifications/email';
+import { logAction, getRequestIP } from '@/lib/audit';
 
 function getResetLinkBase(request: Request): string {
     const url = process.env.NEXT_PUBLIC_APP_URL;
@@ -52,6 +53,14 @@ export async function POST(request: Request) {
                 expiresAt,
                 userId: user.id
             }
+        });
+
+        logAction({
+            action: 'PASSWORD_RESET_REQUEST',
+            userId: user.id,
+            entity: 'User',
+            entityId: user.id,
+            ipAddress: getRequestIP(request),
         });
 
         const baseUrl = getResetLinkBase(request);

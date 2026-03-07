@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { verifyJWT } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import { sendTaskCancelledNotification } from '@/lib/notifications/email';
+import { logAction, getRequestIP } from '@/lib/audit';
 
 // POST - Cancel a task
 export async function POST(request: Request) {
@@ -69,6 +70,14 @@ export async function POST(request: Request) {
                 ).catch(err => console.error('Email notification error:', err));
             }
         }
+
+        logAction({
+            action: 'CANCEL_TASK',
+            userId,
+            entity: 'Task',
+            entityId: taskId,
+            ipAddress: getRequestIP(request),
+        });
 
         return NextResponse.json({
             message: 'Task cancelled successfully'

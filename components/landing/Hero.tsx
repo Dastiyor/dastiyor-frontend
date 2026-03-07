@@ -1,8 +1,10 @@
 'use client';
 import Link from 'next/link';
 import { Search } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 
 export default function Hero() {
+    const { t } = useTranslation();
     return (
         <section style={{
             position: 'relative',
@@ -27,7 +29,7 @@ export default function Hero() {
                     marginBottom: '24px',
                     border: '1px solid rgba(37, 99, 235, 0.2)'
                 }}>
-                    ✨ #1 Сервис Услуг в Таджикистане
+                    ✨ {t('hero.badge')}
                 </div>
 
                 <h1 className="heading-xl animate-fade-in" style={{
@@ -35,12 +37,12 @@ export default function Hero() {
                     margin: '0 auto 24px',
                     animationDelay: '0.1s'
                 }}>
-                    Найдите идеального <br />
+                    {t('hero.titleStart')} <br />
                     <span style={{
                         background: 'linear-gradient(135deg, var(--primary) 0%, #1D4ED8 100%)',
                         WebkitBackgroundClip: 'text',
                         WebkitTextFillColor: 'transparent'
-                    }}>исполнителя для вашей задачи</span>
+                    }}>{t('hero.titleHighlight')}</span>
                 </h1>
 
                 <p className="animate-fade-in" style={{
@@ -51,7 +53,7 @@ export default function Hero() {
                     lineHeight: '1.6',
                     animationDelay: '0.2s'
                 }}>
-                    Свяжитесь с квалифицированными специалистами для ремонта, уборки, технической поддержки и многого другого. Нам доверяют тысячи жителей Душанбе.
+                    {t('hero.subtitle')}
                 </p>
 
                 {/* Search Bar */}
@@ -71,7 +73,7 @@ export default function Hero() {
                     </div>
                     <input
                         type="text"
-                        placeholder="С чем вам нужна помощь?"
+                        placeholder={t('hero.searchPlaceholder')}
                         style={{
                             flex: 1,
                             border: 'none',
@@ -94,7 +96,7 @@ export default function Hero() {
                         textDecoration: 'none',
                         transition: 'background-color 0.2s'
                     }}>
-                        Найти
+                        {t('common.find')}
                     </Link>
                 </div>
 
@@ -107,10 +109,10 @@ export default function Hero() {
                     marginTop: '32px'
                 }}>
                     <Link href="/create-task" className="btn btn-primary" style={{ minWidth: '180px' }}>
-                        Post a Task
+                        {t('hero.postTask')}
                     </Link>
                     <Link href="/register" className="btn btn-outline" style={{ minWidth: '180px' }}>
-                        Become a Service Provider
+                        {t('hero.becomeProvider')}
                     </Link>
                 </div>
 

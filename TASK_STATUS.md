@@ -93,15 +93,73 @@ This document tracks the implementation status of features defined in the techni
 
 ---
 
+## 8.12 System Pages
+
+| Page | Status | Location / Notes |
+| :--- | :---: | :--- |
+| 404 Not Found | ✅ | `app/not-found.tsx` |
+| Access Denied | ✅ | `app/access-denied/page.tsx` |
+| Subscription Expired | ✅ | `app/subscription-expired/page.tsx` |
+| Maintenance Page | ✅ | `app/maintenance/page.tsx` |
+
+---
+
+## 8.4 Task Creation — Draft Saving
+
+| Feature | Status | Location / Notes |
+| :--- | :---: | :--- |
+| Draft auto-save (localStorage) | ✅ | `app/create-task/page.tsx`, `app/customer/create-task/page.tsx` — auto-saves on change, restores on mount |
+| Manual save/clear draft | ✅ | `saveDraft()` / `clearDraft()` with toast feedback |
+
+---
+
+## 9. Notifications
+
+| Feature | Status | Location / Notes |
+| :--- | :---: | :--- |
+| Email Notifications | ✅ | `lib/notifications/email.ts` (Brevo) — 10 event types |
+| SMS Notifications | ✅ | `lib/notifications/sms.ts` (Brevo) |
+| Web Push Notifications | ✅ | `lib/web-push.ts`, `public/sw.js`, `app/api/push/subscribe`, `lib/usePushNotifications.ts` |
+| Push Toggle Component | ✅ | `components/PushNotificationToggle.tsx` |
+
+---
+
+## 10. Security
+
+| Feature | Status | Location / Notes |
+| :--- | :---: | :--- |
+| Spam Protection | ✅ | `lib/validation.ts` (XSS sanitization, spam detection) |
+| Rate Limiting | ✅ | `lib/rate-limit.ts` (in-memory, per-IP) |
+| Data Validation | ✅ | `lib/validation.ts` (task input, password) |
+| Action Logging (Audit Trail) | ✅ | `lib/audit.ts`, `prisma/schema.prisma` (ActionLog model), integrated in 12 API routes |
+| Admin Action Logs API | ✅ | `app/api/admin/action-logs/route.ts` |
+| API Protection | ✅ | JWT cookie auth (`lib/auth.ts`) on all protected routes |
+
+---
+
 ## 11. Technical Requirements
 
 | Requirement | Status | Notes |
 | :--- | :---: | :--- |
-| Frontend: React / Next.js | ✅ | Next.js 14+ (App Router) |
+| Frontend: React / Next.js | ✅ | Next.js 16 (App Router) |
 | Backend: Node.js | ✅ | Next.js API Routes |
 | Database: PostgreSQL | ✅ | Prisma + PostgreSQL |
 | REST API | ✅ | Fully structured in `app/api` |
-| Responsive Design | ✅ | Tailwind CSS used throughout |
+| Responsive Design | ✅ | CSS Modules + inline styles, mobile-first |
+
+---
+
+## 12. Internationalization (i18n)
+
+| Feature | Status | Location / Notes |
+| :--- | :---: | :--- |
+| **i18n Infrastructure** | ✅ | `lib/i18n` (context, hook, types) |
+| **Translation Files** | ✅ | `lib/i18n/locales/ru.json`, `tj.json` |
+| **Language Switcher** | ✅ | `components/LanguageSwitcher.tsx` |
+| **App Layout Provider** | ✅ | `app/layout.tsx` |
+| **Landing Page** | ✅ | `app/page.tsx`, `components/Hero.tsx`, `components/Features.tsx` |
+| **Auth Pages** | ✅ | `app/login/page.tsx`, `app/register/page.tsx` |
+| **Shared Components** | ✅ | `components/Footer.tsx`, `components/UserMenu.tsx`, `components/Header.tsx` |
 
 ---
 **Build Status:**

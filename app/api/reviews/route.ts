@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { verifyJWT } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import { sendNewReviewNotification } from '@/lib/notifications/email';
+import { logAction, getRequestIP } from '@/lib/audit';
 
 // GET - Fetch reviews for a user
 export async function GET(request: Request) {
@@ -145,6 +146,15 @@ export async function POST(request: Request) {
                 `${baseUrl}/provider/reviews`
             ).catch(err => console.error('Email notification error:', err));
         }
+
+        logAction({
+            action: 'LEAVE_REVIEW',
+            userId: reviewerId,
+            entity: 'Review',
+            entityId: review.id,
+            details: { taskId, rating, reviewedId: task.assignedUserId },
+            ipAddress: getRequestIP(request),
+        });
 
         return NextResponse.json({
             message: 'Review submitted successfully',

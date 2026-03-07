@@ -5,6 +5,7 @@ import Link from 'next/link';
 import AuthLayout from '@/components/auth/AuthLayout';
 import { useRouter } from 'next/navigation';
 import { checkPasswordStrength } from '@/lib/validation';
+import { useTranslation } from '@/lib/i18n';
 
 type Role = 'customer' | 'provider' | null;
 
@@ -14,6 +15,7 @@ export default function RegisterPage() {
     const [error, setError] = useState('');
     const [passwordFeedback, setPasswordFeedback] = useState<string[]>([]);
     const router = useRouter();
+    const { t } = useTranslation();
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -73,8 +75,8 @@ export default function RegisterPage() {
                 backgroundColor: 'var(--secondary)'
             }}>
                 <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-                    <h1 className="heading-lg">Присоединяйтесь к Dastiyor</h1>
-                    <p style={{ color: 'var(--text-light)', fontSize: '1.1rem' }}>Чтобы начать, выберите вашу роль</p>
+                    <h1 className="heading-lg">{t('auth.joinDastiyor')}</h1>
+                    <p style={{ color: 'var(--text-light)', fontSize: '1.1rem' }}>{t('auth.chooseRole')}</p>
                 </div>
 
                 <div style={{
@@ -117,8 +119,8 @@ export default function RegisterPage() {
                         }}>
                             👤
                         </div>
-                        <h3 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Я хочу найти</h3>
-                        <p style={{ color: 'var(--text-light)' }}>Находите специалистов для ваших задач и выполняйте дела.</p>
+                        <h3 style={{ fontSize: '1.5rem', fontWeight: '700' }}>{t('auth.iWantToFind')}</h3>
+                        <p style={{ color: 'var(--text-light)' }}>{t('auth.iWantToFindDesc')}</p>
                     </button>
 
                     {/* Provider Card */}
@@ -154,13 +156,13 @@ export default function RegisterPage() {
                         }}>
                             💼
                         </div>
-                        <h3 style={{ fontSize: '1.5rem', fontWeight: '700' }}>Я хочу работать</h3>
-                        <p style={{ color: 'var(--text-light)' }}>Находите задания, развивайте бизнес и зарабатывайте.</p>
+                        <h3 style={{ fontSize: '1.5rem', fontWeight: '700' }}>{t('auth.iWantToWork')}</h3>
+                        <p style={{ color: 'var(--text-light)' }}>{t('auth.iWantToWorkDesc')}</p>
                     </button>
                 </div>
 
                 <div style={{ marginTop: '40px' }}>
-                    Уже есть аккаунт? <Link href="/login" style={{ color: 'var(--primary)', fontWeight: '600' }}>Войти</Link>
+                    {t('auth.haveAccount')} <Link href="/login" style={{ color: 'var(--primary)', fontWeight: '600' }}>{t('common.login')}</Link>
                 </div>
             </div>
         );
@@ -168,8 +170,8 @@ export default function RegisterPage() {
 
     return (
         <AuthLayout
-            title={role === 'customer' ? "Sign up as Customer" : "Sign up as Professional"}
-            subtitle="Create your account to get started"
+            title={role === 'customer' ? t('auth.signUpCustomer') : t('auth.signUpProvider')}
+            subtitle={t('auth.createAccountSubtitle')}
         >
             <button
                 onClick={() => setRole(null)}
@@ -184,7 +186,7 @@ export default function RegisterPage() {
                     fontSize: '0.9rem'
                 }}
             >
-                ← Change role
+                {t('auth.changeRole')}
             </button>
 
             {error && (
@@ -202,11 +204,11 @@ export default function RegisterPage() {
 
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <label style={{ fontWeight: '500', fontSize: '0.9rem' }}>Full Name</label>
+                    <label style={{ fontWeight: '500', fontSize: '0.9rem' }}>{t('auth.fullName')}</label>
                     <input
                         name="fullName"
                         type="text"
-                        placeholder="John Doe"
+                        placeholder={t('auth.fullNamePlaceholder')}
                         required
                         style={{
                             padding: '12px 16px',
@@ -219,11 +221,11 @@ export default function RegisterPage() {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <label style={{ fontWeight: '500', fontSize: '0.9rem' }}>Email Address</label>
+                    <label style={{ fontWeight: '500', fontSize: '0.9rem' }}>{t('auth.emailLabel')}</label>
                     <input
                         name="email"
                         type="email"
-                        placeholder="name@example.com"
+                        placeholder={t('auth.emailPlaceholder')}
                         required
                         style={{
                             padding: '12px 16px',
@@ -236,7 +238,7 @@ export default function RegisterPage() {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <label style={{ fontWeight: '500', fontSize: '0.9rem' }}>Phone Number</label>
+                    <label style={{ fontWeight: '500', fontSize: '0.9rem' }}>{t('auth.phone')}</label>
                     <input
                         name="phone"
                         type="tel"
@@ -252,11 +254,11 @@ export default function RegisterPage() {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <label style={{ fontWeight: '500', fontSize: '0.9rem' }}>Password</label>
+                    <label style={{ fontWeight: '500', fontSize: '0.9rem' }}>{t('auth.passwordLabel')}</label>
                     <input
                         name="password"
                         type="password"
-                        placeholder="Min 8 characters, include letter and number"
+                        placeholder={t('auth.passwordHint')}
                         required
                         minLength={8}
                         onChange={(e) => {
@@ -283,7 +285,7 @@ export default function RegisterPage() {
                         }}
                     />
                     <span style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>
-                        At least 8 characters, one uppercase, one lowercase, one number
+                        {t('auth.passwordHint')}
                     </span>
                     {passwordFeedback.length > 0 ? (
                         <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '0.85rem', color: '#c62828' }}>
@@ -293,7 +295,7 @@ export default function RegisterPage() {
                         </ul>
                     ) : (
                         <span style={{ fontSize: '0.8rem', color: '#059669', fontWeight: '500' }}>
-                            ✓ Реальная проверка: слабый пароль не будет принят
+                            ✓ {t('auth.passwordStrong')}
                         </span>
                     )}
                 </div>
@@ -304,14 +306,14 @@ export default function RegisterPage() {
                     className={`btn ${role === 'provider' ? 'btn-accent' : 'btn-primary'}`}
                     style={{ width: '100%', marginTop: '8px', opacity: isLoading ? 0.7 : 1 }}
                 >
-                    {isLoading ? 'Creating Account...' : 'Create Account'}
+                    {isLoading ? t('auth.creatingAccount') : t('auth.createAccount')}
                 </button>
             </form>
 
             <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '0.95rem' }}>
-                Already have an account?{' '}
+                {t('auth.haveAccount')}{' '}
                 <Link href="/login" style={{ color: 'var(--primary)', fontWeight: '600' }}>
-                    Log In
+                    {t('common.login')}
                 </Link>
             </div>
         </AuthLayout>

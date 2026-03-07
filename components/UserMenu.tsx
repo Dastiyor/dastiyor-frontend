@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import NotificationBell from './NotificationBell';
 import { User, ClipboardList, MessageSquare, Star, LogOut, LayoutDashboard } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 
 type UserMenuProps = {
     user: {
@@ -16,6 +17,7 @@ type UserMenuProps = {
 export default function UserMenu({ user }: UserMenuProps) {
     const router = useRouter();
     const [isOpen, setIsOpen] = useState(false);
+    const { t } = useTranslation();
 
     const handleLogout = async () => {
         try {
@@ -31,10 +33,10 @@ export default function UserMenu({ user }: UserMenuProps) {
         return (
             <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                 <Link href="/login" className="btn btn-outline" style={{ border: 'none', padding: '8px 16px' }}>
-                    Log In
+                    {t('common.logIn')}
                 </Link>
                 <Link href="/register" className="btn btn-primary">
-                    Sign Up
+                    {t('common.signUp')}
                 </Link>
             </div>
         );
@@ -98,7 +100,7 @@ export default function UserMenu({ user }: UserMenuProps) {
                         animation: 'fadeIn 0.2s ease-out'
                     }}>
                         <div style={{ padding: '0 12px 8px', borderBottom: '1px solid var(--border)', marginBottom: '8px' }}>
-                            <p style={{ fontSize: '0.85rem', color: 'var(--text-light)', marginTop: '8px' }}>Signed in as</p>
+                            <p style={{ fontSize: '0.85rem', color: 'var(--text-light)', marginTop: '8px' }}>{t('common.signedInAs')}</p>
                             <p style={{ fontWeight: '600', color: 'var(--text)' }}>{user.fullName}</p>
                         </div>
 
@@ -119,7 +121,7 @@ export default function UserMenu({ user }: UserMenuProps) {
                             }}
                             className="hover:bg-gray-100"
                         >
-                            <LayoutDashboard size={18} /> Dashboard
+                            <LayoutDashboard size={18} /> {t('common.dashboard')}
                         </Link>
                         <div style={{ height: '1px', backgroundColor: 'var(--border)', margin: '8px 0' }} />
                         <button
@@ -141,7 +143,7 @@ export default function UserMenu({ user }: UserMenuProps) {
                             }}
                             className="hover:bg-red-50"
                         >
-                            <LogOut size={18} /> Log Out
+                            <LogOut size={18} /> {t('common.logOut')}
                         </button>
                     </div>
                 )}

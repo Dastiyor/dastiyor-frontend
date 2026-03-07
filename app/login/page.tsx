@@ -4,11 +4,13 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AuthLayout from '@/components/auth/AuthLayout';
+import { useTranslation } from '@/lib/i18n';
 
 export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const router = useRouter();
+    const { t } = useTranslation();
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -58,8 +60,8 @@ export default function LoginPage() {
 
     return (
         <AuthLayout
-            title="С возвращением"
-            subtitle="Войдите в аккаунт, чтобы продолжить"
+            title={t('auth.welcomeBack')}
+            subtitle={t('auth.loginSubtitle')}
         >
             {error && (
                 <div style={{
@@ -76,11 +78,11 @@ export default function LoginPage() {
 
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <label style={{ fontWeight: '500', fontSize: '0.9rem' }}>Email адрес</label>
+                    <label style={{ fontWeight: '500', fontSize: '0.9rem' }}>{t('auth.emailLabel')}</label>
                     <input
                         name="email"
                         type="email"
-                        placeholder="name@example.com"
+                        placeholder={t('auth.emailPlaceholder')}
                         required
                         style={{
                             padding: '12px 16px',
@@ -95,15 +97,15 @@ export default function LoginPage() {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <label style={{ fontWeight: '500', fontSize: '0.9rem' }}>Пароль</label>
+                        <label style={{ fontWeight: '500', fontSize: '0.9rem' }}>{t('auth.passwordLabel')}</label>
                         <Link href="/forgot-password" style={{ fontSize: '0.85rem', color: 'var(--primary)' }}>
-                            Забыли пароль?
+                            {t('auth.forgotPassword')}
                         </Link>
                     </div>
                     <input
                         name="password"
                         type="password"
-                        placeholder="Введите ваш пароль"
+                        placeholder={t('auth.passwordPlaceholder')}
                         required
                         style={{
                             padding: '12px 16px',
@@ -121,14 +123,14 @@ export default function LoginPage() {
                     className="btn btn-primary"
                     style={{ width: '100%', marginTop: '8px', opacity: isLoading ? 0.7 : 1 }}
                 >
-                    {isLoading ? 'Вход...' : 'Войти'}
+                    {isLoading ? t('auth.loggingIn') : t('common.login')}
                 </button>
             </form>
 
             <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '0.95rem' }}>
-                Нет аккаунта?{' '}
+                {t('auth.noAccount')}{' '}
                 <Link href="/register" style={{ color: 'var(--primary)', fontWeight: '600' }}>
-                    Зарегистрироваться
+                    {t('common.register')}
                 </Link>
             </div>
         </AuthLayout>

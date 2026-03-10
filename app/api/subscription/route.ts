@@ -2,28 +2,9 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyJWT } from '@/lib/auth';
 import { cookies } from 'next/headers';
+import { PLANS, isValidPlan, createSmartPayOrder, generateOrderId } from '@/lib/payments';
 
-// Plan configurations
-const PLANS = {
-    basic: {
-        name: 'Basic',
-        price: 99,
-        durationDays: 7, // Basic plan is 7 days as per spec
-        responsesPerDay: 15 // Basic: 15 responses per day
-    },
-    standard: {
-        name: 'Standard',
-        price: 199,
-        durationDays: 30,
-        responsesPerMonth: 50
-    },
-    premium: {
-        name: 'Premium',
-        price: 399,
-        durationDays: 30,
-        responsesPerMonth: -1 // Unlimited
-    }
-};
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
 // GET - Get current subscription
 export async function GET() {
@@ -66,7 +47,7 @@ export async function GET() {
     }
 }
 
-// POST - Create or update subscription (simulated payment)
+// POST - Initiate subscription payment via SmartPay
 export async function POST(request: Request) {
     try {
         const cookieStore = await cookies();
@@ -85,66 +66,72 @@ export async function POST(request: Request) {
         const body = await request.json();
         const { plan } = body;
 
-        if (!plan || !PLANS[plan as keyof typeof PLANS]) {
+        if (!plan || !isValidPlan(plan)) {
             return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
         }
 
-        const planConfig = PLANS[plan as keyof typeof PLANS];
+        const planConfig = PLANS[plan];
+        const orderId = generateOrderId();
 
-        // Check if user already has a subscription
-        const existingSubscription = await prisma.subscription.findUnique({
-            where: { userId }
+        // Fetch user email/phone for SmartPay
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { email: true, phone: true }
         });
 
-        const startDate = new Date();
-        let endDate = new Date();
-
-        // If upgrading/extending, add to existing end date if still active
-        if (existingSubscription && existingSubscription.isActive && new Date(existingSubscription.endDate) > new Date()) {
-            endDate = new Date(existingSubscription.endDate);
-        }
-
-        endDate.setDate(endDate.getDate() + planConfig.durationDays);
-
-        // Simulate payment processing
-        console.log(`[SIMULATED PAYMENT] User ${userId} paid ${planConfig.price} TJS for ${planConfig.name} plan`);
-
-        let subscription;
-
-        if (existingSubscription) {
-            // Update existing subscription
-            subscription = await prisma.subscription.update({
-                where: { userId },
-                data: {
-                    plan,
-                    startDate: existingSubscription.isActive ? existingSubscription.startDate : startDate,
-                    endDate,
-                    isActive: true
-                }
-            });
-        } else {
-            // Create new subscription
-            subscription = await prisma.subscription.create({
-                data: {
-                    userId,
-                    plan,
-                    startDate,
-                    endDate,
-                    isActive: true
-                }
-            });
-        }
-
-        return NextResponse.json({
-            message: 'Subscription activated successfully',
-            subscription: {
-                ...subscription,
-                planDetails: planConfig
+        // Create a pending payment record in our DB
+        const payment = await prisma.payment.create({
+            data: {
+                userId,
+                amount: planConfig.price,
+                currency: 'TJS',
+                status: 'PENDING',
+                type: 'SUBSCRIPTION',
+                description: `Подписка ${planConfig.nameRu}`,
+                plan,
+                smartpayOrderId: orderId,
             }
         });
 
+        // Create order with SmartPay
+        const smartPayResult = await createSmartPayOrder({
+            orderId,
+            amount: planConfig.price,
+            currency: 'TJS',
+            description: `Dastiyor — Подписка ${planConfig.nameRu} (${planConfig.durationDays} дн.)`,
+            returnUrl: `${APP_URL}/payment/result?orderId=${orderId}`,
+            callbackUrl: `${APP_URL}/api/webhooks/smartpay`,
+            customerEmail: user?.email,
+            customerPhone: user?.phone || undefined,
+        });
+
+        if (!smartPayResult.success) {
+            // Mark payment as failed
+            await prisma.payment.update({
+                where: { id: payment.id },
+                data: { status: 'FAILED' }
+            });
+            return NextResponse.json(
+                { error: 'Не удалось создать платёж. Попробуйте позже.' },
+                { status: 502 }
+            );
+        }
+
+        // Save SmartPay transaction ID
+        await prisma.payment.update({
+            where: { id: payment.id },
+            data: { transactionId: smartPayResult.transactionId }
+        });
+
+        // Return the payment URL for the frontend to redirect to
+        return NextResponse.json({
+            paymentUrl: smartPayResult.paymentUrl,
+            orderId,
+            paymentId: payment.id,
+        });
+
     } catch (error) {
-        console.error('Subscription Error:', error);
+        console.error('Subscription Payment Error:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

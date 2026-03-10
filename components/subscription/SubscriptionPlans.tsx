@@ -2,7 +2,6 @@
 import { toast } from '@/components/ui/Toast';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 
 type Plan = {
     id: string;
@@ -72,9 +71,8 @@ type Props = {
     userId: string;
 };
 
-export default function SubscriptionPlans({ currentPlan, userId }: Props) {
+export default function SubscriptionPlans({ currentPlan }: Props) {
     const [loading, setLoading] = useState<string | null>(null);
-    const router = useRouter();
 
     const handleSubscribe = async (planId: string) => {
         setLoading(planId);
@@ -85,16 +83,18 @@ export default function SubscriptionPlans({ currentPlan, userId }: Props) {
                 body: JSON.stringify({ plan: planId })
             });
 
-            if (res.ok) {
-                router.refresh();
-                toast.success('Подписка успешно активирована! 🎉');
+            const data = await res.json();
+
+            if (res.ok && data.paymentUrl) {
+                // Redirect to SmartPay payment page
+                toast.success('Перенаправляем на страницу оплаты...');
+                window.location.assign(data.paymentUrl);
             } else {
-                const data = await res.json();
-                toast.error(data.error || 'Не удалось подписаться');
+                toast.error(data.error || 'Не удалось создать платёж');
+                setLoading(null);
             }
-        } catch (error) {
+        } catch {
             toast.error('Произошла ошибка. Попробуйте еще раз.');
-        } finally {
             setLoading(null);
         }
     };
@@ -209,7 +209,7 @@ export default function SubscriptionPlans({ currentPlan, userId }: Props) {
                                 transition: 'all 0.2s'
                             }}
                         >
-                            {loading === plan.id ? 'Обработка...' : 'Подписаться'}
+                            {loading === plan.id ? 'Перенаправление...' : 'Оплатить'}
                         </button>
                     )}
                 </div>

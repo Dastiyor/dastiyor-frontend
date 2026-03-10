@@ -243,6 +243,49 @@ export async function sendWelcomeEmail(
     });
 }
 
+export async function sendPaymentReceiptEmail(
+    email: string,
+    fullName: string,
+    amount: number,
+    description: string,
+    orderId: string,
+    transactionId: string
+): Promise<boolean> {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dastiyor.com';
+    return sendEmail({
+        to: email,
+        subject: `Чек оплаты — ${amount} с. — Dastiyor`,
+        html: `
+            <h2>Оплата прошла успешно!</h2>
+            <p>Здравствуйте, ${fullName}!</p>
+            <p>Ваш платёж был успешно обработан.</p>
+            <table style="width: 100%; border-collapse: collapse; margin: 24px 0;">
+                <tr style="border-bottom: 1px solid #e5e7eb;">
+                    <td style="padding: 12px 0; color: #6b7280;">Описание</td>
+                    <td style="padding: 12px 0; text-align: right; font-weight: 600;">${description}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e5e7eb;">
+                    <td style="padding: 12px 0; color: #6b7280;">Сумма</td>
+                    <td style="padding: 12px 0; text-align: right; font-weight: 700; font-size: 1.2em; color: #166534;">${amount} с.</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e5e7eb;">
+                    <td style="padding: 12px 0; color: #6b7280;">Номер заказа</td>
+                    <td style="padding: 12px 0; text-align: right;">${orderId}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px 0; color: #6b7280;">ID транзакции</td>
+                    <td style="padding: 12px 0; text-align: right;">${transactionId}</td>
+                </tr>
+            </table>
+            <a href="${baseUrl}/provider/payment-history" style="display: inline-block; padding: 12px 24px; background-color: #3B82F6; color: white; text-decoration: none; border-radius: 8px; margin: 16px 0;">
+                История платежей
+            </a>
+            <p style="font-size: 0.85rem; color: #9ca3af; margin-top: 24px;">Если у вас есть вопросы по платежу, свяжитесь с нашей службой поддержки.</p>
+        `,
+        text: `Оплата прошла успешно! ${description}. Сумма: ${amount} с. Заказ: ${orderId}. Транзакция: ${transactionId}.`,
+    });
+}
+
 export async function sendTaskCancelledNotification(
     email: string,
     taskTitle: string,

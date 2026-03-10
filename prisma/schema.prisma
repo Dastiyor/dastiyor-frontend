@@ -51,6 +51,9 @@ model User {
 
   // Push subscriptions
   pushSubscriptions PushSubscription[]
+
+  // Payments
+  payments         Payment[]
 }
 
 // Task Model
@@ -243,6 +246,31 @@ model TaskFavorite {
   task      Task     @relation(fields: [taskId], references: [id])
 
   @@unique([userId, taskId])
+}
+
+// Payment Model (Transaction History)
+model Payment {
+  id              String   @id @default(cuid())
+  amount          Int      // Amount in TJS (somoni)
+  currency        String   @default("TJS")
+  status          String   @default("PENDING") // PENDING, COMPLETED, FAILED, CANCELLED
+  type            String   // SUBSCRIPTION
+  description     String   // Human-readable description
+  plan            String?  // Subscription plan if type=SUBSCRIPTION
+  // SmartPay fields
+  transactionId   String?  @unique // SmartPay transaction ID
+  paymentMethod   String?  // e.g. 'visa', 'humo', 'dc_next'
+  smartpayOrderId String?  @unique // Our order ID sent to SmartPay
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relationships
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 // Push Subscription Model (Web Push Notifications)

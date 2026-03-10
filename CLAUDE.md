@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Dastiyor is an online services marketplace for Tajikistan where customers post tasks and service providers respond. Built with Next.js 16 (App Router), React 19, Prisma ORM, and TypeScript. The UI language is primarily Russian.
+Dastiyor (https://dastiyor.com) is an online services marketplace for Tajikistan where customers post tasks and service providers respond. Built with Next.js 16 (App Router), React 19, Prisma ORM, and TypeScript. The UI language is primarily Russian.
 
 ## Commands
 
@@ -49,7 +49,7 @@ No REST framework — each route is a standalone `route.ts` with exported `GET`/
 ### Database
 
 - PostgreSQL on Supabase (no local DB). `POSTGRES_PRISMA_URL` (pooled) and `POSTGRES_URL_NON_POOLING` (direct, for migrations)
-- Schema: `prisma/schema.prisma` — models: User, Task, Response, Subscription, Message, Review, Notification, PasswordReset, VerificationCode, TaskFavorite
+- Schema: `prisma/schema.prisma` — models: User, Task, Response, Subscription, Payment, Message, Review, Notification, PasswordReset, VerificationCode, TaskFavorite
 - IDs are CUIDs. Roles are string enums: CUSTOMER, PROVIDER, ADMIN
 - Task statuses: OPEN, IN_PROGRESS, COMPLETED, CANCELLED
 - Response statuses: PENDING, ACCEPTED, REJECTED
@@ -63,6 +63,8 @@ No REST framework — each route is a standalone `route.ts` with exported `GET`/
 - `@/lib/notifications/email.ts` — Brevo email service
 - `@/lib/notifications/sms.ts` — Brevo SMS notifications
 - `@/lib/brevo-sms.ts` — Brevo SMS client
+- `@/lib/payments/smartpay.ts` — SmartPay TJ payment gateway client
+- `@/lib/payments/index.ts` — Shared plan configs + payment exports
 
 ### Path Alias
 
@@ -80,4 +82,5 @@ Jest + React Testing Library. Tests live in `__tests__/` directories adjacent to
 
 - **Supabase**: PostgreSQL hosting (required)
 - **Brevo**: Transactional email + SMS — optional
+- **SmartPay TJ**: Payment gateway for subscriptions (https://smartpay.tj) — optional, dev simulator used when keys not set
 - **Vercel**: Deployment target (Node.js 24.x)

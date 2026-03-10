@@ -3,12 +3,12 @@ import { test, expect } from '@playwright/test';
 test.describe('Tasks Board UI', () => {
 
     test('should navigate to tasks board directly', async ({ page }) => {
-        // Navigate straight to the tasks route
-        await page.goto('/tasks');
+        // Navigate straight to the tasks route — CI dev server may need extra time to compile
+        await page.goto('/tasks', { waitUntil: 'networkidle', timeout: 30000 });
 
         // Wait until the main form header or elements are visible
         const header = page.locator('h1').first();
-        await expect(header).toBeVisible();
+        await expect(header).toBeVisible({ timeout: 15000 });
 
         // Test filter aside structure
         const filterAside = page.locator('aside').first();

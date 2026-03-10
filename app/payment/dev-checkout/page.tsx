@@ -1,13 +1,9 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 
-/**
- * Dev-only checkout simulator.
- * Mimics the SmartPay payment page when no API keys are configured.
- * Sends a simulated webhook callback and redirects to the result page.
- */
-export default function DevCheckoutPage() {
+function DevCheckoutContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const orderId = searchParams.get('orderId');
@@ -15,7 +11,6 @@ export default function DevCheckoutPage() {
     const txId = searchParams.get('txId');
 
     const simulatePayment = async (status: 'success' | 'failed') => {
-        // Send simulated webhook callback
         await fetch('/api/webhooks/smartpay', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -30,13 +25,8 @@ export default function DevCheckoutPage() {
             }),
         });
 
-        // Redirect to result page
         router.push(`/payment/result?orderId=${orderId}`);
     };
-
-    if (process.env.NODE_ENV === 'production') {
-        return null;
-    }
 
     return (
         <div style={{
@@ -121,5 +111,17 @@ export default function DevCheckoutPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function DevCheckoutPage() {
+    return (
+        <Suspense fallback={
+            <div style={{ minHeight: '100vh', backgroundColor: '#1a1a2e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ color: 'white', fontSize: '1.2rem' }}>Загрузка...</div>
+            </div>
+        }>
+            <DevCheckoutContent />
+        </Suspense>
     );
 }

@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 type PaymentStatus = 'loading' | 'success' | 'failed' | 'pending';
 
-export default function PaymentResultPage() {
+function PaymentResultContent() {
     const searchParams = useSearchParams();
     const orderId = searchParams.get('orderId');
     const [status, setStatus] = useState<PaymentStatus>('loading');
@@ -18,7 +18,6 @@ export default function PaymentResultPage() {
             return;
         }
 
-        // Poll payment status (webhook may not have arrived yet)
         let attempts = 0;
         const maxAttempts = 10;
 
@@ -218,5 +217,31 @@ export default function PaymentResultPage() {
                 }
             `}</style>
         </div>
+    );
+}
+
+export default function PaymentResultPage() {
+    return (
+        <Suspense fallback={
+            <div style={{
+                minHeight: '100vh',
+                backgroundColor: 'var(--secondary)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}>
+                <div style={{
+                    width: '64px',
+                    height: '64px',
+                    border: '4px solid #e5e7eb',
+                    borderTopColor: 'var(--primary)',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite',
+                }} />
+                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+            </div>
+        }>
+            <PaymentResultContent />
+        </Suspense>
     );
 }

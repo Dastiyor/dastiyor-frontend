@@ -8,6 +8,11 @@ jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
+    env:
+      POSTGRES_PRISMA_URL: ${{ secrets.POSTGRES_PRISMA_URL }}
+      POSTGRES_URL_NON_POOLING: ${{ secrets.POSTGRES_URL_NON_POOLING }}
+      DATABASE_URL: ${{ secrets.POSTGRES_PRISMA_URL }}
+      JWT_SECRET: "test-secret-key-for-ci"
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4

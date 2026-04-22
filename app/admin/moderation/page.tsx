@@ -31,6 +31,7 @@ export default async function AdminModerationPage() {
         where: {
             status: 'OPEN',
             createdAt: {
+                // eslint-disable-next-line react-hooks/purity
                 gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
             }
         },

@@ -51,7 +51,7 @@ export default function Step2Details({ onNext, onBack, data }: StepProps) {
         <div style={{ maxWidth: '600px', margin: '0 auto' }}>
             <h2 className="heading-md" style={{ textAlign: 'center', marginBottom: '8px' }}>Describe your task</h2>
             <p style={{ textAlign: 'center', color: 'var(--text-light)', marginBottom: '32px' }}>
-                The more details you provide, the faster you'll find a professional.
+                The more details you provide, the faster you&apos;ll find a professional.
             </p>
 
             <form onSubmit={(e) => {

@@ -37,6 +37,7 @@ export default async function ProfilePage() {
         new Date(subscription.endDate) > new Date();
 
     const daysRemaining = isSubscribed && subscription?.endDate
+        // eslint-disable-next-line react-hooks/purity
         ? Math.ceil((new Date(subscription.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
         : 0;
 

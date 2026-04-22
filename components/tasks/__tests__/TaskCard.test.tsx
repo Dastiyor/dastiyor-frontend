@@ -1,3 +1,4 @@
+/* eslint-disable react/display-name */
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import TaskCard, { Task } from '../TaskCard';
 

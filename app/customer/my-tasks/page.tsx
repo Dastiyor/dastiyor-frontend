@@ -58,7 +58,7 @@ export default async function CustomerMyTasksPage() {
             {tasks.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '60px', backgroundColor: 'white', borderRadius: '16px', border: '1px solid #E2E8F0' }}>
                     <div style={{ fontSize: '3rem', marginBottom: '16px' }}>📝</div>
-                    <h3 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '16px', color: '#1E293B' }}>You haven't created any tasks yet.</h3>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '16px', color: '#1E293B' }}>You haven&apos;t created any tasks yet.</h3>
                     <p style={{ color: '#64748B', marginBottom: '32px' }}>Create your first task to find help.</p>
                     <Link href="/customer/create-task" style={{
                         display: 'inline-block',

@@ -58,10 +58,6 @@ export default function AdminCategoriesPage() {
     const [showAddForm, setShowAddForm] = useState(false);
     const [newCategory, setNewCategory] = useState({ name: '', icon: 'Wrench', color: '#6366F1' });
 
-    useEffect(() => {
-        fetchCategories();
-    }, []);
-
     const fetchCategories = async () => {
         setLoading(true);
         try {
@@ -83,6 +79,11 @@ export default function AdminCategoriesPage() {
         }
         setLoading(false);
     };
+
+    useEffect(() => {
+        fetchCategories();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const handleEdit = (cat: Category) => {
         setEditingId(cat.id);

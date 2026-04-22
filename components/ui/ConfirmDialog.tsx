@@ -24,13 +24,7 @@ export function ConfirmDialog({
     onCancel,
     type = 'warning'
 }: ConfirmDialogProps) {
-    const [isVisible, setIsVisible] = useState(false);
-
-    useEffect(() => {
-        if (isOpen) {
-            setIsVisible(true);
-        }
-    }, [isOpen]);
+    const [isVisible, setIsVisible] = useState(isOpen);
 
     if (!isOpen) return null;
 

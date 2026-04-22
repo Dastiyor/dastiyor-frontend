@@ -24,7 +24,7 @@ export async function sendSMS(options: SMSOptions): Promise<boolean> {
         }
 
         // Use our Brevo SMS integration
-        const { sendSMS: sendRealSMS } = require('@/lib/brevo-sms');
+        const { sendSMS: sendRealSMS } = await import('@/lib/brevo-sms');
 
         try {
             await sendRealSMS({

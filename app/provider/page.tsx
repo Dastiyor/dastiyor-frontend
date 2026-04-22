@@ -420,6 +420,7 @@ export default async function ProviderDashboard() {
                                                 {task.title}
                                             </div>
                                             <span style={{ fontSize: '0.7rem', color: '#94A3B8' }}>
+                                                {/* eslint-disable-next-line react-hooks/purity */}
                                                 {Math.floor((Date.now() - new Date(task.createdAt).getTime()) / 60000)}m ago
                                             </span>
                                         </div>

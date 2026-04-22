@@ -6,7 +6,7 @@ import {
     LayoutDashboard,
     FileText,
     User,
-    CreditCard
+    CreditCard, // TODO: Re-enable when payment gateway is ready
 } from 'lucide-react';
 
 export default function ProviderSidebarNav() {
@@ -17,7 +17,8 @@ export default function ProviderSidebarNav() {
         { href: '/provider', label: 'Dashboard', icon: LayoutDashboard, exact: true },
         { href: '/provider/my-responses', label: 'My Responses', icon: FileText },
         { href: '/provider/profile', label: 'Profile', icon: User },
-        { href: '/provider/subscription', label: 'Subscription', icon: CreditCard },
+        // TODO: Re-enable when payment gateway is ready
+        // { href: '/provider/subscription', label: 'Subscription', icon: CreditCard },
     ];
 
     const isActive = (href: string, exact?: boolean) => {

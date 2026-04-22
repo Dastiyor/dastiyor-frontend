@@ -52,18 +52,20 @@ export default function ResponseList({ taskId, responses, currentUserId, taskOwn
                 toast.success('Отклик успешно отправлен!');
                 setTimeout(() => window.location.reload(), 1000);
             } else {
-                if (res.status === 403 && json.code === 'SUBSCRIPTION_REQUIRED') {
-                    const confirmed = await confirm(
-                        'Для ответа на задания требуется активная подписка. Перейти к планам?',
-                        'Требуется подписка',
-                        'warning'
-                    );
-                    if (confirmed) {
-                        router.push('/provider/subscription');
-                    }
-                } else {
-                    toast.error(json.error || 'Не удалось отправить отклик');
-                }
+                // TODO: Re-enable subscription redirect when payment gateway is ready
+                // if (res.status === 403 && json.code === 'SUBSCRIPTION_REQUIRED') {
+                //     const confirmed = await confirm(
+                //         'Для ответа на задания требуется активная подписка. Перейти к планам?',
+                //         'Требуется подписка',
+                //         'warning'
+                //     );
+                //     if (confirmed) {
+                //         router.push('/provider/subscription');
+                //     }
+                // } else {
+                //     toast.error(json.error || 'Не удалось отправить отклик');
+                // }
+                toast.error(json.error || 'Не удалось отправить отклик');
             }
         } catch (err) {
             toast.error('Ошибка при отправке отклика');

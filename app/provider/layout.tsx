@@ -35,24 +35,26 @@ export default async function ProviderLayout({
         redirect('/login');
     }
 
+    // TODO: Re-enable subscription include when payment gateway is ready
+    // const user = await prisma.user.findUnique({
+    //     where: { id: payload.id as string },
+    //     include: { subscription: true }
+    // });
     const user = await prisma.user.findUnique({
-        where: { id: payload.id as string },
-        include: {
-            subscription: true
-        }
+        where: { id: payload.id as string }
     });
 
     if (!user || user.role !== 'PROVIDER') {
         redirect('/access-denied');
     }
 
-    const daysLeft = user.subscription && user.subscription.isActive
-        ? Math.ceil((new Date(user.subscription.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
-        : 0;
-
-    const planName = user.subscription?.plan === 'premium' ? 'Premium' :
-        user.subscription?.plan === 'standard' ? 'Pro' :
-            user.subscription?.plan === 'basic' ? 'Basic' : 'Free';
+    // TODO: Re-enable plan display when payment gateway is ready
+    // const daysLeft = user.subscription && user.subscription.isActive
+    //     ? Math.ceil((new Date(user.subscription.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+    //     : 0;
+    // const planName = user.subscription?.plan === 'premium' ? 'Premium' :
+    //     user.subscription?.plan === 'standard' ? 'Pro' :
+    //         user.subscription?.plan === 'basic' ? 'Basic' : 'Free';
 
     const accentColor = 'var(--primary)';
 
@@ -95,8 +97,8 @@ export default async function ProviderLayout({
                 {/* Navigation - Client Component for active state */}
                 <ProviderSidebarNav />
 
-                {/* Current Plan */}
-                <div style={{ marginTop: 'auto', paddingTop: '16px' }}>
+                {/* TODO: Re-enable current plan badge when payment gateway is ready */}
+                {/* <div style={{ marginTop: 'auto', paddingTop: '16px' }}>
                     {user.subscription && user.subscription.isActive && (
                         <div style={{ marginBottom: '16px' }}>
                             <div style={{ fontSize: '0.7rem', color: '#94A3B8', marginBottom: '6px', fontWeight: '600', letterSpacing: '0.5px' }}>
@@ -108,9 +110,8 @@ export default async function ProviderLayout({
                             </div>
                         </div>
                     )}
-
-
-                </div>
+                </div> */}
+                <div style={{ marginTop: 'auto', paddingTop: '16px' }} />
             </aside>
 
             {/* Main Content */}

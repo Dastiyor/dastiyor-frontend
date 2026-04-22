@@ -46,14 +46,13 @@ export function clearToasts() {
 }
 
 export function ToastContainer() {
-    const [toastList, setToastList] = useState<Toast[]>([]);
+    const [toastList, setToastList] = useState<Toast[]>(() => [...toasts]);
 
     useEffect(() => {
         const listener = (newToasts: Toast[]) => {
             setToastList(newToasts);
         };
         toastListeners.push(listener);
-        setToastList([...toasts]);
 
         return () => {
             const index = toastListeners.indexOf(listener);

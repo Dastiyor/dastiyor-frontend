@@ -36,17 +36,21 @@ export async function POST(request: Request) {
             );
         }
 
-        // 2. Load User with Subscription
+        // 2. Load User
+        // TODO: Re-enable subscription check when payment gateway is ready
+        // const user = await prisma.user.findUnique({
+        //     where: { id: payload.id as string },
+        //     include: { subscription: true }
+        // });
         const user = await prisma.user.findUnique({
-            where: { id: payload.id as string },
-            include: { subscription: true }
+            where: { id: payload.id as string }
         });
 
         if (!user) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
 
-        // 3. Enforce Provider Role & Subscription
+        // 3. Enforce Provider Role
         if (user.role !== 'PROVIDER') {
             return NextResponse.json(
                 { error: 'Only providers can respond to tasks', code: 'PROVIDER_REQUIRED' },
@@ -54,65 +58,51 @@ export async function POST(request: Request) {
             );
         }
 
-        const hasActiveSubscription = user.subscription &&
-            user.subscription.isActive &&
-            new Date(user.subscription.endDate) > new Date();
+        // TODO: Re-enable subscription gate when payment gateway is ready
+        // const hasActiveSubscription = user.subscription &&
+        //     user.subscription.isActive &&
+        //     new Date(user.subscription.endDate) > new Date();
+        // if (!hasActiveSubscription) {
+        //     return NextResponse.json(
+        //         { error: 'Active subscription required to respond', code: 'SUBSCRIPTION_REQUIRED' },
+        //         { status: 403 }
+        //     );
+        // }
 
-        if (!hasActiveSubscription) {
-            return NextResponse.json(
-                { error: 'Active subscription required to respond', code: 'SUBSCRIPTION_REQUIRED' },
-                { status: 403 }
-            );
-        }
-
-        // 4. Check Response Limits based on plan
-        const planLimits: Record<string, { limit: number, period: 'daily' | 'monthly' }> = {
-            'basic': { limit: 15, period: 'daily' }, // Basic: 15 per day
-            'standard': { limit: 50, period: 'monthly' }, // Standard: 50 per month
-            'premium': { limit: Infinity, period: 'monthly' } // Premium: unlimited
-        };
-
-        const userPlan = user.subscription!.plan.toLowerCase();
-        const planConfig = planLimits[userPlan] || { limit: 15, period: 'daily' };
-
-        if (planConfig.limit === Infinity) {
-            // Premium plan - no limit check needed
-        } else {
-            let startDate: Date;
-            if (planConfig.period === 'daily') {
-                // Count responses today
-                startDate = new Date();
-                startDate.setHours(0, 0, 0, 0);
-            } else {
-                // Count responses this month
-                startDate = new Date();
-                startDate.setDate(1);
-                startDate.setHours(0, 0, 0, 0);
-            }
-
-            const responseCount = await prisma.response.count({
-                where: {
-                    userId: user.id,
-                    createdAt: {
-                        gte: startDate
-                    }
-                }
-            });
-
-            if (responseCount >= planConfig.limit) {
-                const periodText = planConfig.period === 'daily' ? 'сегодня' : 'в этом месяце';
-                return NextResponse.json(
-                    {
-                        error: `Вы достигли лимита откликов (${planConfig.limit} ${planConfig.period === 'daily' ? 'в день' : 'в месяц'}) для вашего плана "${user.subscription!.plan}". Обновите подписку для большего количества откликов.`,
-                        code: 'RESPONSE_LIMIT_REACHED',
-                        limit: planConfig.limit,
-                        used: responseCount,
-                        period: planConfig.period
-                    },
-                    { status: 403 }
-                );
-            }
-        }
+        // TODO: Re-enable response limits when payment gateway is ready
+        // const planLimits: Record<string, { limit: number, period: 'daily' | 'monthly' }> = {
+        //     'basic': { limit: 15, period: 'daily' },
+        //     'standard': { limit: 50, period: 'monthly' },
+        //     'premium': { limit: Infinity, period: 'monthly' }
+        // };
+        // const userPlan = user.subscription!.plan.toLowerCase();
+        // const planConfig = planLimits[userPlan] || { limit: 15, period: 'daily' };
+        // if (planConfig.limit !== Infinity) {
+        //     let startDate: Date;
+        //     if (planConfig.period === 'daily') {
+        //         startDate = new Date();
+        //         startDate.setHours(0, 0, 0, 0);
+        //     } else {
+        //         startDate = new Date();
+        //         startDate.setDate(1);
+        //         startDate.setHours(0, 0, 0, 0);
+        //     }
+        //     const responseCount = await prisma.response.count({
+        //         where: { userId: user.id, createdAt: { gte: startDate } }
+        //     });
+        //     if (responseCount >= planConfig.limit) {
+        //         return NextResponse.json(
+        //             {
+        //                 error: `Вы достигли лимита откликов (${planConfig.limit} ${planConfig.period === 'daily' ? 'в день' : 'в месяц'}) для вашего плана "${user.subscription!.plan}". Обновите подписку для большего количества откликов.`,
+        //                 code: 'RESPONSE_LIMIT_REACHED',
+        //                 limit: planConfig.limit,
+        //                 used: responseCount,
+        //                 period: planConfig.period
+        //             },
+        //             { status: 403 }
+        //         );
+        //     }
+        // }
 
         // 4. Parse Body
         const body = await request.json();

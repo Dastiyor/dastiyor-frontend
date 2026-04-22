@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { useSearchParams } from 'next/navigation';
 import ChatInterface from '../ChatInterface';

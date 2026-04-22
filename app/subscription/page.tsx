@@ -74,6 +74,7 @@ export default async function SubscriptionPage() {
                                 Осталось дней
                             </div>
                             <div style={{ fontSize: '2rem', fontWeight: '700', color: '#166534' }}>
+                                {/* eslint-disable-next-line react-hooks/purity */}
                                 {Math.ceil((new Date(currentSubscription.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))}
                             </div>
                         </div>

@@ -2,12 +2,18 @@ import { POST, GET } from '../route';
 import { prismaMock } from '../../../../../__tests__/mocks/prisma';
 import { NextRequest } from 'next/server';
 import bcrypt from 'bcryptjs';
+import { checkRateLimit } from '@/lib/rate-limit';
 
-
+jest.mock('@/lib/rate-limit', () => ({
+    checkRateLimit: jest.fn(),
+    getClientIP: jest.fn().mockReturnValue('127.0.0.1'),
+    rateLimitExceededResponse: jest.fn(),
+}));
 
 describe('/api/auth/reset-password', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        (checkRateLimit as jest.Mock).mockReturnValue({ allowed: true, remaining: 4, resetIn: 60000 });
     });
 
     describe('POST', () => {

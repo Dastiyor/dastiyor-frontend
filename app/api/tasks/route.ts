@@ -177,10 +177,6 @@ export async function POST(request: Request) {
         }
 
         // 3. Create Task
-        console.log('Creating task with data:', {
-            title, description, category, budget, amount, userId: payload.id
-        });
-
         const amountNum = amount != null && amount !== '' ? parseInt(String(amount), 10) : null;
         const task = await prisma.task.create({
             data: {

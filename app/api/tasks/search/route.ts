@@ -10,8 +10,8 @@ export async function GET(request: Request) {
         const city = searchParams.get('city');
         const minBudget = searchParams.get('minBudget');
         const maxBudget = searchParams.get('maxBudget');
-        const page = parseInt(searchParams.get('page') || '1', 10);
-        const limit = parseInt(searchParams.get('limit') || '20', 10);
+        const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
+        const limit = Math.max(1, Math.min(parseInt(searchParams.get('limit') || '20', 10) || 20, 100));
         const skip = (page - 1) * limit;
 
         if (!query || query.trim().length < 2) {
@@ -82,9 +82,9 @@ export async function GET(request: Request) {
             }
         });
 
-    } catch (error: any) {
+    } catch {
         return NextResponse.json(
-            { error: 'Search failed', details: error.message },
+            { error: 'Search failed' },
             { status: 500 }
         );
     }

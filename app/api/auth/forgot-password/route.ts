@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import crypto from 'crypto';
 import { sendPasswordResetEmail } from '@/lib/notifications/email';
 import { logAction, getRequestIP } from '@/lib/audit';
+import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 
 function getResetLinkBase(request: Request): string {
     const url = process.env.NEXT_PUBLIC_APP_URL;
@@ -16,6 +17,12 @@ function getResetLinkBase(request: Request): string {
 
 // POST - Request password reset
 export async function POST(request: Request) {
+    const clientIP = getClientIP(request);
+    const rateLimit = checkRateLimit(clientIP, 'auth');
+    if (!rateLimit.allowed) {
+        return rateLimitExceededResponse(rateLimit.resetIn);
+    }
+
     try {
         const body = await request.json();
         const { email } = body;
@@ -68,15 +75,12 @@ export async function POST(request: Request) {
         const sent = await sendPasswordResetEmail(user.email, resetLink);
 
         if (!sent && process.env.NODE_ENV === 'development') {
-            console.log('='.repeat(60));
-            console.log('PASSWORD RESET LINK (Email not sent, fallback):');
-            console.log(resetLink);
-            console.log('='.repeat(60));
+            // Token logged server-side only — never expose to client
+            console.log('Password reset email not sent (dev). Token:', token.substring(0, 8) + '...');
         }
 
         return NextResponse.json({
-            message: 'If an account exists with this email, a password reset link has been sent.',
-            ...(process.env.NODE_ENV === 'development' && { debug_token: token })
+            message: 'If an account exists with this email, a password reset link has been sent.'
         });
 
     } catch (error) {

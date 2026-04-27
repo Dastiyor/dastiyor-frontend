@@ -3,9 +3,16 @@ import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { validatePassword } from '@/lib/validation';
 import { logAction, getRequestIP } from '@/lib/audit';
+import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 
 // POST - Reset password with token
 export async function POST(request: Request) {
+    const clientIP = getClientIP(request);
+    const rateLimit = checkRateLimit(clientIP, 'auth');
+    if (!rateLimit.allowed) {
+        return rateLimitExceededResponse(rateLimit.resetIn);
+    }
+
     try {
         const body = await request.json();
         const { token, password } = body;

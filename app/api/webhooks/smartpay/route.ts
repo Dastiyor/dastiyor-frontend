@@ -42,19 +42,25 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Payment not found' }, { status: 404 });
         }
 
-        // Avoid processing already completed/failed payments
-        if (payment.status === 'COMPLETED' || payment.status === 'FAILED') {
+        // Idempotency: use atomic status transition to prevent double-processing
+        // updateMany with status=PENDING guard ensures only one concurrent call wins
+        const claimed = await prisma.payment.updateMany({
+            where: { id: payment.id, status: 'PENDING' },
+            data: { status: callbackData.status === 'success' ? 'COMPLETED' : callbackData.status === 'cancelled' ? 'CANCELLED' : 'FAILED' },
+        });
+
+        if (claimed.count === 0) {
+            // Already processed by a concurrent or prior call
             return NextResponse.json({ ok: true, message: 'Already processed' });
         }
 
         if (callbackData.status === 'success') {
             // ── Payment Successful ──────────────────────────────────────
 
-            // Update payment record
+            // Update transaction metadata (status already set above)
             await prisma.payment.update({
                 where: { id: payment.id },
                 data: {
-                    status: 'COMPLETED',
                     transactionId: callbackData.transactionId,
                     paymentMethod: callbackData.paymentMethod,
                 }
@@ -123,16 +129,13 @@ export async function POST(request: Request) {
 
         } else {
             // ── Payment Failed or Cancelled ─────────────────────────────
-
-            const newStatus = callbackData.status === 'cancelled' ? 'CANCELLED' : 'FAILED';
-
-            await prisma.payment.update({
-                where: { id: payment.id },
-                data: {
-                    status: newStatus,
-                    transactionId: callbackData.transactionId,
-                }
-            });
+            // Status already updated atomically above; just store transaction ID.
+            if (callbackData.transactionId) {
+                await prisma.payment.update({
+                    where: { id: payment.id },
+                    data: { transactionId: callbackData.transactionId },
+                });
+            }
         }
 
         // SmartPay expects a 200 OK response

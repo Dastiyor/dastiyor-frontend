@@ -128,22 +128,23 @@ export async function createSmartPayOrder(params: SmartPayOrderRequest): Promise
  */
 export function verifyCallbackSignature(data: SmartPayCallbackData): boolean {
     if (!isSmartPayConfigured()) {
-        // In dev mode, accept all callbacks
-        return true;
+        // Only allow unsigned callbacks in non-production (dev simulator)
+        return process.env.NODE_ENV !== 'production';
     }
 
-    // Standard HMAC signature verification
-    // The exact fields and order will depend on SmartPay's documentation
     const signatureString = `${data.transactionId}:${data.orderId}:${data.amount}:${data.status}`;
     const expectedSignature = crypto
         .createHmac('sha256', SMARTPAY_SECRET_KEY)
         .update(signatureString)
         .digest('hex');
 
-    return crypto.timingSafeEqual(
-        Buffer.from(data.signature),
-        Buffer.from(expectedSignature)
-    );
+    const incomingBuf = Buffer.from(data.signature || '');
+    const expectedBuf = Buffer.from(expectedSignature);
+
+    // timingSafeEqual requires equal length buffers
+    if (incomingBuf.length !== expectedBuf.length) return false;
+
+    return crypto.timingSafeEqual(incomingBuf, expectedBuf);
 }
 
 /**

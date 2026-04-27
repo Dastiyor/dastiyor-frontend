@@ -463,38 +463,7 @@ export default async function ProviderDashboard() {
                         </Link>
                     </div>
 
-                    {/* Boost Your Reach */}
-                    {(!user.subscription || !user.subscription.isActive || user.subscription.plan !== 'premium') && (
-                        <div style={{
-                            background: `linear-gradient(135deg, ${accentColor} 0%, #1D4ED8 100%)`,
-                            padding: '20px',
-                            borderRadius: '16px',
-                            color: 'white'
-                        }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                                <Rocket size={18} />
-                                <h3 style={{ fontSize: '1rem', fontWeight: '700' }}>
-                                    Boost Your Reach
-                                </h3>
-                            </div>
-                            <p style={{ fontSize: '0.8rem', marginBottom: '14px', opacity: 0.9, lineHeight: '1.5' }}>
-                                Pro Plan members get 3x more visibility in client searches. Upgrade today to unlock premium features.
-                            </p>
-                            <Link href="/provider/subscription" style={{
-                                display: 'block',
-                                textAlign: 'center',
-                                padding: '10px 16px',
-                                backgroundColor: 'white',
-                                color: accentColor,
-                                borderRadius: '8px',
-                                textDecoration: 'none',
-                                fontSize: '0.85rem',
-                                fontWeight: '700'
-                            }}>
-                                Upgrade Today
-                            </Link>
-                        </div>
-                    )}
+                    {/* TODO: Re-enable "Boost Your Reach" upsell when payment gateway is ready */}
                 </div>
             </div>
         </>

@@ -151,46 +151,7 @@ export default async function ProfilePage() {
                         </div>
                     )}
 
-                    {/* Subscription Status */}
-                    {user.role === 'PROVIDER' && (
-                        <div style={{
-                            padding: '24px',
-                            borderRadius: '16px',
-                            marginBottom: '24px',
-                            backgroundColor: isSubscribed ? '#f0fdf4' : '#fef2f2',
-                            border: isSubscribed ? '1px solid #bbf7d0' : '1px solid #fecaca'
-                        }}>
-                            {isSubscribed && subscription ? (
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <div>
-                                        <div style={{ fontWeight: '600', color: '#166534', fontSize: '1.1rem', marginBottom: '4px' }}>
-                                            ✨ {subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1)} Подписка активна
-                                        </div>
-                                        <div style={{ color: '#15803d', fontSize: '0.95rem' }}>
-                                            {daysRemaining} дней осталось • Истекает {new Date(subscription.endDate).toLocaleDateString()}
-                                        </div>
-                                    </div>
-                                    <Link href="/subscription" className="btn btn-outline" style={{ borderColor: '#22c55e', color: '#166534' }}>
-                                        Управление
-                                    </Link>
-                                </div>
-                            ) : (
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <div>
-                                        <div style={{ fontWeight: '600', color: '#991b1b', fontSize: '1.1rem', marginBottom: '4px' }}>
-                                            Нет активной подписки
-                                        </div>
-                                        <div style={{ color: '#b91c1c', fontSize: '0.95rem' }}>
-                                            Обновите, чтобы отвечать на больше задач и получить приоритет
-                                        </div>
-                                    </div>
-                                    <Link href="/subscription" className="btn btn-primary">
-                                        Обновить сейчас
-                                    </Link>
-                                </div>
-                            )}
-                        </div>
-                    )}
+                    {/* TODO: Re-enable subscription status block when payment gateway is ready */}
 
                     <div style={{ display: 'grid', gridTemplateColumns: user.role === 'PROVIDER' ? 'repeat(3, 1fr)' : '1fr 1fr', gap: '24px', marginBottom: '40px' }}>
                         <div style={{ padding: '24px', borderRadius: '16px', backgroundColor: '#f9fafb', border: '1px solid var(--border)' }}>

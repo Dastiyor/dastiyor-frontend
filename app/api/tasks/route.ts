@@ -66,31 +66,15 @@ export async function GET(request: Request) {
                 include: {
                     _count: { select: { responses: true } },
                     user: { select: { fullName: true } },
-                    responses: {
-                        include: {
-                            user: {
-                                include: { subscription: true },
-                            },
-                        },
-                    },
+                    // TODO: Re-enable subscription include for premium sorting when payment gateway is ready
+                    // responses: { include: { user: { include: { subscription: true } } } },
                 },
             }),
             prisma.task.count({ where }),
         ]);
 
-        const sortedTasks = tasksForPage.sort((a: any, b: any) => {
-            const aHasPremium = a.responses?.some((r: any) =>
-                r.user?.subscription?.plan === 'premium' && r.user?.subscription?.isActive && new Date(r.user.subscription.endDate) > new Date()
-            );
-            const bHasPremium = b.responses?.some((r: any) =>
-                r.user?.subscription?.plan === 'premium' && r.user?.subscription?.isActive && new Date(r.user.subscription.endDate) > new Date()
-            );
-            if (aHasPremium && !bHasPremium) return -1;
-            if (!aHasPremium && bHasPremium) return 1;
-            return 0;
-        });
-
-        const tasks = sortedTasks.map((task: any) => ({
+        // TODO: Re-enable premium-first sorting when payment gateway is ready
+        const tasks = tasksForPage.map((task: any) => ({
             id: task.id,
             title: task.title,
             category: task.category,
@@ -101,9 +85,7 @@ export async function GET(request: Request) {
             urgency: task.urgency,
             responseCount: task._count.responses,
             status: task.status,
-            hasPremiumResponse: task.responses?.some((r: any) =>
-                r.user?.subscription?.plan === 'premium' && r.user?.subscription?.isActive && new Date(r.user.subscription.endDate) > new Date()
-            ),
+            hasPremiumResponse: false, // TODO: Re-enable when payment gateway is ready
         }));
 
         return NextResponse.json({

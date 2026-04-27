@@ -65,8 +65,14 @@ A full-featured online services marketplace platform where customers post servic
 - In-app notification system
 - Real-time notification bell
 - Notification types: NEW_OFFER, OFFER_ACCEPTED, OFFER_REJECTED, NEW_MESSAGE, TASK_COMPLETED
-- Email notification service structure (ready for integration)
+- Email notifications via Brevo (password reset, task events, offer events)
 - SMS via Brevo (verification codes, task/offer notifications)
+- Web push notifications (VAPID, browser-native)
+
+#### Verification & Security
+- OTP-based phone/email verification (`VerificationCode` model, `/api/auth/verify-send` + `/api/auth/verify-check`)
+- Audit trail for admin actions (`ActionLog` model, `/api/admin/action-logs`)
+- Environment variable validation at startup (`lib/env-validation.ts`)
 
 #### Admin Panel
 - Dashboard with platform statistics
@@ -128,15 +134,22 @@ DATABASE_URL="postgresql://..."
 POSTGRES_PRISMA_URL="postgresql://..."
 POSTGRES_URL_NON_POOLING="postgresql://..."
 
-# Optional: SMS Sender Name (Brevo)
-BREVO_SMS_SENDER="Dastiyor"
-
-# Optional: Email (Brevo) – for password reset and notifications
+# Optional: Email + SMS (Brevo)
 BREVO_API_KEY="xkeysib-..."
 BREVO_FROM_EMAIL="noreply@yourdomain.com"   # Must be a verified sender in Brevo
 BREVO_FROM_NAME="Dastiyor"
+BREVO_SMS_SENDER="Dastiyor"
 
-# Optional: Supabase API/Auth (if using Supabase client)
+# Optional: Payment gateway (SmartPay TJ)
+SMARTPAY_API_URL="https://api.smartpay.tj"
+SMARTPAY_MERCHANT_ID="your-merchant-id"
+SMARTPAY_SECRET_KEY="your-secret-key"
+
+# Optional: Web push notifications (VAPID)
+VAPID_PRIVATE_KEY="your-vapid-private-key"
+VAPID_SUBJECT="mailto:admin@dastiyor.com"
+
+# Optional: Supabase client
 NEXT_PUBLIC_SUPABASE_URL="https://xxx.supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="..."
 ```
@@ -222,40 +235,65 @@ dastiyor/
 - `POST /api/auth/logout` - User logout
 - `POST /api/auth/forgot-password` - Request password reset
 - `POST /api/auth/reset-password` - Reset password with token
+- `POST /api/auth/verify-send` - Send OTP verification code
+- `POST /api/auth/verify-check` - Verify OTP code
 
 ### Tasks
+- `GET /api/tasks` - List tasks (with filters)
 - `POST /api/tasks` - Create a new task
+- `GET /api/tasks/[id]` - Get task details
+- `PUT /api/tasks/[id]` - Update task
+- `GET /api/tasks/[id]/history` - Task change history
 - `POST /api/tasks/accept` - Accept a provider for a task
 - `POST /api/tasks/complete` - Mark task as completed
 - `POST /api/tasks/cancel` - Cancel a task
+- `POST /api/tasks/favorite` - Toggle task favorite
+- `GET /api/tasks/search` - Search tasks
 
 ### Responses
 - `POST /api/responses` - Submit a response to a task
 - `POST /api/responses/reject` - Reject a response
 
-### Messages
+### Messages & Conversations
 - `GET /api/messages?userId=...&taskId=...` - Get messages
 - `POST /api/messages` - Send a message
+- `GET /api/conversations` - Get all conversations grouped by partner
 
 ### Reviews
 - `GET /api/reviews?userId=...` - Get reviews for a user
 - `POST /api/reviews` - Create a review
 
-### Subscriptions
+### Subscriptions & Payments
 - `GET /api/subscription` - Get current subscription
 - `POST /api/subscription` - Create/update subscription
 - `DELETE /api/subscription` - Cancel subscription
+- `GET /api/payments/status` - SmartPay payment status check
+- `POST /api/webhooks/smartpay` - SmartPay payment webhook
+
+### Profile
+- `GET /api/profile` - Get user profile
+- `PUT /api/profile` - Update user profile
 
 ### Notifications
 - `GET /api/notifications` - Get user notifications
 - `PUT /api/notifications` - Mark all as read
 
+### Web Push
+- `GET /api/push/vapid-key` - Get VAPID public key
+- `PUT /api/push/subscribe` - Register push subscription
+- `DELETE /api/push/subscribe` - Remove push subscription
+
 ### Upload
 - `POST /api/upload` - Upload images (max 5MB)
 
 ### Admin (requires admin JWT)
-- `POST /api/admin/test-sms` - Send test SMS (phone + message body)
+- `GET /api/admin/action-logs` - Audit trail of admin actions
 - `POST /api/admin/bulk` - Bulk operations (users, tasks, etc.)
+- `POST /api/admin/test-email` - Send test email
+- `POST /api/admin/test-sms` - Send test SMS (phone + message body)
+
+### Provider
+- `POST /api/provider/verify` - Provider verification request
 
 ## 🗄️ Database Schema
 
@@ -264,10 +302,15 @@ dastiyor/
 - **Task**: Service tasks posted by customers
 - **Response**: Provider offers/responses to tasks
 - **Subscription**: Provider subscription plans
+- **Payment**: Payment records for subscriptions
 - **Message**: Chat messages between users
 - **Review**: Ratings and reviews
 - **Notification**: In-app notifications
 - **PasswordReset**: Password reset tokens
+- **VerificationCode**: OTP codes for phone/email verification
+- **TaskFavorite**: Customer-saved/bookmarked tasks
+- **ActionLog**: Audit trail for admin actions
+- **PushSubscription**: Browser web push subscriptions
 
 See `prisma/schema.prisma` for complete schema definition.
 
@@ -282,10 +325,19 @@ See `prisma/schema.prisma` for complete schema definition.
 | `NODE_ENV` | Environment (development/production) | No (defaults) |
 
 ### Optional
-- `BREVO_SMS_SENDER` - Brevo SMS sender name (custom sender ID, default "Dastiyor")
-- `NEXT_PUBLIC_SUPABASE_*` / `SUPABASE_*` - Supabase project URL and keys (if using Supabase client)
-- `EMAIL_SERVICE_*` - For email notifications (structure ready)
-- `PAYMENT_GATEWAY_KEY` - For payment processing
+| Variable | Description |
+|----------|-------------|
+| `BREVO_API_KEY` | Brevo API key for email/SMS |
+| `BREVO_FROM_EMAIL` | Verified sender email (Brevo) |
+| `BREVO_FROM_NAME` | Sender display name (default "Dastiyor") |
+| `BREVO_SMS_SENDER` | SMS sender ID (default "Dastiyor") |
+| `SMARTPAY_API_URL` | SmartPay TJ API base URL |
+| `SMARTPAY_MERCHANT_ID` | SmartPay merchant ID |
+| `SMARTPAY_SECRET_KEY` | SmartPay secret key |
+| `VAPID_PRIVATE_KEY` | VAPID private key for web push |
+| `VAPID_SUBJECT` | VAPID subject (mailto: or URL) |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key |
 
 ## 🚢 Deployment
 
@@ -312,13 +364,12 @@ npx prisma generate
 
 ### Production Checklist
 - [ ] Set strong `JWT_SECRET`
-- [ ] Use PostgreSQL (e.g. Supabase)
-- [ ] Set `DATABASE_URL`, `POSTGRES_PRISMA_URL`, `POSTGRES_URL_NON_POOLING` for production DB
-- [ ] Set `BREVO_SMS_SENDER` for custom SMS sender (Brevo)
-- [ ] Configure email service if needed (SendGrid/AWS SES)
-- [ ] Set up payment gateway if needed (Stripe/PayPal)
+- [ ] Set `DATABASE_URL`, `POSTGRES_PRISMA_URL`, `POSTGRES_URL_NON_POOLING` for Supabase DB
+- [ ] Set `BREVO_API_KEY`, `BREVO_FROM_EMAIL`, `BREVO_FROM_NAME` for email notifications
+- [ ] Set `BREVO_SMS_SENDER` for custom SMS sender ID
+- [ ] Set `SMARTPAY_API_URL`, `SMARTPAY_MERCHANT_ID`, `SMARTPAY_SECRET_KEY` for payments
+- [ ] Set `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` for web push notifications
 - [ ] Configure cloud storage for uploads (S3/DigitalOcean Spaces)
-- [ ] Set up proper CORS policies
 - [ ] Enable HTTPS
 - [ ] Set up monitoring and logging
 
@@ -348,9 +399,10 @@ npm run dev           # Start development server
 npm run build         # Build for production
 npm run start         # Start production server
 npm run lint          # Run ESLint
-npm test              # Run tests
+npm test              # Run Jest unit/integration tests
 npm run test:watch    # Run tests in watch mode
 npm run test:coverage # Run tests with coverage
+npx playwright test   # Run E2E tests (Chrome, Firefox, Safari)
 ```
 
 ### Database Commands
@@ -367,28 +419,28 @@ npx prisma db push           # Push schema changes (dev only)
 
 ✅ **Completed**
 - User authentication and authorization
-- Task creation and management
+- OTP-based phone/email verification
+- Task creation and management (with history tracking)
 - Response system with subscription validation
-- Chat/messaging functionality
+- Chat/messaging with conversation grouping
 - Reviews and ratings
 - Subscription system (Basic, Standard, Premium)
-- Admin panel
-- Notification system (in-app)
+- Payment gateway (SmartPay TJ) with webhook
+- Admin panel (users, tasks, categories, subscriptions, moderation, settings)
+- Audit trail for admin actions
+- In-app notification system
+- Email notifications (Brevo)
+- SMS notifications (Brevo)
+- Web push notifications (VAPID)
 - File uploads
 - Rate limiting
 - Priority placement for Premium plans
-- Response rejection
+- Task favorites/bookmarks
 - Advanced filtering & sorting
 - Subcategory support
 - Sidebar navigation for Customer & Provider
 - Estimated completion time
-
-✅ **Integrated**
-- SMS notifications (Brevo)
-
-🔧 **Ready for Integration**
-- Email notifications (service structure ready)
-- Payment gateway (service structure ready)
+- Environment variable validation at startup
 
 ## 🤝 Contributing
 

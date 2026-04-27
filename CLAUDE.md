@@ -49,10 +49,13 @@ No REST framework — each route is a standalone `route.ts` with exported `GET`/
 ### Database
 
 - PostgreSQL on Supabase (no local DB). `POSTGRES_PRISMA_URL` (pooled) and `POSTGRES_URL_NON_POOLING` (direct, for migrations)
-- Schema: `prisma/schema.prisma` — models: User, Task, Response, Subscription, Payment, Message, Review, Notification, PasswordReset, VerificationCode, TaskFavorite
+- Schema: `prisma/schema.prisma` — 14 models: User, Task, Response, Subscription, Payment, Message, Review, Notification, PasswordReset, VerificationCode, TaskFavorite, ActionLog, PushSubscription
 - IDs are CUIDs. Roles are string enums: CUSTOMER, PROVIDER, ADMIN
 - Task statuses: OPEN, IN_PROGRESS, COMPLETED, CANCELLED
 - Response statuses: PENDING, ACCEPTED, REJECTED
+- `ActionLog` — audit trail for admin actions
+- `PushSubscription` — web push notification subscriptions
+- `VerificationCode` — OTP codes for phone/email verification
 
 ### Key Libraries
 
@@ -65,6 +68,13 @@ No REST framework — each route is a standalone `route.ts` with exported `GET`/
 - `@/lib/brevo-sms.ts` — Brevo SMS client
 - `@/lib/payments/smartpay.ts` — SmartPay TJ payment gateway client
 - `@/lib/payments/index.ts` — Shared plan configs + payment exports
+- `@/lib/audit.ts` — Audit trail logging (writes to ActionLog)
+- `@/lib/env-validation.ts` — Startup environment variable validation
+- `@/lib/logger.ts` — Structured logging utility
+- `@/lib/web-push.ts` — Web push notification sender (VAPID)
+- `@/lib/usePushNotifications.ts` — React hook for push subscription management
+- `@/lib/landing-tasks.ts` — Hardcoded sample tasks for landing page
+- `@/lib/i18n/` — i18n context, types, and translation index (Russian primary)
 
 ### Path Alias
 
@@ -76,11 +86,13 @@ CSS Modules (`*.module.css`) + inline styles. No Tailwind. Font: Manrope (Google
 
 ### Testing
 
-Jest + React Testing Library. Tests live in `__tests__/` directories adjacent to source files. The jose module is explicitly un-ignored in `transformIgnorePatterns`.
+- **Unit/integration**: Jest + React Testing Library. Tests live in `__tests__/` directories adjacent to source files. The jose module is explicitly un-ignored in `transformIgnorePatterns`.
+- **E2E**: Playwright configured (`playwright.config.ts`) — Chrome, Firefox, Safari. Base URL `localhost:3000`, auto-starts dev server. Tests in `tests/` directory.
 
 ### External Services
 
 - **Supabase**: PostgreSQL hosting (required)
-- **Brevo**: Transactional email + SMS — optional
-- **SmartPay TJ**: Payment gateway for subscriptions (https://smartpay.tj) — optional, dev simulator used when keys not set
+- **Brevo**: Transactional email + SMS — optional (`BREVO_API_KEY`, `BREVO_FROM_EMAIL`, `BREVO_FROM_NAME`, `BREVO_SMS_SENDER`)
+- **SmartPay TJ**: Payment gateway for subscriptions (https://smartpay.tj) — optional, dev simulator used when keys not set (`SMARTPAY_API_URL`, `SMARTPAY_MERCHANT_ID`, `SMARTPAY_SECRET_KEY`)
+- **Web Push**: VAPID-based browser push notifications — optional (`VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, public key served via `/api/push/vapid-key`)
 - **Vercel**: Deployment target (Node.js 24.x)

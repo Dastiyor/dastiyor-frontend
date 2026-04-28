@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import Link from 'next/link';
 import AuthLayout from '@/components/auth/AuthLayout';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -10,6 +10,14 @@ import { useTranslation } from '@/lib/i18n';
 type Role = 'customer' | 'provider' | null;
 
 export default function RegisterPage() {
+    return (
+        <Suspense>
+            <RegisterContent />
+        </Suspense>
+    );
+}
+
+function RegisterContent() {
     const searchParams = useSearchParams();
     const typeParam = searchParams.get('type');
     const [role, setRole] = useState<Role>(

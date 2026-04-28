@@ -26,7 +26,7 @@ export default function MobileAppPage() {
                 <p style={{ fontWeight: '600', color: 'var(--text)', marginBottom: '8px' }}>Хотите узнать первыми?</p>
                 <p style={{ color: 'var(--text-light)', fontSize: '0.95rem', lineHeight: '1.6' }}>
                     Следите за новостями в нашем Telegram-канале или напишите нам на{' '}
-                    <a href="mailto:support@dastiyor.com" style={{ color: 'var(--primary)' }}>support@dastiyor.com</a>,
+                    <a href="mailto:support@dastiyor.com" rel="nofollow" style={{ color: 'var(--primary)' }}>support[at]dastiyor.com</a>,
                     чтобы мы уведомили вас о запуске.
                 </p>
             </div>

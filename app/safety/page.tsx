@@ -77,7 +77,7 @@ export default function SafetyPage() {
                     Наша поддержка работает каждый день с 9:00 до 22:00 (время Душанбе, UTC+5).
                 </p>
                 <p style={{ color: 'var(--text-light)', lineHeight: '1.7' }}>
-                    Email: <a href="mailto:support@dastiyor.com" style={{ color: 'var(--primary)' }}>support@dastiyor.com</a>
+                    Email: <a href="mailto:support@dastiyor.com" rel="nofollow" style={{ color: 'var(--primary)' }}>support[at]dastiyor.com</a>
                 </p>
             </section>
         </div>

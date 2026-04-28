@@ -302,14 +302,13 @@ export default function TaskFilterSidebar({ categoryCounts = [], totalOpenTasks 
                     `}</style>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '16px', fontSize: '0.75rem', color: 'var(--text-light)', fontWeight: '600' }}>
-                        <span>$0</span>
-                        <span>$5,000+</span>
+                        <span>0 TJS</span>
+                        <span>5 000+ TJS</span>
                     </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '16px' }}>
                     <div style={{ flex: 1, backgroundColor: 'var(--secondary)', borderRadius: '8px', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', padding: '0 12px', height: '42px' }}>
-                        <span style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-light)', marginRight: '4px' }}>$</span>
                         <input
                             type="number"
                             value={minBudget}
@@ -325,10 +324,10 @@ export default function TaskFilterSidebar({ categoryCounts = [], totalOpenTasks 
                                 color: 'var(--text)'
                             }}
                         />
+                        <span style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--text-light)', marginLeft: '4px', whiteSpace: 'nowrap' }}>TJS</span>
                     </div>
                     <span style={{ color: 'var(--text-light)', fontWeight: '500' }}>-</span>
                     <div style={{ flex: 1, backgroundColor: 'var(--secondary)', borderRadius: '8px', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', padding: '0 12px', height: '42px' }}>
-                        <span style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-light)', marginRight: '4px' }}>$</span>
                         <input
                             type="number"
                             value={maxBudget}
@@ -344,6 +343,7 @@ export default function TaskFilterSidebar({ categoryCounts = [], totalOpenTasks 
                                 color: 'var(--text)'
                             }}
                         />
+                        <span style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--text-light)', marginLeft: '4px', whiteSpace: 'nowrap' }}>TJS</span>
                     </div>
                 </div>
 

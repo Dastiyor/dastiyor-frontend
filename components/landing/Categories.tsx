@@ -57,8 +57,7 @@ export default function Categories() {
                             }}>
                                 {cat.icon}
                             </div>
-                            <h3 style={{ fontSize: '1.1rem', fontWeight: '600', marginBottom: '8px' }}>{cat.name}</h3>
-                            <span style={{ fontSize: '0.9rem', color: 'var(--text-light)' }}>{cat.count} {t('popularCategories.listings')}</span>
+                            <h3 style={{ fontSize: '1.1rem', fontWeight: '600' }}>{cat.name}</h3>
                         </Link>
                     ))}
                 </div>

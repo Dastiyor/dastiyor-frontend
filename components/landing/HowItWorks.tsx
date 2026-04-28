@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useState } from 'react';
-import { FileText, MessageSquare, Handshake, Search, UserCheck, Wallet } from 'lucide-react';
+import { FileText, MessageSquare, Handshake, Search, UserCheck, Wallet, Sparkles } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 
 export default function HowItWorks() {
@@ -149,6 +149,7 @@ const customerStepKeys = [
     { titleKey: 'howItWorks.customerStep1', descKey: 'howItWorks.customerStep1Desc', icon: <FileText size={36} />, color: "var(--primary)" },
     { titleKey: 'howItWorks.customerStep2', descKey: 'howItWorks.customerStep2Desc', icon: <MessageSquare size={36} />, color: "#F59E0B" },
     { titleKey: 'howItWorks.customerStep3', descKey: 'howItWorks.customerStep3Desc', icon: <Handshake size={36} />, color: "#10B981" },
+    { titleKey: 'howItWorks.customerStep4', descKey: 'howItWorks.customerStep4Desc', icon: <Sparkles size={36} />, color: "#8B5CF6" },
 ];
 
 const providerStepKeys = [

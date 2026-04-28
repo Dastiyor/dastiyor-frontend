@@ -3,6 +3,7 @@ import TaskFilterSidebar from '@/components/tasks/TaskFilterSidebar';
 import TaskSortSelect from '@/components/tasks/TaskSortSelect';
 import TasksFeed from '@/components/tasks/TasksFeed';
 import { Suspense } from 'react';
+import Link from 'next/link';
 
 type Props = {
     searchParams: {
@@ -71,7 +72,7 @@ export default async function TasksPage({ searchParams }: Props) {
                     </div>
 
                     <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                        <div style={{
+                        <Link href="/contractor-plans" style={{
                             backgroundColor: 'rgba(37, 99, 235, 0.1)',
                             color: 'var(--primary)',
                             padding: '8px 16px',
@@ -82,10 +83,13 @@ export default async function TasksPage({ searchParams }: Props) {
                             fontWeight: '700',
                             fontSize: '0.85rem',
                             textTransform: 'uppercase',
-                            letterSpacing: '0.5px'
+                            letterSpacing: '0.5px',
+                            textDecoration: 'none',
+                            border: '1px solid rgba(37, 99, 235, 0.2)',
+                            transition: 'background-color 0.2s'
                         }}>
                             <span style={{ fontSize: '1rem' }}>✓</span> PRO MEMBER
-                        </div>
+                        </Link>
                         <TaskSortSelect defaultValue={sort || 'newest'} />
                     </div>
                 </div>

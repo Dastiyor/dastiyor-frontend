@@ -28,7 +28,7 @@ const faqs = [
             },
             {
                 q: 'Что делать, если я недоволен результатом?',
-                a: 'Сначала попробуйте решить вопрос с исполнителем через чат на платформе. Если договориться не удаётся, обратитесь в поддержку: support@dastiyor.com — мы поможем разобраться.',
+                a: 'Сначала попробуйте решить вопрос с исполнителем через чат на платформе. Если договориться не удаётся, обратитесь в поддержку: support[at]dastiyor.com — мы поможем разобраться.',
             },
             {
                 q: 'Можно ли отменить задание?',
@@ -74,7 +74,7 @@ const faqs = [
             },
             {
                 q: 'Как удалить аккаунт?',
-                a: 'Напишите на support@dastiyor.com с темой «Удаление аккаунта». Мы удалим ваш аккаунт и персональные данные в течение 7 рабочих дней.',
+                a: 'Напишите на support[at]dastiyor.com с темой «Удаление аккаунта». Мы удалим ваш аккаунт и персональные данные в течение 7 рабочих дней.',
             },
         ],
     },
@@ -86,7 +86,7 @@ export default function HelpPage() {
             <h1 className="heading-lg" style={{ marginBottom: '16px' }}>Центр помощи</h1>
             <p style={{ fontSize: '1.1rem', color: 'var(--text-light)', marginBottom: '48px' }}>
                 Ответы на частые вопросы. Не нашли нужного?{' '}
-                <a href="mailto:support@dastiyor.com" style={{ color: 'var(--primary)' }}>Напишите нам</a>.
+                <a href="mailto:support@dastiyor.com" rel="nofollow" style={{ color: 'var(--primary)' }}>Напишите нам</a>.
             </p>
 
             {faqs.map((group) => (
@@ -110,7 +110,7 @@ export default function HelpPage() {
                 <p style={{ color: 'var(--text-light)', marginBottom: '20px' }}>
                     Служба поддержки работает ежедневно с 9:00 до 22:00 (UTC+5).
                 </p>
-                <a href="mailto:support@dastiyor.com" className="btn btn-primary" style={{ display: 'inline-block', padding: '12px 28px' }}>
+                <a href="mailto:support@dastiyor.com" rel="nofollow" className="btn btn-primary" style={{ display: 'inline-block', padding: '12px 28px' }}>
                     Написать в поддержку
                 </a>
             </div>

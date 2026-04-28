@@ -9,10 +9,12 @@ import Step4Budget from '@/components/create-task/Step4Budget';
 import { toast } from '@/components/ui/Toast';
 
 export default function CreateTaskPage() {
+    const router = useRouter();
     const [step, setStep] = useState(1);
     const [uploading, setUploading] = useState(false);
+    const [authChecked, setAuthChecked] = useState(false);
     const DRAFT_KEY = 'task_draft';
-    
+
     const [formData, setFormData] = useState({
         category: '',
         subcategory: '',
@@ -28,6 +30,17 @@ export default function CreateTaskPage() {
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [hasDraft, setHasDraft] = useState(false);
+
+    // Auth gate on mount — redirect to login before user fills the form
+    useEffect(() => {
+        fetch('/api/auth/me').then(res => {
+            if (res.status === 401) {
+                router.replace('/login?redirect=/create-task');
+            } else {
+                setAuthChecked(true);
+            }
+        }).catch(() => setAuthChecked(true));
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Load draft or template on mount
     useEffect(() => {
@@ -107,8 +120,6 @@ export default function CreateTaskPage() {
         setFormData(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }));
     };
 
-    const router = useRouter();
-
     const handleNext = (data: any) => {
         setFormData(prev => ({ ...prev, ...data }));
         if (step < 4) {
@@ -158,6 +169,14 @@ export default function CreateTaskPage() {
             setIsSubmitting(false);
         }
     };
+
+    if (!authChecked) {
+        return (
+            <div style={{ textAlign: 'center', padding: '100px 20px', color: 'var(--text-light)' }}>
+                Загрузка...
+            </div>
+        );
+    }
 
     if (isSubmitting) {
         return (
@@ -345,12 +364,7 @@ export default function CreateTaskPage() {
                                 />
                             </div>
 
-                            {/* Map – planned for next release */}
-                            <div style={{ height: '200px', backgroundColor: '#F9FAFB', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#6B7280', border: '1px solid #E5E7EB', gap: '6px' }}>
-                                <span style={{ fontSize: '1.75rem' }}>📍</span>
-                                <span style={{ fontWeight: '600', fontSize: '0.95rem' }}>Карта</span>
-                                <span style={{ fontSize: '0.85rem' }}>Выбор адреса на карте скоро будет доступен.</span>
-                            </div>
+                            {/* Map widget hidden until feature is complete */}
                         </div>
 
                         {/* Pricing & Schedule */}

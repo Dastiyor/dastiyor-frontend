@@ -54,8 +54,8 @@ export async function GET(request: Request) {
         }
 
         let orderBy: any = { createdAt: 'desc' };
-        if (sort === 'budget-high') orderBy = [{ budgetAmountNum: 'desc' }, { createdAt: 'desc' }];
-        else if (sort === 'budget-low') orderBy = [{ budgetAmountNum: 'asc' }, { createdAt: 'desc' }];
+        if (sort === 'budget-high') orderBy = [{ budgetAmountNum: { sort: 'desc', nulls: 'last' } }, { createdAt: 'desc' }];
+        else if (sort === 'budget-low') orderBy = [{ budgetAmountNum: { sort: 'asc', nulls: 'last' } }, { createdAt: 'desc' }];
 
         const [tasksForPage, total] = await Promise.all([
             prisma.task.findMany({

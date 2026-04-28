@@ -3,14 +3,18 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import AuthLayout from '@/components/auth/AuthLayout';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { checkPasswordStrength } from '@/lib/validation';
 import { useTranslation } from '@/lib/i18n';
 
 type Role = 'customer' | 'provider' | null;
 
 export default function RegisterPage() {
-    const [role, setRole] = useState<Role>(null);
+    const searchParams = useSearchParams();
+    const typeParam = searchParams.get('type');
+    const [role, setRole] = useState<Role>(
+        typeParam === 'provider' ? 'provider' : typeParam === 'customer' ? 'customer' : null
+    );
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [passwordFeedback, setPasswordFeedback] = useState<string[]>([]);

@@ -59,6 +59,14 @@ export default function TaskCard({ task }: { task: Task }) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ taskId: task.id })
             });
+            if (res.status === 401) {
+                toast.error('Войдите в систему, чтобы добавить в избранное');
+                return;
+            }
+            if (!res.ok) {
+                toast.error('Ошибка при сохранении');
+                return;
+            }
             const data = await res.json();
             setIsFavorite(data.isFavorite);
             toast.success(data.isFavorite ? 'Добавлено в избранное' : 'Удалено из избранного');
@@ -233,10 +241,10 @@ export default function TaskCard({ task }: { task: Task }) {
                         color: 'var(--text)',
                         lineHeight: '1.2'
                     }}>
-                        {isNaN(parseInt(task.budget)) ? task.budget : `${parseInt(task.budget).toLocaleString()} с.`}
+                        {task.budget}
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-light)', fontWeight: '700' }}>
-                        {isNegotiable ? 'Negotiable' : 'Fixed Price'}
+                        {isNegotiable ? 'Договорная' : 'Фиксированная цена'}
                     </div>
                 </div>
 

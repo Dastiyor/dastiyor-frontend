@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { verifyJWT } from '@/lib/auth';
 import UserMenu from './UserMenu';
 import LanguageSwitcher from './LanguageSwitcher';
+import MobileMenu from './MobileMenu';
 import { LogIn, Heart } from 'lucide-react';
 
 export default async function Header() {
@@ -62,8 +63,8 @@ export default async function Header() {
                     />
                 </Link>
 
-                {/* Center Navigation */}
-                <nav style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+                {/* Center Navigation — hidden on mobile */}
+                <nav className="desktop-nav" style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
                     <Link href="/how-it-works" style={{
                         fontWeight: '500',
                         color: '#374151',
@@ -99,8 +100,8 @@ export default async function Header() {
                     )}
                 </nav>
 
-                {/* Right Actions */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                {/* Right Actions — desktop only; mobile uses MobileMenu */}
+                <div className="desktop-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     {user && user.role === 'CUSTOMER' && (
                         <Link href="/create-task/template" style={{
                             backgroundColor: '#F3F4F6',
@@ -181,6 +182,9 @@ export default async function Header() {
                         </Link>
                     )}
                 </div>
+
+                {/* Hamburger — mobile only */}
+                <MobileMenu user={user} />
             </div>
         </header>
     );

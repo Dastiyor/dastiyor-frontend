@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import TaskCard, { type Task } from '@/components/tasks/TaskCard';
-import { PREVIEW_TASKS } from '@/lib/landing-tasks';
 
 const PAGE_SIZE = 6;
 
-function getQueryString(searchParams: URLSearchParams, pageNum: number): string {
+function buildQueryString(searchParams: URLSearchParams, pageNum: number): string {
     const params = new URLSearchParams();
     params.set('page', String(pageNum));
     params.set('limit', String(PAGE_SIZE));
@@ -36,32 +35,22 @@ export default function TasksFeed() {
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
     const [fetchError, setFetchError] = useState<string | null>(null);
-    const paramsKey = searchParams.toString();
+    const abortRef = useRef<AbortController | null>(null);
 
-    const fetchPage = useCallback(async (pageNum: number, append: boolean) => {
-        const isFirst = pageNum === 1;
-        if (isFirst) {
-            setLoading(true);
-            setFetchError(null);
-        } else {
-            setLoadingMore(true);
-        }
+    const fetchPage = async (pageNum: number, append: boolean, signal: AbortSignal) => {
         try {
-            const qs = getQueryString(searchParams, pageNum);
-            const url = `/api/tasks?${qs}`;
-            const res = await fetch(url);
+            const qs = buildQueryString(searchParams, pageNum);
+            const res = await fetch(`/api/tasks?${qs}`, { signal });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Failed to load');
-            const list = data.tasks || [];
+            const list: Task[] = data.tasks || [];
             const pagination = data.pagination || {};
-            if (append) {
-                setTasks(prev => [...prev, ...list]);
-            } else {
-                setTasks(list);
-            }
+            setTasks(prev => append ? [...prev, ...list] : list);
             setHasMore(!!pagination.hasMore);
             setPage(pageNum);
+            setFetchError(null);
         } catch (err) {
+            if ((err as Error).name === 'AbortError') return;
             setFetchError(err instanceof Error ? err.message : 'Failed to load tasks');
             setHasMore(false);
             if (pageNum === 1) setTasks([]);
@@ -69,15 +58,23 @@ export default function TasksFeed() {
             setLoading(false);
             setLoadingMore(false);
         }
-    }, [paramsKey]); // refetch only when URL params change
+    };
 
     useEffect(() => {
-        fetchPage(1, false);
-    }, [fetchPage]);
+        abortRef.current?.abort();
+        abortRef.current = new AbortController();
+        setLoading(true);
+        setFetchError(null);
+        fetchPage(1, false, abortRef.current.signal);
+        return () => abortRef.current?.abort();
+    }, [searchParams.toString()]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleLoadMore = () => {
         if (loadingMore || !hasMore) return;
-        fetchPage(page + 1, true);
+        abortRef.current?.abort();
+        abortRef.current = new AbortController();
+        setLoadingMore(true);
+        fetchPage(page + 1, true, abortRef.current.signal);
     };
 
     if (loading) {
@@ -109,7 +106,13 @@ export default function TasksFeed() {
                 <p style={{ color: 'var(--text-light)', maxWidth: '400px', margin: '0 auto 16px' }}>
                     {fetchError}
                 </p>
-                <button type="button" className="btn btn-outline" onClick={() => fetchPage(1, false)}>
+                <button type="button" className="btn btn-outline" onClick={() => {
+                    abortRef.current?.abort();
+                    abortRef.current = new AbortController();
+                    setLoading(true);
+                    setFetchError(null);
+                    fetchPage(1, false, abortRef.current.signal);
+                }}>
                     Повторить
                 </button>
             </div>
@@ -117,41 +120,21 @@ export default function TasksFeed() {
     }
 
     if (tasks.length === 0) {
-        const sampleTasks: Task[] = PREVIEW_TASKS.map((t, i) => ({
-            id: `preview-${i}`,
-            title: t.title,
-            category: t.category,
-            budget: t.budget,
-            city: t.location,
-            postedAt: t.timeAgo,
-            description: t.description,
-            urgency: 'normal',
-            responseCount: 0,
-            status: 'OPEN',
-            hasPremiumResponse: false,
-        }));
         return (
             <>
                 <div style={{
                     textAlign: 'center',
-                    padding: '24px 16px',
+                    padding: '48px 24px',
                     backgroundColor: 'white',
                     borderRadius: '16px',
                     border: '1px solid var(--border)',
                     marginBottom: '24px',
                 }}>
-                    <h3 className="heading-md" style={{ marginBottom: '8px' }}>Примеры заданий</h3>
-                    <p style={{ color: 'var(--text-light)', fontSize: '0.9rem', marginBottom: '8px' }}>
-                        Пока в базе нет заданий. Ниже — примеры для просмотра.
+                    <div style={{ fontSize: '3rem', marginBottom: '12px' }}>🔍</div>
+                    <h3 className="heading-md" style={{ marginBottom: '8px' }}>Заданий пока нет</h3>
+                    <p style={{ color: 'var(--text-light)', fontSize: '0.95rem' }}>
+                        В этой категории ещё нет заданий. Попробуйте другой фильтр или загляните позже.
                     </p>
-                    <p style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>
-                        Для загрузки демо-данных: <code style={{ background: '#f3f4f6', padding: '2px 6px', borderRadius: '4px' }}>npx prisma db seed</code>
-                    </p>
-                </div>
-                <div style={{ display: 'grid', gap: '16px' }}>
-                    {sampleTasks.map((task) => (
-                        <TaskCard key={task.id} task={task} />
-                    ))}
                 </div>
             </>
         );

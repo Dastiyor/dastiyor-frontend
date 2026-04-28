@@ -95,7 +95,7 @@ export default async function TaskDetailsPage({ params }: Props) {
         where: { id },
         include: {
             user: {
-                select: { id: true, fullName: true, avatar: true, email: true, phone: true }
+                select: { id: true, fullName: true, avatar: true, email: true, phone: true, createdAt: true }
             },
             assignedUser: {
                 select: { id: true, fullName: true, avatar: true, email: true, phone: true }

@@ -20,7 +20,7 @@ export default function ContractorPlansPage() {
 
                 <div style={{ padding: '40px', backgroundColor: 'var(--primary)', color: 'white', borderRadius: '24px', transform: 'scale(1.05)' }}>
                     <h3 className="heading-md" style={{ color: 'white' }}>Pro</h3>
-                    <div style={{ fontSize: '3rem', fontWeight: '800', marginBottom: '24px' }}>$29<span style={{ fontSize: '1rem', fontWeight: 'normal' }}>/mo</span></div>
+                    <div style={{ fontSize: '3rem', fontWeight: '800', marginBottom: '24px' }}>349 <span style={{ fontSize: '1.25rem', fontWeight: '600' }}>TJS</span><span style={{ fontSize: '1rem', fontWeight: 'normal' }}>/мес</span></div>
                     <ul style={{ textAlign: 'left', marginBottom: '32px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         <li>✅ Unlimited Responses</li>
                         <li>✅ Verified Badge</li>

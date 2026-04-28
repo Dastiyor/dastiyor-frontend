@@ -20,7 +20,7 @@ type TaskSidebarProps = {
 export default function TaskSidebar({ task, isOwner, canRespond }: TaskSidebarProps) {
     const { confirm, Dialog } = useConfirm();
     const budgetDisplay = task.budgetType === 'fixed'
-        ? `${task.budgetAmount || '0'} с.`
+        ? `${task.budgetAmount || '0'} TJS`
         : 'Договорная';
 
     const budgetLabel = task.budgetType === 'fixed' ? 'Фиксированная цена' : 'Открыт к предложениям';
@@ -32,10 +32,9 @@ export default function TaskSidebar({ task, isOwner, canRespond }: TaskSidebarPr
         .toUpperCase()
         .slice(0, 2);
 
-    const registeredDate = new Date(task.user.createdAt).toLocaleDateString('ru-RU', {
-        month: 'short',
-        year: 'numeric'
-    });
+    const registeredDate = task.user.createdAt
+        ? new Date(task.user.createdAt).toLocaleDateString('ru-RU', { month: 'short', year: 'numeric' })
+        : '—';
 
     const scrollToResponses = () => {
         document.querySelector('form')?.scrollIntoView({ behavior: 'smooth' });

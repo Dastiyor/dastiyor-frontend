@@ -1,10 +1,24 @@
 'use client';
+import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Search } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 
 export default function Hero() {
     const { t } = useTranslation();
+    const router = useRouter();
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const handleSearch = () => {
+        const q = searchQuery.trim();
+        router.push(q ? `/tasks?query=${encodeURIComponent(q)}` : '/tasks');
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') handleSearch();
+    };
+
     return (
         <section style={{
             position: 'relative',
@@ -74,6 +88,9 @@ export default function Hero() {
                     <input
                         type="text"
                         placeholder={t('hero.searchPlaceholder')}
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyDown={handleKeyDown}
                         style={{
                             flex: 1,
                             border: 'none',
@@ -84,7 +101,7 @@ export default function Hero() {
                             backgroundColor: 'transparent'
                         }}
                     />
-                    <Link href="/tasks" style={{
+                    <button onClick={handleSearch} style={{
                         backgroundColor: '#6366F1', // Indigo-500 matching the image
                         color: 'white',
                         padding: '14px 40px',
@@ -97,7 +114,7 @@ export default function Hero() {
                         transition: 'background-color 0.2s'
                     }}>
                         {t('common.find')}
-                    </Link>
+                    </button>
                 </div>
 
                 <div className="animate-fade-in" style={{

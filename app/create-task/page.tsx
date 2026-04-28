@@ -349,7 +349,7 @@ export default function CreateTaskPage() {
                             <div style={{ height: '200px', backgroundColor: '#F9FAFB', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#6B7280', border: '1px solid #E5E7EB', gap: '6px' }}>
                                 <span style={{ fontSize: '1.75rem' }}>📍</span>
                                 <span style={{ fontWeight: '600', fontSize: '0.95rem' }}>Карта</span>
-                                <span style={{ fontSize: '0.85rem' }}>Карта будет добавлена в следующем обновлении.</span>
+                                <span style={{ fontSize: '0.85rem' }}>Выбор адреса на карте скоро будет доступен.</span>
                             </div>
                         </div>
 

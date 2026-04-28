@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { Locale, DEFAULT_LOCALE } from './types';
 import ru from './locales/ru.json';
 import tj from './locales/tj.json';
@@ -28,11 +28,15 @@ function getNestedValue(obj: unknown, path: string): string | undefined {
 }
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-    const [locale, setLocaleState] = useState<Locale>(() => {
-        if (typeof window === 'undefined') return DEFAULT_LOCALE;
+    const [locale, setLocaleState] = useState<Locale>(DEFAULT_LOCALE);
+
+    useEffect(() => {
         const saved = localStorage.getItem('dastiyor_locale') as Locale | null;
-        return (saved === 'ru' || saved === 'tj') ? saved : DEFAULT_LOCALE;
-    });
+        if (saved === 'ru' || saved === 'tj') {
+            setLocaleState(saved);
+            document.documentElement.lang = saved;
+        }
+    }, []);
 
     const setLocale = useCallback((newLocale: Locale) => {
         setLocaleState(newLocale);

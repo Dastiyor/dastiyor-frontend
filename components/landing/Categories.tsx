@@ -30,7 +30,7 @@ export default function Categories() {
                     gap: '24px'
                 }}>
                     {categories.map((cat, index) => (
-                        <Link href={`/tasks?category=${cat.name}`} key={index} className="category-card" style={{
+                        <Link href={`/tasks?category=${encodeURIComponent(cat.dbValue)}`} key={index} className="category-card" style={{
                             padding: '30px',
                             background: 'white',
                             borderRadius: '20px',
@@ -57,7 +57,7 @@ export default function Categories() {
                             }}>
                                 {cat.icon}
                             </div>
-                            <h3 style={{ fontSize: '1.1rem', fontWeight: '600' }}>{cat.name}</h3>
+                            <h3 style={{ fontSize: '1.1rem', fontWeight: '600' }}>{t(cat.nameKey)}</h3>
                         </Link>
                     ))}
                 </div>
@@ -75,12 +75,12 @@ export default function Categories() {
 }
 
 const categories = [
-    { name: 'Home Repairs', icon: <Wrench size={28} />, count: '120+', bg: '#EFF6FF' },
-    { name: 'Cleaning', icon: <SprayCan size={28} />, count: '85+', bg: '#ECFDF5' },
-    { name: 'Moving', icon: <Truck size={28} />, count: '40+', bg: '#FFF7ED' },
-    { name: 'Tutors', icon: <BookOpen size={28} />, count: '60+', bg: '#F5F3FF' },
-    { name: 'Plumbing', icon: <Droplets size={28} />, count: '35+', bg: '#EFF6FF' },
-    { name: 'Electrician', icon: <Zap size={28} />, count: '45+', bg: '#FFFBEB' },
-    { name: 'Beauty', icon: <Sparkles size={28} />, count: '50+', bg: '#FDF2F8' },
-    { name: 'Tech Help', icon: <Monitor size={28} />, count: '30+', bg: '#F0F9FF' },
+    { nameKey: 'popularCategories.homeRepairs', dbValue: 'Ремонт', icon: <Wrench size={28} />, bg: '#EFF6FF' },
+    { nameKey: 'popularCategories.cleaning', dbValue: 'Уборка', icon: <SprayCan size={28} />, bg: '#ECFDF5' },
+    { nameKey: 'popularCategories.moving', dbValue: 'Доставка', icon: <Truck size={28} />, bg: '#FFF7ED' },
+    { nameKey: 'popularCategories.tutors', dbValue: 'Обучение', icon: <BookOpen size={28} />, bg: '#F5F3FF' },
+    { nameKey: 'popularCategories.plumbing', dbValue: 'Сантехника', icon: <Droplets size={28} />, bg: '#EFF6FF' },
+    { nameKey: 'popularCategories.electrician', dbValue: 'Электрик', icon: <Zap size={28} />, bg: '#FFFBEB' },
+    { nameKey: 'popularCategories.beauty', dbValue: 'Красота', icon: <Sparkles size={28} />, bg: '#FDF2F8' },
+    { nameKey: 'popularCategories.techHelp', dbValue: 'IT и Веб', icon: <Monitor size={28} />, bg: '#F0F9FF' },
 ];

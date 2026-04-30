@@ -4,20 +4,22 @@ type StepProps = {
 };
 
 const CATEGORIES = [
-    { id: 'repair', label: 'Home Request', icon: '🔨' },
-    { id: 'cleaning', label: 'Cleaning', icon: '🧹' },
-    { id: 'delivery', label: 'Courier & Delivery', icon: '📦' },
-    { id: 'tech', label: 'Computer Help', icon: '💻' },
-    { id: 'beauty', label: 'Beauty & Health', icon: '💅' },
-    { id: 'legal', label: 'Legal Services', icon: '⚖️' },
-    { id: 'events', label: 'Events & Promos', icon: '🎉' },
-    { id: 'tutor', label: 'Tutors & Training', icon: '📚' },
+    { id: 'Ремонт', label: 'Ремонт', icon: '🔨' },
+    { id: 'Уборка', label: 'Уборка', icon: '🧹' },
+    { id: 'Доставка', label: 'Доставка', icon: '📦' },
+    { id: 'IT и Веб', label: 'IT и Веб', icon: '💻' },
+    { id: 'Красота', label: 'Красота и здоровье', icon: '💅' },
+    { id: 'Юридические', label: 'Юридические услуги', icon: '⚖️' },
+    { id: 'Мероприятия', label: 'Мероприятия', icon: '🎉' },
+    { id: 'Обучение', label: 'Репетиторы и обучение', icon: '📚' },
+    { id: 'Сантехника', label: 'Сантехника', icon: '🔧' },
+    { id: 'Электрик', label: 'Электрик', icon: '⚡' },
 ];
 
 export default function Step1Category({ onNext, data }: StepProps) {
     return (
         <div>
-            <h2 className="heading-md" style={{ textAlign: 'center', marginBottom: '24px' }}>What help do you need?</h2>
+            <h2 className="heading-md" style={{ textAlign: 'center', marginBottom: '24px' }}>Какая помощь нужна?</h2>
 
             <div style={{
                 display: 'grid',

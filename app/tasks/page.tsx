@@ -22,7 +22,7 @@ type Props = {
 
 export default async function TasksPage({ searchParams }: Props) {
     const params = await searchParams;
-    const { category, city, minBudget, maxBudget, urgency, sort } = params;
+    const { category, city, minBudget, maxBudget, urgency, sort, query } = params;
 
     // Get category counts and total for sidebar (lightweight queries)
     const categoryCounts = await prisma.task.groupBy({
@@ -32,6 +32,41 @@ export default async function TasksPage({ searchParams }: Props) {
     });
 
     const totalOpenTasks = await prisma.task.count({ where: { status: 'OPEN' } });
+
+    // Build filtered count matching the API query logic
+    const hasFilter = category || city || minBudget || maxBudget || urgency || query;
+    let filteredCount = totalOpenTasks;
+    if (hasFilter) {
+        const where: any = { status: 'OPEN' };
+        if (category) where.category = category;
+        if (city) where.city = { contains: city, mode: 'insensitive' };
+        if (urgency) {
+            const vals = urgency.split(',').filter(Boolean);
+            if (vals.length) where.urgency = { in: vals };
+        }
+        if (query) {
+            where.OR = [
+                { title: { contains: query, mode: 'insensitive' } },
+                { description: { contains: query, mode: 'insensitive' } },
+            ];
+        }
+        if (minBudget || maxBudget) {
+            where.AND = where.AND || [];
+            where.AND.push({
+                OR: [
+                    { budgetType: 'negotiable' },
+                    {
+                        budgetType: 'fixed',
+                        budgetAmountNum: {
+                            ...(minBudget ? { gte: parseInt(minBudget, 10) } : {}),
+                            ...(maxBudget ? { lte: parseInt(maxBudget, 10) } : {}),
+                        },
+                    },
+                ],
+            });
+        }
+        filteredCount = await prisma.task.count({ where });
+    }
 
     // Build active filters display
     const activeFilters: string[] = [];
@@ -57,7 +92,7 @@ export default async function TasksPage({ searchParams }: Props) {
                             fontWeight: '800',
                             color: 'var(--text)',
                             marginBottom: '8px'
-                        }}>Find Work</h1>
+                        }}>Найти задания</h1>
                         <div style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -67,7 +102,7 @@ export default async function TasksPage({ searchParams }: Props) {
                             fontWeight: '500'
                         }}>
                             <span style={{ color: 'var(--primary)' }}>⚡</span>
-                            <span>{totalOpenTasks.toLocaleString()} tasks available in your area</span>
+                            <span>{filteredCount.toLocaleString()} {hasFilter ? 'заданий по вашему запросу' : 'открытых заданий'}</span>
                         </div>
                     </div>
 

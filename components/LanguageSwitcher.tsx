@@ -6,15 +6,14 @@ import type { Locale } from '@/lib/i18n';
 export default function LanguageSwitcher() {
     const { locale, setLocale } = useTranslation();
 
-    const toggleLocale = () => {
-        const next: Locale = locale === 'ru' ? 'tj' : 'ru';
-        setLocale(next);
-    };
+    const nextLocale: Locale = locale === 'ru' ? 'tj' : 'ru';
+    const nextLabel = locale === 'ru' ? 'Тоҷикӣ' : 'Русский';
+    const nextFlag = locale === 'ru' ? '🇹🇯' : '🇷🇺';
 
     return (
         <button
-            onClick={toggleLocale}
-            title={locale === 'ru' ? 'Тоҷикӣ' : 'Русский'}
+            onClick={() => setLocale(nextLocale)}
+            title={`Переключить язык на ${nextLabel}`}
             style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -31,8 +30,8 @@ export default function LanguageSwitcher() {
                 whiteSpace: 'nowrap',
             }}
         >
-            <span style={{ fontSize: '1rem' }}>{locale === 'ru' ? '🇹🇯' : '🇷🇺'}</span>
-            {locale === 'ru' ? 'TJ' : 'RU'}
+            <span style={{ fontSize: '1rem' }}>{nextFlag}</span>
+            {nextLabel}
         </button>
     );
 }

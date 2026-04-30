@@ -4,19 +4,23 @@ import { LayoutGrid, Wrench, Monitor, SprayCan, Truck, Zap, Clock, Calendar } fr
 import { useState, useCallback, useTransition } from 'react';
 
 const CATEGORIES = [
-    { name: 'All Tasks', value: '', icon: LayoutGrid },
-    { name: 'Home Repair', value: 'Ремонт', icon: Wrench },
-    { name: 'IT & Web', value: 'IT и Веб', icon: Monitor },
-    { name: 'Cleaning', value: 'Уборка', icon: SprayCan },
-    { name: 'Delivery', value: 'Доставка', icon: Truck },
+    { name: 'Все задания', value: '', icon: LayoutGrid },
+    { name: 'Ремонт', value: 'Ремонт', icon: Wrench },
+    { name: 'IT и Веб', value: 'IT и Веб', icon: Monitor },
+    { name: 'Уборка', value: 'Уборка', icon: SprayCan },
+    { name: 'Доставка', value: 'Доставка', icon: Truck },
+    { name: 'Сантехника', value: 'Сантехника', icon: Wrench },
+    { name: 'Обучение', value: 'Обучение', icon: Monitor },
 ];
 
 const CITIES = [
-    'Tashkent',
-    'Samarkand',
-    'Chilanzar',
-    'Mirabad',
-    'Center',
+    'Душанбе',
+    'Худжанд',
+    'Бохтар',
+    'Кӯлоб',
+    'Истаравшан',
+    'Турсунзода',
+    'Онлайн',
 ];
 
 const URGENCY_OPTIONS = [
@@ -139,7 +143,7 @@ export default function TaskFilterSidebar({ categoryCounts = [], totalOpenTasks 
                 boxShadow: 'var(--shadow-sm)'
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                    <h4 style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--text)' }}>Categories</h4>
+                    <h4 style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--text)' }}>Категории</h4>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text-light)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6" /></svg>
                 </div>
 
@@ -193,7 +197,7 @@ export default function TaskFilterSidebar({ categoryCounts = [], totalOpenTasks 
                 borderRadius: '16px',
                 border: '1px solid var(--border)',
             }}>
-                <h4 style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--text)', marginBottom: '16px' }}>Location</h4>
+                <h4 style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--text)', marginBottom: '16px' }}>Город</h4>
                 <div style={{ position: 'relative' }}>
                     <select
                         value={currentCity}
@@ -212,7 +216,7 @@ export default function TaskFilterSidebar({ categoryCounts = [], totalOpenTasks 
                             fontWeight: '500'
                         }}
                     >
-                        <option value="">Select City</option>
+                        <option value="">Все города</option>
                         {CITIES.map(c => (
                             <option key={c} value={c}>{c}</option>
                         ))}
@@ -230,7 +234,7 @@ export default function TaskFilterSidebar({ categoryCounts = [], totalOpenTasks 
                 borderRadius: '16px',
                 border: '1px solid var(--border)',
             }}>
-                <h4 style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--text)', marginBottom: '20px' }}>Budget Range</h4>
+                <h4 style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--text)', marginBottom: '20px' }}>Бюджет</h4>
 
                 {/* Functional Dual Range Slider */}
                 <div style={{ padding: '0 10px', marginBottom: '32px', position: 'relative' }}>
@@ -363,7 +367,7 @@ export default function TaskFilterSidebar({ categoryCounts = [], totalOpenTasks 
                         transition: 'opacity 0.2s'
                     }}
                 >
-                    Apply Filter
+                    Применить
                 </button>
             </div>
 
@@ -374,12 +378,12 @@ export default function TaskFilterSidebar({ categoryCounts = [], totalOpenTasks 
                 borderRadius: '16px',
                 border: '1px solid var(--border)',
             }}>
-                <h4 style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--text)', marginBottom: '16px' }}>Urgency</h4>
+                <h4 style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--text)', marginBottom: '16px' }}>Срочность</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     {[
-                        { label: 'As soon as possible', value: 'urgent' },
-                        { label: 'Within a week', value: 'normal' },
-                        { label: 'Flexible schedule', value: 'low' }
+                        { label: 'Как можно скорее', value: 'urgent' },
+                        { label: 'В течение недели', value: 'normal' },
+                        { label: 'Гибкий график', value: 'low' }
                     ].map((opt) => {
                         const isChecked = currentUrgency.includes(opt.value);
                         return (
@@ -436,7 +440,7 @@ export default function TaskFilterSidebar({ categoryCounts = [], totalOpenTasks 
                         transition: 'all 0.2s'
                     }}
                 >
-                    Clear all filters
+                    Сбросить фильтры
                 </button>
             )}
         </div>

@@ -45,7 +45,11 @@ export default function TasksFeed() {
             if (!res.ok) throw new Error(data.error || 'Failed to load');
             const list: Task[] = data.tasks || [];
             const pagination = data.pagination || {};
-            setTasks(prev => append ? [...prev, ...list] : list);
+            setTasks(prev => {
+                const merged = append ? [...prev, ...list] : list;
+                const seen = new Set<string>();
+                return merged.filter(t => { if (seen.has(t.id)) return false; seen.add(t.id); return true; });
+            });
             setHasMore(!!pagination.hasMore);
             setPage(pageNum);
             setFetchError(null);

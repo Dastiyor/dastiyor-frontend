@@ -162,6 +162,8 @@ button {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: -0.02em;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .heading-lg {
@@ -288,6 +290,15 @@ button {
 
   .heading-lg {
     font-size: 1.75rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .heading-xl {
+    font-size: 1.75rem;
+    line-height: 1.25;
+    word-break: break-word;
+    overflow-wrap: break-word;
   }
 }
 

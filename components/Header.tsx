@@ -5,7 +5,9 @@ import { verifyJWT } from '@/lib/auth';
 import UserMenu from './UserMenu';
 import LanguageSwitcher from './LanguageSwitcher';
 import MobileMenu from './MobileMenu';
-import { LogIn, Heart } from 'lucide-react';
+import HeaderNav from './HeaderNav';
+import HeaderActions from './HeaderActions';
+import { Heart } from 'lucide-react';
 
 export default async function Header() {
     const cookieStore = await cookies();
@@ -63,83 +65,12 @@ export default async function Header() {
                     />
                 </Link>
 
-                {/* Center Navigation — hidden on mobile */}
-                <nav className="desktop-nav" style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-                    <Link href="/how-it-works" style={{
-                        fontWeight: '500',
-                        color: '#374151',
-                        fontSize: '0.9rem',
-                        transition: 'color 0.2s',
-                        textDecoration: 'none',
-                        whiteSpace: 'nowrap'
-                    }}>
-                        Как это работает
-                    </Link>
-                    <Link href="/tasks" style={{
-                        fontWeight: '500',
-                        color: '#374151',
-                        fontSize: '0.9rem',
-                        transition: 'color 0.2s',
-                        textDecoration: 'none',
-                        whiteSpace: 'nowrap'
-                    }}>
-                        Найти задания
-                    </Link>
-                    {(!user || user.role !== 'PROVIDER') && (
-                        <Link href="/register?type=provider" style={{
-                            fontWeight: '600',
-                            color: '#4F46E5',
-                            fontSize: '0.9rem',
-                            borderBottom: '2px solid #4F46E5',
-                            paddingBottom: '2px',
-                            textDecoration: 'none',
-                            whiteSpace: 'nowrap'
-                        }}>
-                            Стать исполнителем
-                        </Link>
-                    )}
-                </nav>
+                {/* Center Navigation — i18n client component, hidden on mobile */}
+                <HeaderNav userRole={user?.role} />
 
-                {/* Right Actions — desktop only; mobile uses MobileMenu */}
+                {/* Right Actions */}
                 <div className="desktop-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    {user && user.role === 'CUSTOMER' && (
-                        <Link href="/create-task/template" style={{
-                            backgroundColor: '#F3F4F6',
-                            color: '#374151',
-                            padding: '8px 16px',
-                            borderRadius: '8px',
-                            fontWeight: '600',
-                            fontSize: '0.85rem',
-                            transition: 'background-color 0.2s',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            border: '1px solid #E5E7EB',
-                            textDecoration: 'none',
-                            whiteSpace: 'nowrap'
-                        }}>
-                            Шаблоны
-                        </Link>
-                    )}
-
-                    {(!user || user.role === 'CUSTOMER') && (
-                        <Link href={user ? "/customer/create-task" : "/create-task"} style={{
-                            backgroundColor: '#6366F1',
-                            color: 'white',
-                            padding: '8px 20px',
-                            borderRadius: '8px',
-                            fontWeight: '600',
-                            fontSize: '0.85rem',
-                            transition: 'background-color 0.2s',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            textDecoration: 'none',
-                            whiteSpace: 'nowrap'
-                        }}>
-                            Создать задание
-                        </Link>
-                    )}
+                    <HeaderActions userRole={user?.role} />
 
                     <LanguageSwitcher />
 
@@ -162,25 +93,7 @@ export default async function Header() {
                             )}
                             <UserMenu user={user} />
                         </div>
-                    ) : (
-                        <Link href="/login" style={{
-                            backgroundColor: '#F3F4F6',
-                            color: '#111827',
-                            padding: '8px 20px',
-                            borderRadius: '8px',
-                            fontWeight: '600',
-                            fontSize: '0.85rem',
-                            border: '1px solid #E5E7EB',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            textDecoration: 'none',
-                            whiteSpace: 'nowrap'
-                        }}>
-                            <LogIn size={16} />
-                            Войти
-                        </Link>
-                    )}
+                    ) : null}
                 </div>
 
                 {/* Hamburger — mobile only */}

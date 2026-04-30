@@ -10,6 +10,21 @@ import Link from 'next/link';
 import { PREVIEW_TASKS } from '@/lib/landing-tasks';
 import { MapPin, Clock, Wallet } from 'lucide-react';
 
+const CATEGORY_LABELS: Record<string, string> = {
+    repair: 'Ремонт',
+    cleaning: 'Уборка',
+    delivery: 'Доставка',
+    tech: 'IT и Веб',
+    beauty: 'Красота',
+    legal: 'Юридические',
+    events: 'Мероприятия',
+    tutor: 'Обучение',
+};
+
+function getCategoryLabel(category: string): string {
+    return CATEGORY_LABELS[category] ?? category;
+}
+
 type Props = {
     params: {
         id: string;
@@ -152,7 +167,17 @@ export default async function TaskDetailsPage({ params }: Props) {
 
                 {/* Breadcrumb */}
                 <div style={{ marginBottom: '24px', fontSize: '0.9rem', color: 'var(--text-light)' }}>
-                    Задания / {task.category} / {task.title}
+                    <Link href="/tasks" style={{ color: 'var(--primary)', textDecoration: 'none' }}>Задания</Link>
+                    {task.category && (
+                        <>
+                            {' / '}
+                            <Link href={`/tasks?category=${encodeURIComponent(getCategoryLabel(task.category))}`} style={{ color: 'var(--primary)', textDecoration: 'none' }}>
+                                {getCategoryLabel(task.category)}
+                            </Link>
+                        </>
+                    )}
+                    {' / '}
+                    <span>{task.title}</span>
                 </div>
 
                 <div style={{

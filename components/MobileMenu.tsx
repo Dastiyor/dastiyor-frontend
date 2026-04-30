@@ -66,7 +66,8 @@ export default function MobileMenu({ user }: { user: UserInfo }) {
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '8px',
-                    transform: open ? 'translateY(0)' : 'translateY(-110%)',
+                    transform: open ? 'translateY(0)' : 'translateY(calc(-100% - 80px))',
+                    visibility: open ? 'visible' : 'hidden',
                     transition: 'transform 0.25s ease',
                     boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
                 }}

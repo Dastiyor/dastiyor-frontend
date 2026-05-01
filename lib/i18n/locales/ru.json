@@ -34,14 +34,16 @@
     "tasks": "Задания",
     "reviews": "Отзывы",
     "somali": "с.",
-    "negotiable": "Договорная"
+    "negotiable": "Договорная",
+    "home": "Главная"
   },
   "header": {
     "howItWorks": "Как это работает",
     "findTasks": "Найти задания",
     "becomeProvider": "Стать исполнителем",
     "templates": "Шаблоны",
-    "createTask": "Создать задание"
+    "createTask": "Создать задание",
+    "openMenu": "Открыть меню"
   },
   "footer": {
     "tagline": "Будущее локальных услуг. Помогаем исполнителям и объединяем сообщества.",
@@ -139,6 +141,8 @@
   "auth": {
     "welcomeBack": "С возвращением",
     "loginSubtitle": "Войдите в аккаунт, чтобы продолжить",
+    "loginToPostTask": "Войдите, чтобы создать задание",
+    "loginToPostTaskSubtitle": "После входа вы сможете опубликовать своё задание",
     "emailLabel": "Email адрес",
     "emailPlaceholder": "name@example.com",
     "passwordLabel": "Пароль",
@@ -250,7 +254,44 @@
     "estimatedTime": "Ожидаемое время",
     "submitResponse": "Отправить отклик",
     "yourMessage": "Ваше сообщение",
-    "yourPrice": "Ваша цена"
+    "yourPrice": "Ваша цена",
+    "urgencyFlexible": "Гибкий",
+    "fixedPrice": "Фиксированная цена",
+    "viewDetails": "Подробнее",
+    "findTitle": "Найти задания",
+    "countFiltered": "{count} заданий по вашему запросу",
+    "countOpen": "{count} открытых заданий",
+    "filterChipCategory": "Категория: {value}",
+    "filterChipCity": "Город: {value}",
+    "filterChipFrom": "От: {value} с.",
+    "filterChipTo": "До: {value} с.",
+    "filterChipUrgency": "Срочность: {value}",
+    "loadMore": "Загрузить ещё",
+    "noTasksTitle": "Заданий пока нет",
+    "noTasksDesc": "В этой категории ещё нет заданий. Попробуйте другой фильтр или загляните позже.",
+    "favoriteLoginRequired": "Войдите в систему, чтобы добавить в избранное",
+    "favoriteError": "Ошибка при сохранении",
+    "favoriteAdded": "Добавлено в избранное",
+    "favoriteRemoved": "Удалено из избранного",
+    "taskShared": "Задание поделено",
+    "linkCopied": "Ссылка скопирована в буфер обмена",
+    "responseCountLabel": "{count} откликов",
+    "respondButton": "Сделать предложение",
+    "loginToRespond": "Войдите, чтобы откликнуться",
+    "waitingForOffers": "Ожидание предложений от исполнителей",
+    "taskInProgress": "Задание выполняется",
+    "taskDone": "Задание завершено",
+    "cancelConfirm": "Вы уверены, что хотите отменить задание?",
+    "publishedBy": "Опубликовано",
+    "registeredSince": "Регистрация:",
+    "errLoadTitle": "Ошибка загрузки",
+    "retry": "Повторить",
+    "tasksBreadcrumb": "Задания",
+    "assignedProvider": "Выбранный Исполнитель",
+    "sendMessage": "Отправить сообщение",
+    "review": "Отзыв",
+    "openToOffers": "Открыт к предложениям",
+    "viewAllTasks": "Смотреть все задания"
   },
   "subscription": {
     "title": "Подписка",
@@ -319,7 +360,10 @@
     "operational": "Работает",
     "maintenance": "Обслуживание",
     "unavailable": "Недоступно",
-    "questions": "Вопросы? Напишите нам:"
+    "questions": "Вопросы? Напишите нам:",
+    "errTitle": "Что-то пошло не так",
+    "errText": "Произошла непредвиденная ошибка. Попробуйте ещё раз.",
+    "retryBtn": "Попробовать снова"
   },
   "profile": {
     "editProfile": "Редактировать профиль",
@@ -342,6 +386,16 @@
     "offerAccepted": "Отклик принят",
     "offerRejected": "Отклик отклонён",
     "newMessage": "Новое сообщение",
-    "taskCompleted": "Задание завершено"
+    "taskCompleted": "Задание завершено",
+    "title": "Уведомления",
+    "noNew": "Нет новых уведомлений",
+    "justNow": "Только что",
+    "minutesAgo": "{count} мин. назад",
+    "hoursAgo": "{count} ч. назад"
+  },
+  "ui": {
+    "prevPage": "Назад",
+    "nextPage": "Вперед",
+    "pageOf": "Страница {current} из {total}"
   }
 }

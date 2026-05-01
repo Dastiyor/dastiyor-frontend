@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Bell, BellOff, MessageSquare, CheckCircle, CheckSquare, Info, XCircle } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 
 type Notification = {
     id: string;
@@ -19,6 +20,7 @@ export default function NotificationBell() {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const { t } = useTranslation();
 
     useEffect(() => {
         fetchNotifications();
@@ -90,9 +92,9 @@ export default function NotificationBell() {
         const diffMins = Math.floor(diffMs / 60000);
         const diffHours = Math.floor(diffMins / 60);
 
-        if (diffMins < 1) return 'Только что';
-        if (diffMins < 60) return `${diffMins} мин. назад`;
-        if (diffHours < 24) return `${diffHours} ч. назад`;
+        if (diffMins < 1) return t('notifications.justNow');
+        if (diffMins < 60) return t('notifications.minutesAgo', { count: diffMins });
+        if (diffHours < 24) return t('notifications.hoursAgo', { count: diffHours });
         return then.toLocaleDateString();
     };
 
@@ -112,7 +114,7 @@ export default function NotificationBell() {
                     justifyContent: 'center',
                     color: '#4B5563'
                 }}
-                aria-label="Уведомления"
+                aria-label={t('notifications.title')}
             >
                 <Bell size={24} />
                 {unreadCount > 0 && (
@@ -159,7 +161,7 @@ export default function NotificationBell() {
                         justifyContent: 'space-between',
                         alignItems: 'center'
                     }}>
-                        <span>Уведомления</span>
+                        <span>{t('notifications.title')}</span>
                     </div>
 
                     <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
@@ -172,7 +174,7 @@ export default function NotificationBell() {
                                 <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'center' }}>
                                     <BellOff size={40} strokeWidth={1.5} />
                                 </div>
-                                Нет новых уведомлений
+                                {t('notifications.noNew')}
                             </div>
                         ) : (
                             notifications.map(notification => (

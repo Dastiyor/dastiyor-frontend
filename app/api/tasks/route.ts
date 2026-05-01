@@ -34,7 +34,8 @@ export async function GET(request: Request) {
         if (query) {
             where.OR = [
                 { title: { contains: query, mode: 'insensitive' } },
-                { description: { contains: query, mode: 'insensitive' } }
+                { description: { contains: query, mode: 'insensitive' } },
+                { category: { contains: query, mode: 'insensitive' } },
             ];
         }
         if (minBudget || maxBudget) {
@@ -45,7 +46,7 @@ export async function GET(request: Request) {
                     {
                         budgetType: 'fixed',
                         budgetAmountNum: {
-                            ...(minBudget ? { gte: parseInt(minBudget, 10) } : {}),
+                            ...(minBudget ? { gte: Math.max(0, parseInt(minBudget, 10)) } : {}),
                             ...(maxBudget ? { lte: parseInt(maxBudget, 10) } : {}),
                         },
                     },

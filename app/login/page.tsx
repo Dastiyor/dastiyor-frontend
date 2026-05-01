@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import AuthLayout from '@/components/auth/AuthLayout';
 import { useTranslation } from '@/lib/i18n';
@@ -10,7 +10,12 @@ export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { t } = useTranslation();
+
+    const redirect = searchParams.get('redirect') || '';
+    const titleKey = redirect === '/create-task' ? 'auth.loginToPostTask' : 'auth.welcomeBack';
+    const subtitleKey = redirect === '/create-task' ? 'auth.loginToPostTaskSubtitle' : 'auth.loginSubtitle';
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -60,8 +65,8 @@ export default function LoginPage() {
 
     return (
         <AuthLayout
-            title={t('auth.welcomeBack')}
-            subtitle={t('auth.loginSubtitle')}
+            title={t(titleKey)}
+            subtitle={t(subtitleKey)}
         >
             {error && (
                 <div style={{

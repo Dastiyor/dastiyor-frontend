@@ -4,6 +4,7 @@ import TaskSortSelect from '@/components/tasks/TaskSortSelect';
 import TasksFeed from '@/components/tasks/TasksFeed';
 import { Suspense } from 'react';
 import Link from 'next/link';
+import { getServerTranslation } from '@/lib/i18n/server';
 
 type Props = {
     searchParams: {
@@ -23,6 +24,7 @@ type Props = {
 export default async function TasksPage({ searchParams }: Props) {
     const params = await searchParams;
     const { category, city, minBudget, maxBudget, urgency, sort, query } = params;
+    const { t } = await getServerTranslation();
 
     // Get category counts and total for sidebar (lightweight queries)
     const categoryCounts = await prisma.task.groupBy({
@@ -48,6 +50,7 @@ export default async function TasksPage({ searchParams }: Props) {
             where.OR = [
                 { title: { contains: query, mode: 'insensitive' } },
                 { description: { contains: query, mode: 'insensitive' } },
+                { category: { contains: query, mode: 'insensitive' } },
             ];
         }
         if (minBudget || maxBudget) {
@@ -70,11 +73,11 @@ export default async function TasksPage({ searchParams }: Props) {
 
     // Build active filters display
     const activeFilters: string[] = [];
-    if (category) activeFilters.push(`Категория: ${category}`);
-    if (city) activeFilters.push(`Город: ${city}`);
-    if (minBudget) activeFilters.push(`От: ${minBudget} с.`);
-    if (maxBudget) activeFilters.push(`До: ${maxBudget} с.`);
-    if (urgency) activeFilters.push(`Срочность: ${urgency}`);
+    if (category) activeFilters.push(t('tasks.filterChipCategory', { value: category }));
+    if (city) activeFilters.push(t('tasks.filterChipCity', { value: city }));
+    if (minBudget) activeFilters.push(t('tasks.filterChipFrom', { value: minBudget }));
+    if (maxBudget) activeFilters.push(t('tasks.filterChipTo', { value: maxBudget }));
+    if (urgency) activeFilters.push(t('tasks.filterChipUrgency', { value: urgency }));
 
     return (
         <div style={{ backgroundColor: 'var(--secondary)', minHeight: '100vh', padding: '40px 0' }}>
@@ -92,7 +95,7 @@ export default async function TasksPage({ searchParams }: Props) {
                             fontWeight: '800',
                             color: 'var(--text)',
                             marginBottom: '8px'
-                        }}>Найти задания</h1>
+                        }}>{t('tasks.findTitle')}</h1>
                         <div style={{
                             display: 'flex',
                             alignItems: 'center',
@@ -102,7 +105,7 @@ export default async function TasksPage({ searchParams }: Props) {
                             fontWeight: '500'
                         }}>
                             <span style={{ color: 'var(--primary)' }}>⚡</span>
-                            <span>{filteredCount.toLocaleString()} {hasFilter ? 'заданий по вашему запросу' : 'открытых заданий'}</span>
+                            <span>{hasFilter ? t('tasks.countFiltered', { count: filteredCount.toLocaleString() }) : t('tasks.countOpen', { count: filteredCount.toLocaleString() })}</span>
                         </div>
                     </div>
 
@@ -155,14 +158,10 @@ export default async function TasksPage({ searchParams }: Props) {
                     </div>
                 )}
 
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: '280px 1fr',
-                    gap: '32px',
-                }}>
+                <div className="tasks-layout">
                     {/* Sidebar */}
-                    <aside>
-                        <Suspense fallback={<div>Loading filters...</div>}>
+                    <aside className="tasks-sidebar">
+                        <Suspense fallback={<div>{t('common.loading')}</div>}>
                             <TaskFilterSidebar
                                 categoryCounts={categoryCounts}
                                 totalOpenTasks={totalOpenTasks}
@@ -173,7 +172,7 @@ export default async function TasksPage({ searchParams }: Props) {
                     {/* Feed – lazy loaded via API */}
                     <main>
                         <Suspense fallback={
-                            <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--text-light)' }}>Загрузка...</div>
+                            <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--text-light)' }}>{t('common.loading')}</div>
                         }>
                             <TasksFeed />
                         </Suspense>

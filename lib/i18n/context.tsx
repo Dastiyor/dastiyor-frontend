@@ -35,6 +35,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         if (saved === 'ru' || saved === 'tj') {
             setLocaleState(saved);
             document.documentElement.lang = saved;
+            document.cookie = `dastiyor_locale=${saved};path=/;max-age=31536000;SameSite=Lax`;
         }
     }, []);
 
@@ -42,6 +43,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         setLocaleState(newLocale);
         localStorage.setItem('dastiyor_locale', newLocale);
         document.documentElement.lang = newLocale;
+        document.cookie = `dastiyor_locale=${newLocale};path=/;max-age=31536000;SameSite=Lax`;
     }, []);
 
     const t = useCallback((key: string, params?: Record<string, string | number>): string => {

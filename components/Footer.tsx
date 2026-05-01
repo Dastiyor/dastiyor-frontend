@@ -55,9 +55,9 @@ export default function Footer() {
                             {t('footer.categories')}
                         </h4>
                         <ul style={{ display: 'flex', flexDirection: 'column', gap: '16px', listStyle: 'none', padding: 0 }}>
-                            <li><Link href="/tasks?category=Cleaning" style={{ color: '#4B5563', textDecoration: 'none', fontSize: '0.95rem' }}>{t('footer.cleaning')}</Link></li>
-                            <li><Link href="/tasks?category=Handyman" style={{ color: '#4B5563', textDecoration: 'none', fontSize: '0.95rem' }}>{t('footer.handyman')}</Link></li>
-                            <li><Link href="/tasks?category=Delivery" style={{ color: '#4B5563', textDecoration: 'none', fontSize: '0.95rem' }}>{t('footer.delivery')}</Link></li>
+                            <li><Link href="/tasks?category=%D0%A3%D0%B1%D0%BE%D1%80%D0%BA%D0%B0" style={{ color: '#4B5563', textDecoration: 'none', fontSize: '0.95rem' }}>{t('footer.cleaning')}</Link></li>
+                            <li><Link href="/tasks?category=%D0%A0%D0%B5%D0%BC%D0%BE%D0%BD%D1%82" style={{ color: '#4B5563', textDecoration: 'none', fontSize: '0.95rem' }}>{t('footer.handyman')}</Link></li>
+                            <li><Link href="/tasks?category=%D0%94%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%BA%D0%B0" style={{ color: '#4B5563', textDecoration: 'none', fontSize: '0.95rem' }}>{t('footer.delivery')}</Link></li>
                         </ul>
                     </div>
 

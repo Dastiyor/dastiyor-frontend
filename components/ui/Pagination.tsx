@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 
 interface PaginationProps {
     currentPage: number;
@@ -11,6 +12,7 @@ interface PaginationProps {
 }
 
 export default function Pagination({ currentPage, totalPages, baseUrl, searchParams }: PaginationProps) {
+    const { t } = useTranslation();
     const createUrl = (page: number) => {
         const params = new URLSearchParams();
         Object.entries(searchParams).forEach(([key, value]) => {
@@ -58,7 +60,7 @@ export default function Pagination({ currentPage, totalPages, baseUrl, searchPar
                     }}
                 >
                     <ChevronLeft size={16} />
-                    Назад
+                    {t('ui.prevPage')}
                 </Link>
             )}
 
@@ -142,13 +144,13 @@ export default function Pagination({ currentPage, totalPages, baseUrl, searchPar
                         fontWeight: '500'
                     }}
                 >
-                    Вперед
+                    {t('ui.nextPage')}
                     <ChevronRight size={16} />
                 </Link>
             )}
 
             <div style={{ marginLeft: '16px', fontSize: '0.9rem', color: 'var(--text-light)' }}>
-                Страница {currentPage} из {totalPages}
+                {t('ui.pageOf', { current: currentPage, total: totalPages })}
             </div>
         </div>
     );

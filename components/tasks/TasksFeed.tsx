@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import TaskCard, { type Task } from '@/components/tasks/TaskCard';
+import { useTranslation } from '@/lib/i18n';
 
 const PAGE_SIZE = 6;
 
@@ -29,6 +30,7 @@ function buildQueryString(searchParams: URLSearchParams, pageNum: number): strin
 
 export default function TasksFeed() {
     const searchParams = useSearchParams();
+    const { t } = useTranslation();
     const [tasks, setTasks] = useState<Task[]>([]);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
@@ -91,7 +93,7 @@ export default function TasksFeed() {
                 textAlign: 'center',
                 color: 'var(--text-light)',
             }}>
-                <div style={{ fontSize: '1.5rem' }}>Загрузка...</div>
+                <div style={{ fontSize: '1.5rem' }}>{t('common.loading')}</div>
             </div>
         );
     }
@@ -106,7 +108,7 @@ export default function TasksFeed() {
                 border: '1px solid var(--border)',
             }}>
                 <div style={{ fontSize: '4rem', marginBottom: '16px' }}>⚠️</div>
-                <h3 className="heading-md" style={{ marginBottom: '8px' }}>Ошибка загрузки</h3>
+                <h3 className="heading-md" style={{ marginBottom: '8px' }}>{t('tasks.errLoadTitle')}</h3>
                 <p style={{ color: 'var(--text-light)', maxWidth: '400px', margin: '0 auto 16px' }}>
                     {fetchError}
                 </p>
@@ -117,7 +119,7 @@ export default function TasksFeed() {
                     setFetchError(null);
                     fetchPage(1, false, abortRef.current.signal);
                 }}>
-                    Повторить
+                    {t('tasks.retry')}
                 </button>
             </div>
         );
@@ -135,9 +137,9 @@ export default function TasksFeed() {
                     marginBottom: '24px',
                 }}>
                     <div style={{ fontSize: '3rem', marginBottom: '12px' }}>🔍</div>
-                    <h3 className="heading-md" style={{ marginBottom: '8px' }}>Заданий пока нет</h3>
+                    <h3 className="heading-md" style={{ marginBottom: '8px' }}>{t('tasks.noTasksTitle')}</h3>
                     <p style={{ color: 'var(--text-light)', fontSize: '0.95rem' }}>
-                        В этой категории ещё нет заданий. Попробуйте другой фильтр или загляните позже.
+                        {t('tasks.noTasksDesc')}
                     </p>
                 </div>
             </>
@@ -160,7 +162,7 @@ export default function TasksFeed() {
                         className="btn btn-outline"
                         style={{ minWidth: '160px' }}
                     >
-                        {loadingMore ? 'Загрузка...' : 'Загрузить ещё'}
+                        {loadingMore ? t('common.loading') : t('tasks.loadMore')}
                     </button>
                 </div>
             )}

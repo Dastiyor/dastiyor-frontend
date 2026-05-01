@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { signJWT } from '@/lib/auth';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
-import { validatePassword } from '@/lib/validation';
+import { validatePassword, isValidPhone } from '@/lib/validation';
 import { sendWelcomeEmail } from '@/lib/notifications/email';
 import { logAction, getRequestIP } from '@/lib/audit';
 
@@ -23,6 +23,13 @@ export async function POST(request: Request) {
         if (!email || !password || !fullName) {
             return NextResponse.json(
                 { error: 'Missing required fields' },
+                { status: 400 }
+            );
+        }
+
+        if (phone && !isValidPhone(String(phone))) {
+            return NextResponse.json(
+                { error: 'Неверный формат номера телефона. Используйте формат +992XXXXXXXXX' },
                 { status: 400 }
             );
         }

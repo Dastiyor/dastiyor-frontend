@@ -1,4 +1,9 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+    title: 'Страница не найдена | Dastiyor',
+};
 
 export default function NotFound() {
     return (
@@ -31,7 +36,7 @@ export default function NotFound() {
                     marginBottom: '16px',
                     color: 'var(--text)'
                 }}>
-                    Page Not Found
+                    Страница не найдена
                 </h1>
 
                 <p style={{
@@ -40,15 +45,15 @@ export default function NotFound() {
                     marginBottom: '32px',
                     lineHeight: '1.6'
                 }}>
-                    Oops! The page you&apos;re looking for doesn&apos;t exist or has been moved.
+                    Упс! Страница, которую вы ищете, не существует или была перемещена.
                 </p>
 
                 <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
                     <Link href="/" className="btn btn-primary">
-                        Go Home
+                        На главную
                     </Link>
                     <Link href="/tasks" className="btn btn-outline">
-                        Browse Tasks
+                        Найти задания
                     </Link>
                 </div>
 
@@ -59,16 +64,16 @@ export default function NotFound() {
                     borderRadius: '16px',
                     border: '1px solid var(--border)'
                 }}>
-                    <p style={{ fontWeight: '600', marginBottom: '12px' }}>Looking for something?</p>
+                    <p style={{ fontWeight: '600', marginBottom: '12px' }}>Ищете что-то?</p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <Link href="/tasks" style={{ color: 'var(--primary)' }}>
-                            📋 Find Tasks
+                            📋 Найти задания
                         </Link>
                         <Link href="/create-task" style={{ color: 'var(--primary)' }}>
-                            ➕ Post a Task
+                            ➕ Создать задание
                         </Link>
                         <Link href="/how-it-works" style={{ color: 'var(--primary)' }}>
-                            ❓ How It Works
+                            ❓ Как это работает
                         </Link>
                     </div>
                 </div>

@@ -9,6 +9,7 @@ import { verifyJWT } from '@/lib/auth';
 import Link from 'next/link';
 import { PREVIEW_TASKS } from '@/lib/landing-tasks';
 import { MapPin, Clock, Wallet } from 'lucide-react';
+import { getServerTranslation } from '@/lib/i18n/server';
 
 const CATEGORY_LABELS: Record<string, string> = {
     repair: 'Ремонт',
@@ -33,6 +34,7 @@ type Props = {
 
 export default async function TaskDetailsPage({ params }: Props) {
     const { id } = await params;
+    const { t } = await getServerTranslation();
 
     // Handle static preview links from landing (e.g. /tasks/preview-0, preview-1, preview-2)
     const previewMatch = id.match(/^preview-(\d)$/);
@@ -44,9 +46,9 @@ export default async function TaskDetailsPage({ params }: Props) {
                 <div style={{ backgroundColor: 'var(--secondary)', minHeight: '100vh', padding: '40px 0' }}>
                     <div className="container">
                         <div style={{ marginBottom: '24px', fontSize: '0.9rem', color: 'var(--text-light)' }}>
-                            <Link href="/" style={{ color: 'var(--primary)', textDecoration: 'none' }}>Главная</Link>
+                            <Link href="/" style={{ color: 'var(--primary)', textDecoration: 'none' }}>{t('common.home')}</Link>
                             {' / '}
-                            <Link href="/tasks" style={{ color: 'var(--primary)', textDecoration: 'none' }}>Задания</Link>
+                            <Link href="/tasks" style={{ color: 'var(--primary)', textDecoration: 'none' }}>{t('tasks.tasksBreadcrumb')}</Link>
                             {' / '}
                             <span>{task.title}</span>
                         </div>
@@ -93,10 +95,10 @@ export default async function TaskDetailsPage({ params }: Props) {
                             </p>
                             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                                 <Link href="/tasks" className="btn btn-primary">
-                                    Смотреть все задания
+                                    {t('tasks.viewAllTasks')}
                                 </Link>
                                 <Link href="/register" className="btn btn-outline">
-                                    Зарегистрироваться
+                                    {t('common.register')}
                                 </Link>
                             </div>
                         </div>
@@ -167,7 +169,7 @@ export default async function TaskDetailsPage({ params }: Props) {
 
                 {/* Breadcrumb */}
                 <div style={{ marginBottom: '24px', fontSize: '0.9rem', color: 'var(--text-light)' }}>
-                    <Link href="/tasks" style={{ color: 'var(--primary)', textDecoration: 'none' }}>Задания</Link>
+                    <Link href="/tasks" style={{ color: 'var(--primary)', textDecoration: 'none' }}>{t('tasks.tasksBreadcrumb')}</Link>
                     {task.category && (
                         <>
                             {' / '}
@@ -227,7 +229,7 @@ export default async function TaskDetailsPage({ params }: Props) {
                                     </div>
                                     <div>
                                         <div style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>
-                                            Выбранный Исполнитель
+                                            {t('tasks.assignedProvider')}
                                         </div>
                                         <div style={{ fontWeight: '600', fontSize: '1.1rem' }}>
                                             {task.assignedUser.fullName}
@@ -241,7 +243,7 @@ export default async function TaskDetailsPage({ params }: Props) {
                                         className="btn btn-primary"
                                         style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
                                     >
-                                        💬 Отправить сообщение
+                                        💬 {t('tasks.sendMessage')}
                                     </Link>
                                 )}
                             </div>
@@ -266,7 +268,7 @@ export default async function TaskDetailsPage({ params }: Props) {
                                 marginTop: '24px',
                                 border: '1px solid var(--border)'
                             }}>
-                                <h3 className="heading-md" style={{ marginBottom: '16px' }}>Отзыв</h3>
+                                <h3 className="heading-md" style={{ marginBottom: '16px' }}>{t('tasks.review')}</h3>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                                     <span style={{ color: '#fbbf24', fontSize: '1.5rem' }}>
                                         {'★'.repeat(task.review.rating)}

@@ -322,3 +322,51 @@ button {
     display: none !important;
   }
 }
+
+/* Tasks page responsive layout */
+.tasks-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 32px;
+}
+
+@media (max-width: 900px) {
+  .tasks-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .tasks-sidebar {
+    display: none;
+  }
+}
+
+/* Task card responsive */
+.task-card-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.task-card-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 16px;
+  min-width: 140px;
+}
+
+@media (max-width: 600px) {
+  .task-card-inner {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .task-card-right {
+    width: 100%;
+    min-width: 0;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}

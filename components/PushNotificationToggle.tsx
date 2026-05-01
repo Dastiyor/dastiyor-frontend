@@ -2,9 +2,11 @@
 
 import { Bell, BellOff } from 'lucide-react';
 import { usePushNotifications } from '@/lib/usePushNotifications';
+import { useTranslation } from '@/lib/i18n';
 
 export default function PushNotificationToggle() {
     const { isSupported, isSubscribed, isLoading, subscribe, unsubscribe } = usePushNotifications();
+    const { t } = useTranslation();
 
     if (!isSupported) return null;
 
@@ -38,10 +40,10 @@ export default function PushNotificationToggle() {
         >
             {isSubscribed ? <Bell size={18} /> : <BellOff size={18} />}
             {isLoading
-                ? 'Загрузка...'
+                ? t('common.loading')
                 : isSubscribed
-                    ? 'Push-уведомления включены'
-                    : 'Включить push-уведомления'
+                    ? t('notifications.pushEnabled')
+                    : t('notifications.pushEnable')
             }
         </button>
     );

@@ -315,8 +315,9 @@ export default function TaskFilterSidebar({ categoryCounts = [], totalOpenTasks 
                     <div style={{ flex: 1, backgroundColor: 'var(--secondary)', borderRadius: '8px', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', padding: '0 12px', height: '42px' }}>
                         <input
                             type="number"
+                            min="0"
                             value={minBudget}
-                            onChange={(e) => setMinBudget(e.target.value)}
+                            onChange={(e) => setMinBudget(String(Math.max(0, parseInt(e.target.value) || 0)))}
                             placeholder="0"
                             style={{
                                 width: '100%',

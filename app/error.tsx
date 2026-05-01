@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n';
 
 export default function Error({
     error,
@@ -9,6 +10,8 @@ export default function Error({
     error: Error & { digest?: string };
     reset: () => void;
 }) {
+    const { t } = useTranslation();
+
     useEffect(() => {
         console.error(error);
     }, [error]);
@@ -25,10 +28,10 @@ export default function Error({
             textAlign: 'center',
         }}>
             <h2 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#111827' }}>
-                Что-то пошло не так
+                {t('systemPages.errTitle')}
             </h2>
             <p style={{ color: '#6b7280', maxWidth: '400px' }}>
-                Произошла непредвиденная ошибка. Попробуйте ещё раз.
+                {t('systemPages.errText')}
             </p>
             <button
                 onClick={reset}
@@ -43,7 +46,7 @@ export default function Error({
                     cursor: 'pointer',
                 }}
             >
-                Попробовать снова
+                {t('systemPages.retryBtn')}
             </button>
         </div>
     );

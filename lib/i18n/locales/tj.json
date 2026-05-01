@@ -34,14 +34,16 @@
     "tasks": "Вазифаҳо",
     "reviews": "Баҳоҳо",
     "somali": "сом.",
-    "negotiable": "Созишӣ"
+    "negotiable": "Созишӣ",
+    "home": "Асосӣ"
   },
   "header": {
     "howItWorks": "Чӣ тавр кор мекунад",
     "findTasks": "Ёфтани вазифаҳо",
     "becomeProvider": "Иҷрокунанда шудан",
     "templates": "Қолабҳо",
-    "createTask": "Сохтани вазифа"
+    "createTask": "Сохтани вазифа",
+    "openMenu": "Кушодани меню"
   },
   "footer": {
     "tagline": "Оянда барои хизматрасонии маҳаллӣ. Ба иҷрокунандагон кӯмак мерасонем ва ҷомеаҳоро муттаҳид мекунем.",
@@ -139,6 +141,8 @@
   "auth": {
     "welcomeBack": "Хуш омадед",
     "loginSubtitle": "Ба аккаунти худ ворид шавед",
+    "loginToPostTask": "Барои эҷоди вазифа ворид шавед",
+    "loginToPostTaskSubtitle": "Пас аз даромадан шумо метавонед вазифаи худро нашр кунед",
     "emailLabel": "Суроғаи Email",
     "emailPlaceholder": "name@example.com",
     "passwordLabel": "Рамз",
@@ -342,6 +346,31 @@
     "offerAccepted": "Ҷавоб қабул шуд",
     "offerRejected": "Ҷавоб рад шуд",
     "newMessage": "Паёми нав",
-    "taskCompleted": "Вазифа анҷом шуд"
+    "taskCompleted": "Вазифа анҷом шуд",
+    "title": "Огоҳиномаҳо",
+    "noNew": "Огоҳиномаи нав нест",
+    "justNow": "Ҳоло",
+    "minutesAgo": "{count} дақ. пеш",
+    "hoursAgo": "{count} соат пеш"
+  },
+  "ui": {
+    "prevPage": "Қафо",
+    "nextPage": "Пеш",
+    "pageOf": "Саҳифа {current} аз {total}"
+  },
+  "tasks": {
+    "findTitle": "Ёфтани вазифаҳо",
+    "viewDetails": "Муфассал",
+    "loadMore": "Бештар бор кардан",
+    "noTasksTitle": "Вазифае нест",
+    "noTasksDesc": "Дар ин категория вазифае нест. Фильтри дигар интихоб кунед.",
+    "respondButton": "Пешниҳод додан",
+    "loginToRespond": "Барои ҷавоб додан ворид шавед",
+    "retry": "Такрор кардан",
+    "tasksBreadcrumb": "Вазифаҳо",
+    "assignedProvider": "Иҷрокунандаи интихобшуда",
+    "sendMessage": "Фиристодани паём",
+    "review": "Баҳо",
+    "viewAllTasks": "Ҳамаи вазифаҳоро дидан"
   }
 }

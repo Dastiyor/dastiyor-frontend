@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Menu, X, LogIn } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 
 type UserInfo = { fullName: string; role: string } | null;
 
 export default function MobileMenu({ user }: { user: UserInfo }) {
     const [open, setOpen] = useState(false);
+    const { t } = useTranslation();
 
     useEffect(() => {
         if (open) {
@@ -24,7 +26,7 @@ export default function MobileMenu({ user }: { user: UserInfo }) {
         <>
             <button
                 onClick={() => setOpen(v => !v)}
-                aria-label="Открыть меню"
+                aria-label={t('header.openMenu')}
                 style={{
                     display: 'none',
                     background: 'none',
@@ -73,24 +75,24 @@ export default function MobileMenu({ user }: { user: UserInfo }) {
                 }}
             >
                 <Link href="/how-it-works" onClick={close} style={{ padding: '14px 16px', borderRadius: '10px', fontWeight: '600', fontSize: '1rem', color: '#374151', textDecoration: 'none', backgroundColor: '#F9FAFB' }}>
-                    Как это работает
+                    {t('header.howItWorks')}
                 </Link>
                 <Link href="/tasks" onClick={close} style={{ padding: '14px 16px', borderRadius: '10px', fontWeight: '600', fontSize: '1rem', color: '#374151', textDecoration: 'none', backgroundColor: '#F9FAFB' }}>
-                    Найти задания
+                    {t('header.findTasks')}
                 </Link>
                 {(!user || user.role !== 'PROVIDER') && (
                     <Link href="/register?type=provider" onClick={close} style={{ padding: '14px 16px', borderRadius: '10px', fontWeight: '600', fontSize: '1rem', color: '#4F46E5', textDecoration: 'none', backgroundColor: '#EEF2FF' }}>
-                        Стать исполнителем
+                        {t('header.becomeProvider')}
                     </Link>
                 )}
                 {(!user || user.role === 'CUSTOMER') && (
                     <Link href={user ? '/customer/create-task' : '/create-task'} onClick={close} style={{ padding: '14px 16px', borderRadius: '10px', fontWeight: '700', fontSize: '1rem', color: 'white', textDecoration: 'none', backgroundColor: '#6366F1' }}>
-                        Создать задание
+                        {t('header.createTask')}
                     </Link>
                 )}
                 {!user && (
                     <Link href="/login" onClick={close} style={{ padding: '14px 16px', borderRadius: '10px', fontWeight: '600', fontSize: '1rem', color: '#111827', textDecoration: 'none', backgroundColor: '#F3F4F6', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <LogIn size={18} /> Войти
+                        <LogIn size={18} /> {t('common.login')}
                     </Link>
                 )}
                 {user && (

@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { Wrench, SprayCan, Truck, BookOpen, Droplets, Zap, Sparkles, Monitor } from 'lucide-react';
+import { Wrench, SprayCan, Truck, BookOpen, Droplets, Zap, Sparkles, Monitor, Camera, Palette, PartyPopper, Scale, Bot, Cpu, Laptop } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 
 export default function Categories() {
@@ -83,4 +83,11 @@ const categories = [
     { nameKey: 'popularCategories.electrician', dbValue: 'Электрик', icon: <Zap size={28} />, bg: '#FFFBEB' },
     { nameKey: 'popularCategories.beauty', dbValue: 'Красота', icon: <Sparkles size={28} />, bg: '#FDF2F8' },
     { nameKey: 'popularCategories.techHelp', dbValue: 'IT и Веб', icon: <Monitor size={28} />, bg: '#F0F9FF' },
+    { nameKey: 'popularCategories.computerHelp', dbValue: 'Компьютерная помощь', icon: <Laptop size={28} />, bg: '#F0F9FF' },
+    { nameKey: 'popularCategories.applianceRepair', dbValue: 'Ремонт техники', icon: <Cpu size={28} />, bg: '#EFF6FF' },
+    { nameKey: 'popularCategories.photoVideo', dbValue: 'Фото и видео', icon: <Camera size={28} />, bg: '#FFF1F2' },
+    { nameKey: 'popularCategories.design', dbValue: 'Дизайн', icon: <Palette size={28} />, bg: '#FAF5FF' },
+    { nameKey: 'popularCategories.events', dbValue: 'Мероприятия', icon: <PartyPopper size={28} />, bg: '#FFF7ED' },
+    { nameKey: 'popularCategories.legal', dbValue: 'Юридические услуги', icon: <Scale size={28} />, bg: '#F0FDF4' },
+    { nameKey: 'popularCategories.virtualAssistant', dbValue: 'Виртуальный помощник', icon: <Bot size={28} />, bg: '#F5F3FF' },
 ];

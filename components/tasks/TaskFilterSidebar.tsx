@@ -1,17 +1,26 @@
 'use client';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import { LayoutGrid, Wrench, Monitor, SprayCan, Truck, Zap, Clock, Calendar } from 'lucide-react';
+import { LayoutGrid, Wrench, Monitor, SprayCan, Truck, Zap, Clock, Calendar, Camera, Palette, PartyPopper, Scale, Bot, Cpu, Laptop, Droplets, BookOpen, Sparkles } from 'lucide-react';
 import { useState, useCallback, useTransition } from 'react';
 import { useTranslation } from '@/lib/i18n';
 
 const CATEGORIES = [
     { name: 'Все задания', value: '', icon: LayoutGrid },
     { name: 'Ремонт', value: 'Ремонт', icon: Wrench },
-    { name: 'IT и Веб', value: 'IT и Веб', icon: Monitor },
     { name: 'Уборка', value: 'Уборка', icon: SprayCan },
     { name: 'Доставка', value: 'Доставка', icon: Truck },
-    { name: 'Сантехника', value: 'Сантехника', icon: Wrench },
-    { name: 'Обучение', value: 'Обучение', icon: Monitor },
+    { name: 'Сантехника', value: 'Сантехника', icon: Droplets },
+    { name: 'Электрик', value: 'Электрик', icon: Zap },
+    { name: 'Обучение', value: 'Обучение', icon: BookOpen },
+    { name: 'Красота', value: 'Красота', icon: Sparkles },
+    { name: 'IT и Веб', value: 'IT и Веб', icon: Monitor },
+    { name: 'Компьютерная помощь', value: 'Компьютерная помощь', icon: Laptop },
+    { name: 'Ремонт техники', value: 'Ремонт техники', icon: Cpu },
+    { name: 'Фото и видео', value: 'Фото и видео', icon: Camera },
+    { name: 'Дизайн', value: 'Дизайн', icon: Palette },
+    { name: 'Мероприятия', value: 'Мероприятия', icon: PartyPopper },
+    { name: 'Юридические услуги', value: 'Юридические услуги', icon: Scale },
+    { name: 'Виртуальный помощник', value: 'Виртуальный помощник', icon: Bot },
 ];
 
 const CITIES = [

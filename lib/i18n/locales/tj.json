@@ -126,7 +126,14 @@
     "electrician": "Электрик",
     "beauty": "Зебоӣ",
     "techHelp": "Кӯмаки техникӣ",
-    "listings": "эълон"
+    "listings": "эълон",
+    "computerHelp": "Кӯмаки компютерӣ",
+    "applianceRepair": "Таъмири техника",
+    "photoVideo": "Акс ва видео",
+    "design": "Дизайн",
+    "events": "Чорабиниҳо",
+    "legal": "Хизматҳои ҳуқуқӣ",
+    "virtualAssistant": "Ёрдамчии виртуалӣ"
   },
   "popularTasks": {
     "title": "Вазифаҳои маъмул",

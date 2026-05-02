@@ -251,10 +251,21 @@ export default async function TaskFeedPage({
                                 style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem', backgroundColor: 'white' }}
                             >
                                 <option value="">{t('filters.allCategories')}</option>
-                                <option value="Home Repair">Домашний ремонт</option>
-                                <option value="Cleaning">Уборка</option>
-                                <option value="Delivery">Доставка</option>
-                                <option value="Tech Support">IT и Техника</option>
+                                <option value="Ремонт">Ремонт</option>
+                                <option value="Уборка">Уборка</option>
+                                <option value="Доставка">Доставка</option>
+                                <option value="Сантехника">Сантехника</option>
+                                <option value="Электрик">Электрик</option>
+                                <option value="Обучение">Обучение</option>
+                                <option value="Красота">Красота</option>
+                                <option value="IT и Веб">IT и Веб</option>
+                                <option value="Компьютерная помощь">Компьютерная помощь</option>
+                                <option value="Ремонт техники">Ремонт техники</option>
+                                <option value="Фото и видео">Фото и видео</option>
+                                <option value="Дизайн">Дизайн</option>
+                                <option value="Мероприятия">Мероприятия</option>
+                                <option value="Юридические услуги">Юридические услуги</option>
+                                <option value="Виртуальный помощник">Виртуальный помощник</option>
                             </select>
                         </div>
 

@@ -126,7 +126,14 @@
     "electrician": "Электрик",
     "beauty": "Красота",
     "techHelp": "Техпомощь",
-    "listings": "объявлений"
+    "listings": "объявлений",
+    "computerHelp": "Компьютерная помощь",
+    "applianceRepair": "Ремонт техники",
+    "photoVideo": "Фото и видео",
+    "design": "Дизайн",
+    "events": "Мероприятия",
+    "legal": "Юридические услуги",
+    "virtualAssistant": "Виртуальный помощник"
   },
   "popularTasks": {
     "title": "Популярные Задания",

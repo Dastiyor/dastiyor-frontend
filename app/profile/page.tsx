@@ -3,6 +3,7 @@ import { verifyJWT } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import { getServerTranslation } from '@/lib/i18n/server';
 
 export default async function ProfilePage() {
     const cookieStore = await cookies();
@@ -42,14 +43,15 @@ export default async function ProfilePage() {
         : 0;
 
     const skills = user.skills ? user.skills.split(',').map(s => s.trim()) : [];
+    const { t } = await getServerTranslation();
 
     return (
         <div style={{ backgroundColor: 'var(--secondary)', minHeight: '100vh', padding: '60px 0' }}>
             <div className="container" style={{ maxWidth: '800px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-                    <h1 className="heading-lg">Мой профиль</h1>
+                    <h1 className="heading-lg">{t('profile.myProfile')}</h1>
                     <Link href="/profile/edit" className="btn btn-outline">
-                        ✏️ Редактировать
+                        ✏️ {t('profile.edit')}
                     </Link>
                 </div>
 
@@ -97,7 +99,7 @@ export default async function ProfilePage() {
                                     fontSize: '0.9rem',
                                     fontWeight: '600'
                                 }}>
-                                    {user.role === 'PROVIDER' ? 'Исполнитель' : 'Заказчик'}
+                                    {user.role === 'PROVIDER' ? t('profile.roleProvider') : t('profile.roleCustomer')}
                                 </span>
                                 {isSubscribed && subscription && (
                                     <span style={{
@@ -108,7 +110,7 @@ export default async function ProfilePage() {
                                         fontSize: '0.9rem',
                                         fontWeight: '600'
                                     }}>
-                                        ⭐ {subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1)} Участник
+                                        ⭐ {subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1)} {t('profile.member')}
                                     </span>
                                 )}
                             </div>
@@ -123,7 +125,7 @@ export default async function ProfilePage() {
                             borderRadius: '12px',
                             marginBottom: '24px'
                         }}>
-                            <label style={{ display: 'block', color: 'var(--text-light)', marginBottom: '8px', fontSize: '0.9rem', fontWeight: '500' }}>Обо мне</label>
+                            <label style={{ display: 'block', color: 'var(--text-light)', marginBottom: '8px', fontSize: '0.9rem', fontWeight: '500' }}>{t('profile.aboutMe')}</label>
                             <p style={{ lineHeight: '1.7', color: 'var(--text)' }}>{user.bio}</p>
                         </div>
                     )}
@@ -131,7 +133,7 @@ export default async function ProfilePage() {
                     {/* Skills for Providers */}
                     {user.role === 'PROVIDER' && skills.length > 0 && (
                         <div style={{ marginBottom: '24px' }}>
-                            <label style={{ display: 'block', color: 'var(--text-light)', marginBottom: '12px', fontSize: '0.9rem', fontWeight: '500' }}>Навыки</label>
+                            <label style={{ display: 'block', color: 'var(--text-light)', marginBottom: '12px', fontSize: '0.9rem', fontWeight: '500' }}>{t('profile.skills')}</label>
                             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                                 {skills.map((skill, i) => (
                                     <span
@@ -156,18 +158,18 @@ export default async function ProfilePage() {
                     <div style={{ display: 'grid', gridTemplateColumns: user.role === 'PROVIDER' ? 'repeat(3, 1fr)' : '1fr 1fr', gap: '24px', marginBottom: '40px' }}>
                         <div style={{ padding: '24px', borderRadius: '16px', backgroundColor: '#f9fafb', border: '1px solid var(--border)' }}>
                             <div style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '8px' }}>{user._count.tasks}</div>
-                            <div style={{ color: 'var(--text-light)' }}>Задач опубликовано</div>
+                            <div style={{ color: 'var(--text-light)' }}>{t('profile.tasksPosted')}</div>
                         </div>
                         <div style={{ padding: '24px', borderRadius: '16px', backgroundColor: '#f9fafb', border: '1px solid var(--border)' }}>
                             <div style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '8px' }}>{user._count.responses}</div>
-                            <div style={{ color: 'var(--text-light)' }}>Откликов отправлено</div>
+                            <div style={{ color: 'var(--text-light)' }}>{t('profile.responsesSent')}</div>
                         </div>
                         {user.role === 'PROVIDER' && (
                             <div style={{ padding: '24px', borderRadius: '16px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
                                 <div style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '8px', color: '#166534' }}>
                                     {user.balance.toFixed(2)} с.
                                 </div>
-                                <div style={{ color: '#15803d' }}>Баланс</div>
+                                <div style={{ color: '#15803d' }}>{t('profile.balance')}</div>
                             </div>
                         )}
                     </div>
@@ -175,41 +177,41 @@ export default async function ProfilePage() {
                     {/* Provider Dashboard Links */}
                     {user.role === 'PROVIDER' && (
                         <div style={{ marginBottom: '40px', padding: '24px', backgroundColor: '#F9FAFB', borderRadius: '16px', border: '1px solid var(--border)' }}>
-                            <h3 className="heading-md" style={{ marginBottom: '16px' }}>Панель исполнителя</h3>
+                            <h3 className="heading-md" style={{ marginBottom: '16px' }}>{t('profile.providerDashboard')}</h3>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
                                 <Link href="/provider/my-responses" className="btn btn-outline" style={{ justifyContent: 'flex-start', textAlign: 'left' }}>
-                                    📝 Мои отклики
+                                    📝 {t('profile.myResponses')}
                                 </Link>
                                 <Link href="/provider/active-tasks" className="btn btn-outline" style={{ justifyContent: 'flex-start', textAlign: 'left' }}>
-                                    ⚡ Активные задания
+                                    ⚡ {t('profile.activeTasks')}
                                 </Link>
                                 <Link href="/provider/completed-tasks" className="btn btn-outline" style={{ justifyContent: 'flex-start', textAlign: 'left' }}>
-                                    ✅ Выполненные задания
+                                    ✅ {t('profile.completedTasks')}
                                 </Link>
                                 <Link href="/provider/payment-history" className="btn btn-outline" style={{ justifyContent: 'flex-start', textAlign: 'left' }}>
-                                    💳 История платежей
+                                    💳 {t('profile.paymentHistory')}
                                 </Link>
                             </div>
                         </div>
                     )}
 
                     <div style={{ borderTop: '1px solid var(--border)', paddingTop: '32px' }}>
-                        <h3 className="heading-md" style={{ marginBottom: '24px' }}>Информация об аккаунте</h3>
+                        <h3 className="heading-md" style={{ marginBottom: '24px' }}>{t('profile.accountInfo')}</h3>
                         <div style={{ display: 'grid', gap: '24px' }}>
                             <div>
-                                <label style={{ display: 'block', color: 'var(--text-light)', marginBottom: '4px', fontSize: '0.9rem' }}>Полное имя</label>
+                                <label style={{ display: 'block', color: 'var(--text-light)', marginBottom: '4px', fontSize: '0.9rem' }}>{t('profile.fullNameLabel')}</label>
                                 <div style={{ fontSize: '1.1rem', fontWeight: '500' }}>{user.fullName}</div>
                             </div>
                             <div>
-                                <label style={{ display: 'block', color: 'var(--text-light)', marginBottom: '4px', fontSize: '0.9rem' }}>Email адрес</label>
+                                <label style={{ display: 'block', color: 'var(--text-light)', marginBottom: '4px', fontSize: '0.9rem' }}>{t('profile.emailLabel')}</label>
                                 <div style={{ fontSize: '1.1rem', fontWeight: '500' }}>{user.email}</div>
                             </div>
                             <div>
-                                <label style={{ display: 'block', color: 'var(--text-light)', marginBottom: '4px', fontSize: '0.9rem' }}>Номер телефона</label>
-                                <div style={{ fontSize: '1.1rem', fontWeight: '500' }}>{user.phone || 'Не указан'}</div>
+                                <label style={{ display: 'block', color: 'var(--text-light)', marginBottom: '4px', fontSize: '0.9rem' }}>{t('profile.phoneLabel')}</label>
+                                <div style={{ fontSize: '1.1rem', fontWeight: '500' }}>{user.phone || t('profile.phoneNotSet')}</div>
                             </div>
                             <div>
-                                <label style={{ display: 'block', color: 'var(--text-light)', marginBottom: '4px', fontSize: '0.9rem' }}>Участник с</label>
+                                <label style={{ display: 'block', color: 'var(--text-light)', marginBottom: '4px', fontSize: '0.9rem' }}>{t('profile.memberSinceLabel')}</label>
                                 <div style={{ fontSize: '1.1rem', fontWeight: '500' }}>{new Date(user.createdAt).toLocaleDateString()}</div>
                             </div>
                         </div>

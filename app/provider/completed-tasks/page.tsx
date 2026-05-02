@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle, Star, DollarSign, Calendar } from 'lucide-react';
+import { getServerTranslation } from '@/lib/i18n/server';
 
 export default async function CompletedTasksPage() {
     const cookieStore = await cookies();
@@ -54,6 +55,7 @@ export default async function CompletedTasksPage() {
             .reduce((sum, t) => sum + (t.review?.rating || 0), 0) / completedTasks.filter(t => t.review).length || 0
     };
 
+    const { t } = await getServerTranslation();
     const accentColor = '#0D9488';
 
     return (
@@ -61,10 +63,10 @@ export default async function CompletedTasksPage() {
             {/* Page Header */}
             <div style={{ marginBottom: '24px' }}>
                 <h1 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#1E293B', marginBottom: '6px' }}>
-                    Completed Tasks
+                    {t('provider.completedTasksTitle')}
                 </h1>
                 <p style={{ color: '#64748B', fontSize: '0.9rem' }}>
-                    History of all successfully completed tasks
+                    {t('provider.completedTasksDesc')}
                 </p>
             </div>
 
@@ -72,17 +74,17 @@ export default async function CompletedTasksPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
                 <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
                     <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#1E293B', marginBottom: '4px' }}>{stats.total}</div>
-                    <div style={{ fontSize: '0.8rem', color: '#64748B' }}>Tasks Completed</div>
+                    <div style={{ fontSize: '0.8rem', color: '#64748B' }}>{t('provider.completedTasksCount')}</div>
                 </div>
                 <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
                     <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#10B981', marginBottom: '4px' }}>{stats.withReviews}</div>
-                    <div style={{ fontSize: '0.8rem', color: '#64748B' }}>With Reviews</div>
+                    <div style={{ fontSize: '0.8rem', color: '#64748B' }}>{t('provider.withReviews')}</div>
                 </div>
                 <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
                     <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#F59E0B', marginBottom: '4px' }}>
                         {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '0.0'}
                     </div>
-                    <div style={{ fontSize: '0.8rem', color: '#64748B' }}>Avg Rating</div>
+                    <div style={{ fontSize: '0.8rem', color: '#64748B' }}>{t('provider.avgRating')}</div>
                 </div>
             </div>
 
@@ -91,9 +93,9 @@ export default async function CompletedTasksPage() {
                 {completedTasks.length === 0 ? (
                     <div style={{ backgroundColor: 'white', padding: '60px', borderRadius: '16px', border: '1px solid #E2E8F0', textAlign: 'center' }}>
                         <div style={{ fontSize: '3rem', marginBottom: '16px' }}>✅</div>
-                        <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1E293B', marginBottom: '8px' }}>No completed tasks</h3>
+                        <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1E293B', marginBottom: '8px' }}>{t('provider.noCompletedTasks')}</h3>
                         <p style={{ color: '#64748B', marginBottom: '20px', fontSize: '0.9rem' }}>
-                            Completed tasks will appear here
+                            {t('provider.noCompletedTasksDesc')}
                         </p>
                         <Link href="/tasks" style={{
                             display: 'inline-block',
@@ -105,7 +107,7 @@ export default async function CompletedTasksPage() {
                             fontWeight: '600',
                             fontSize: '0.9rem'
                         }}>
-                            Find Tasks
+                            {t('provider.findTasks')}
                         </Link>
                     </div>
                 ) : (
@@ -140,7 +142,7 @@ export default async function CompletedTasksPage() {
                                             gap: '4px'
                                         }}>
                                             <CheckCircle size={14} />
-                                            Completed
+                                            {t('provider.completedStatus')}
                                         </span>
                                     </div>
 
@@ -152,18 +154,18 @@ export default async function CompletedTasksPage() {
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                             <DollarSign size={14} />
                                             <span style={{ fontWeight: '600', color: accentColor }}>
-                                                {task.budgetType === 'fixed' ? `${task.budgetAmount} с.` : 'Negotiable'}
+                                                {task.budgetType === 'fixed' ? `${task.budgetAmount} с.` : t('common.negotiable')}
                                             </span>
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                             <Calendar size={14} />
-                                            <span>Completed: {new Date(task.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                                            <span>{t('provider.completedAt')} {new Date(task.updatedAt).toLocaleDateString('ru-RU', { month: 'short', day: 'numeric' })}</span>
                                         </div>
                                         {task.review && (
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                                 <Star size={14} color="#F59E0B" fill="#F59E0B" />
                                                 <span style={{ fontWeight: '600', color: '#F59E0B' }}>
-                                                    {task.review.rating} from {task.review.reviewer.fullName}
+                                                    {t('provider.ratingFrom', { rating: task.review.rating, name: task.review.reviewer.fullName })}
                                                 </span>
                                             </div>
                                         )}
@@ -178,7 +180,7 @@ export default async function CompletedTasksPage() {
                                             border: '1px solid #FDE68A'
                                         }}>
                                             <div style={{ fontWeight: '600', marginBottom: '4px', color: '#92400E', fontSize: '0.8rem' }}>
-                                                Review from {task.review.reviewer.fullName}:
+                                                {t('provider.reviewFrom', { name: task.review.reviewer.fullName })}
                                             </div>
                                             <p style={{ color: '#78350F', lineHeight: '1.5', fontSize: '0.85rem' }}>{task.review.comment}</p>
                                         </div>
@@ -200,7 +202,7 @@ export default async function CompletedTasksPage() {
                                             textAlign: 'center'
                                         }}
                                     >
-                                        View Task
+                                        {t('provider.viewTask')}
                                     </Link>
                                     {task.review && (
                                         <Link
@@ -216,7 +218,7 @@ export default async function CompletedTasksPage() {
                                                 textAlign: 'center'
                                             }}
                                         >
-                                            View Review
+                                            {t('provider.viewReview')}
                                         </Link>
                                     )}
                                 </div>

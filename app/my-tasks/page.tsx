@@ -3,8 +3,10 @@ import { verifyJWT } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { getServerTranslation } from '@/lib/i18n/server';
 
 export default async function MyTasksPage() {
+    const { t } = await getServerTranslation();
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 
@@ -35,17 +37,17 @@ export default async function MyTasksPage() {
         <div style={{ backgroundColor: 'var(--secondary)', minHeight: '100vh', padding: '40px 0' }}>
             <div className="container">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-                    <h1 className="heading-lg">Мои задания</h1>
+                    <h1 className="heading-lg">{t('customer.myTasks')}</h1>
                     <Link href="/create-task" className="btn btn-primary">
-                        Создать новое задание
+                        {t('tasks.createNewTask')}
                     </Link>
                 </div>
 
                 {tasks.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '60px', backgroundColor: 'white', borderRadius: '16px', border: '1px solid var(--border)' }}>
-                        <h3 className="heading-md" style={{ marginBottom: '16px' }}>У вас пока нет активных заданий.</h3>
-                        <p style={{ color: 'var(--text-light)', marginBottom: '32px' }}>Создайте своё первое задание, чтобы найти помошника.</p>
-                        <Link href="/create-task" className="btn btn-primary">Создать задание</Link>
+                        <h3 className="heading-md" style={{ marginBottom: '16px' }}>{t('tasks.noActiveTasks')}</h3>
+                        <p style={{ color: 'var(--text-light)', marginBottom: '32px' }}>{t('customer.createFirstTaskDesc')}</p>
+                        <Link href="/create-task" className="btn btn-primary">{t('customer.createTask')}</Link>
                     </div>
                 ) : (
                     <div style={{ display: 'grid', gap: '24px' }}>
@@ -83,12 +85,12 @@ export default async function MyTasksPage() {
                                         </h3>
                                     </Link>
                                     <div style={{ color: 'var(--text-light)' }}>
-                                        {task.budgetType === 'fixed' ? `${task.budgetAmount} с.` : 'Договорная'} • {task._count.responses} откликов
+                                        {task.budgetType === 'fixed' ? `${task.budgetAmount} с.` : t('common.negotiable')} • {t('tasks.responseCountLabel', { count: task._count.responses })}
                                     </div>
                                 </div>
 
                                 <Link href={`/tasks/${task.id}`} className="btn btn-outline">
-                                    Подробнее
+                                    {t('tasks.viewDetails')}
                                 </Link>
                             </div>
                         ))}

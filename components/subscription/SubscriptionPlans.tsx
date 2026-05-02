@@ -1,5 +1,6 @@
 'use client';
 import { toast } from '@/components/ui/Toast';
+import { useTranslation } from '@/lib/i18n';
 
 import { useState } from 'react';
 
@@ -73,6 +74,7 @@ type Props = {
 
 export default function SubscriptionPlans({ currentPlan }: Props) {
     const [loading, setLoading] = useState<string | null>(null);
+    const { t } = useTranslation();
 
     const handleSubscribe = async (planId: string) => {
         setLoading(planId);
@@ -87,14 +89,14 @@ export default function SubscriptionPlans({ currentPlan }: Props) {
 
             if (res.ok && data.paymentUrl) {
                 // Redirect to SmartPay payment page
-                toast.success('Перенаправляем на страницу оплаты...');
+                toast.success(t('subscription.redirectingToast'));
                 window.location.assign(data.paymentUrl);
             } else {
-                toast.error(data.error || 'Не удалось создать платёж');
+                toast.error(data.error || t('subscription.errorTryAgain'));
                 setLoading(null);
             }
         } catch {
-            toast.error('Произошла ошибка. Попробуйте еще раз.');
+            toast.error(t('subscription.errorTryAgain'));
             setLoading(null);
         }
     };
@@ -131,7 +133,7 @@ export default function SubscriptionPlans({ currentPlan }: Props) {
                             fontSize: '0.85rem',
                             fontWeight: '600'
                         }}>
-                            Хит продаж
+                            {t('subscription.bestSeller')}
                         </div>
                     )}
 
@@ -155,7 +157,7 @@ export default function SubscriptionPlans({ currentPlan }: Props) {
                         </span>
                         <span style={{ fontSize: '1.2rem', color: 'var(--text-light)' }}> с.</span>
                         <div style={{ color: 'var(--text-light)', fontSize: '0.9rem' }}>
-                            в {plan.period}
+                            {t('subscription.perMonth')}
                         </div>
                     </div>
 
@@ -189,7 +191,7 @@ export default function SubscriptionPlans({ currentPlan }: Props) {
                                 cursor: 'default'
                             }}
                         >
-                            ✓ Текущий план
+                            ✓ {t('subscription.currentPlan')}
                         </button>
                     ) : (
                         <button
@@ -209,7 +211,7 @@ export default function SubscriptionPlans({ currentPlan }: Props) {
                                 transition: 'all 0.2s'
                             }}
                         >
-                            {loading === plan.id ? 'Перенаправление...' : 'Оплатить'}
+                            {loading === plan.id ? t('subscription.redirecting') : t('subscription.pay')}
                         </button>
                     )}
                 </div>

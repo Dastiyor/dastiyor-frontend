@@ -1,5 +1,8 @@
+'use client';
+
 import { useState } from 'react';
 import { toast } from '@/components/ui/Toast';
+import { useTranslation } from '@/lib/i18n';
 
 type StepProps = {
     onNext: (data: any) => void;
@@ -8,6 +11,7 @@ type StepProps = {
 };
 
 export default function Step2Details({ onNext, onBack, data }: StepProps) {
+    const { t } = useTranslation();
     const [uploading, setUploading] = useState(false);
     const [images, setImages] = useState<string[]>(data.images || []);
 
@@ -33,11 +37,11 @@ export default function Step2Details({ onNext, onBack, data }: StepProps) {
                     const json = await res.json();
                     setImages(prev => [...prev, json.url]);
                 } else {
-                    toast.error('Не удалось загрузить изображение');
+                    toast.error(t('chat.imageUploadError'));
                 }
             }
         } catch (err) {
-            toast.error('Ошибка при загрузке изображения');
+            toast.error(t('createTask.uploadErrorGeneric'));
         } finally {
             setUploading(false);
         }
@@ -49,9 +53,9 @@ export default function Step2Details({ onNext, onBack, data }: StepProps) {
 
     return (
         <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-            <h2 className="heading-md" style={{ textAlign: 'center', marginBottom: '8px' }}>Describe your task</h2>
+            <h2 className="heading-md" style={{ textAlign: 'center', marginBottom: '8px' }}>{t('createTask.describeTask')}</h2>
             <p style={{ textAlign: 'center', color: 'var(--text-light)', marginBottom: '32px' }}>
-                The more details you provide, the faster you&apos;ll find a professional.
+                {t('createTask.describeTaskSubtitle')}
             </p>
 
             <form onSubmit={(e) => {
@@ -65,12 +69,12 @@ export default function Step2Details({ onNext, onBack, data }: StepProps) {
             }} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
                 <div>
-                    <label style={{ display: 'block', fontWeight: '500', marginBottom: '8px' }}>Task Title</label>
+                    <label style={{ display: 'block', fontWeight: '500', marginBottom: '8px' }}>{t('createTask.taskTitleLabel')}</label>
                     <input
                         name="title"
                         defaultValue={data.title}
                         required
-                        placeholder="e.g., Fix a leaking tap in the kitchen"
+                        placeholder={t('createTask.taskTitlePlaceholder')}
                         style={{
                             width: '100%',
                             padding: '12px 16px',
@@ -83,12 +87,12 @@ export default function Step2Details({ onNext, onBack, data }: StepProps) {
                 </div>
 
                 <div>
-                    <label style={{ display: 'block', fontWeight: '500', marginBottom: '8px' }}>Description</label>
+                    <label style={{ display: 'block', fontWeight: '500', marginBottom: '8px' }}>{t('createTask.descriptionLabel')}</label>
                     <textarea
                         name="description"
                         defaultValue={data.description}
                         required
-                        placeholder="Describe what needs to be done..."
+                        placeholder={t('createTask.descriptionPlaceholder')}
                         rows={5}
                         style={{
                             width: '100%',
@@ -105,7 +109,7 @@ export default function Step2Details({ onNext, onBack, data }: StepProps) {
 
                 {/* Image Upload Section */}
                 <div>
-                    <label style={{ display: 'block', fontWeight: '500', marginBottom: '8px' }}>Photos (Optional)</label>
+                    <label style={{ display: 'block', fontWeight: '500', marginBottom: '8px' }}>{t('createTask.photosLabel')}</label>
                     <div style={{
                         display: 'grid',
                         gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))',
@@ -160,7 +164,7 @@ export default function Step2Details({ onNext, onBack, data }: StepProps) {
                                 style={{ display: 'none' }}
                             />
                             <span style={{ fontSize: '1.5rem', color: 'var(--text-light)' }}>+</span>
-                            <span style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>{uploading ? '...' : 'Add'}</span>
+                            <span style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>{uploading ? '...' : '+'}</span>
                         </label>
                     </div>
                 </div>
@@ -172,7 +176,7 @@ export default function Step2Details({ onNext, onBack, data }: StepProps) {
                         className="btn btn-outline"
                         style={{ flex: 1 }}
                     >
-                        Back
+                        {t('common.back')}
                     </button>
                     <button
                         type="submit"
@@ -180,7 +184,7 @@ export default function Step2Details({ onNext, onBack, data }: StepProps) {
                         style={{ flex: 1 }}
                         disabled={uploading}
                     >
-                        Next
+                        {t('common.next')}
                     </button>
                 </div>
             </form>

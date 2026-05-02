@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { toast } from '@/components/ui/Toast';
+import { useTranslation } from '@/lib/i18n';
 
 type Message = {
     id: string;
@@ -23,6 +24,7 @@ type Props = {
 
 export default function ChatInterface({ currentUserId }: Props) {
     const searchParams = useSearchParams();
+    const { t } = useTranslation();
     const partnerId = searchParams.get('userId');
     const taskId = searchParams.get('taskId');
 
@@ -92,12 +94,12 @@ export default function ChatInterface({ currentUserId }: Props) {
         // Validate file
         const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         if (!allowedTypes.includes(file.type)) {
-            toast.error('Выберите файл изображения (JPEG, PNG, GIF или WebP)');
+            toast.error(t('chat.invalidImageType'));
             return;
         }
 
         if (file.size > 5 * 1024 * 1024) {
-            toast.error('Изображение должно быть меньше 5MB');
+            toast.error(t('chat.imageTooLarge'));
             return;
         }
 
@@ -150,7 +152,7 @@ export default function ChatInterface({ currentUserId }: Props) {
             if (selectedImage) {
                 imageUrl = await uploadImage(selectedImage);
                 if (!imageUrl) {
-                    toast.error('Не удалось загрузить изображение');
+                    toast.error(t('chat.imageUploadError'));
                     setSending(false);
                     setUploading(false);
                     return;
@@ -195,9 +197,9 @@ export default function ChatInterface({ currentUserId }: Props) {
             }}>
                 <div style={{ fontSize: '4rem', marginBottom: '16px' }}>💬</div>
                 <h3 style={{ fontWeight: '600', color: 'var(--text)', marginBottom: '8px' }}>
-                    Выберите чат
+                    {t('chat.selectChat')}
                 </h3>
-                <p>Выберите собеседника из списка, чтобы начать общение</p>
+                <p>{t('chat.selectChatDesc')}</p>
             </div>
         );
     }
@@ -233,9 +235,9 @@ export default function ChatInterface({ currentUserId }: Props) {
                     {partnerName ? partnerName[0].toUpperCase() : '?'}
                 </div>
                 <div>
-                    <div style={{ fontWeight: '600' }}>{partnerName || 'Загрузка...'}</div>
+                    <div style={{ fontWeight: '600' }}>{partnerName || t('common.loading')}</div>
                     <div style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>
-                        {taskId ? 'Обсуждение задания' : 'Личное сообщение'}
+                        {taskId ? t('chat.taskDiscussion') : t('chat.directMessage')}
                     </div>
                 </div>
             </div>
@@ -251,12 +253,12 @@ export default function ChatInterface({ currentUserId }: Props) {
             }}>
                 {loading && messages.length === 0 ? (
                     <div style={{ textAlign: 'center', color: 'var(--text-light)', padding: '40px' }}>
-                        Загрузка сообщений...
+                        {t('chat.loadingMessages')}
                     </div>
                 ) : messages.length === 0 ? (
                     <div style={{ textAlign: 'center', color: 'var(--text-light)', padding: '40px' }}>
-                        <p>Нет сообщений</p>
-                        <p style={{ fontSize: '0.9rem', marginTop: '8px' }}>Отправьте сообщение, чтобы начать диалог!</p>
+                        <p>{t('chat.noMessages')}</p>
+                        <p style={{ fontSize: '0.9rem', marginTop: '8px' }}>{t('chat.startConversation')}</p>
                     </div>
                 ) : (
                     messages.map((msg) => {
@@ -392,7 +394,7 @@ export default function ChatInterface({ currentUserId }: Props) {
                         fontSize: '1.5rem',
                         padding: '4px'
                     }}
-                    title="Прикрепить фото"
+                    title={t('chat.attachPhoto')}
                 >
                     📷
                 </button>
@@ -401,7 +403,7 @@ export default function ChatInterface({ currentUserId }: Props) {
                     type="text"
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="Введите сообщение..."
+                    placeholder={t('chat.typeMessage')}
                     style={{
                         flex: 1,
                         padding: '12px 16px',
@@ -419,7 +421,7 @@ export default function ChatInterface({ currentUserId }: Props) {
                         padding: '12px 24px'
                     }}
                 >
-                    {uploading ? '📤' : sending ? '...' : 'Отправить'}
+                    {uploading ? '📤' : sending ? '...' : t('chat.send')}
                 </button>
             </form>
         </div>

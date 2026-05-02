@@ -1,3 +1,7 @@
+'use client';
+
+import { useTranslation } from '@/lib/i18n';
+
 type StepProps = {
     onNext: (data: any) => void;
     data: any;
@@ -17,9 +21,11 @@ const CATEGORIES = [
 ];
 
 export default function Step1Category({ onNext, data }: StepProps) {
+    const { t } = useTranslation();
+
     return (
         <div>
-            <h2 className="heading-md" style={{ textAlign: 'center', marginBottom: '24px' }}>Какая помощь нужна?</h2>
+            <h2 className="heading-md" style={{ textAlign: 'center', marginBottom: '24px' }}>{t('createTask.whatHelp')}</h2>
 
             <div style={{
                 display: 'grid',

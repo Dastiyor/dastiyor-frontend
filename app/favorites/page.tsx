@@ -5,8 +5,10 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import TaskCard from '@/components/tasks/TaskCard';
 import { Heart } from 'lucide-react';
+import { getServerTranslation } from '@/lib/i18n/server';
 
 export default async function FavoritesPage() {
+    const { t } = await getServerTranslation();
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 
@@ -44,9 +46,9 @@ export default async function FavoritesPage() {
                         <Heart size={28} color="#EF4444" fill="#EF4444" />
                     </span>
                     <div>
-                        <h1 className="heading-lg" style={{ margin: 0 }}>Избранные задания</h1>
+                        <h1 className="heading-lg" style={{ margin: 0 }}>{t('favorites.title')}</h1>
                         <p style={{ color: 'var(--text-light)', marginTop: '4px' }}>
-                            Задания, которые вы сохранили
+                            {t('favorites.subtitle')}
                         </p>
                     </div>
                 </div>
@@ -60,12 +62,12 @@ export default async function FavoritesPage() {
                         textAlign: 'center'
                     }}>
                         <div style={{ fontSize: '4rem', marginBottom: '16px' }}>❤️</div>
-                        <h3 className="heading-md" style={{ marginBottom: '8px' }}>Нет избранных заданий</h3>
+                        <h3 className="heading-md" style={{ marginBottom: '8px' }}>{t('favorites.empty')}</h3>
                         <p style={{ color: 'var(--text-light)', marginBottom: '24px' }}>
-                            Сохраняйте интересные задания, чтобы вернуться к ним позже
+                            {t('favorites.emptyDesc')}
                         </p>
                         <Link href="/tasks" className="btn btn-primary">
-                            Найти задания
+                            {t('tasks.findTitle')}
                         </Link>
                     </div>
                 ) : (
@@ -77,7 +79,7 @@ export default async function FavoritesPage() {
                                     id: fav.task.id,
                                     title: fav.task.title,
                                     category: fav.task.category,
-                                    budget: fav.task.budgetType === 'fixed' ? `${fav.task.budgetAmount} с.` : 'Договорная',
+                                    budget: fav.task.budgetType === 'fixed' ? `${fav.task.budgetAmount} с.` : t('common.negotiable'),
                                     city: fav.task.city,
                                     postedAt: new Date(fav.task.createdAt).toLocaleDateString('ru-RU'),
                                     description: fav.task.description,

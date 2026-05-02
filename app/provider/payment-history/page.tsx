@@ -3,6 +3,7 @@ import { verifyJWT } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { DollarSign, Calendar, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { getServerTranslation } from '@/lib/i18n/server';
 
 export default async function PaymentHistoryPage() {
     const cookieStore = await cookies();
@@ -35,11 +36,13 @@ export default async function PaymentHistoryPage() {
     const completedPayments = payments.filter(p => p.status === 'COMPLETED');
     const totalSpent = completedPayments.reduce((sum, p) => sum + p.amount, 0);
 
+    const { t } = await getServerTranslation();
+
     const statusConfig: Record<string, { label: string; bg: string; color: string; icon: 'check' | 'x' | 'clock' }> = {
-        COMPLETED: { label: 'Оплачено', bg: '#D1FAE5', color: '#166534', icon: 'check' },
-        PENDING: { label: 'Ожидание', bg: '#FEF3C7', color: '#92400E', icon: 'clock' },
-        FAILED: { label: 'Ошибка', bg: '#FEE2E2', color: '#991b1b', icon: 'x' },
-        CANCELLED: { label: 'Отменено', bg: '#FEE2E2', color: '#991b1b', icon: 'x' },
+        COMPLETED: { label: t('provider.paymentPaid'), bg: '#D1FAE5', color: '#166634', icon: 'check' },
+        PENDING: { label: t('provider.paymentPending'), bg: '#FEF3C7', color: '#92400E', icon: 'clock' },
+        FAILED: { label: t('provider.paymentFailed'), bg: '#FEE2E2', color: '#991b1b', icon: 'x' },
+        CANCELLED: { label: t('provider.paymentCancelled'), bg: '#FEE2E2', color: '#991b1b', icon: 'x' },
     };
 
     const StatusIcon = ({ type }: { type: 'check' | 'x' | 'clock' }) => {
@@ -52,9 +55,9 @@ export default async function PaymentHistoryPage() {
         <div style={{ backgroundColor: 'var(--secondary)', minHeight: '100vh', padding: '40px 0' }}>
             <div className="container" style={{ maxWidth: '1000px' }}>
                 <div style={{ marginBottom: '32px' }}>
-                    <h1 className="heading-lg">История платежей</h1>
+                    <h1 className="heading-lg">{t('provider.paymentHistoryTitle')}</h1>
                     <p style={{ color: 'var(--text-light)', marginTop: '8px' }}>
-                        История всех ваших платежей и подписок
+                        {t('provider.paymentHistoryDesc')}
                     </p>
                 </div>
 
@@ -70,13 +73,13 @@ export default async function PaymentHistoryPage() {
                     gap: '24px'
                 }}>
                     <div>
-                        <div style={{ color: 'var(--text-light)', fontSize: '0.9rem', marginBottom: '8px' }}>Всего потрачено</div>
+                        <div style={{ color: 'var(--text-light)', fontSize: '0.9rem', marginBottom: '8px' }}>{t('provider.totalSpent')}</div>
                         <div style={{ fontSize: '2rem', fontWeight: '700', color: 'var(--primary)' }}>
                             {totalSpent} с.
                         </div>
                     </div>
                     <div>
-                        <div style={{ color: 'var(--text-light)', fontSize: '0.9rem', marginBottom: '8px' }}>Транзакций</div>
+                        <div style={{ color: 'var(--text-light)', fontSize: '0.9rem', marginBottom: '8px' }}>{t('provider.transactions')}</div>
                         <div style={{ fontSize: '2rem', fontWeight: '700' }}>
                             {completedPayments.length}
                         </div>
@@ -88,12 +91,12 @@ export default async function PaymentHistoryPage() {
                     {payments.length === 0 ? (
                         <div style={{ padding: '60px', textAlign: 'center' }}>
                             <div style={{ fontSize: '4rem', marginBottom: '16px' }}>💳</div>
-                            <h3 className="heading-md" style={{ marginBottom: '8px' }}>Нет истории платежей</h3>
+                            <h3 className="heading-md" style={{ marginBottom: '8px' }}>{t('provider.noPayments')}</h3>
                             <p style={{ color: 'var(--text-light)', marginBottom: '24px' }}>
-                                Когда вы приобретете подписку, платежи будут отображаться здесь
+                                {t('provider.noPaymentsDesc')}
                             </p>
                             <a href="/subscription" className="btn btn-primary">
-                                Посмотреть планы
+                                {t('provider.viewPlans')}
                             </a>
                         </div>
                     ) : (

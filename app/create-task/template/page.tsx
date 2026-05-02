@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FileText, Lightbulb } from 'lucide-react';
 import { toast } from '@/components/ui/Toast';
+import { useTranslation } from '@/lib/i18n';
 
 const TASK_TEMPLATES = [
     {
@@ -69,6 +70,7 @@ const TASK_TEMPLATES = [
 ];
 
 export default function TaskTemplatePage() {
+    const { t } = useTranslation();
     const router = useRouter();
     const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
 
@@ -85,16 +87,16 @@ export default function TaskTemplatePage() {
         };
         sessionStorage.setItem('task_template', JSON.stringify(templateData));
         router.push('/create-task');
-        toast.info('Шаблон загружен. Заполните оставшиеся поля.');
+        toast.info(t('createTask.templateLoaded2'));
     };
 
     return (
         <div style={{ backgroundColor: 'var(--secondary)', minHeight: '100vh', padding: '40px 0' }}>
             <div className="container" style={{ maxWidth: '1000px' }}>
                 <div style={{ marginBottom: '32px', textAlign: 'center' }}>
-                    <h1 className="heading-lg">Шаблоны заданий</h1>
+                    <h1 className="heading-lg">{t('createTask.templatesTitle')}</h1>
                     <p style={{ color: 'var(--text-light)', marginTop: '8px' }}>
-                        Выберите шаблон для быстрого создания задания
+                        {t('createTask.templatesSubtitle')}
                     </p>
                 </div>
 
@@ -178,7 +180,7 @@ export default function TaskTemplatePage() {
                                     fontSize: '0.95rem'
                                 }}
                             >
-                                Использовать шаблон
+                                {t('createTask.useTemplate')}
                             </button>
                         </div>
                     ))}
@@ -197,10 +199,10 @@ export default function TaskTemplatePage() {
                     <Lightbulb size={24} color="#3B82F6" fill="#3B82F6" />
                     <div>
                         <h3 style={{ fontWeight: '600', marginBottom: '8px', color: '#1E40AF' }}>
-                            Совет по использованию шаблонов
+                            {t('createTask.templateTip')}
                         </h3>
                         <p style={{ color: '#1E3A8A', fontSize: '0.95rem', lineHeight: '1.6' }}>
-                            Шаблоны помогут вам быстро создать задание. После выбора шаблона вы сможете отредактировать все поля перед публикацией.
+                            {t('createTask.templateTipDesc')}
                         </p>
                     </div>
                 </div>

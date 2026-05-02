@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import { Clock, CreditCard, Sparkles, ArrowRight } from 'lucide-react';
+import { getServerTranslation } from '@/lib/i18n/server';
 
-export default function SubscriptionExpiredPage() {
+export default async function SubscriptionExpiredPage() {
+    const { t } = await getServerTranslation();
     return (
         <div style={{
             minHeight: '100vh',
@@ -35,7 +37,7 @@ export default function SubscriptionExpiredPage() {
                     marginBottom: '16px',
                     color: '#92400E'
                 }}>
-                    Подписка истекла
+                    {t('systemPages.subscriptionExpiredTitle')}
                 </h1>
 
                 <p style={{
@@ -44,7 +46,7 @@ export default function SubscriptionExpiredPage() {
                     marginBottom: '32px',
                     lineHeight: '1.6'
                 }}>
-                    Ваша подписка закончилась. Продлите её, чтобы продолжить откликаться на задания и получать новых клиентов.
+                    {t('systemPages.subscriptionExpiredText')}
                 </p>
 
                 <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -66,7 +68,7 @@ export default function SubscriptionExpiredPage() {
                         }}
                     >
                         <CreditCard size={20} />
-                        Продлить подписку
+                        {t('systemPages.renewSubscription')}
                         <ArrowRight size={20} />
                     </Link>
                 </div>
@@ -83,7 +85,7 @@ export default function SubscriptionExpiredPage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center', marginBottom: '20px' }}>
                         <Sparkles size={24} color="#6366F1" />
                         <h3 style={{ fontWeight: '700', fontSize: '1.2rem', color: '#1F2937' }}>
-                            Преимущества подписки
+                            {t('systemPages.subscriptionBenefits')}
                         </h3>
                     </div>
 
@@ -99,10 +101,10 @@ export default function SubscriptionExpiredPage() {
                             borderRadius: '12px'
                         }}>
                             <div style={{ fontWeight: '600', color: '#1F2937', marginBottom: '4px' }}>
-                                ✅ Отклики на задания
+                                {t('systemPages.subBenefit1Title')}
                             </div>
                             <div style={{ fontSize: '0.9rem', color: '#6B7280' }}>
-                                Откликайтесь на новые задания
+                                {t('systemPages.subBenefit1Desc')}
                             </div>
                         </div>
                         <div style={{
@@ -111,10 +113,10 @@ export default function SubscriptionExpiredPage() {
                             borderRadius: '12px'
                         }}>
                             <div style={{ fontWeight: '600', color: '#1F2937', marginBottom: '4px' }}>
-                                📱 Контакты клиентов
+                                {t('systemPages.subBenefit2Title')}
                             </div>
                             <div style={{ fontSize: '0.9rem', color: '#6B7280' }}>
-                                Доступ к контактным данным
+                                {t('systemPages.subBenefit2Desc')}
                             </div>
                         </div>
                         <div style={{
@@ -123,10 +125,10 @@ export default function SubscriptionExpiredPage() {
                             borderRadius: '12px'
                         }}>
                             <div style={{ fontWeight: '600', color: '#1F2937', marginBottom: '4px' }}>
-                                ⭐ Приоритетное размещение
+                                {t('systemPages.subBenefit3Title')}
                             </div>
                             <div style={{ fontSize: '0.9rem', color: '#6B7280' }}>
-                                Ваши отклики выше в списке
+                                {t('systemPages.subBenefit3Desc')}
                             </div>
                         </div>
                         <div style={{
@@ -135,10 +137,10 @@ export default function SubscriptionExpiredPage() {
                             borderRadius: '12px'
                         }}>
                             <div style={{ fontWeight: '600', color: '#1F2937', marginBottom: '4px' }}>
-                                💬 Чат с клиентами
+                                {t('systemPages.subBenefit4Title')}
                             </div>
                             <div style={{ fontSize: '0.9rem', color: '#6B7280' }}>
-                                Общайтесь напрямую
+                                {t('systemPages.subBenefit4Desc')}
                             </div>
                         </div>
                     </div>
@@ -154,7 +156,7 @@ export default function SubscriptionExpiredPage() {
                             fontSize: '0.95rem'
                         }}
                     >
-                        Продолжить просмотр заданий без подписки →
+                        {t('systemPages.browseWithoutSub')} →
                     </Link>
                 </div>
             </div>

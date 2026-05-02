@@ -2,8 +2,10 @@
 
 import { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { useTranslation } from '@/lib/i18n';
 
 function DevCheckoutContent() {
+    const { t } = useTranslation();
     const searchParams = useSearchParams();
     const router = useRouter();
     const orderId = searchParams.get('orderId');
@@ -58,7 +60,7 @@ function DevCheckoutContent() {
                 </div>
 
                 <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '24px', textAlign: 'center' }}>
-                    Оплата подписки
+                    {t('payment.subscriptionTitle')}
                 </h2>
 
                 <div style={{
@@ -68,11 +70,11 @@ function DevCheckoutContent() {
                     marginBottom: '32px',
                 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                        <span style={{ color: '#6b7280' }}>Заказ</span>
+                        <span style={{ color: '#6b7280' }}>{t('payment.orderLabel')}</span>
                         <span style={{ fontWeight: '600' }}>{orderId}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: '#6b7280' }}>Сумма</span>
+                        <span style={{ color: '#6b7280' }}>{t('payment.amountLabel')}</span>
                         <span style={{ fontWeight: '700', fontSize: '1.3rem' }}>{amount} TJS</span>
                     </div>
                 </div>
@@ -91,7 +93,7 @@ function DevCheckoutContent() {
                             cursor: 'pointer',
                         }}
                     >
-                        Оплатить (успешно)
+                        {t('payment.paySuccess')}
                     </button>
                     <button
                         onClick={() => simulatePayment('failed')}
@@ -106,7 +108,7 @@ function DevCheckoutContent() {
                             cursor: 'pointer',
                         }}
                     >
-                        Отклонить (неудача)
+                        {t('payment.payFailed')}
                     </button>
                 </div>
             </div>
@@ -118,7 +120,7 @@ export function DevCheckoutPage() {
     return (
         <Suspense fallback={
             <div style={{ minHeight: '100vh', backgroundColor: '#1a1a2e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ color: 'white', fontSize: '1.2rem' }}>Загрузка...</div>
+                <div style={{ color: 'white', fontSize: '1.2rem' }}>{/* loading */}...</div>
             </div>
         }>
             <DevCheckoutContent />

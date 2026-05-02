@@ -1,11 +1,13 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { getServerTranslation } from '@/lib/i18n/server';
 
 export const metadata: Metadata = {
     title: 'Страница не найдена | Dastiyor',
 };
 
-export default function NotFound() {
+export default async function NotFound() {
+    const { t } = await getServerTranslation();
     return (
         <div style={{
             minHeight: '100vh',
@@ -36,7 +38,7 @@ export default function NotFound() {
                     marginBottom: '16px',
                     color: 'var(--text)'
                 }}>
-                    Страница не найдена
+                    {t('systemPages.notFoundTitle')}
                 </h1>
 
                 <p style={{
@@ -45,15 +47,15 @@ export default function NotFound() {
                     marginBottom: '32px',
                     lineHeight: '1.6'
                 }}>
-                    Упс! Страница, которую вы ищете, не существует или была перемещена.
+                    {t('systemPages.notFoundText')}
                 </p>
 
                 <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
                     <Link href="/" className="btn btn-primary">
-                        На главную
+                        {t('systemPages.goHome')}
                     </Link>
                     <Link href="/tasks" className="btn btn-outline">
-                        Найти задания
+                        {t('systemPages.browseTasks')}
                     </Link>
                 </div>
 
@@ -64,16 +66,16 @@ export default function NotFound() {
                     borderRadius: '16px',
                     border: '1px solid var(--border)'
                 }}>
-                    <p style={{ fontWeight: '600', marginBottom: '12px' }}>Ищете что-то?</p>
+                    <p style={{ fontWeight: '600', marginBottom: '12px' }}>{t('systemPages.lookingFor')}</p>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <Link href="/tasks" style={{ color: 'var(--primary)' }}>
-                            📋 Найти задания
+                            📋 {t('systemPages.findTasks')}
                         </Link>
                         <Link href="/create-task" style={{ color: 'var(--primary)' }}>
-                            ➕ Создать задание
+                            ➕ {t('systemPages.postTask')}
                         </Link>
                         <Link href="/how-it-works" style={{ color: 'var(--primary)' }}>
-                            ❓ Как это работает
+                            ❓ {t('systemPages.howItWorks')}
                         </Link>
                     </div>
                 </div>

@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Upload, Image as ImageIcon, X } from 'lucide-react';
 // import PortfolioGallery from '@/components/provider/PortfolioGallery';
+import { getServerTranslation } from '@/lib/i18n/server';
 
 export default async function ProviderPortfolioPage() {
     const cookieStore = await cookies();
@@ -26,6 +27,8 @@ export default async function ProviderPortfolioPage() {
     if (!user || user.role !== 'PROVIDER') {
         redirect('/access-denied');
     }
+
+    const { t } = await getServerTranslation();
 
     // Get completed tasks with images as portfolio items
     const completedTasks = await prisma.task.findMany({
@@ -67,16 +70,16 @@ export default async function ProviderPortfolioPage() {
         <div style={{ backgroundColor: 'var(--secondary)', minHeight: '100vh', padding: '40px 0' }}>
             <div className="container" style={{ maxWidth: '1200px' }}>
                 <div style={{ marginBottom: '32px' }}>
-                    <h1 className="heading-lg">Мое портфолио</h1>
+                    <h1 className="heading-lg">{t('provider.portfolio')}</h1>
                     <p style={{ color: 'var(--text-light)', marginTop: '8px' }}>
-                        Покажите свои лучшие работы потенциальным заказчикам
+                        {t('provider.uploadPhotosDesc')}
                     </p>
                 </div>
 
                 <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '32px', border: '1px solid var(--border)', marginBottom: '32px' }}>
-                    <h2 className="heading-md" style={{ marginBottom: '16px' }}>Загрузить фото</h2>
+                    <h2 className="heading-md" style={{ marginBottom: '16px' }}>{t('provider.uploadPhotos')}</h2>
                     <p style={{ color: 'var(--text-light)', marginBottom: '24px', fontSize: '0.95rem' }}>
-                        Добавьте фотографии выполненных работ. Они будут автоматически добавлены из ваших завершенных заданий.
+                        {t('provider.uploadPhotosDesc')}
                     </p>
                     {/* <PortfolioGallery userId={user.id} initialItems={portfolioItems} /> */}
                     <div className="p-4 border border-dashed rounded-lg text-center text-gray-500">
@@ -87,7 +90,7 @@ export default async function ProviderPortfolioPage() {
                 {/* Portfolio from completed tasks */}
                 {portfolioItems.length > 0 && (
                     <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '32px', border: '1px solid var(--border)' }}>
-                        <h2 className="heading-md" style={{ marginBottom: '24px' }}>Фото из выполненных заданий</h2>
+                        <h2 className="heading-md" style={{ marginBottom: '24px' }}>{t('provider.photosFromTasks')}</h2>
                         <div style={{
                             display: 'grid',
                             gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
@@ -142,12 +145,12 @@ export default async function ProviderPortfolioPage() {
                         textAlign: 'center'
                     }}>
                         <ImageIcon size={48} color="#9CA3AF" style={{ marginBottom: '16px' }} />
-                        <h3 className="heading-md" style={{ marginBottom: '8px' }}>Портфолио пусто</h3>
+                        <h3 className="heading-md" style={{ marginBottom: '8px' }}>{t('provider.portfolioEmpty')}</h3>
                         <p style={{ color: 'var(--text-light)', marginBottom: '24px' }}>
-                            Фотографии из ваших завершенных заданий будут автоматически добавлены в портфолио
+                            {t('provider.portfolioEmptyDesc')}
                         </p>
                         <Link href="/tasks" className="btn btn-primary">
-                            Найти задания
+                            {t('tasks.findTitle')}
                         </Link>
                     </div>
                 )}

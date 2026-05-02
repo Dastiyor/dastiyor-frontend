@@ -1,7 +1,9 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
+import { getServerTranslation } from '@/lib/i18n/server';
 
 export default async function ProfessionalsPage() {
+    const { t } = await getServerTranslation();
     const professionals = await prisma.user.findMany({
         where: {
             role: 'PROVIDER'
@@ -15,18 +17,18 @@ export default async function ProfessionalsPage() {
         <div style={{ backgroundColor: 'var(--secondary)', minHeight: '100vh', padding: '40px 0' }}>
             <div className="container">
                 <div style={{ marginBottom: '40px' }}>
-                    <h1 className="heading-lg" style={{ marginBottom: '16px' }}>Найти исполнителей</h1>
+                    <h1 className="heading-lg" style={{ marginBottom: '16px' }}>{t('professionals.title')}</h1>
                     <p style={{ color: 'var(--text-light)', fontSize: '1.1rem' }}>
-                        Свяжитесь с квалифицированными специалистами для ваших задач.
+                        {t('professionals.subtitle')}
                     </p>
                 </div>
 
                 {professionals.length === 0 ? (
                     <div style={{ padding: '60px', textAlign: 'center', backgroundColor: 'white', borderRadius: '16px', border: '1px solid var(--border)' }}>
-                        <h3 className="heading-md" style={{ color: 'var(--text-light)' }}>Исполнители пока не найдены.</h3>
-                        <p style={{ marginTop: '16px' }}>Станьте первым исполнителем!</p>
+                        <h3 className="heading-md" style={{ color: 'var(--text-light)' }}>{t('professionals.noProfessionals')}</h3>
+                        <p style={{ marginTop: '16px' }}>{t('professionals.becomeFirst')}</p>
                         <Link href="/register" className="btn btn-primary" style={{ marginTop: '24px', display: 'inline-block' }}>
-                            Зарегистрироваться как исполнитель
+                            {t('professionals.registerAsProvider')}
                         </Link>
                     </div>
                 ) : (
@@ -58,19 +60,19 @@ export default async function ProfessionalsPage() {
                                     <div>
                                         <h3 style={{ fontWeight: '600', fontSize: '1.1rem' }}>{pro.fullName}</h3>
                                         <div style={{ color: 'var(--text-light)', fontSize: '0.9rem' }}>
-                                            Исполнитель
+                                            {t('professionals.provider')}
                                         </div>
                                     </div>
                                 </div>
 
                                 <div style={{ display: 'flex', gap: '12px', fontSize: '0.9rem', color: 'var(--text-light)', marginBottom: '24px' }}>
-                                    <span>В сервисе с {new Date(pro.createdAt).toLocaleDateString()}</span>
+                                    <span>{t('professionals.memberSince')} {new Date(pro.createdAt).toLocaleDateString()}</span>
                                     <span>•</span>
                                     <span>Душанбе</span>
                                 </div>
 
                                 <button className="btn btn-outline" style={{ width: '100%' }}>
-                                    Профиль
+                                    {t('professionals.profileBtn')}
                                 </button>
                             </div>
                         ))}

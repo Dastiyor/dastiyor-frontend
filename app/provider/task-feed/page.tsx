@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { MapPin, Clock, DollarSign, Users, Calendar, Filter, Search } from 'lucide-react';
 import { Prisma } from '@prisma/client';
+import { getServerTranslation } from '@/lib/i18n/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -82,6 +83,8 @@ export default async function TaskFeedPage({
         }
     });
 
+    const { t } = await getServerTranslation();
+
     // Client-side budget filtering
     let filteredTasks = tasks;
     if (minBudget || maxBudget) {
@@ -100,10 +103,10 @@ export default async function TaskFeedPage({
             {/* Page Header */}
             <div style={{ marginBottom: '32px' }}>
                 <h1 style={{ fontSize: '1.8rem', fontWeight: '700', color: '#1E293B', marginBottom: '8px' }}>
-                    Лента заданий
+                    {t('provider.taskFeedTitle')}
                 </h1>
                 <p style={{ color: '#64748B', fontSize: '1rem' }}>
-                    Находите новые заказы и предлагайте свои услуги
+                    {t('provider.taskFeedDesc')}
                 </p>
             </div>
 
@@ -114,12 +117,12 @@ export default async function TaskFeedPage({
                     {filteredTasks.length === 0 ? (
                         <div style={{ backgroundColor: 'white', padding: '60px', borderRadius: '16px', border: '1px solid #E2E8F0', textAlign: 'center' }}>
                             <div style={{ fontSize: '3rem', marginBottom: '16px' }}>📋</div>
-                            <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1E293B', marginBottom: '8px' }}>Заданий не найдено</h3>
+                            <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1E293B', marginBottom: '8px' }}>{t('provider.noTasksFound')}</h3>
                             <p style={{ color: '#64748B', fontSize: '0.9rem' }}>
-                                Попробуйте изменить фильтры
+                                {t('provider.tryFilters')}
                             </p>
                             <Link href="/provider/task-feed" style={{ display: 'inline-block', marginTop: '16px', color: '#3B82F6', fontWeight: '600' }}>
-                                Сбросить фильтры
+                                {t('filters.reset')}
                             </Link>
                         </div>
                     ) : (
@@ -163,7 +166,7 @@ export default async function TaskFeedPage({
                                                     fontSize: '0.75rem',
                                                     fontWeight: '600'
                                                 }}>
-                                                    Срочно
+                                                    {t('tasks.urgent')}
                                                 </span>
                                             )}
                                         </div>
@@ -176,7 +179,7 @@ export default async function TaskFeedPage({
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                                 <DollarSign size={16} color="#16A34A" />
                                                 <span style={{ fontWeight: '600', color: '#16A34A', fontSize: '1rem' }}>
-                                                    {task.budgetType === 'fixed' ? `${task.budgetAmount} с.` : 'Договорная'}
+                                                    {task.budgetType === 'fixed' ? `${task.budgetAmount} с.` : t('common.negotiable')}
                                                 </span>
                                             </div>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -189,7 +192,7 @@ export default async function TaskFeedPage({
                                             </div>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                                 <Users size={16} />
-                                                <span>{task._count.responses} откликов</span>
+                                                <span>{t('tasks.responseCountLabel', { count: task._count.responses })}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -208,7 +211,7 @@ export default async function TaskFeedPage({
                                             alignSelf: 'center'
                                         }}
                                     >
-                                        Открыть
+                                        {t('provider.openTask')}
                                     </Link>
                                 </div>
                             </div>
@@ -221,19 +224,19 @@ export default async function TaskFeedPage({
                     <form style={{ backgroundColor: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #E2E8F0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
                             <Filter size={20} color="#3B82F6" />
-                            <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1E293B', margin: 0 }}>Фильтры</h3>
+                            <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1E293B', margin: 0 }}>{t('filters.title')}</h3>
                         </div>
 
                         {/* Search */}
                         <div style={{ marginBottom: '20px' }}>
-                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#475569', marginBottom: '8px' }}>Поиск заданий</label>
+                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#475569', marginBottom: '8px' }}>{t('filters.searchTasks')}</label>
                             <div style={{ position: 'relative' }}>
                                 <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
                                 <input
                                     type="text"
                                     name="q"
                                     defaultValue={typeof params.q === 'string' ? params.q : ''}
-                                    placeholder="Название или описание..."
+                                    placeholder={t('filters.searchPlaceholder')}
                                     style={{ width: '100%', padding: '10px 10px 10px 36px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem' }}
                                 />
                             </div>
@@ -241,13 +244,13 @@ export default async function TaskFeedPage({
 
                         {/* Category */}
                         <div style={{ marginBottom: '20px' }}>
-                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#475569', marginBottom: '8px' }}>Категория</label>
+                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#475569', marginBottom: '8px' }}>{t('filters.allCategories')}</label>
                             <select
                                 name="category"
                                 defaultValue={category}
                                 style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem', backgroundColor: 'white' }}
                             >
-                                <option value="">Все категории</option>
+                                <option value="">{t('filters.allCategories')}</option>
                                 <option value="Home Repair">Домашний ремонт</option>
                                 <option value="Cleaning">Уборка</option>
                                 <option value="Delivery">Доставка</option>
@@ -257,14 +260,14 @@ export default async function TaskFeedPage({
 
                         {/* City */}
                         <div style={{ marginBottom: '20px' }}>
-                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#475569', marginBottom: '8px' }}>Город</label>
+                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#475569', marginBottom: '8px' }}>{t('filters.allCities')}</label>
                             <div style={{ position: 'relative' }}>
                                 <MapPin size={16} style={{ position: 'absolute', left: '10px', top: '12px', color: '#94A3B8' }} />
                                 <input
                                     type="text"
                                     name="city"
                                     defaultValue={city}
-                                    placeholder="Например, Душанбе"
+                                    placeholder={t('filters.cityPlaceholder')}
                                     style={{ width: '100%', padding: '10px 10px 10px 36px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem' }}
                                 />
                             </div>
@@ -272,35 +275,35 @@ export default async function TaskFeedPage({
 
                         {/* Urgency */}
                         <div style={{ marginBottom: '20px' }}>
-                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#475569', marginBottom: '8px' }}>Срочность</label>
+                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#475569', marginBottom: '8px' }}>{t('tasks.urgency')}</label>
                             <select
                                 name="urgency"
                                 defaultValue={urgency}
                                 style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem', backgroundColor: 'white' }}
                             >
-                                <option value="">Любая</option>
-                                <option value="urgent">Срочно</option>
-                                <option value="normal">Обычно</option>
-                                <option value="low">Не срочно</option>
+                                <option value="">{t('filters.anyUrgency')}</option>
+                                <option value="urgent">{t('filters.urgentLabel')}</option>
+                                <option value="normal">{t('filters.normalLabel')}</option>
+                                <option value="low">{t('filters.lowLabel')}</option>
                             </select>
                         </div>
 
                         {/* Budget */}
                         <div style={{ marginBottom: '24px' }}>
-                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#475569', marginBottom: '8px' }}>Бюджет (TJS)</label>
+                            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: '600', color: '#475569', marginBottom: '8px' }}>{t('filters.budgetTJS')}</label>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                                 <input
                                     type="number"
                                     name="minBudget"
                                     defaultValue={minBudget}
-                                    placeholder="От"
+                                    placeholder={t('filters.from')}
                                     style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem' }}
                                 />
                                 <input
                                     type="number"
                                     name="maxBudget"
                                     defaultValue={maxBudget}
-                                    placeholder="До"
+                                    placeholder={t('filters.to')}
                                     style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem' }}
                                 />
                             </div>
@@ -321,7 +324,7 @@ export default async function TaskFeedPage({
                                     fontSize: '0.9rem'
                                 }}
                             >
-                                Применить
+                                {t('filters.apply')}
                             </button>
                             <Link
                                 href="/provider/task-feed"

@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import ChatInterface from '@/components/chat/ChatInterface';
 import ConversationLink from '@/components/chat/ConversationLink';
+import { getServerTranslation } from '@/lib/i18n/server';
 
 export default async function MessagesPage() {
     const cookieStore = await cookies();
@@ -20,6 +21,7 @@ export default async function MessagesPage() {
     }
 
     const userId = payload.id as string;
+    const { t } = await getServerTranslation();
 
     // Get all conversations
     const messages = await prisma.message.findMany({
@@ -77,7 +79,7 @@ export default async function MessagesPage() {
     return (
         <div style={{ backgroundColor: 'var(--secondary)', minHeight: '100vh', padding: '40px 0' }}>
             <div className="container">
-                <h1 className="heading-lg" style={{ marginBottom: '32px' }}>Сообщения</h1>
+                <h1 className="heading-lg" style={{ marginBottom: '32px' }}>{t('common.messages')}</h1>
 
                 <div style={{
                     display: 'grid',
@@ -98,7 +100,7 @@ export default async function MessagesPage() {
                             borderBottom: '1px solid var(--border)',
                             fontWeight: '600'
                         }}>
-                            Диалоги ({conversations.length})
+                            {t('chat.conversations')} ({conversations.length})
                         </div>
 
                         <div style={{ overflowY: 'auto', height: 'calc(100% - 60px)' }}>
@@ -109,9 +111,9 @@ export default async function MessagesPage() {
                                     color: 'var(--text-light)'
                                 }}>
                                     <div style={{ fontSize: '2rem', marginBottom: '8px' }}>💬</div>
-                                    <p>Пока нет сообщений</p>
+                                    <p>{t('chat.noConversations')}</p>
                                     <p style={{ fontSize: '0.9rem', marginTop: '8px' }}>
-                                        Сообщения появятся здесь, когда вы свяжетесь с кем-то по поводу задания.
+                                        {t('chat.noConversationsDesc')}
                                     </p>
                                 </div>
                             ) : (
@@ -133,7 +135,7 @@ export default async function MessagesPage() {
                             justifyContent: 'center',
                             color: 'var(--text-light)'
                         }}>
-                            <div>Загрузка чата...</div>
+                            <div>{t('chat.loadingChat')}</div>
                         </div>
                     }>
                         <ChatInterface currentUserId={userId} />

@@ -2,8 +2,10 @@
 
 import Link from 'next/link';
 import { ShieldX, ArrowLeft, Home } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 
 export default function AccessDeniedPage() {
+    const { t } = useTranslation();
     return (
         <div style={{
             minHeight: '100vh',
@@ -37,7 +39,7 @@ export default function AccessDeniedPage() {
                     marginBottom: '16px',
                     color: '#991B1B'
                 }}>
-                    Доступ запрещён
+                    {t('systemPages.accessDeniedTitle')}
                 </h1>
 
                 <p style={{
@@ -46,7 +48,7 @@ export default function AccessDeniedPage() {
                     marginBottom: '32px',
                     lineHeight: '1.6'
                 }}>
-                    У вас нет прав для доступа к этой странице. Если вы считаете, что это ошибка, свяжитесь с администратором.
+                    {t('systemPages.accessDeniedText')}
                 </p>
 
                 <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -66,7 +68,7 @@ export default function AccessDeniedPage() {
                         }}
                     >
                         <Home size={18} />
-                        На главную
+                        {t('common.goHome')}
                     </Link>
                     <button
                         onClick={() => window.history.back()}
@@ -85,7 +87,7 @@ export default function AccessDeniedPage() {
                         }}
                     >
                         <ArrowLeft size={18} />
-                        Назад
+                        {t('common.back')}
                     </button>
                 </div>
 
@@ -97,7 +99,7 @@ export default function AccessDeniedPage() {
                     border: '1px solid #FECACA'
                 }}>
                     <p style={{ fontWeight: '600', marginBottom: '12px', color: '#991B1B' }}>
-                        Возможные причины:
+                        {t('systemPages.possibleReasons')}
                     </p>
                     <ul style={{
                         textAlign: 'left',
@@ -107,13 +109,13 @@ export default function AccessDeniedPage() {
                         margin: 0
                     }}>
                         <li style={{ padding: '8px 0', borderBottom: '1px solid #FEE2E2' }}>
-                            🔐 Вы не авторизованы
+                            🔐 {t('systemPages.notAuthorized')}
                         </li>
                         <li style={{ padding: '8px 0', borderBottom: '1px solid #FEE2E2' }}>
-                            👤 У вашей учётной записи недостаточно прав
+                            👤 {t('systemPages.insufficientRights')}
                         </li>
                         <li style={{ padding: '8px 0' }}>
-                            ⏰ Ваша сессия истекла
+                            ⏰ {t('systemPages.sessionExpired')}
                         </li>
                     </ul>
                 </div>

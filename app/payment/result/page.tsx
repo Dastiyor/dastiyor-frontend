@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n';
 
 type PaymentStatus = 'loading' | 'success' | 'failed' | 'pending';
 
@@ -11,6 +12,7 @@ function PaymentResultContent() {
     const orderId = searchParams.get('orderId');
     const [status, setStatus] = useState<PaymentStatus>('loading');
     const [planName, setPlanName] = useState('');
+    const { t } = useTranslation();
 
     useEffect(() => {
         if (!orderId) {
@@ -85,10 +87,10 @@ function PaymentResultContent() {
                             }} />
                         </div>
                         <h1 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '12px' }}>
-                            Проверяем оплату...
+                            {t('payment.checkingPayment')}
                         </h1>
                         <p style={{ color: 'var(--text-light)' }}>
-                            Пожалуйста, подождите. Это займет несколько секунд.
+                            {t('payment.pleaseWait')}
                         </p>
                     </>
                 )}
@@ -109,13 +111,13 @@ function PaymentResultContent() {
                             ✓
                         </div>
                         <h1 style={{ fontSize: '1.8rem', fontWeight: '700', marginBottom: '12px', color: '#166534' }}>
-                            Оплата прошла успешно!
+                            {t('payment.successTitle')}
                         </h1>
                         <p style={{ color: 'var(--text-light)', marginBottom: '8px' }}>
-                            {planName && `Подписка «${planName}» активирована.`}
+                            {planName && t('payment.subscriptionActivated', { name: planName })}
                         </p>
                         <p style={{ color: 'var(--text-light)', marginBottom: '32px', fontSize: '0.9rem' }}>
-                            Номер заказа: {orderId}
+                            {t('payment.orderNumber')} {orderId}
                         </p>
                         <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
                             <Link
@@ -123,14 +125,14 @@ function PaymentResultContent() {
                                 className="btn btn-primary"
                                 style={{ padding: '14px 32px', borderRadius: '12px' }}
                             >
-                                В личный кабинет
+                                {t('payment.toDashboard')}
                             </Link>
                             <Link
                                 href="/provider/payment-history"
                                 className="btn btn-outline"
                                 style={{ padding: '14px 32px', borderRadius: '12px' }}
                             >
-                                История платежей
+                                {t('payment.paymentHistory')}
                             </Link>
                         </div>
                     </>
@@ -152,10 +154,10 @@ function PaymentResultContent() {
                             ✕
                         </div>
                         <h1 style={{ fontSize: '1.8rem', fontWeight: '700', marginBottom: '12px', color: '#991B1B' }}>
-                            Оплата не прошла
+                            {t('payment.failedTitle')}
                         </h1>
                         <p style={{ color: 'var(--text-light)', marginBottom: '32px' }}>
-                            К сожалению, платёж не был обработан. Средства не списаны. Попробуйте ещё раз.
+                            {t('payment.failedDesc')}
                         </p>
                         <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
                             <Link
@@ -163,14 +165,14 @@ function PaymentResultContent() {
                                 className="btn btn-primary"
                                 style={{ padding: '14px 32px', borderRadius: '12px' }}
                             >
-                                Попробовать снова
+                                {t('payment.tryAgain')}
                             </Link>
                             <Link
                                 href="/provider"
                                 className="btn btn-outline"
                                 style={{ padding: '14px 32px', borderRadius: '12px' }}
                             >
-                                В личный кабинет
+                                {t('payment.toDashboard')}
                             </Link>
                         </div>
                     </>
@@ -192,20 +194,20 @@ function PaymentResultContent() {
                             ⏳
                         </div>
                         <h1 style={{ fontSize: '1.8rem', fontWeight: '700', marginBottom: '12px', color: '#92400E' }}>
-                            Платёж обрабатывается
+                            {t('payment.pendingTitle')}
                         </h1>
                         <p style={{ color: 'var(--text-light)', marginBottom: '12px' }}>
-                            Ваш платёж ещё обрабатывается. Подписка будет активирована автоматически после подтверждения.
+                            {t('payment.pendingDesc')}
                         </p>
                         <p style={{ color: 'var(--text-light)', marginBottom: '32px', fontSize: '0.9rem' }}>
-                            Номер заказа: {orderId}
+                            {t('payment.orderNumber')} {orderId}
                         </p>
                         <Link
                             href="/provider"
                             className="btn btn-primary"
                             style={{ padding: '14px 32px', borderRadius: '12px' }}
                         >
-                            В личный кабинет
+                            {t('payment.toDashboard')}
                         </Link>
                     </>
                 )}

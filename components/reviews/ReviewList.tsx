@@ -1,3 +1,5 @@
+import { getServerTranslation } from '@/lib/i18n/server';
+
 type Review = {
     id: string;
     rating: number;
@@ -23,7 +25,8 @@ type Props = {
     };
 };
 
-export default function ReviewList({ reviews, stats }: Props) {
+export default async function ReviewList({ reviews, stats }: Props) {
+    const { t } = await getServerTranslation();
     const renderStars = (rating: number) => {
         return (
             <span style={{ color: '#fbbf24' }}>
@@ -108,7 +111,7 @@ export default function ReviewList({ reviews, stats }: Props) {
                         border: '1px solid var(--border)'
                     }}>
                         <div style={{ fontSize: '2rem', marginBottom: '16px' }}>⭐</div>
-                        <p style={{ color: 'var(--text-light)' }}>Отзывов пока нет</p>
+                        <p style={{ color: 'var(--text-light)' }}>{t('reviews.noReviews')}</p>
                     </div>
                 ) : (
                     reviews.map((review) => (

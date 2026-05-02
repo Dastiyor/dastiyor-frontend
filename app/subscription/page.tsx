@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import SubscriptionPlans from '@/components/subscription/SubscriptionPlans';
+import { getServerTranslation } from '@/lib/i18n/server';
 
 export default async function SubscriptionPage() {
     const cookieStore = await cookies();
@@ -29,6 +30,7 @@ export default async function SubscriptionPage() {
         redirect('/login');
     }
 
+    const { t } = await getServerTranslation();
     const currentSubscription = user.subscription;
     const isActive = currentSubscription?.isActive &&
         currentSubscription?.endDate &&
@@ -39,10 +41,10 @@ export default async function SubscriptionPage() {
             <div className="container" style={{ maxWidth: '1100px' }}>
                 <div style={{ textAlign: 'center', marginBottom: '60px' }}>
                     <h1 className="heading-lg" style={{ fontSize: '2.5rem', marginBottom: '16px' }}>
-                        Тарифные планы
+                        {t('subscriptionPage.title')}
                     </h1>
                     <p style={{ color: 'var(--text-light)', fontSize: '1.2rem', maxWidth: '600px', margin: '0 auto' }}>
-                        Разблокируйте премиум-возможности для развития вашего бизнеса и получения новых клиентов
+                        {t('subscriptionPage.subtitle')}
                     </p>
                 </div>
 
@@ -62,16 +64,16 @@ export default async function SubscriptionPage() {
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
                                 <span style={{ fontSize: '1.5rem' }}>✨</span>
                                 <h3 style={{ fontSize: '1.3rem', fontWeight: '700', color: '#166534' }}>
-                                    {currentSubscription.plan.charAt(0).toUpperCase() + currentSubscription.plan.slice(1)} План активен
+                                    {currentSubscription.plan.charAt(0).toUpperCase() + currentSubscription.plan.slice(1)} {t('subscriptionPage.planActive')}
                                 </h3>
                             </div>
                             <p style={{ color: '#15803d' }}>
-                                Ваша подписка активна до {new Date(currentSubscription.endDate).toLocaleDateString()}
+                                {t('subscriptionPage.activeUntil')} {new Date(currentSubscription.endDate).toLocaleDateString()}
                             </p>
                         </div>
                         <div style={{ textAlign: 'right' }}>
                             <div style={{ fontSize: '0.9rem', color: '#15803d', marginBottom: '4px' }}>
-                                Осталось дней
+                                {t('subscriptionPage.daysLeft')}
                             </div>
                             <div style={{ fontSize: '2rem', fontWeight: '700', color: '#166534' }}>
                                 {/* eslint-disable-next-line react-hooks/purity */}
@@ -96,39 +98,39 @@ export default async function SubscriptionPage() {
                     border: '1px solid var(--border)'
                 }}>
                     <h2 className="heading-md" style={{ textAlign: 'center', marginBottom: '40px' }}>
-                        Сравнение планов
+                        {t('subscriptionPage.compare')}
                     </h2>
 
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
                             <tr style={{ borderBottom: '2px solid var(--border)' }}>
-                                <th style={{ textAlign: 'left', padding: '16px 0', fontWeight: '600' }}>Функции</th>
-                                <th style={{ textAlign: 'center', padding: '16px 0', fontWeight: '600' }}>Бесплатно</th>
+                                <th style={{ textAlign: 'left', padding: '16px 0', fontWeight: '600' }}>{t('subscriptionPage.features')}</th>
+                                <th style={{ textAlign: 'center', padding: '16px 0', fontWeight: '600' }}>{t('subscriptionPage.free')}</th>
                                 <th style={{ textAlign: 'center', padding: '16px 0', fontWeight: '600', color: 'var(--primary)' }}>Базовый</th>
                                 <th style={{ textAlign: 'center', padding: '16px 0', fontWeight: '600', color: 'var(--accent)' }}>Стандарт</th>
                                 <th style={{ textAlign: 'center', padding: '16px 0', fontWeight: '600', color: '#9333ea' }}>Премиум</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <FeatureRow feature="Просмотр заданий" free="✓" basic="✓" standard="✓" premium="✓" />
-                            <FeatureRow feature="Отклики на задания" free="3/мес" basic="15/мес" standard="50/мес" premium="Неограниченно" />
-                            <FeatureRow feature="Видимость профиля" free="Базовая" basic="Улучшенная" standard="Приоритетная" premium="Избранная" />
-                            <FeatureRow feature="Приоритет отклика" free="—" basic="Стандарт" standard="Высокий" premium="Высший" />
-                            <FeatureRow feature="Значок профиля" free="—" basic="✓" standard="✓" premium="✓" />
-                            <FeatureRow feature="Аналитика" free="—" basic="—" standard="Базовая" premium="Полная" />
-                            <FeatureRow feature="Поддержка" free="—" basic="—" standard="—" premium="✓" />
+                            <FeatureRow feature={t('subscriptionPage.viewTasks')} free="✓" basic="✓" standard="✓" premium="✓" />
+                            <FeatureRow feature={t('subscriptionPage.taskResponses')} free="3/мес" basic="15/мес" standard="50/мес" premium={t('subscriptionPage.unlimited')} />
+                            <FeatureRow feature={t('subscriptionPage.profileVisibility')} free={t('subscriptionPage.basicVisibility')} basic={t('subscriptionPage.improvedVisibility')} standard={t('subscriptionPage.priorityVisibility')} premium={t('subscriptionPage.featuredVisibility')} />
+                            <FeatureRow feature={t('subscriptionPage.responsesPriority')} free="—" basic={t('subscriptionPage.standardPriority')} standard={t('subscriptionPage.highPriority')} premium={t('subscriptionPage.highestPriority')} />
+                            <FeatureRow feature={t('subscriptionPage.profileBadge')} free="—" basic="✓" standard="✓" premium="✓" />
+                            <FeatureRow feature={t('subscriptionPage.analytics')} free="—" basic="—" standard={t('subscriptionPage.basicAnalytics')} premium={t('subscriptionPage.fullAnalytics')} />
+                            <FeatureRow feature={t('subscriptionPage.support')} free="—" basic="—" standard="—" premium="✓" />
                         </tbody>
                     </table>
                 </div>
 
                 {/* FAQ */}
                 <div style={{ marginTop: '60px', textAlign: 'center' }}>
-                    <h3 className="heading-md" style={{ marginBottom: '16px' }}>Остались вопросы?</h3>
+                    <h3 className="heading-md" style={{ marginBottom: '16px' }}>{t('subscriptionPage.faqTitle')}</h3>
                     <p style={{ color: 'var(--text-light)', marginBottom: '24px' }}>
-                        Свяжитесь с нашей службой поддержки для помощи в выборе плана
+                        {t('subscriptionPage.faqDesc')}
                     </p>
                     <Link href="/how-it-works" className="btn btn-outline">
-                        Узнать больше
+                        {t('subscriptionPage.learnMore')}
                     </Link>
                 </div>
             </div>

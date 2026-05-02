@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { toast } from '@/components/ui/Toast';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
+import { useTranslation } from '@/lib/i18n';
 
 type ResponseListProps = {
     taskId: string;
@@ -17,6 +18,7 @@ type ResponseListProps = {
 export default function ResponseList({ taskId, responses, currentUserId, taskOwnerId, assignedUserId, taskStatus }: ResponseListProps) {
     const router = useRouter();
     const { confirm, Dialog } = useConfirm();
+    const { t } = useTranslation();
     const [submitting, setSubmitting] = useState(false);
     const [acceptingId, setAcceptingId] = useState<string | null>(null);
     const [rejectingId, setRejectingId] = useState<string | null>(null);
@@ -49,26 +51,13 @@ export default function ResponseList({ taskId, responses, currentUserId, taskOwn
             const json = await res.json();
 
             if (res.ok) {
-                toast.success('Отклик успешно отправлен!');
+                toast.success(t('tasks.responseSent'));
                 setTimeout(() => window.location.reload(), 1000);
             } else {
-                // TODO: Re-enable subscription redirect when payment gateway is ready
-                // if (res.status === 403 && json.code === 'SUBSCRIPTION_REQUIRED') {
-                //     const confirmed = await confirm(
-                //         'Для ответа на задания требуется активная подписка. Перейти к планам?',
-                //         'Требуется подписка',
-                //         'warning'
-                //     );
-                //     if (confirmed) {
-                //         router.push('/provider/subscription');
-                //     }
-                // } else {
-                //     toast.error(json.error || 'Не удалось отправить отклик');
-                // }
-                toast.error(json.error || 'Не удалось отправить отклик');
+                toast.error(json.error || t('tasks.responseError'));
             }
         } catch (err) {
-            toast.error('Ошибка при отправке отклика');
+            toast.error(t('tasks.responseErrorGeneric'));
         } finally {
             setSubmitting(false);
         }
@@ -76,8 +65,8 @@ export default function ResponseList({ taskId, responses, currentUserId, taskOwn
 
     async function handleAccept(providerId: string) {
         const confirmed = await confirm(
-            'Вы уверены, что хотите принять это предложение? Задание будет отмечено как "В работе".',
-            'Принять предложение',
+            t('tasks.confirmAcceptOffer'),
+            t('tasks.acceptOffer'),
             'info'
         );
         if (!confirmed) return;
@@ -91,13 +80,13 @@ export default function ResponseList({ taskId, responses, currentUserId, taskOwn
             });
 
             if (res.ok) {
-                toast.success('Предложение принято!');
+                toast.success(t('tasks.offerAcceptedToast'));
                 setTimeout(() => window.location.reload(), 1000);
             } else {
-                toast.error('Не удалось принять предложение');
+                toast.error(t('tasks.offerAcceptError'));
             }
         } catch (err) {
-            toast.error('Ошибка при принятии предложения');
+            toast.error(t('tasks.offerAcceptErrorGeneric'));
         } finally {
             setAcceptingId(null);
         }
@@ -105,8 +94,8 @@ export default function ResponseList({ taskId, responses, currentUserId, taskOwn
 
     async function handleReject(responseId: string) {
         const confirmed = await confirm(
-            'Вы уверены, что хотите отклонить этот отклик?',
-            'Отклонить отклик',
+            t('tasks.confirmRejectResponse'),
+            t('tasks.rejectResponseTitle'),
             'warning'
         );
         if (!confirmed) return;
@@ -120,14 +109,14 @@ export default function ResponseList({ taskId, responses, currentUserId, taskOwn
             });
 
             if (res.ok) {
-                toast.success('Отклик отклонен');
+                toast.success(t('tasks.responseRejectedToast'));
                 setTimeout(() => window.location.reload(), 1000);
             } else {
                 const json = await res.json();
-                toast.error(json.error || 'Не удалось отклонить отклик');
+                toast.error(json.error || t('tasks.responseRejectedError'));
             }
         } catch (err) {
-            toast.error('Ошибка при отклонении отклика');
+            toast.error(t('tasks.responseRejectedError'));
         } finally {
             setRejectingId(null);
         }
@@ -135,8 +124,8 @@ export default function ResponseList({ taskId, responses, currentUserId, taskOwn
 
     async function handleComplete() {
         const confirmed = await confirm(
-            'Вы уверены, что задание выполнено? Это действие нельзя отменить.',
-            'Завершить задание',
+            t('tasks.confirmComplete'),
+            t('tasks.completeTask'),
             'warning'
         );
         if (!confirmed) return;
@@ -150,13 +139,13 @@ export default function ResponseList({ taskId, responses, currentUserId, taskOwn
             });
 
             if (res.ok) {
-                toast.success('Задание отмечено как выполненное!');
+                toast.success(t('tasks.taskMarkedComplete'));
                 setTimeout(() => window.location.reload(), 1000);
             } else {
-                toast.error('Не удалось отметить задание как выполненное');
+                toast.error(t('tasks.taskCompleteError'));
             }
         } catch (err) {
-            toast.error('Ошибка при завершении задания');
+            toast.error(t('tasks.taskCompleteErrorGeneric'));
         } finally {
             setCompletingTask(false);
         }
@@ -167,7 +156,7 @@ export default function ResponseList({ taskId, responses, currentUserId, taskOwn
             <Dialog />
             <div style={{ marginTop: '40px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                    <h3 className="heading-md">Отклики ({responses.length})</h3>
+                    <h3 className="heading-md">{t('tasks.responses')} ({responses.length})</h3>
 
                     {isOwner && isTaskInProgress && (
                         <button
@@ -181,7 +170,7 @@ export default function ResponseList({ taskId, responses, currentUserId, taskOwn
                                 fontWeight: '600'
                             }}
                         >
-                            {completingTask ? 'Завершение...' : '✓ Отметить завершенным'}
+                            {completingTask ? t('tasks.completing') : t('tasks.markComplete')}
                         </button>
                     )}
                 </div>
@@ -191,7 +180,6 @@ export default function ResponseList({ taskId, responses, currentUserId, taskOwn
                         const isAccepted = assignedUserId === response.userId;
                         const isRejected = response.status === 'REJECTED';
                         const isPending = response.status === 'PENDING';
-                        // If task is not open and this user is not the assigned one, maybe dim it?
                         const isOtherAccepted = !isTaskOpen && !isAccepted;
 
                         return (
@@ -217,14 +205,14 @@ export default function ResponseList({ taskId, responses, currentUserId, taskOwn
                                                 {response.user.fullName}
                                             </Link>
                                             <div style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>
-                                                Исполнитель
+                                                {t('tasks.responseProvider')}
                                             </div>
                                         </div>
                                     </div>
                                     <div style={{ textAlign: 'right' }}>
                                         <div style={{ fontWeight: '700', color: 'var(--primary)' }}>{response.price} с.</div>
-                                        {isAccepted && <div style={{ color: '#22c55e', fontSize: '0.8rem', fontWeight: 'bold' }}>ПРИНЯТО</div>}
-                                        {isRejected && <div style={{ color: '#ef4444', fontSize: '0.8rem', fontWeight: 'bold' }}>ОТКЛОНЕНО</div>}
+                                        {isAccepted && <div style={{ color: '#22c55e', fontSize: '0.8rem', fontWeight: 'bold' }}>{t('tasks.accepted')}</div>}
+                                        {isRejected && <div style={{ color: '#ef4444', fontSize: '0.8rem', fontWeight: 'bold' }}>{t('tasks.rejected')}</div>}
                                         {response.estimatedTime && (
                                             <div style={{ fontSize: '0.75rem', color: 'var(--text-light)', marginTop: '4px' }}>
                                                 ⏱ {response.estimatedTime}
@@ -244,7 +232,7 @@ export default function ResponseList({ taskId, responses, currentUserId, taskOwn
                                             disabled={acceptingId !== null}
                                             style={{ fontSize: '0.9rem', padding: '8px 16px' }}
                                         >
-                                            {acceptingId === response.userId ? 'Принятие...' : 'Принять предложение'}
+                                            {acceptingId === response.userId ? t('tasks.accepting') : t('tasks.acceptOffer')}
                                         </button>
                                         <button
                                             onClick={() => handleReject(response.id)}
@@ -258,7 +246,7 @@ export default function ResponseList({ taskId, responses, currentUserId, taskOwn
                                                 border: '1px solid #ef4444'
                                             }}
                                         >
-                                            {rejectingId === response.id ? 'Отклонение...' : 'Отклонить'}
+                                            {rejectingId === response.id ? t('tasks.rejecting') : t('tasks.rejectOffer')}
                                         </button>
                                     </div>
                                 )}
@@ -268,7 +256,7 @@ export default function ResponseList({ taskId, responses, currentUserId, taskOwn
 
                     {responses.length === 0 && (
                         <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-light)', border: '1px dashed var(--border)', borderRadius: '12px' }}>
-                            Пока нет откликов.
+                            {t('tasks.noResponses')}
                         </div>
                     )}
                 </div>
@@ -276,10 +264,10 @@ export default function ResponseList({ taskId, responses, currentUserId, taskOwn
                 {/* Response Form */}
                 {canRespond && (
                     <div style={{ marginTop: '40px', paddingTop: '40px', borderTop: '1px solid var(--border)' }}>
-                        <h3 className="heading-md" style={{ marginBottom: '24px' }}>Отправить отклик</h3>
+                        <h3 className="heading-md" style={{ marginBottom: '24px' }}>{t('tasks.sendResponseHeading')}</h3>
                         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Ваша цена (с.)</label>
+                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>{t('tasks.yourPriceLabel')}</label>
                                 <input
                                     name="price"
                                     type="number"
@@ -288,22 +276,22 @@ export default function ResponseList({ taskId, responses, currentUserId, taskOwn
                                 />
                             </div>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Примерное время выполнения (опционально)</label>
+                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>{t('tasks.estimatedTimeLabel')}</label>
                                 <input
                                     name="estimatedTime"
                                     type="text"
-                                    placeholder="например: 2 часа, 1 день, 3-5 дней"
+                                    placeholder={t('tasks.estimatedTimePlaceholder')}
                                     style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}
                                 />
                             </div>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>Сообщение</label>
+                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>{t('tasks.yourMessage')}</label>
                                 <textarea
                                     name="message"
                                     required
                                     rows={4}
                                     style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}
-                                    placeholder="Опишите, почему вы подходите для этой задачи..."
+                                    placeholder={t('tasks.responseMessagePlaceholder')}
                                 />
                             </div>
                             <button
@@ -311,7 +299,7 @@ export default function ResponseList({ taskId, responses, currentUserId, taskOwn
                                 className="btn btn-primary"
                                 disabled={submitting}
                             >
-                                {submitting ? 'Отправка...' : 'Отправить предложение'}
+                                {submitting ? t('tasks.responding') : t('tasks.submitOffer')}
                             </button>
                         </form>
                     </div>

@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import AuthLayout from '@/components/auth/AuthLayout';
+import { useTranslation } from '@/lib/i18n';
 
 export default function ForgotPasswordPage() {
+    const { t } = useTranslation();
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
@@ -30,10 +32,10 @@ export default function ForgotPasswordPage() {
                     console.log('Debug Reset Token:', data.debug_token);
                 }
             } else {
-                setError(data.error || 'Что-то пошло не так');
+                setError(data.error || t('common.somethingWentWrong'));
             }
         } catch (err) {
-            setError('Ошибка сети. Попробуйте ещё раз.');
+            setError(t('auth.networkError'));
         } finally {
             setLoading(false);
         }
@@ -41,18 +43,18 @@ export default function ForgotPasswordPage() {
 
     if (submitted) {
         return (
-            <AuthLayout title="Письмо отправлено" subtitle={`Если аккаунт с адресом ${email} существует, мы отправили ссылку для сброса пароля.`}>
+            <AuthLayout title={t('auth.emailSentTitle')} subtitle={t('auth.resetLinkSent')}>
                 <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '4rem', marginBottom: '24px' }}>📧</div>
                     <p style={{ color: 'var(--text-light)', marginBottom: '24px', lineHeight: '1.6', fontSize: '0.9rem' }}>
-                        Ссылка действительна 1 час. Не получили письмо? Проверьте папку «Спам» или попробуйте ещё раз.
+                        {t('auth.linkValid')}
                     </p>
                     <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
                         <button onClick={() => setSubmitted(false)} className="btn btn-outline">
-                            Попробовать снова
+                            {t('auth.tryAgain')}
                         </button>
                         <Link href="/login" className="btn btn-primary">
-                            Войти
+                            {t('common.login')}
                         </Link>
                     </div>
                 </div>
@@ -61,7 +63,7 @@ export default function ForgotPasswordPage() {
     }
 
     return (
-        <AuthLayout title="Забыли пароль?" subtitle="Введите email — мы отправим ссылку для сброса.">
+        <AuthLayout title={t('auth.forgotPasswordTitle')} subtitle={t('auth.forgotPasswordSubtitleShort')}>
             {error && (
                 <div style={{
                     backgroundColor: '#fee2e2',
@@ -100,13 +102,13 @@ export default function ForgotPasswordPage() {
                     className="btn btn-primary"
                     style={{ width: '100%', opacity: loading ? 0.7 : 1 }}
                 >
-                    {loading ? 'Отправка...' : 'Отправить ссылку'}
+                    {loading ? t('auth.sending') : t('auth.sendResetLink')}
                 </button>
             </form>
 
             <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '0.95rem' }}>
                 <Link href="/login" style={{ color: 'var(--primary)', fontWeight: '600' }}>
-                    ← Вернуться ко входу
+                    ← {t('auth.backToLogin')}
                 </Link>
             </div>
         </AuthLayout>

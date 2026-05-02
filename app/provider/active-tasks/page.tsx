@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Clock, MapPin, DollarSign, User, MessageSquare, Briefcase } from 'lucide-react';
+import { getServerTranslation } from '@/lib/i18n/server';
 
 export default async function ActiveTasksPage() {
     const cookieStore = await cookies();
@@ -42,6 +43,7 @@ export default async function ActiveTasksPage() {
         }
     });
 
+    const { t } = await getServerTranslation();
     const accentColor = 'var(--primary)';
     const accentColorLight = '#DBEAFE';
 
@@ -50,10 +52,10 @@ export default async function ActiveTasksPage() {
             {/* Page Header */}
             <div style={{ marginBottom: '24px' }}>
                 <h1 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#1E293B', marginBottom: '6px' }}>
-                    Active Tasks
+                    {t('provider.activeTasksTitle')}
                 </h1>
                 <p style={{ color: '#64748B', fontSize: '0.9rem' }}>
-                    Tasks you&apos;re currently working on
+                    {t('provider.activeTasksDesc')}
                 </p>
             </div>
 
@@ -72,7 +74,7 @@ export default async function ActiveTasksPage() {
                 </div>
                 <div>
                     <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#1E293B' }}>{activeTasks.length}</div>
-                    <div style={{ fontSize: '0.8rem', color: '#64748B' }}>Active Tasks</div>
+                    <div style={{ fontSize: '0.8rem', color: '#64748B' }}>{t('provider.activeTasksCount')}</div>
                 </div>
             </div>
 
@@ -81,9 +83,9 @@ export default async function ActiveTasksPage() {
                 {activeTasks.length === 0 ? (
                     <div style={{ backgroundColor: 'white', padding: '60px', borderRadius: '16px', border: '1px solid #E2E8F0', textAlign: 'center' }}>
                         <div style={{ fontSize: '3rem', marginBottom: '16px' }}>📋</div>
-                        <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1E293B', marginBottom: '8px' }}>No active tasks</h3>
+                        <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1E293B', marginBottom: '8px' }}>{t('provider.noActiveTasks')}</h3>
                         <p style={{ color: '#64748B', marginBottom: '20px', fontSize: '0.9rem' }}>
-                            When clients accept your responses, tasks will appear here
+                            {t('provider.noActiveTasksDesc')}
                         </p>
                         <Link href="/provider/task-feed" style={{
                             display: 'inline-block',
@@ -95,7 +97,7 @@ export default async function ActiveTasksPage() {
                             fontWeight: '600',
                             fontSize: '0.9rem'
                         }}>
-                            Find Tasks
+                            {t('provider.findTasks')}
                         </Link>
                     </div>
                 ) : (
@@ -126,7 +128,7 @@ export default async function ActiveTasksPage() {
                                             fontSize: '0.75rem',
                                             fontWeight: '600'
                                         }}>
-                                            In Progress
+                                            {t('provider.inProgress')}
                                         </span>
                                     </div>
 
@@ -138,7 +140,7 @@ export default async function ActiveTasksPage() {
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                             <DollarSign size={14} />
                                             <span style={{ fontWeight: '600', color: accentColor }}>
-                                                {task.budgetType === 'fixed' ? `${task.budgetAmount} с.` : 'Negotiable'}
+                                                {task.budgetType === 'fixed' ? `${task.budgetAmount} с.` : t('common.negotiable')}
                                             </span>
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -151,7 +153,7 @@ export default async function ActiveTasksPage() {
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                             <Clock size={14} />
-                                            <span>Started: {new Date(task.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                                            <span>{t('provider.started')} {new Date(task.updatedAt).toLocaleDateString('ru-RU', { month: 'short', day: 'numeric' })}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -170,7 +172,7 @@ export default async function ActiveTasksPage() {
                                             textAlign: 'center'
                                         }}
                                     >
-                                        Open Task
+                                        {t('provider.openTask')}
                                     </Link>
                                     <Link
                                         href={`/provider/messages?userId=${task.userId}&taskId=${task.id}`}
@@ -191,7 +193,7 @@ export default async function ActiveTasksPage() {
                                         }}
                                     >
                                         <MessageSquare size={14} />
-                                        Chat ({task._count.messages})
+                                        {t('provider.chat')} ({task._count.messages})
                                     </Link>
                                 </div>
                             </div>

@@ -7,8 +7,10 @@ import Step2Details from '@/components/create-task/Step2Details';
 import Step3Location from '@/components/create-task/Step3Location';
 import Step4Budget from '@/components/create-task/Step4Budget';
 import { toast } from '@/components/ui/Toast';
+import { useTranslation } from '@/lib/i18n';
 
 export default function CreateTaskPage() {
+    const { t } = useTranslation();
     const router = useRouter();
     const [step, setStep] = useState(1);
     const [uploading, setUploading] = useState(false);
@@ -51,7 +53,7 @@ export default function CreateTaskPage() {
                 const templateData = JSON.parse(template);
                 setFormData(prev => ({ ...prev, ...templateData }));
                 sessionStorage.removeItem('task_template');
-                toast.info('Шаблон загружен');
+                toast.info(t('createTask.templateLoaded'));
             } catch (e) {
                 // Invalid template, ignore
             }
@@ -81,14 +83,14 @@ export default function CreateTaskPage() {
 
     const saveDraft = () => {
         localStorage.setItem(DRAFT_KEY, JSON.stringify(formData));
-        toast.success('Черновик сохранен');
+        toast.success(t('createTask.draftSaved'));
         setHasDraft(true);
     };
 
     const clearDraft = () => {
         localStorage.removeItem(DRAFT_KEY);
         setHasDraft(false);
-        toast.info('Черновик удален');
+        toast.info(t('createTask.draftCleared'));
     };
 
     // Add upload handlers
@@ -106,11 +108,11 @@ export default function CreateTaskPage() {
                     const json = await res.json();
                     setFormData(prev => ({ ...prev, images: [...prev.images, json.url] }));
                 } else {
-                    toast.error('Не удалось загрузить изображение');
+                    toast.error(t('createTask.uploadError'));
                 }
             }
         } catch (err) {
-            toast.error('Ошибка при загрузке изображения');
+            toast.error(t('createTask.uploadErrorGeneric'));
         } finally {
             setUploading(false);
         }
@@ -146,26 +148,26 @@ export default function CreateTaskPage() {
             });
 
             if (res.status === 401) {
-                toast.warning('Необходимо войти в систему для создания задания');
+                toast.warning(t('createTask.loginRequired'));
                 router.push('/login?redirect=/create-task');
                 return;
             }
 
             if (!res.ok) {
                 const errorData = await res.json();
-                throw new Error(errorData.error || 'Не удалось создать задание');
+                throw new Error(errorData.error || t('createTask.createFailed'));
             }
 
             const json = await res.json();
             // Clear draft on successful submission
             localStorage.removeItem(DRAFT_KEY);
             setHasDraft(false);
-            toast.success('Задание успешно создано!');
+            toast.success(t('createTask.createSuccess'));
             // Redirect to the new task details
             setTimeout(() => router.push(`/tasks/${json.task.id}`), 1000);
 
         } catch (error: any) {
-            toast.error(`Ошибка при создании задания: ${error.message}`);
+            toast.error(t('createTask.createError', { message: error.message }));
             setIsSubmitting(false);
         }
     };
@@ -173,7 +175,7 @@ export default function CreateTaskPage() {
     if (!authChecked) {
         return (
             <div style={{ textAlign: 'center', padding: '100px 20px', color: 'var(--text-light)' }}>
-                Загрузка...
+                {t('common.loading')}
             </div>
         );
     }
@@ -182,7 +184,7 @@ export default function CreateTaskPage() {
         return (
             <div style={{ textAlign: 'center', padding: '100px 20px' }}>
                 <div className="spinner" style={{ fontSize: '4rem', marginBottom: '24px' }}>⏳</div>
-                <h1 className="heading-lg">Публикация...</h1>
+                <h1 className="heading-lg">{t('createTask.publishing')}</h1>
             </div>
         );
     }
@@ -192,8 +194,8 @@ export default function CreateTaskPage() {
             <div className="container" style={{ maxWidth: '1200px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
                     <div>
-                        <h1 className="heading-lg" style={{ marginBottom: '8px' }}>Создать новое задание</h1>
-                        <p style={{ color: '#6B7280' }}>Заполните данные ниже, чтобы найти лучшего исполнителя.</p>
+                        <h1 className="heading-lg" style={{ marginBottom: '8px' }}>{t('tasks.createNewTask')}</h1>
+                        <p style={{ color: '#6B7280' }}>{t('createTask.fillDetails')}</p>
                     </div>
                 </div>
 
@@ -203,21 +205,21 @@ export default function CreateTaskPage() {
                         {/* Progress Bar (Visual) */}
                         <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '16px 24px', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <span style={{ backgroundColor: '#DBEAFE', color: '#3B82F6', padding: '4px 12px', borderRadius: '4px', fontSize: '0.85rem', fontWeight: '600' }}>Шаг 1 из 4</span>
-                                <span style={{ fontWeight: '600', color: '#111827' }}>Информация о задании</span>
+                                <span style={{ backgroundColor: '#DBEAFE', color: '#3B82F6', padding: '4px 12px', borderRadius: '4px', fontSize: '0.85rem', fontWeight: '600' }}>{t('createTask.step1of4')}</span>
+                                <span style={{ fontWeight: '600', color: '#111827' }}>{t('createTask.taskInfo')}</span>
                             </div>
-                            <div style={{ color: '#6B7280', fontSize: '0.9rem' }}>25% Завершено</div>
+                            <div style={{ color: '#6B7280', fontSize: '0.9rem' }}>{t('createTask.percentComplete25')}</div>
                         </div>
 
                         {/* General Information Card */}
                         <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '32px', marginBottom: '24px', boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)' }}>
-                            <h2 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '24px', color: '#111827' }}>Общая информация</h2>
+                            <h2 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '24px', color: '#111827' }}>{t('createTask.generalInfo')}</h2>
 
                             <div style={{ marginBottom: '24px' }}>
-                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Название задания</label>
+                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>{t('createTask.taskTitleLabel')}</label>
                                 <input
                                     type="text"
-                                    placeholder="напр., Починить кран на кухне"
+                                    placeholder={t('createTask.taskTitlePlaceholder')}
                                     value={formData.title}
                                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                                     style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #D1D5DB', outline: 'none' }}
@@ -226,13 +228,13 @@ export default function CreateTaskPage() {
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Категория</label>
+                                    <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>{t('createTask.category')}</label>
                                     <select
                                         value={formData.category}
                                         onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                                         style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #D1D5DB', outline: 'none', backgroundColor: 'white' }}
                                     >
-                                        <option value="">Выберите категорию</option>
+                                        <option value="">{t('createTask.selectCategory')}</option>
                                         <option value="Home Repair">Домашний ремонт</option>
                                         <option value="Cleaning">Уборка</option>
                                         <option value="Delivery">Доставка</option>
@@ -240,13 +242,13 @@ export default function CreateTaskPage() {
                                     </select>
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Подкатегория</label>
-                                    <select 
+                                    <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>{t('createTask.subcategory')}</label>
+                                    <select
                                         value={formData.subcategory}
                                         onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })}
                                         style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #D1D5DB', outline: 'none', backgroundColor: 'white' }}
                                     >
-                                        <option value="">Выберите подкатегорию</option>
+                                        <option value="">{t('createTask.selectSubcategory')}</option>
                                         <option value="Plumbing">Сантехника</option>
                                         <option value="Electrician">Электрика</option>
                                         <option value="Carpentry">Столярные работы</option>
@@ -258,9 +260,9 @@ export default function CreateTaskPage() {
                             </div>
 
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Подробное описание</label>
+                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>{t('createTask.detailedDescription')}</label>
                                 <textarea
-                                    placeholder="Опишите проблему или задачу подробно..."
+                                    placeholder={t('createTask.detailPlaceholder')}
                                     rows={5}
                                     value={formData.description}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -271,7 +273,7 @@ export default function CreateTaskPage() {
 
                             {/* Image Upload Section */}
                             <div style={{ marginTop: '24px' }}>
-                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Фотографии (Опционально)</label>
+                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>{t('createTask.photosLabel')}</label>
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
                                     {formData.images.map((img, idx) => (
                                         <div key={idx} style={{ position: 'relative', width: '80px', height: '80px' }}>
@@ -291,31 +293,31 @@ export default function CreateTaskPage() {
                                         <span style={{ fontSize: '24px', color: '#9CA3AF' }}>+</span>
                                     </label>
                                 </div>
-                                {uploading && <div style={{ fontSize: '0.85rem', color: '#6B7280', marginTop: '4px' }}>Загрузка фото...</div>}
+                                {uploading && <div style={{ fontSize: '0.85rem', color: '#6B7280', marginTop: '4px' }}>{t('createTask.uploadingPhoto')}</div>}
                             </div>
                         </div>
 
                         {/* Location Details Card */}
                         <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '32px', marginBottom: '24px', boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)' }}>
-                            <h2 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '24px', color: '#111827' }}>Расположение</h2>
+                            <h2 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '24px', color: '#111827' }}>{t('createTask.location')}</h2>
                             <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px', marginBottom: '24px' }}>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Город / Район</label>
+                                    <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>{t('createTask.cityLabel')}</label>
                                     <input
                                         type="text"
-                                        placeholder="Введите ваш город"
+                                        placeholder={t('createTask.cityPlaceholder')}
                                         value={formData.city}
                                         onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                                         style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #D1D5DB', outline: 'none' }}
                                     />
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Срочность</label>
+                                    <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>{t('tasks.urgency')}</label>
                                     <div style={{ display: 'flex', border: '1px solid #E5E7EB', borderRadius: '8px', overflow: 'hidden' }}>
                                         {[
-                                            { id: 'normal', label: 'Обычно' },
-                                            { id: 'urgent', label: 'Срочно' },
-                                            { id: 'low', label: 'Не срочно' }
+                                            { id: 'normal', label: t('createTask.normalUrgency') },
+                                            { id: 'urgent', label: t('createTask.urgentUrgency') },
+                                            { id: 'low', label: t('createTask.lowUrgency') }
                                         ].map((u) => (
                                             <button 
                                                 key={u.id} 
@@ -341,12 +343,12 @@ export default function CreateTaskPage() {
                             </div>
 
                             <div style={{ marginBottom: '24px' }}>
-                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Точный адрес</label>
+                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>{t('createTask.address')}</label>
                                 <div style={{ position: 'relative' }}>
                                     <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF' }}><MapPin size={20} /></span>
                                     <input
                                         type="text"
-                                        placeholder="Улица, дом, квартира..."
+                                        placeholder={t('createTask.addressPlaceholder')}
                                         value={formData.address}
                                         onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                                         style={{ width: '100%', padding: '12px 12px 12px 40px', borderRadius: '8px', border: '1px solid #D1D5DB', outline: 'none' }}
@@ -355,7 +357,7 @@ export default function CreateTaskPage() {
                             </div>
 
                             <div style={{ marginBottom: '24px' }}>
-                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Срок выполнения (Опционально)</label>
+                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>{t('createTask.dueDate')}</label>
                                 <input
                                     type="datetime-local"
                                     value={formData.dueDate}
@@ -369,10 +371,10 @@ export default function CreateTaskPage() {
 
                         {/* Pricing & Schedule */}
                         <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '32px', marginBottom: '24px', boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)' }}>
-                            <h2 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '24px', color: '#111827' }}>Стоимость и График</h2>
+                            <h2 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '24px', color: '#111827' }}>{t('createTask.pricingSchedule')}</h2>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Тип бюджета</label>
+                                    <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>{t('createTask.budgetType')}</label>
                                     <div style={{ display: 'flex', gap: '12px' }}>
                                         <button
                                             onClick={() => setFormData({ ...formData, budget: 'fixed' })}
@@ -382,7 +384,7 @@ export default function CreateTaskPage() {
                                                 backgroundColor: formData.budget === 'fixed' ? '#EFF6FF' : 'white',
                                                 color: formData.budget === 'fixed' ? '#3B82F6' : '#6B7280',
                                                 fontWeight: '600', cursor: 'pointer'
-                                            }}>Фикс. цена</button>
+                                            }}>{t('createTask.fixedPrice')}</button>
                                         <button
                                             onClick={() => setFormData({ ...formData, budget: 'negotiable' })}
                                             style={{
@@ -391,11 +393,11 @@ export default function CreateTaskPage() {
                                                 backgroundColor: formData.budget === 'negotiable' ? '#EFF6FF' : 'white',
                                                 color: formData.budget === 'negotiable' ? '#3B82F6' : '#6B7280',
                                                 fontWeight: '600', cursor: 'pointer'
-                                            }}>Договорная</button>
+                                            }}>{t('common.negotiable')}</button>
                                     </div>
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Бюджет (TJS)</label>
+                                    <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>{t('filters.budgetTJS')}</label>
                                     <input
                                         type="number"
                                         placeholder="0.00"
@@ -410,7 +412,7 @@ export default function CreateTaskPage() {
 
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '16px', marginTop: '40px', alignItems: 'center' }}>
                             <div style={{ fontSize: '0.85rem', color: '#6B7280' }}>
-                                {hasDraft && '💾 Черновик сохранен'}
+                                {hasDraft && t('createTask.draftSavedLabel')}
                             </div>
                             {hasDraft && (
                                 <button
@@ -426,7 +428,7 @@ export default function CreateTaskPage() {
                                         fontSize: '0.9rem'
                                     }}
                                 >
-                                    Удалить черновик
+                                    {t('createTask.deleteDraft')}
                                 </button>
                             )}
                             <button
@@ -441,7 +443,7 @@ export default function CreateTaskPage() {
                                     cursor: 'pointer'
                                 }}
                             >
-                                💾 Сохранить черновик
+                                {t('createTask.saveDraft')}
                             </button>
                             <button
                                 onClick={() => handleSubmit(formData)}
@@ -456,7 +458,7 @@ export default function CreateTaskPage() {
                                     cursor: 'pointer',
                                     opacity: isSubmitting ? 0.7 : 1
                                 }}>
-                                {isSubmitting ? 'Публикация...' : 'Опубликовать'}
+                                {isSubmitting ? t('createTask.publishing') : t('createTask.publish')}
                             </button>
                         </div>
                     </div>
@@ -467,29 +469,29 @@ export default function CreateTaskPage() {
                         <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '24px', marginBottom: '24px', border: '1px solid #E5E7EB' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
                                 <Lightbulb size={24} color="#F59E0B" fill="#F59E0B" />
-                                <h3 style={{ fontSize: '1rem', fontWeight: '700' }}>Советы для отличного задания</h3>
+                                <h3 style={{ fontSize: '1rem', fontWeight: '700' }}>{t('createTask.tipsTitle')}</h3>
                             </div>
                             <ul style={{ listStyle: 'none', padding: 0, fontSize: '0.9rem', color: '#4B5563', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                 <li style={{ display: 'flex', gap: '12px' }}>
                                     <span style={{ fontWeight: '700', color: '#0EA5E9', minWidth: '20px' }}>01</span>
-                                    <div><span style={{ fontWeight: '600', color: '#111827' }}>Будьте точны:</span> Укажите точные размеры или бренды, если применимо.</div>
+                                    <div><span style={{ fontWeight: '600', color: '#111827' }}>{t('createTask.tip1Title')}</span> {t('createTask.tip1Desc')}</div>
                                 </li>
                                 <li style={{ display: 'flex', gap: '12px' }}>
                                     <span style={{ fontWeight: '700', color: '#0EA5E9', minWidth: '20px' }}>02</span>
-                                    <div><span style={{ fontWeight: '600', color: '#111827' }}>Фото помогают:</span> Задания с фото получают в 3 раза больше откликов.</div>
+                                    <div><span style={{ fontWeight: '600', color: '#111827' }}>{t('createTask.tip2Title')}</span> {t('createTask.tip2Desc')}</div>
                                 </li>
                                 <li style={{ display: 'flex', gap: '12px' }}>
                                     <span style={{ fontWeight: '700', color: '#0EA5E9', minWidth: '20px' }}>03</span>
-                                    <div><span style={{ fontWeight: '600', color: '#111827' }}>Укажите честную цену:</span> Изучите похожие задания, чтобы привлечь лучших профи.</div>
+                                    <div><span style={{ fontWeight: '600', color: '#111827' }}>{t('createTask.tip3Title')}</span> {t('createTask.tip3Desc')}</div>
                                 </li>
                             </ul>
                         </div>
 
                         {/* Help Widget */}
                         <div style={{ backgroundColor: '#E0F2FE', borderRadius: '16px', padding: '24px', color: '#0369A1' }}>
-                            <h3 style={{ fontSize: '1rem', fontWeight: '700', marginBottom: '8px' }}>Нужна помощь?</h3>
-                            <p style={{ fontSize: '0.9rem', marginBottom: '16px', lineHeight: '1.5' }}>Наша поддержка доступна 24/7, чтобы помочь вам создать идеальное задание.</p>
-                            <button style={{ color: '#0284C7', fontWeight: '600', border: 'none', background: 'none', padding: 0, cursor: 'pointer', fontSize: '0.9rem' }}>Написать нам →</button>
+                            <h3 style={{ fontSize: '1rem', fontWeight: '700', marginBottom: '8px' }}>{t('createTask.helpTitle')}</h3>
+                            <p style={{ fontSize: '0.9rem', marginBottom: '16px', lineHeight: '1.5' }}>{t('createTask.helpDesc')}</p>
+                            <button style={{ color: '#0284C7', fontWeight: '600', border: 'none', background: 'none', padding: 0, cursor: 'pointer', fontSize: '0.9rem' }}>{t('createTask.contactUs')}</button>
                         </div>
                     </div>
                 </div>

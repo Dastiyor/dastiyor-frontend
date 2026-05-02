@@ -1,6 +1,8 @@
 import { Wrench, Clock, Mail } from 'lucide-react';
+import { getServerTranslation } from '@/lib/i18n/server';
 
-export default function MaintenancePage() {
+export default async function MaintenancePage() {
+    const { t } = await getServerTranslation();
     return (
         <div style={{
             minHeight: '100vh',
@@ -36,7 +38,7 @@ export default function MaintenancePage() {
                     marginBottom: '16px',
                     color: '#1F2937'
                 }}>
-                    Технические работы
+                    {t('systemPages.maintenanceTitle')}
                 </h1>
 
                 <p style={{
@@ -45,8 +47,7 @@ export default function MaintenancePage() {
                     marginBottom: '32px',
                     lineHeight: '1.7'
                 }}>
-                    Мы проводим плановое обслуживание для улучшения качества сервиса.
-                    Приносим извинения за временные неудобства.
+                    {t('systemPages.maintenanceText')}
                 </p>
 
                 {/* Estimated time */}
@@ -62,8 +63,8 @@ export default function MaintenancePage() {
                 }}>
                     <Clock size={24} color="#6366F1" />
                     <div style={{ textAlign: 'left' }}>
-                        <div style={{ fontSize: '0.85rem', color: '#6B7280' }}>Ожидаемое время завершения</div>
-                        <div style={{ fontWeight: '700', color: '#1F2937', fontSize: '1.1rem' }}>~ 30 минут</div>
+                        <div style={{ fontSize: '0.85rem', color: '#6B7280' }}>{t('systemPages.estimatedTime')}</div>
+                        <div style={{ fontWeight: '700', color: '#1F2937', fontSize: '1.1rem' }}>~ 30 {t('notifications.minutesAgo', { count: '' }).replace(' ', '')}</div>
                     </div>
                 </div>
 
@@ -76,13 +77,13 @@ export default function MaintenancePage() {
                     marginBottom: '32px'
                 }}>
                     <h3 style={{ fontWeight: '700', marginBottom: '20px', color: '#1F2937' }}>
-                        Статус систем
+                        {t('systemPages.systemStatus')}
                     </h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        <StatusRow label="Веб-сайт" status="maintenance" />
-                        <StatusRow label="API" status="maintenance" />
-                        <StatusRow label="База данных" status="operational" />
-                        <StatusRow label="Платежи" status="operational" />
+                        <StatusRow label={t('systemPages.website')} status="maintenance" operational={t('systemPages.operational')} maintenanceText={t('systemPages.maintenance')} unavailableText={t('systemPages.unavailable')} />
+                        <StatusRow label={t('systemPages.api')} status="maintenance" operational={t('systemPages.operational')} maintenanceText={t('systemPages.maintenance')} unavailableText={t('systemPages.unavailable')} />
+                        <StatusRow label={t('systemPages.database')} status="operational" operational={t('systemPages.operational')} maintenanceText={t('systemPages.maintenance')} unavailableText={t('systemPages.unavailable')} />
+                        <StatusRow label={t('systemPages.payments')} status="operational" operational={t('systemPages.operational')} maintenanceText={t('systemPages.maintenance')} unavailableText={t('systemPages.unavailable')} />
                     </div>
                 </div>
 
@@ -95,7 +96,7 @@ export default function MaintenancePage() {
                     color: '#6B7280'
                 }}>
                     <Mail size={18} />
-                    <span>Вопросы? Напишите нам: </span>
+                    <span>{t('systemPages.questions')} </span>
                     <a href="mailto:support@dastiyor.tj" style={{ color: '#6366F1', fontWeight: '600' }}>
                         support@dastiyor.tj
                     </a>
@@ -113,11 +114,11 @@ export default function MaintenancePage() {
     );
 }
 
-function StatusRow({ label, status }: { label: string; status: 'operational' | 'maintenance' | 'down' }) {
+function StatusRow({ label, status, operational, maintenanceText, unavailableText }: { label: string; status: 'operational' | 'maintenance' | 'down'; operational: string; maintenanceText: string; unavailableText: string }) {
     const statusConfig = {
-        operational: { color: '#10B981', bg: '#D1FAE5', text: 'Работает' },
-        maintenance: { color: '#F59E0B', bg: '#FEF3C7', text: 'Обслуживание' },
-        down: { color: '#EF4444', bg: '#FEE2E2', text: 'Недоступно' }
+        operational: { color: '#10B981', bg: '#D1FAE5', text: operational },
+        maintenance: { color: '#F59E0B', bg: '#FEF3C7', text: maintenanceText },
+        down: { color: '#EF4444', bg: '#FEE2E2', text: unavailableText }
     };
 
     const config = statusConfig[status];

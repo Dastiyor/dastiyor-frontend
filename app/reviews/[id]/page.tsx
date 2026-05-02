@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import ReviewList from '@/components/reviews/ReviewList';
 import Link from 'next/link';
+import { getServerTranslation } from '@/lib/i18n/server';
 
 type Props = {
     params: { id: string };
@@ -30,6 +31,8 @@ export default async function UserReviewsPage({ params }: Props) {
     if (!user) {
         notFound();
     }
+
+    const { t } = await getServerTranslation();
 
     // Get reviews
     const reviews = await prisma.review.findMany({
@@ -87,21 +90,21 @@ export default async function UserReviewsPage({ params }: Props) {
                     <div style={{ flex: 1 }}>
                         <h1 style={{ fontSize: '1.8rem', fontWeight: '700', marginBottom: '8px' }}>{user.fullName}</h1>
                         <div style={{ display: 'flex', gap: '16px', color: 'var(--text-light)' }}>
-                            <span>{user.role === 'PROVIDER' ? 'Исполнитель' : 'Заказчик'}</span>
+                            <span>{user.role === 'PROVIDER' ? t('reviews_page.provider') : t('reviews_page.customer')}</span>
                             <span>•</span>
-                            <span>Участник с {new Date(user.createdAt).toLocaleDateString()}</span>
+                            <span>{t('reviews_page.memberSince')} {new Date(user.createdAt).toLocaleDateString()}</span>
                             <span>•</span>
-                            <span>{user._count.assignedTasks} заданий выполнено</span>
+                            <span>{user._count.assignedTasks} {t('reviews_page.tasksDone')}</span>
                         </div>
                     </div>
                     <div style={{ textAlign: 'center' }}>
                         <div style={{ fontSize: '2rem', fontWeight: '700' }}>{averageRating.toFixed(1)}</div>
                         <div style={{ color: '#fbbf24' }}>{'★'.repeat(Math.round(averageRating))}</div>
-                        <div style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>{reviews.length} отзывов</div>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>{reviews.length} {t('reviews_page.reviews')}</div>
                     </div>
                 </div>
 
-                <h2 className="heading-md" style={{ marginBottom: '24px' }}>Отзывы</h2>
+                <h2 className="heading-md" style={{ marginBottom: '24px' }}>{t('reviews_page.reviewsTitle')}</h2>
 
                 <ReviewList
                     reviews={reviews}
@@ -114,7 +117,7 @@ export default async function UserReviewsPage({ params }: Props) {
 
                 <div style={{ marginTop: '32px', textAlign: 'center' }}>
                     <Link href="/tasks" className="btn btn-outline">
-                        Найти задания
+                        {t('reviews_page.findTasks')}
                     </Link>
                 </div>
             </div>

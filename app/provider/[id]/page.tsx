@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import ReviewList from '@/components/reviews/ReviewList';
 import { CheckCircle, MessageSquare, Star, Calendar, Award, TrendingUp } from 'lucide-react';
+import { getServerTranslation } from '@/lib/i18n/server';
 
 type Props = {
     params: { id: string };
@@ -70,6 +71,7 @@ export default async function ProviderProfilePage({ params }: Props) {
     };
 
     const skills = user.skills ? user.skills.split(',').map(s => s.trim()) : [];
+    const { t } = await getServerTranslation();
 
     // Calculate success rate
     const successRate = totalAssigned > 0 ? Math.round((completedTasks / totalAssigned) * 100) : 0;
@@ -149,11 +151,11 @@ export default async function ProviderProfilePage({ params }: Props) {
                                         {user.fullName}
                                     </h1>
                                     <p style={{ color: 'var(--accent)', fontWeight: '600', marginBottom: '8px' }}>
-                                        Исполнитель
+                                        {t('reviews_page.provider')}
                                     </p>
                                     <p style={{ color: 'var(--text-light)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                         <Calendar size={14} />
-                                        На платформе с {new Date(user.createdAt).toLocaleDateString('ru-RU', {
+                                        {t('reviews_page.onPlatformSince')} {new Date(user.createdAt).toLocaleDateString('ru-RU', {
                                             month: 'long',
                                             year: 'numeric'
                                         })}
@@ -169,7 +171,7 @@ export default async function ProviderProfilePage({ params }: Props) {
                                         {'★'.repeat(Math.round(averageRating))}{'☆'.repeat(5 - Math.round(averageRating))}
                                     </div>
                                     <div style={{ fontSize: '0.85rem', color: '#92400e', marginTop: '4px' }}>
-                                        {reviews.length} отзывов
+                                        {reviews.length} {t('reviews_page.reviews')}
                                     </div>
                                 </div>
                             </div>
@@ -191,7 +193,7 @@ export default async function ProviderProfilePage({ params }: Props) {
                             {/* Skills */}
                             {skills.length > 0 && (
                                 <div style={{ marginTop: '20px' }}>
-                                    <p style={{ fontWeight: '600', marginBottom: '12px' }}>Навыки</p>
+                                    <p style={{ fontWeight: '600', marginBottom: '12px' }}>{t('profile.skills')}</p>
                                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                                         {skills.map((skill, i) => (
                                             <span
@@ -225,28 +227,28 @@ export default async function ProviderProfilePage({ params }: Props) {
                     <StatCard
                         icon={<CheckCircle size={24} />}
                         value={completedTasks}
-                        label="Выполнено"
+                        label={t('reviews_page.completed')}
                         color="#10B981"
                         bgColor="#D1FAE5"
                     />
                     <StatCard
                         icon={<TrendingUp size={24} />}
                         value={`${successRate}%`}
-                        label="Успешность"
+                        label={t('reviews_page.successRate')}
                         color="#6366F1"
                         bgColor="#EEF2FF"
                     />
                     <StatCard
                         icon={<MessageSquare size={24} />}
                         value={user._count.responses}
-                        label="Откликов"
+                        label={t('reviews_page.responses')}
                         color="#F59E0B"
                         bgColor="#FEF3C7"
                     />
                     <StatCard
                         icon={<Star size={24} />}
                         value={reviews.length}
-                        label="Отзывов"
+                        label={t('reviews_page.reviews')}
                         color="#EC4899"
                         bgColor="#FCE7F3"
                     />
@@ -254,7 +256,7 @@ export default async function ProviderProfilePage({ params }: Props) {
 
                 {/* Reviews Section */}
                 <h2 className="heading-md" style={{ marginBottom: '24px' }}>
-                    Отзывы ({reviews.length})
+                    {t('reviews_page.reviewsTitle')} ({reviews.length})
                 </h2>
 
                 <ReviewList
@@ -268,7 +270,7 @@ export default async function ProviderProfilePage({ params }: Props) {
 
                 <div style={{ marginTop: '32px', textAlign: 'center' }}>
                     <Link href="/tasks" className="btn btn-primary">
-                        Посмотреть доступные задания
+                        {t('reviews_page.viewAvailableTasks')}
                     </Link>
                 </div>
             </div>

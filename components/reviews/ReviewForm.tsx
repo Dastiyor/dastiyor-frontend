@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from '@/components/ui/Toast';
+import { useTranslation } from '@/lib/i18n';
 
 type Props = {
     taskId: string;
@@ -10,6 +11,7 @@ type Props = {
 };
 
 export default function ReviewForm({ taskId, providerName, onReviewSubmitted }: Props) {
+    const { t } = useTranslation();
     const [rating, setRating] = useState(0);
     const [hoveredRating, setHoveredRating] = useState(0);
     const [comment, setComment] = useState('');
@@ -19,7 +21,7 @@ export default function ReviewForm({ taskId, providerName, onReviewSubmitted }: 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (rating === 0) {
-            toast.warning('Пожалуйста, выберите оценку');
+            toast.warning(t('reviews.selectRating'));
             return;
         }
 
@@ -33,14 +35,14 @@ export default function ReviewForm({ taskId, providerName, onReviewSubmitted }: 
 
             if (res.ok) {
                 setSubmitted(true);
-                toast.success('Отзыв успешно отправлен!');
+                toast.success(t('reviews.submitSuccess'));
                 onReviewSubmitted?.();
             } else {
                 const data = await res.json();
-                toast.error(data.error || 'Не удалось отправить отзыв');
+                toast.error(data.error || t('reviews.genericError'));
             }
         } catch (error) {
-            toast.error('Произошла ошибка');
+            toast.error(t('reviews.genericError'));
         } finally {
             setSubmitting(false);
         }
@@ -57,10 +59,10 @@ export default function ReviewForm({ taskId, providerName, onReviewSubmitted }: 
             }}>
                 <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🎉</div>
                 <h3 style={{ fontWeight: '600', color: '#166534', marginBottom: '8px' }}>
-                    Thank you for your review!
+                    {t('reviews.thankYou')}
                 </h3>
                 <p style={{ color: '#15803d' }}>
-                    Your feedback helps build trust in our community.
+                    {t('reviews.thankYouText')}
                 </p>
             </div>
         );
@@ -74,14 +76,14 @@ export default function ReviewForm({ taskId, providerName, onReviewSubmitted }: 
             border: '1px solid var(--border)'
         }}>
             <h3 className="heading-md" style={{ marginBottom: '24px' }}>
-                Leave a Review for {providerName}
+                {t('reviews.leaveReviewFor', { name: providerName })}
             </h3>
 
             <form onSubmit={handleSubmit}>
                 {/* Star Rating */}
                 <div style={{ marginBottom: '24px' }}>
                     <label style={{ display: 'block', marginBottom: '12px', fontWeight: '500' }}>
-                        How was your experience?
+                        {t('reviews.experienceLabel')}
                     </label>
                     <div style={{ display: 'flex', gap: '8px' }}>
                         {[1, 2, 3, 4, 5].map((star) => (
@@ -108,24 +110,24 @@ export default function ReviewForm({ taskId, providerName, onReviewSubmitted }: 
                         ))}
                     </div>
                     <div style={{ fontSize: '0.9rem', color: 'var(--text-light)', marginTop: '8px' }}>
-                        {rating === 1 && 'Poor'}
-                        {rating === 2 && 'Fair'}
-                        {rating === 3 && 'Good'}
-                        {rating === 4 && 'Very Good'}
-                        {rating === 5 && 'Excellent!'}
+                        {rating === 1 && t('reviews.ratingPoor')}
+                        {rating === 2 && t('reviews.ratingFair')}
+                        {rating === 3 && t('reviews.ratingGood')}
+                        {rating === 4 && t('reviews.ratingVeryGood')}
+                        {rating === 5 && t('reviews.ratingExcellent')}
                     </div>
                 </div>
 
                 {/* Comment */}
                 <div style={{ marginBottom: '24px' }}>
                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                        Tell us more (optional)
+                        {t('reviews.commentLabel')}
                     </label>
                     <textarea
                         value={comment}
                         onChange={(e) => setComment(e.target.value)}
                         rows={4}
-                        placeholder="Share your experience with this provider..."
+                        placeholder={t('reviews.commentPlaceholder')}
                         style={{
                             width: '100%',
                             padding: '12px',
@@ -143,7 +145,7 @@ export default function ReviewForm({ taskId, providerName, onReviewSubmitted }: 
                     className="btn btn-primary"
                     style={{ width: '100%', padding: '14px' }}
                 >
-                    {submitting ? 'Submitting...' : 'Submit Review'}
+                    {submitting ? t('reviews.submitting') : t('reviews.submitReview')}
                 </button>
             </form>
         </div>

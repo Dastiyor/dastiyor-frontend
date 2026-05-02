@@ -296,6 +296,7 @@ export default async function TaskFeedPage({
                                     type="number"
                                     name="minBudget"
                                     defaultValue={minBudget}
+                                    min="0"
                                     placeholder={t('filters.from')}
                                     style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem' }}
                                 />
@@ -303,6 +304,7 @@ export default async function TaskFeedPage({
                                     type="number"
                                     name="maxBudget"
                                     defaultValue={maxBudget}
+                                    min="0"
                                     placeholder={t('filters.to')}
                                     style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem' }}
                                 />

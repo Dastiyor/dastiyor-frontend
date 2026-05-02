@@ -38,12 +38,16 @@ export default function HowItWorksPage() {
                     </p>
                 </div>
 
-                <div style={{
+                <div className="how-it-works-grid" style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                    gridTemplateColumns: 'repeat(4, 1fr)',
                     gap: '40px',
                     marginBottom: '80px'
                 }}>
+                    <style>{`
+                        @media (max-width: 900px) { .how-it-works-grid { grid-template-columns: repeat(2, 1fr) !important; } }
+                        @media (max-width: 520px) { .how-it-works-grid { grid-template-columns: 1fr !important; } }
+                    `}</style>
                     {steps.map((step, index) => {
                         const Icon = step.icon;
                         return (

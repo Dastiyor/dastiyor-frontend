@@ -26,6 +26,7 @@ function RegisterContent() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [passwordFeedback, setPasswordFeedback] = useState<string[]>([]);
+    const [showPassword, setShowPassword] = useState(false);
     const router = useRouter();
     const { t } = useTranslation();
 
@@ -216,12 +217,14 @@ function RegisterContent() {
 
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <label style={{ fontWeight: '500', fontSize: '0.9rem' }}>{t('auth.fullName')}</label>
+                    <label htmlFor="reg-fullName" style={{ fontWeight: '500', fontSize: '0.9rem' }}>{t('auth.fullName')}</label>
                     <input
+                        id="reg-fullName"
                         name="fullName"
                         type="text"
                         placeholder={t('auth.fullNamePlaceholder')}
                         required
+                        maxLength={100}
                         style={{
                             padding: '12px 16px',
                             borderRadius: '8px',
@@ -233,12 +236,14 @@ function RegisterContent() {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <label style={{ fontWeight: '500', fontSize: '0.9rem' }}>{t('auth.emailLabel')}</label>
+                    <label htmlFor="reg-email" style={{ fontWeight: '500', fontSize: '0.9rem' }}>{t('auth.emailLabel')}</label>
                     <input
+                        id="reg-email"
                         name="email"
                         type="email"
                         placeholder={t('auth.emailPlaceholder')}
                         required
+                        maxLength={254}
                         style={{
                             padding: '12px 16px',
                             borderRadius: '8px',
@@ -250,11 +255,14 @@ function RegisterContent() {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <label style={{ fontWeight: '500', fontSize: '0.9rem' }}>{t('auth.phone')}</label>
+                    <label htmlFor="reg-phone" style={{ fontWeight: '500', fontSize: '0.9rem' }}>{t('auth.phone')}</label>
                     <input
+                        id="reg-phone"
                         name="phone"
                         type="tel"
                         placeholder="+992 00 000 0000"
+                        pattern="[+]?[0-9\s\-\(\)]{7,20}"
+                        maxLength={20}
                         style={{
                             padding: '12px 16px',
                             borderRadius: '8px',
@@ -266,36 +274,66 @@ function RegisterContent() {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <label style={{ fontWeight: '500', fontSize: '0.9rem' }}>{t('auth.passwordLabel')}</label>
-                    <input
-                        name="password"
-                        type="password"
-                        placeholder={t('auth.passwordHint')}
-                        required
-                        minLength={8}
-                        onChange={(e) => {
-                            const p = e.target.value;
-                            if (!p) {
-                                setPasswordFeedback([]);
-                                return;
-                            }
-                            const { isStrong, feedback } = checkPasswordStrength(p);
-                            setPasswordFeedback(isStrong ? [] : feedback);
-                        }}
-                        onBlur={(e) => {
-                            const p = e.target.value;
-                            if (!p) return;
-                            const { isStrong, feedback } = checkPasswordStrength(p);
-                            setPasswordFeedback(isStrong ? [] : feedback);
-                        }}
-                        style={{
-                            padding: '12px 16px',
-                            borderRadius: '8px',
-                            border: `1px solid ${passwordFeedback.length > 0 ? '#ef4444' : 'var(--border)'}`,
-                            fontSize: '1rem',
-                            outline: 'none',
-                        }}
-                    />
+                    <label htmlFor="reg-password" style={{ fontWeight: '500', fontSize: '0.9rem' }}>{t('auth.passwordLabel')}</label>
+                    <div style={{ position: 'relative' }}>
+                        <input
+                            id="reg-password"
+                            name="password"
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder={t('auth.passwordHint')}
+                            required
+                            minLength={8}
+                            onChange={(e) => {
+                                const p = e.target.value;
+                                if (!p) { setPasswordFeedback([]); return; }
+                                const { isStrong, feedback } = checkPasswordStrength(p);
+                                setPasswordFeedback(isStrong ? [] : feedback);
+                            }}
+                            onBlur={(e) => {
+                                const p = e.target.value;
+                                if (!p) return;
+                                const { isStrong, feedback } = checkPasswordStrength(p);
+                                setPasswordFeedback(isStrong ? [] : feedback);
+                            }}
+                            style={{
+                                width: '100%',
+                                padding: '12px 44px 12px 16px',
+                                borderRadius: '8px',
+                                border: `1px solid ${passwordFeedback.length > 0 ? '#ef4444' : 'var(--border)'}`,
+                                fontSize: '1rem',
+                                outline: 'none',
+                                boxSizing: 'border-box',
+                            }}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+                            style={{
+                                position: 'absolute',
+                                right: '12px',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                color: 'var(--text-light)',
+                                padding: '4px',
+                                display: 'flex',
+                                alignItems: 'center',
+                            }}
+                        >
+                            {showPassword ? (
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
+                                </svg>
+                            ) : (
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" />
+                                </svg>
+                            )}
+                        </button>
+                    </div>
                     <span style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>
                         {t('auth.passwordHint')}
                     </span>
@@ -315,7 +353,7 @@ function RegisterContent() {
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className={`btn ${role === 'provider' ? 'btn-accent' : 'btn-primary'}`}
+                    className="btn btn-primary"
                     style={{ width: '100%', marginTop: '8px', opacity: isLoading ? 0.7 : 1 }}
                 >
                     {isLoading ? t('auth.creatingAccount') : t('auth.createAccount')}

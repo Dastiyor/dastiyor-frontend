@@ -8,7 +8,6 @@ import { cookies } from 'next/headers';
 import { verifyJWT } from '@/lib/auth';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
-import CustomerTaskActions from '@/components/tasks/CustomerTaskActions';
 
 type Props = {
     params: {
@@ -22,7 +21,7 @@ export default async function CustomerTaskDetailsPage({ params }: Props) {
         where: { id },
         include: {
             user: {
-                select: { id: true, fullName: true, avatar: true, email: true, phone: true }
+                select: { id: true, fullName: true, avatar: true, email: true, phone: true, createdAt: true }
             },
             assignedUser: {
                 select: { id: true, fullName: true, avatar: true, email: true, phone: true }
@@ -237,7 +236,6 @@ export default async function CustomerTaskDetailsPage({ params }: Props) {
                             isOwner={isOwner}
                             canRespond={false} // Customer can't respond to their own task
                         />
-                        <CustomerTaskActions taskId={task.id} taskStatus={task.status} />
                     </div>
                 </aside>
             </div>

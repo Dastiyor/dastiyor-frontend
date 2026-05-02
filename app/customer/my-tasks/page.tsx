@@ -92,13 +92,13 @@ export default async function CustomerMyTasksPage() {
                                         borderRadius: '20px',
                                         fontSize: '0.75rem',
                                         fontWeight: '600',
-                                        backgroundColor: task.status === 'OPEN' ? '#DBEAFE' : task.status === 'IN_PROGRESS' ? '#FEF3C7' : '#D1FAE5',
-                                        color: task.status === 'OPEN' ? '#1D4ED8' : task.status === 'IN_PROGRESS' ? '#D97706' : '#059669'
+                                        backgroundColor: task.status === 'OPEN' ? '#DBEAFE' : task.status === 'IN_PROGRESS' ? '#FEF3C7' : task.status === 'CANCELLED' ? '#FEE2E2' : '#D1FAE5',
+                                        color: task.status === 'OPEN' ? '#1D4ED8' : task.status === 'IN_PROGRESS' ? '#D97706' : task.status === 'CANCELLED' ? '#DC2626' : '#059669'
                                     }}>
                                         {task.status}
                                     </span>
                                     <span style={{ color: '#64748B', fontSize: '0.85rem' }}>
-                                        {new Date(task.createdAt).toLocaleDateString()}
+                                        {new Date(task.createdAt).toLocaleDateString('ru-RU')}
                                     </span>
                                 </div>
                                 <Link href={`/customer/tasks/${task.id}`} style={{ textDecoration: 'none' }}>

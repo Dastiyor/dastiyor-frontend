@@ -10,12 +10,13 @@ type ResponseListProps = {
     taskId: string;
     responses: any[];
     currentUserId: string | null;
+    currentUserRole?: string | null;
     taskOwnerId: string;
     assignedUserId?: string | null;
     taskStatus?: string;
 };
 
-export default function ResponseList({ taskId, responses, currentUserId, taskOwnerId, assignedUserId, taskStatus }: ResponseListProps) {
+export default function ResponseList({ taskId, responses, currentUserId, currentUserRole, taskOwnerId, assignedUserId, taskStatus }: ResponseListProps) {
     const router = useRouter();
     const { confirm, Dialog } = useConfirm();
     const { t } = useTranslation();
@@ -25,7 +26,7 @@ export default function ResponseList({ taskId, responses, currentUserId, taskOwn
     const [completingTask, setCompletingTask] = useState(false);
 
     const isOwner = currentUserId === taskOwnerId;
-    const canRespond = currentUserId && !isOwner && taskStatus === 'OPEN';
+    const canRespond = currentUserId && !isOwner && taskStatus === 'OPEN' && currentUserRole === 'PROVIDER';
     const isTaskOpen = taskStatus === 'OPEN';
     const isTaskInProgress = taskStatus === 'IN_PROGRESS';
 

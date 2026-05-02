@@ -145,10 +145,12 @@ export default async function TaskDetailsPage({ params }: Props) {
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
     let currentUserId = null;
+    let currentUserRole: string | null = null;
     if (token) {
         const payload = await verifyJWT(token);
         if (payload) {
             currentUserId = payload.id as string;
+            currentUserRole = payload.role as string;
         }
     }
 
@@ -293,6 +295,7 @@ export default async function TaskDetailsPage({ params }: Props) {
                             taskId={task.id}
                             responses={task.responses}
                             currentUserId={currentUserId}
+                            currentUserRole={currentUserRole}
                             taskOwnerId={task.userId}
                             assignedUserId={task.assignedUserId}
                             taskStatus={task.status}
@@ -304,7 +307,7 @@ export default async function TaskDetailsPage({ params }: Props) {
                         <TaskSidebar
                             task={task}
                             isOwner={currentUserId === task.userId}
-                            canRespond={!!currentUserId && currentUserId !== task.userId}
+                            canRespond={!!currentUserId && currentUserId !== task.userId && currentUserRole === 'PROVIDER'}
                         />
                     </aside>
                 </div>

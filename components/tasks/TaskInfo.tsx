@@ -34,7 +34,7 @@ export default function TaskInfo({ task }: TaskInfoProps) {
                         {task.status.toLowerCase()}
                     </span>
                     <span style={{ color: 'var(--text-light)', fontSize: '0.9rem' }}>
-                        Posted {new Date(task.createdAt).toLocaleDateString()}
+                        Posted {new Date(task.createdAt).toLocaleDateString('ru-RU')}
                     </span>
                     <span style={{ color: 'var(--text-light)', fontSize: '0.9rem' }}>•</span>
                     <span style={{ color: 'var(--text-light)', fontSize: '0.9rem' }}>{task.budgetType === 'fixed' ? `${task.budgetAmount} TJS` : 'Negotiable'}</span>

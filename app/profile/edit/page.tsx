@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { toast } from '@/components/ui/Toast';
 
 type UserProfile = {
     id: string;
@@ -23,7 +24,6 @@ export default function EditProfilePage() {
     const [saving, setSaving] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
 
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [formData, setFormData] = useState({
@@ -93,7 +93,6 @@ export default function EditProfilePage() {
         e.preventDefault();
         setSaving(true);
         setError('');
-        setSuccess('');
 
         try {
             const res = await fetch('/api/profile', {
@@ -105,7 +104,7 @@ export default function EditProfilePage() {
             const data = await res.json();
 
             if (res.ok) {
-                setSuccess('Profile updated successfully!');
+                toast.success('Profile updated successfully!');
                 setProfile(data.user);
                 setTimeout(() => router.push('/profile'), 1500);
             } else {
@@ -158,18 +157,6 @@ export default function EditProfilePage() {
                             marginBottom: '20px'
                         }}>
                             {error}
-                        </div>
-                    )}
-
-                    {success && (
-                        <div style={{
-                            backgroundColor: '#dcfce7',
-                            color: '#166534',
-                            padding: '12px 16px',
-                            borderRadius: '8px',
-                            marginBottom: '20px'
-                        }}>
-                            {success}
                         </div>
                     )}
 

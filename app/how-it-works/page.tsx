@@ -45,7 +45,7 @@ export default function HowItWorksPage() {
                     marginBottom: '80px'
                 }}>
                     <style>{`
-                        @media (max-width: 900px) { .how-it-works-grid { grid-template-columns: repeat(2, 1fr) !important; } }
+                        @media (max-width: 1024px) { .how-it-works-grid { grid-template-columns: repeat(2, 1fr) !important; } }
                         @media (max-width: 520px) { .how-it-works-grid { grid-template-columns: 1fr !important; } }
                     `}</style>
                     {steps.map((step, index) => {

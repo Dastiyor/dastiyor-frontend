@@ -121,16 +121,16 @@ async function main() {
         },
     ];
 
+    let seeded = 0;
     for (const t of tasksData) {
-        await prisma.task.create({
-            data: {
-                ...t,
-                userId: customer.id,
-            },
-        });
+        const exists = await prisma.task.findFirst({ where: { title: t.title, userId: customer.id } });
+        if (!exists) {
+            await prisma.task.create({ data: { ...t, userId: customer.id } });
+            seeded++;
+        }
     }
 
-    console.log(`Seeded ${tasksData.length} tasks.`);
+    console.log(`Seeded ${seeded} new tasks (${tasksData.length - seeded} already existed).`);
 }
 
 main()

@@ -26,14 +26,21 @@ export default async function TasksPage({ searchParams }: Props) {
     const { category, city, minBudget, maxBudget, urgency, sort, query } = params;
     const { t } = await getServerTranslation();
 
-    // Get category counts and total for sidebar (lightweight queries)
-    const categoryCounts = await prisma.task.groupBy({
-        by: ['category'],
-        where: { status: 'OPEN' },
-        _count: true
-    });
+    // Get category counts — apply city/query filters so sidebar reflects current filter context
+    const categoryCountWhere: any = { status: 'OPEN' };
+    if (city) categoryCountWhere.city = { contains: city, mode: 'insensitive' };
+    if (query) {
+        categoryCountWhere.OR = [
+            { title: { contains: query, mode: 'insensitive' } },
+            { description: { contains: query, mode: 'insensitive' } },
+            { category: { contains: query, mode: 'insensitive' } },
+        ];
+    }
 
-    const totalOpenTasks = await prisma.task.count({ where: { status: 'OPEN' } });
+    const [categoryCounts, totalOpenTasks] = await Promise.all([
+        prisma.task.groupBy({ by: ['category'], where: categoryCountWhere, _count: true }),
+        prisma.task.count({ where: { status: 'OPEN' } }),
+    ]);
 
     // Build filtered count matching the API query logic
     const hasFilter = category || city || minBudget || maxBudget || urgency || query;

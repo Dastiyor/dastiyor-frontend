@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslation } from '@/lib/i18n';
 import {
     LayoutDashboard,
     PlusCircle,
@@ -12,14 +13,15 @@ import {
 
 export default function CustomerSidebarNav() {
     const pathname = usePathname();
+    const { t } = useTranslation();
     const accentColor = 'var(--primary)';
 
     const navItems = [
-        { href: '/customer', label: 'Dashboard', icon: LayoutDashboard, exact: true },
-        { href: '/customer/create-task', label: 'Create Task', icon: PlusCircle },
-        { href: '/customer/my-tasks', label: 'My Tasks', icon: ClipboardList },
-        { href: '/customer/messages', label: 'Messages', icon: MessageSquare },
-        { href: '/customer/profile', label: 'Profile', icon: User },
+        { href: '/customer', label: t('customer.dashboard'), icon: LayoutDashboard, exact: true },
+        { href: '/create-task', label: t('customer.createTask'), icon: PlusCircle },
+        { href: '/customer/my-tasks', label: t('customer.myTasks'), icon: ClipboardList },
+        { href: '/customer/messages', label: t('customer.messages'), icon: MessageSquare },
+        { href: '/customer/profile', label: t('customer.profile'), icon: User },
     ];
 
     const isActive = (href: string, exact?: boolean) => {
@@ -58,8 +60,6 @@ export default function CustomerSidebarNav() {
                     </Link>
                 );
             })}
-
-
         </nav>
     );
 }

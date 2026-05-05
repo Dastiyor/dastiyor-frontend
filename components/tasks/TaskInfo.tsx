@@ -1,27 +1,29 @@
 'use client';
 
-// Function to format date time "Tomorrow, 14:00" style or simpler
-const formatDate = (date: Date) => {
-    return new Date(date).toLocaleString('en-US', {
-        weekday: 'short',
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-};
+import { useTranslation } from '@/lib/i18n';
 
 type TaskInfoProps = {
-    task: any; // We can improve typing later with Prisma generated types
+    task: any;
 };
 
 export default function TaskInfo({ task }: TaskInfoProps) {
+    const { t } = useTranslation();
+
+    const statusLabel = (() => {
+        switch (task.status) {
+            case 'OPEN': return t('tasks.open');
+            case 'IN_PROGRESS': return t('tasks.inProgress');
+            case 'COMPLETED': return t('tasks.completed');
+            case 'CANCELLED': return t('tasks.cancelled');
+            default: return task.status.toLowerCase();
+        }
+    })();
+
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
             {/* Title & Meta */}
             <div>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap' }}>
                     <span style={{
                         backgroundColor: '#e8f0fe',
                         color: 'var(--primary)',
@@ -29,35 +31,35 @@ export default function TaskInfo({ task }: TaskInfoProps) {
                         borderRadius: '16px',
                         fontSize: '0.85rem',
                         fontWeight: '600',
-                        textTransform: 'capitalize'
                     }}>
-                        {task.status.toLowerCase()}
+                        {statusLabel}
                     </span>
                     <span style={{ color: 'var(--text-light)', fontSize: '0.9rem' }}>
-                        Posted {new Date(task.createdAt).toLocaleDateString('ru-RU')}
+                        {t('tasks.publishedBy')} {new Date(task.createdAt).toLocaleDateString('ru-RU')}
                     </span>
                     <span style={{ color: 'var(--text-light)', fontSize: '0.9rem' }}>•</span>
-                    <span style={{ color: 'var(--text-light)', fontSize: '0.9rem' }}>{task.budgetType === 'fixed' ? `${task.budgetAmount} TJS` : 'Negotiable'}</span>
+                    <span style={{ color: 'var(--text-light)', fontSize: '0.9rem' }}>
+                        {task.budgetType === 'fixed' ? `${task.budgetAmount} TJS` : t('common.negotiable')}
+                    </span>
                 </div>
 
                 <h1 className="heading-lg" style={{ marginBottom: '24px' }}>{task.title}</h1>
 
-                <div style={{ display: 'flex', gap: '40px', borderBottom: '1px solid var(--border)', paddingBottom: '24px' }}>
+                <div style={{ display: 'flex', gap: '40px', borderBottom: '1px solid var(--border)', paddingBottom: '24px', flexWrap: 'wrap' }}>
                     <div>
-                        <div style={{ color: 'var(--text-light)', fontSize: '0.85rem', marginBottom: '4px' }}>Category</div>
+                        <div style={{ color: 'var(--text-light)', fontSize: '0.85rem', marginBottom: '4px' }}>{t('tasks.category')}</div>
                         <div style={{ fontWeight: '500' }}>{task.category}</div>
                     </div>
                     <div>
-                        <div style={{ color: 'var(--text-light)', fontSize: '0.85rem', marginBottom: '4px' }}>Location</div>
+                        <div style={{ color: 'var(--text-light)', fontSize: '0.85rem', marginBottom: '4px' }}>{t('createTask.location')}</div>
                         <div style={{ fontWeight: '500' }}>{task.city}{task.address ? `, ${task.address}` : ''}</div>
                     </div>
-                    {/* Simplified "When" logic for now as we don't capture date yet, relying on created time or description */}
                 </div>
             </div>
 
             {/* Description */}
             <div>
-                <h3 className="heading-md">Description</h3>
+                <h3 className="heading-md">{t('tasks.description')}</h3>
                 <p style={{ lineHeight: '1.7', color: 'var(--text-light)', whiteSpace: 'pre-wrap' }}>
                     {task.description}
                 </p>
@@ -70,7 +72,7 @@ export default function TaskInfo({ task }: TaskInfoProps) {
                     if (Array.isArray(images) && images.length > 0) {
                         return (
                             <div>
-                                <h3 className="heading-md" style={{ fontSize: '1.2rem', marginBottom: '16px' }}>Photos</h3>
+                                <h3 className="heading-md" style={{ fontSize: '1.2rem', marginBottom: '16px' }}>{t('tasks.photos')}</h3>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '16px' }}>
                                     {images.map((url: string, idx: number) => (
                                         <div key={idx} style={{

@@ -2,23 +2,22 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslation } from '@/lib/i18n';
 import {
     LayoutDashboard,
     FileText,
     User,
-    CreditCard, // TODO: Re-enable when payment gateway is ready
 } from 'lucide-react';
 
 export default function ProviderSidebarNav() {
     const pathname = usePathname();
+    const { t } = useTranslation();
     const accentColor = 'var(--primary)';
 
     const navItems = [
-        { href: '/provider', label: 'Dashboard', icon: LayoutDashboard, exact: true },
-        { href: '/provider/my-responses', label: 'My Responses', icon: FileText },
-        { href: '/provider/profile', label: 'Profile', icon: User },
-        // TODO: Re-enable when payment gateway is ready
-        // { href: '/provider/subscription', label: 'Subscription', icon: CreditCard },
+        { href: '/provider', label: t('provider.dashboard'), icon: LayoutDashboard, exact: true },
+        { href: '/provider/my-responses', label: t('provider.myResponses'), icon: FileText },
+        { href: '/provider/profile', label: t('provider.profile'), icon: User },
     ];
 
     const isActive = (href: string, exact?: boolean) => {

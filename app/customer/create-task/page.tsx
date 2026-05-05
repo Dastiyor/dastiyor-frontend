@@ -180,7 +180,7 @@ export default function CustomerCreateTaskPage() {
                             />
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
+                        <div className="form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
                             <div>
                                 <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Category</label>
                                 <select
@@ -256,7 +256,7 @@ export default function CustomerCreateTaskPage() {
                     {/* Location Details Card */}
                     <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '32px', marginBottom: '24px', border: '1px solid #E2E8F0' }}>
                         <h2 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '24px', color: '#111827' }}>Location</h2>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px', marginBottom: '24px' }}>
+                        <div className="form-row-2" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px', marginBottom: '24px' }}>
                             <div>
                                 <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>City / District</label>
                                 <input
@@ -326,7 +326,7 @@ export default function CustomerCreateTaskPage() {
                     {/* Pricing & Schedule */}
                     <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '32px', marginBottom: '24px', border: '1px solid #E2E8F0' }}>
                         <h2 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '24px', color: '#111827' }}>Budget</h2>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                        <div className="form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
                             <div>
                                 <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>Budget Type</label>
                                 <div style={{ display: 'flex', gap: '12px' }}>
@@ -447,6 +447,7 @@ export default function CustomerCreateTaskPage() {
             </div>
         <style>{`
             @media (max-width: 900px) { .create-task-grid { grid-template-columns: 1fr !important; } }
+            @media (max-width: 480px) { .form-row-2 { grid-template-columns: 1fr !important; } }
         `}</style>
         </div>
     );

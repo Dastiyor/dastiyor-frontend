@@ -178,7 +178,7 @@ export default async function ProfilePage() {
                     {user.role === 'PROVIDER' && (
                         <div style={{ marginBottom: '40px', padding: '24px', backgroundColor: '#F9FAFB', borderRadius: '16px', border: '1px solid var(--border)' }}>
                             <h3 className="heading-md" style={{ marginBottom: '16px' }}>{t('profile.providerDashboard')}</h3>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+                            <div className="profile-dash-links" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
                                 <Link href="/provider/my-responses" className="btn btn-outline" style={{ justifyContent: 'flex-start', textAlign: 'left' }}>
                                     📝 {t('profile.myResponses')}
                                 </Link>
@@ -219,6 +219,7 @@ export default async function ProfilePage() {
                 </div>
             <style>{`
                 @media (max-width: 480px) { .profile-stats-grid { grid-template-columns: 1fr !important; } }
+                @media (max-width: 400px) { .profile-dash-links { grid-template-columns: 1fr !important; } }
             `}</style>
             </div>
         </div>

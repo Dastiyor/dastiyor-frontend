@@ -226,7 +226,7 @@ export default function CreateTaskPage() {
                                 />
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
+                            <div className="form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>{t('createTask.category')}</label>
                                     <select
@@ -300,7 +300,7 @@ export default function CreateTaskPage() {
                         {/* Location Details Card */}
                         <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '32px', marginBottom: '24px', boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)' }}>
                             <h2 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '24px', color: '#111827' }}>{t('createTask.location')}</h2>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px', marginBottom: '24px' }}>
+                            <div className="form-row-2" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px', marginBottom: '24px' }}>
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>{t('createTask.cityLabel')}</label>
                                     <input
@@ -372,7 +372,7 @@ export default function CreateTaskPage() {
                         {/* Pricing & Schedule */}
                         <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '32px', marginBottom: '24px', boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)' }}>
                             <h2 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '24px', color: '#111827' }}>{t('createTask.pricingSchedule')}</h2>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                            <div className="form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>{t('createTask.budgetType')}</label>
                                     <div style={{ display: 'flex', gap: '12px' }}>
@@ -500,6 +500,7 @@ export default function CreateTaskPage() {
                     .create-task-grid { grid-template-columns: 1fr !important; }
                     .create-task-grid > div:last-child { order: -1; }
                 }
+                @media (max-width: 480px) { .form-row-2 { grid-template-columns: 1fr !important; } }
             `}</style>
             </div>
         </div>

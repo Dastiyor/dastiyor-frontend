@@ -111,7 +111,7 @@ export default async function ProfilePage() {
                             <span style={{ color: '#64748B', fontSize: '0.85rem' }}>({reviews.length} reviews)</span>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+                        <div className="prov-contact-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#475569', fontSize: '0.9rem' }}>
                                 <Mail size={16} color="#64748B" />
                                 {user.email}
@@ -188,6 +188,7 @@ export default async function ProfilePage() {
                 @media (max-width: 640px) {
                     .prov-profile-stats { grid-template-columns: repeat(2, 1fr) !important; }
                 }
+                @media (max-width: 400px) { .prov-contact-grid { grid-template-columns: 1fr !important; } }
             `}</style>
         </>
     );

@@ -130,7 +130,7 @@ export default async function SubscriptionPage() {
             )}
 
             {/* Plans */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+            <div className="sub-plans-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
                 {plans.map((plan) => (
                     <div
                         key={plan.name}
@@ -222,7 +222,7 @@ export default async function SubscriptionPage() {
                     <Zap size={20} color={accentColor} />
                     Why Upgrade?
                 </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+                <div className="sub-benefits-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
                     <div>
                         <div style={{ fontWeight: '600', color: '#1E293B', marginBottom: '4px' }}>More Visibility</div>
                         <p style={{ fontSize: '0.85rem', color: '#64748B', lineHeight: '1.5' }}>
@@ -242,7 +242,11 @@ export default async function SubscriptionPage() {
                         </p>
                     </div>
                 </div>
-            </div>
+            <style>{`
+            @media (max-width: 900px) { .sub-plans-grid { grid-template-columns: 1fr !important; } }
+            @media (max-width: 640px) { .sub-benefits-grid { grid-template-columns: 1fr !important; } }
+        `}</style>
+        </div>
         </>
     );
 }

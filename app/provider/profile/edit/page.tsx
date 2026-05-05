@@ -140,12 +140,13 @@ export default function ProviderEditProfilePage() {
                     </Link>
                 </div>
 
-                <div style={{
+                <div className="edit-card" style={{
                     backgroundColor: 'white',
                     borderRadius: '24px',
                     padding: '40px',
                     border: '1px solid #E2E8F0'
                 }}>
+                    <style>{`@media (max-width: 480px) { .edit-card { padding: 20px !important; border-radius: 16px !important; } }`}</style>
                     <h1 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#1E293B', marginBottom: '32px' }}>Edit Profile</h1>
 
                     {error && (

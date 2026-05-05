@@ -67,7 +67,7 @@ export default async function ReviewsComplaintsPage() {
                 </div>
 
                 {/* Stats */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px' }}>
+                <div className="admin-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '32px' }}>
                     <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '16px', border: '1px solid var(--border)' }}>
                         <div style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '8px' }}>{stats.total}</div>
                         <div style={{ color: 'var(--text-light)' }}>Всего отзывов</div>
@@ -234,6 +234,10 @@ export default async function ReviewsComplaintsPage() {
                             })}
                         </div>
                     )}
+                <style>{`
+                    @media (max-width: 768px) { .admin-stats-grid { grid-template-columns: repeat(2, 1fr) !important; } }
+                    @media (max-width: 480px) { .admin-stats-grid { grid-template-columns: 1fr !important; } }
+                `}</style>
                 </div>
             </div>
         </div>

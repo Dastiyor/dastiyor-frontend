@@ -6,10 +6,9 @@ import Link from 'next/link';
 import {
     LayoutDashboard,
     Search,
-    Bell,
-    Settings
 } from 'lucide-react';
 import CustomerSidebarNav from './CustomerSidebarNav';
+import CustomerMobileNav from './CustomerMobileNav';
 import UserMenu from '@/components/UserMenu';
 
 export const dynamic = 'force-dynamic';
@@ -46,9 +45,25 @@ export default async function CustomerLayout({
     const accentColor = 'var(--primary)';
 
     return (
+        <>
+        <style>{`
+            @media (max-width: 768px) {
+                .dashboard-sidebar { display: none !important; }
+                .dashboard-main { margin-left: 0 !important; }
+                .mobile-dash-btn { display: flex !important; }
+                .dashboard-search { display: none !important; }
+                .mobile-dash-logo { display: flex !important; }
+                .dashboard-header { padding: 12px 16px !important; }
+                .dashboard-content { padding: 16px !important; }
+            }
+            @media (min-width: 769px) {
+                .mobile-dash-btn { display: none !important; }
+                .mobile-dash-logo { display: none !important; }
+            }
+        `}</style>
         <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#F8FAFC' }}>
             {/* Left Sidebar - Light Theme */}
-            <aside style={{
+            <aside className="dashboard-sidebar" style={{
                 width: '240px',
                 backgroundColor: '#FFFFFF',
                 borderRight: '1px solid #E2E8F0',
@@ -86,22 +101,30 @@ export default async function CustomerLayout({
             </aside>
 
             {/* Main Content */}
-            <div style={{ flex: 1, marginLeft: '240px', display: 'flex', flexDirection: 'column' }}>
+            <div className="dashboard-main" style={{ flex: 1, marginLeft: '240px', display: 'flex', flexDirection: 'column' }}>
                 {/* Top Header */}
-                <header style={{
+                <header className="dashboard-header" style={{
                     backgroundColor: 'white',
                     padding: '16px 32px',
                     borderBottom: '1px solid #E2E8F0',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    gap: '24px',
+                    gap: '16px',
                     position: 'sticky',
                     top: 0,
                     zIndex: 40
                 }}>
-                    <div style={{ flex: 1, maxWidth: '400px', position: 'relative' }}>
-                        {/* Search could be for finding services */}
+                    {/* Mobile: hamburger */}
+                    <CustomerMobileNav />
+
+                    {/* Mobile: logo text */}
+                    <div className="mobile-dash-logo" style={{ display: 'none', fontWeight: '700', fontSize: '1rem', color: '#1E293B', flex: 1 }}>
+                        Dastiyor
+                    </div>
+
+                    {/* Desktop: search */}
+                    <div className="dashboard-search" style={{ flex: 1, maxWidth: '400px', position: 'relative' }}>
                         <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
                         <input
                             type="text"
@@ -118,17 +141,18 @@ export default async function CustomerLayout({
                         />
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginLeft: 'auto' }}>
                         {/* UserMenu handles Bell and Profile */}
                         <UserMenu user={user} />
                     </div>
                 </header>
 
                 {/* Page Content */}
-                <main style={{ flex: 1, padding: '28px 32px', overflowY: 'auto' }}>
+                <main className="dashboard-content" style={{ flex: 1, padding: '28px 32px', overflowY: 'auto' }}>
                     {children}
                 </main>
             </div>
         </div>
+        </>
     );
 }

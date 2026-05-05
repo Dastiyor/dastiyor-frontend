@@ -184,7 +184,7 @@ export default async function TaskDetailsPage({ params }: Props) {
                     <span>{task.title}</span>
                 </div>
 
-                <div style={{
+                <div className="task-detail-grid" style={{
                     display: 'grid',
                     gridTemplateColumns: 'minmax(0, 1fr) 360px',
                     gap: '40px',
@@ -311,6 +311,11 @@ export default async function TaskDetailsPage({ params }: Props) {
                         />
                     </aside>
                 </div>
+            <style>{`
+                @media (max-width: 900px) {
+                    .task-detail-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
+                }
+            `}</style>
             </div>
         </div>
     );

@@ -140,12 +140,13 @@ export default function EditProfilePage() {
                     </Link>
                 </div>
 
-                <div style={{
+                <div className="edit-card" style={{
                     backgroundColor: 'white',
                     borderRadius: '24px',
                     padding: '40px',
                     border: '1px solid var(--border)'
                 }}>
+                    <style>{`@media (max-width: 480px) { .edit-card { padding: 20px !important; border-radius: 16px !important; } }`}</style>
                     <h1 className="heading-lg" style={{ marginBottom: '32px' }}>Edit Profile</h1>
 
                     {error && (

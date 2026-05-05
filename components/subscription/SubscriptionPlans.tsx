@@ -102,7 +102,7 @@ export default function SubscriptionPlans({ currentPlan }: Props) {
     };
 
     return (
-        <div style={{
+        <div className="sub-plans-grid" style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(3, 1fr)',
             gap: '24px'
@@ -216,6 +216,10 @@ export default function SubscriptionPlans({ currentPlan }: Props) {
                     )}
                 </div>
             ))}
+            <style>{`
+                @media (max-width: 900px) { .sub-plans-grid { grid-template-columns: repeat(2, 1fr) !important; } }
+                @media (max-width: 480px) { .sub-plans-grid { grid-template-columns: 1fr !important; } }
+            `}</style>
         </div>
     );
 }

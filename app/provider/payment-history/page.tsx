@@ -62,7 +62,7 @@ export default async function PaymentHistoryPage() {
                 </div>
 
                 {/* Summary Card */}
-                <div style={{
+                <div className="payment-summary-grid" style={{
                     backgroundColor: 'white',
                     padding: '32px',
                     borderRadius: '16px',
@@ -179,6 +179,9 @@ export default async function PaymentHistoryPage() {
                     )}
                 </div>
             </div>
+        <style>{`
+            @media (max-width: 480px) { .payment-summary-grid { grid-template-columns: 1fr !important; } }
+        `}</style>
         </div>
     );
 }

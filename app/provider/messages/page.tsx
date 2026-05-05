@@ -87,7 +87,7 @@ export default async function ProviderMessagesPage() {
         <div>
             <h1 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#1E293B', marginBottom: '24px' }}> Messages</h1>
 
-            <div style={{
+            <div className="messages-grid" style={{
                 display: 'grid',
                 gridTemplateColumns: '320px 1fr',
                 gap: '24px',
@@ -147,6 +147,12 @@ export default async function ProviderMessagesPage() {
                     <ChatInterface currentUserId={userId} />
                 </Suspense>
             </div>
+            <style>{`
+                @media (max-width: 768px) {
+                    .messages-grid { grid-template-columns: 1fr !important; height: auto !important; min-height: 0 !important; }
+                    .messages-grid > div:first-child { height: 300px !important; }
+                }
+            `}</style>
         </div>
     );
 }

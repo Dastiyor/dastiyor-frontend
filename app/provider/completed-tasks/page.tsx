@@ -71,7 +71,7 @@ export default async function CompletedTasksPage() {
             </div>
 
             {/* Stats Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
+            <div className="completed-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px' }}>
                 <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
                     <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#1E293B', marginBottom: '4px' }}>{stats.total}</div>
                     <div style={{ fontSize: '0.8rem', color: '#64748B' }}>{t('provider.completedTasksCount')}</div>
@@ -226,7 +226,11 @@ export default async function CompletedTasksPage() {
                         </div>
                     ))
                 )}
-            </div>
+            <style>{`
+            @media (max-width: 900px) { .completed-stats-grid { grid-template-columns: repeat(2, 1fr) !important; } }
+            @media (max-width: 640px) { .completed-stats-grid { grid-template-columns: 1fr !important; } }
+        `}</style>
+        </div>
         </>
     );
 }

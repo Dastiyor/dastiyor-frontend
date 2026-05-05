@@ -110,7 +110,7 @@ export default async function TaskFeedPage({
                 </p>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 300px', gap: '32px', alignItems: 'start' }}>
+            <div className="task-feed-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 300px', gap: '32px', alignItems: 'start' }}>
 
                 {/* Main Content: Tasks List */}
                 <div style={{ display: 'grid', gap: '16px' }}>
@@ -361,6 +361,12 @@ export default async function TaskFeedPage({
                     </form>
                 </div>
             </div>
+            <style>{`
+                @media (max-width: 900px) {
+                    .task-feed-grid { grid-template-columns: 1fr !important; }
+                    .task-feed-grid > div:last-child { order: -1; }
+                }
+            `}</style>
         </div>
     );
 }

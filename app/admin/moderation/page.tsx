@@ -106,7 +106,7 @@ export default async function AdminModerationPage() {
                 </div>
 
                 {/* Stats */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '32px' }}>
+                <div className="admin-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '32px' }}>
                     <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '16px', border: '1px solid var(--border)' }}>
                         <div style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '8px', color: '#F59E0B' }}>{pendingTasks.length}</div>
                         <div style={{ color: 'var(--text-light)' }}>Новых заданий (24ч)</div>
@@ -292,6 +292,9 @@ export default async function AdminModerationPage() {
                         </div>
                     )}
                 </div>
+            <style>{`
+                @media (max-width: 640px) { .admin-stats-grid { grid-template-columns: 1fr !important; } }
+            `}</style>
             </div>
         </div>
     );

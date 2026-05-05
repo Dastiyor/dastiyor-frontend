@@ -162,7 +162,7 @@ export default function CustomerCreateTaskPage() {
                 </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '32px' }}>
+            <div className="create-task-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '32px' }}>
                 {/* Main Form Column */}
                 <div>
                     {/* General Information Card */}
@@ -445,6 +445,9 @@ export default function CustomerCreateTaskPage() {
                     </div>
                 </div>
             </div>
+        <style>{`
+            @media (max-width: 900px) { .create-task-grid { grid-template-columns: 1fr !important; } }
+        `}</style>
         </div>
     );
 }

@@ -8,9 +8,9 @@ export default function PopularTasks() {
     const { t } = useTranslation();
     const tasks = PREVIEW_TASKS.slice(0, 3);
     return (
-        <section style={{ padding: '100px 0', backgroundColor: '#F9FAFB' }}>
+        <section className="popular-tasks-section" style={{ padding: '100px 0', backgroundColor: '#F9FAFB' }}>
             <div className="container">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', marginBottom: '40px' }}>
+                <div className="popular-tasks-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', marginBottom: '40px' }}>
                     <div>
                         <h2 className="heading-lg">{t('popularTasks.title')}</h2>
                         <p style={{ color: 'var(--text-light)', marginTop: '8px' }}>
@@ -24,7 +24,7 @@ export default function PopularTasks() {
 
                 <div style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
                     gap: '24px'
                 }}>
                     {tasks.map((task, index) => (
@@ -91,6 +91,12 @@ export default function PopularTasks() {
                         </div>
                     ))}
                 </div>
+            <style>{`
+                @media (max-width: 768px) {
+                    .popular-tasks-section { padding: 60px 0 !important; }
+                    .popular-tasks-header { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; margin-bottom: 28px !important; }
+                }
+            `}</style>
             </div>
         </section>
     );

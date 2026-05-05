@@ -5,9 +5,9 @@ import { useTranslation } from '@/lib/i18n';
 export default function CallToAction() {
     const { t } = useTranslation();
     return (
-        <section style={{ padding: '80px 0 100px' }}>
+        <section className="cta-section" style={{ padding: '80px 0 100px' }}>
             <div className="container">
-                <div style={{
+                <div className="cta-inner" style={{
                     background: 'linear-gradient(135deg, var(--primary) 0%, #1E40AF 100%)',
                     borderRadius: '30px',
                     padding: '60px 40px',
@@ -68,6 +68,14 @@ export default function CallToAction() {
                     </div>
                 </div>
             </div>
+            <style>{`
+                @media (max-width: 768px) {
+                    .cta-section { padding: 48px 0 60px !important; }
+                    .cta-inner { padding: 40px 24px !important; border-radius: 20px !important; }
+                    .cta-inner h2 { font-size: 1.75rem !important; }
+                    .cta-inner p { font-size: 1rem !important; margin-bottom: 28px !important; }
+                }
+            `}</style>
         </section>
     );
 }

@@ -5,9 +5,9 @@ import { useTranslation } from '@/lib/i18n';
 export default function Features() {
     const { t } = useTranslation();
     return (
-        <section style={{ padding: '100px 0', background: 'var(--white)' }}>
+        <section className="features-section" style={{ padding: '100px 0', background: 'var(--white)' }}>
             <div className="container">
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }}>
+                <div className="features-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }}>
 
                     {/* Left Content */}
                     <div>
@@ -103,6 +103,14 @@ export default function Features() {
                     </div>
                 </div>
             </div>
+            <style>{`
+                @media (max-width: 900px) {
+                    .features-grid { grid-template-columns: 1fr !important; gap: 40px !important; }
+                }
+                @media (max-width: 768px) {
+                    .features-section { padding: 60px 0 !important; }
+                }
+            `}</style>
         </section>
     );
 }

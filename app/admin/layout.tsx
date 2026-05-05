@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { verifyJWT } from '@/lib/auth';
 import Link from 'next/link';
 import { LayoutDashboard, Users, FileText, CreditCard, Settings, ShieldAlert, FolderTree, MessageSquare } from 'lucide-react';
+import AdminMobileNav from './AdminMobileNav';
 
 const menuItems = [
     { name: 'Обзор', href: '/admin', icon: LayoutDashboard },
@@ -33,9 +34,22 @@ export default async function AdminLayout({
     }
 
     return (
+        <>
+        <style>{`
+            @media (max-width: 768px) {
+                .admin-sidebar { display: none !important; }
+                .admin-main { padding: 16px !important; }
+                .mobile-dash-btn { display: flex !important; }
+                .admin-topbar { display: flex !important; }
+            }
+            @media (min-width: 769px) {
+                .mobile-dash-btn { display: none !important; }
+                .admin-topbar { display: none !important; }
+            }
+        `}</style>
         <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f3f4f6' }}>
             {/* Sidebar */}
-            <aside style={{ width: '250px', backgroundColor: '#1f2937', color: 'white', display: 'flex', flexDirection: 'column' }}>
+            <aside className="admin-sidebar" style={{ width: '250px', backgroundColor: '#1f2937', color: 'white', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ padding: '24px', borderBottom: '1px solid #374151' }}>
                     <h1 style={{ fontSize: '1.2rem', fontWeight: '700' }}>Админ панель</h1>
                 </div>
@@ -54,7 +68,7 @@ export default async function AdminLayout({
                                         color: '#9ca3af',
                                         textDecoration: 'none',
                                         transition: 'all 0.2s',
-                                        backgroundColor: 'transparent' // You can add logic for active state if needed
+                                        backgroundColor: 'transparent'
                                     }}>
                                         <Icon size={20} />
                                         {item.name}
@@ -72,9 +86,24 @@ export default async function AdminLayout({
             </aside>
 
             {/* Main Content */}
-            <main style={{ flex: 1, padding: '40px', overflowY: 'auto' }}>
-                {children}
-            </main>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                {/* Mobile top bar */}
+                <div className="admin-topbar" style={{
+                    display: 'none',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '12px 16px',
+                    backgroundColor: '#1f2937',
+                    color: 'white',
+                }}>
+                    <AdminMobileNav />
+                    <span style={{ fontWeight: '700', fontSize: '1rem' }}>Админ панель</span>
+                </div>
+                <main className="admin-main" style={{ flex: 1, padding: '40px', overflowY: 'auto' }}>
+                    {children}
+                </main>
+            </div>
         </div>
+        </>
     );
 }

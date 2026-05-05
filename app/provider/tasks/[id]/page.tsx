@@ -83,7 +83,7 @@ export default async function ProviderTaskDetailsPage({ params }: Props) {
                 <span style={{ color: 'var(--primary)', fontWeight: '500' }}>{task.title}</span>
             </div>
 
-            <div style={{
+            <div className="task-detail-grid" style={{
                 display: 'grid',
                 gridTemplateColumns: 'minmax(0, 1fr) 360px',
                 gap: '40px',
@@ -225,6 +225,9 @@ export default async function ProviderTaskDetailsPage({ params }: Props) {
                         canRespond={!!currentUserId && currentUserId !== task.userId}
                     />
                 </aside>
+            <style>{`
+                @media (max-width: 900px) { .task-detail-grid { grid-template-columns: 1fr !important; gap: 24px !important; } }
+            `}</style>
             </div>
         </div>
     );

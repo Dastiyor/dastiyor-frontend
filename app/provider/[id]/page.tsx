@@ -218,7 +218,7 @@ export default async function ProviderProfilePage({ params }: Props) {
                 </div>
 
                 {/* Statistics Grid */}
-                <div style={{
+                <div className="provider-stats-grid" style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(4, 1fr)',
                     gap: '16px',
@@ -273,6 +273,9 @@ export default async function ProviderProfilePage({ params }: Props) {
                         {t('reviews_page.viewAvailableTasks')}
                     </Link>
                 </div>
+                <style>{`
+                    @media (max-width: 640px) { .provider-stats-grid { grid-template-columns: repeat(2, 1fr) !important; } }
+                `}</style>
             </div>
         </div>
     );

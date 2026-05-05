@@ -177,7 +177,7 @@ export default function AdminCategoriesPage() {
                     marginBottom: '24px'
                 }}>
                     <h3 style={{ fontWeight: '600', marginBottom: '16px' }}>Новая категория</h3>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 200px 120px auto auto', gap: '16px', alignItems: 'center' }}>
+                    <div className="cat-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 200px 120px auto auto', gap: '16px', alignItems: 'center' }}>
                         <input
                             type="text"
                             placeholder="Название категории"
@@ -248,7 +248,8 @@ export default function AdminCategoriesPage() {
 
             {/* Categories Table */}
             <div style={{ backgroundColor: 'white', borderRadius: '16px', border: '1px solid #e5e7eb', overflow: 'hidden' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '480px' }}>
                     <thead style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
                         <tr>
                             <th style={{ padding: '16px 24px', fontWeight: '600', width: '60px' }}>Иконка</th>
@@ -363,6 +364,7 @@ export default function AdminCategoriesPage() {
                         })}
                     </tbody>
                 </table>
+                </div>
             </div>
 
             {/* Info Box */}
@@ -377,6 +379,9 @@ export default function AdminCategoriesPage() {
                     <strong>Примечание:</strong> Изменения в категориях будут применены после сохранения в базе данных.
                     В данный момент категории управляются локально. Для полной интеграции необходимо создать таблицу категорий в базе данных.
                 </p>
+            <style>{`
+                @media (max-width: 640px) { .cat-form-grid { grid-template-columns: 1fr !important; } }
+            `}</style>
             </div>
         </div>
         </>

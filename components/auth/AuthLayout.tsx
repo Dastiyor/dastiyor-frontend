@@ -13,11 +13,11 @@ export default function AuthLayout({
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            minHeight: 'calc(100vh - 80px - 300px)', // Adjust based on header/footer
+            minHeight: 'calc(100vh - 80px - 300px)',
             padding: '60px 20px',
             backgroundColor: 'var(--secondary)',
         }}>
-            <div style={{
+            <div className="auth-card" style={{
                 backgroundColor: 'var(--white)',
                 padding: '40px',
                 borderRadius: '16px',
@@ -33,6 +33,11 @@ export default function AuthLayout({
 
                 {children}
             </div>
+            <style>{`
+                @media (max-width: 480px) {
+                    .auth-card { padding: 24px 20px !important; }
+                }
+            `}</style>
         </div>
     );
 }

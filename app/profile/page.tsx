@@ -155,7 +155,7 @@ export default async function ProfilePage() {
 
                     {/* TODO: Re-enable subscription status block when payment gateway is ready */}
 
-                    <div style={{ display: 'grid', gridTemplateColumns: user.role === 'PROVIDER' ? 'repeat(3, 1fr)' : '1fr 1fr', gap: '24px', marginBottom: '40px' }}>
+                    <div className="profile-stats-grid" style={{ display: 'grid', gridTemplateColumns: user.role === 'PROVIDER' ? 'repeat(3, 1fr)' : '1fr 1fr', gap: '24px', marginBottom: '40px' }}>
                         <div style={{ padding: '24px', borderRadius: '16px', backgroundColor: '#f9fafb', border: '1px solid var(--border)' }}>
                             <div style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '8px' }}>{user._count.tasks}</div>
                             <div style={{ color: 'var(--text-light)' }}>{t('profile.tasksPosted')}</div>
@@ -217,6 +217,9 @@ export default async function ProfilePage() {
                         </div>
                     </div>
                 </div>
+            <style>{`
+                @media (max-width: 480px) { .profile-stats-grid { grid-template-columns: 1fr !important; } }
+            `}</style>
             </div>
         </div>
     );

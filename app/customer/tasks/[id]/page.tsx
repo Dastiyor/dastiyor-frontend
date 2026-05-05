@@ -87,7 +87,7 @@ export default async function CustomerTaskDetailsPage({ params }: Props) {
                 <span style={{ color: accentColor, fontWeight: '500' }}>{task.title}</span>
             </div>
 
-            <div style={{
+            <div className="task-detail-grid" style={{
                 display: 'grid',
                 gridTemplateColumns: 'minmax(0, 1fr) 360px',
                 gap: '32px',
@@ -238,6 +238,9 @@ export default async function CustomerTaskDetailsPage({ params }: Props) {
                         />
                     </div>
                 </aside>
+            <style>{`
+                @media (max-width: 900px) { .task-detail-grid { grid-template-columns: 1fr !important; gap: 24px !important; } }
+            `}</style>
             </div>
         </div>
     );

@@ -5,16 +5,11 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import {
     LayoutDashboard,
-    Wifi,
-    FileText,
-    User,
-    CreditCard,
     Search,
-    Bell,
-    Settings
 } from 'lucide-react';
 import UserMenu from '@/components/UserMenu';
 import ProviderSidebarNav from './ProviderSidebarNav';
+import ProviderMobileNav from './ProviderMobileNav';
 
 export const dynamic = 'force-dynamic';
 
@@ -59,9 +54,25 @@ export default async function ProviderLayout({
     const accentColor = 'var(--primary)';
 
     return (
+        <>
+        <style>{`
+            @media (max-width: 768px) {
+                .dashboard-sidebar { display: none !important; }
+                .dashboard-main { margin-left: 0 !important; }
+                .mobile-dash-btn { display: flex !important; }
+                .dashboard-search { display: none !important; }
+                .mobile-dash-logo { display: flex !important; }
+                .dashboard-header { padding: 12px 16px !important; }
+                .dashboard-content { padding: 16px !important; }
+            }
+            @media (min-width: 769px) {
+                .mobile-dash-btn { display: none !important; }
+                .mobile-dash-logo { display: none !important; }
+            }
+        `}</style>
         <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#F8FAFC' }}>
             {/* Left Sidebar - Light Theme */}
-            <aside style={{
+            <aside className="dashboard-sidebar" style={{
                 width: '240px',
                 backgroundColor: '#FFFFFF',
                 borderRight: '1px solid #E2E8F0',
@@ -97,39 +108,34 @@ export default async function ProviderLayout({
                 {/* Navigation - Client Component for active state */}
                 <ProviderSidebarNav />
 
-                {/* TODO: Re-enable current plan badge when payment gateway is ready */}
-                {/* <div style={{ marginTop: 'auto', paddingTop: '16px' }}>
-                    {user.subscription && user.subscription.isActive && (
-                        <div style={{ marginBottom: '16px' }}>
-                            <div style={{ fontSize: '0.7rem', color: '#94A3B8', marginBottom: '6px', fontWeight: '600', letterSpacing: '0.5px' }}>
-                                CURRENT PLAN
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-                                <span style={{ fontWeight: '700', fontSize: '0.95rem', color: '#1E293B' }}>{planName} Plan</span>
-                                <span style={{ fontSize: '0.8rem', color: accentColor, fontWeight: '600' }}>{daysLeft} days left</span>
-                            </div>
-                        </div>
-                    )}
-                </div> */}
                 <div style={{ marginTop: 'auto', paddingTop: '16px' }} />
             </aside>
 
             {/* Main Content */}
-            <div style={{ flex: 1, marginLeft: '240px', display: 'flex', flexDirection: 'column' }}>
+            <div className="dashboard-main" style={{ flex: 1, marginLeft: '240px', display: 'flex', flexDirection: 'column' }}>
                 {/* Top Header */}
-                <header style={{
+                <header className="dashboard-header" style={{
                     backgroundColor: 'white',
                     padding: '16px 32px',
                     borderBottom: '1px solid #E2E8F0',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    gap: '24px',
+                    gap: '16px',
                     position: 'sticky',
                     top: 0,
                     zIndex: 40
                 }}>
-                    <div style={{ flex: 1, maxWidth: '400px', position: 'relative' }}>
+                    {/* Mobile: hamburger */}
+                    <ProviderMobileNav />
+
+                    {/* Mobile: logo text */}
+                    <div className="mobile-dash-logo" style={{ display: 'none', fontWeight: '700', fontSize: '1rem', color: '#1E293B', flex: 1 }}>
+                        Dastiyor
+                    </div>
+
+                    {/* Desktop: search */}
+                    <div className="dashboard-search" style={{ flex: 1, maxWidth: '400px', position: 'relative' }}>
                         <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
                         <input
                             type="text"
@@ -146,17 +152,18 @@ export default async function ProviderLayout({
                         />
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginLeft: 'auto' }}>
                         {/* UserMenu handles Bell, Profile, and Logout */}
                         <UserMenu user={user} />
                     </div>
                 </header>
 
                 {/* Page Content */}
-                <main style={{ flex: 1, padding: '28px 32px', overflowY: 'auto' }}>
+                <main className="dashboard-content" style={{ flex: 1, padding: '28px 32px', overflowY: 'auto' }}>
                     {children}
                 </main>
             </div>
         </div>
+        </>
     );
 }

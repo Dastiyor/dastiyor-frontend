@@ -302,6 +302,23 @@ button {
   }
 }
 
+/* Mobile touch targets */
+@media (max-width: 768px) {
+  button, a {
+    min-height: 44px;
+  }
+
+  /* Tighter section padding on mobile */
+  .container {
+    padding: 0 16px;
+  }
+
+  /* Btn full-width friendly on small screens */
+  .btn {
+    padding: 12px 20px;
+  }
+}
+
 /* Mobile header */
 @media (max-width: 768px) {
   .desktop-nav {

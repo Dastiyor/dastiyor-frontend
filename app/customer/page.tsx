@@ -44,7 +44,7 @@ export default async function CustomerDashboardPage() {
             </h1>
 
             {/* Stats Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px', marginBottom: '32px' }}>
+            <div className="dash-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px', marginBottom: '32px' }}>
                 <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', gap: '16px' }}>
                     <div style={{ width: '48px', height: '48px', borderRadius: '12px', backgroundColor: '#DBEAFE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <Clock size={24} color={accentColor} />
@@ -167,6 +167,14 @@ export default async function CustomerDashboardPage() {
                     </table>
                 </div>
             </div>
+            <style>{`
+                @media (max-width: 640px) {
+                    .dash-stats-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
+                }
+                @media (max-width: 900px) and (min-width: 641px) {
+                    .dash-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+                }
+            `}</style>
         </div>
     );
 }

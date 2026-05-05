@@ -12,7 +12,8 @@ export default async function AdminSubscriptionsPage() {
             <h2 className="heading-lg" style={{ marginBottom: '32px' }}>Управление подписками</h2>
 
             <div style={{ backgroundColor: 'white', borderRadius: '16px', border: '1px solid #e5e7eb', overflow: 'hidden' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
                     <thead style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
                         <tr>
                             <th style={{ padding: '16px 24px', fontWeight: '600' }}>Пользователь</th>
@@ -63,6 +64,7 @@ export default async function AdminSubscriptionsPage() {
                         })}
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
     );

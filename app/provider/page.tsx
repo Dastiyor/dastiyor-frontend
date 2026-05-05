@@ -124,7 +124,7 @@ export default async function ProviderDashboard() {
             </div>
 
             {/* Performance Metrics */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '28px' }}>
+            <div className="prov-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '28px' }}>
                 {/* Average Rating */}
                 <div style={{
                     backgroundColor: 'white',
@@ -225,7 +225,7 @@ export default async function ProviderDashboard() {
             </div>
 
             {/* Main Content Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px' }}>
+            <div className="prov-main-grid" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px' }}>
                 {/* Left Column */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                     {/* Active Tasks */}
@@ -466,6 +466,17 @@ export default async function ProviderDashboard() {
                     {/* TODO: Re-enable "Boost Your Reach" upsell when payment gateway is ready */}
                 </div>
             </div>
+            <style>{`
+                @media (max-width: 640px) {
+                    .prov-stats-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
+                }
+                @media (max-width: 900px) and (min-width: 641px) {
+                    .prov-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+                }
+                @media (max-width: 900px) {
+                    .prov-main-grid { grid-template-columns: 1fr !important; }
+                }
+            `}</style>
         </>
     );
 }

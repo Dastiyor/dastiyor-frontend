@@ -81,7 +81,7 @@ export default async function MessagesPage() {
             <div className="container">
                 <h1 className="heading-lg" style={{ marginBottom: '32px' }}>{t('common.messages')}</h1>
 
-                <div style={{
+                <div className="messages-grid" style={{
                     display: 'grid',
                     gridTemplateColumns: '320px 1fr',
                     gap: '24px',
@@ -142,6 +142,12 @@ export default async function MessagesPage() {
                     </Suspense>
                 </div>
             </div>
+        <style>{`
+            @media (max-width: 768px) {
+                .messages-grid { grid-template-columns: 1fr !important; height: auto !important; min-height: 0 !important; }
+                .messages-grid > div:first-child { height: 300px !important; }
+            }
+        `}</style>
         </div>
     );
 }

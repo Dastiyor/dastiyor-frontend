@@ -101,7 +101,8 @@ export default async function SubscriptionPage() {
                         {t('subscriptionPage.compare')}
                     </h2>
 
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '520px' }}>
                         <thead>
                             <tr style={{ borderBottom: '2px solid var(--border)' }}>
                                 <th style={{ textAlign: 'left', padding: '16px 0', fontWeight: '600' }}>{t('subscriptionPage.features')}</th>
@@ -121,6 +122,7 @@ export default async function SubscriptionPage() {
                             <FeatureRow feature={t('subscriptionPage.support')} free="—" basic="—" standard="—" premium="✓" />
                         </tbody>
                     </table>
+                    </div>
                 </div>
 
                 {/* FAQ */}

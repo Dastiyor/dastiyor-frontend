@@ -13,7 +13,8 @@ export default async function AdminTasksPage() {
             <h2 className="heading-lg" style={{ marginBottom: '32px' }}>Управление заданиями</h2>
 
             <div style={{ backgroundColor: 'white', borderRadius: '16px', border: '1px solid #e5e7eb', overflow: 'hidden' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '520px' }}>
                     <thead style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
                         <tr>
                             <th style={{ padding: '16px 24px', fontWeight: '600' }}>Название</th>
@@ -60,6 +61,7 @@ export default async function AdminTasksPage() {
                         ))}
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
     );

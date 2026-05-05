@@ -6,9 +6,9 @@ import { useTranslation } from '@/lib/i18n';
 export default function Categories() {
     const { t } = useTranslation();
     return (
-        <section style={{ padding: '100px 0', backgroundColor: 'var(--white)' }}>
+        <section className="categories-section" style={{ padding: '100px 0', backgroundColor: 'var(--white)' }}>
             <div className="container">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', marginBottom: '50px' }}>
+                <div className="categories-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', marginBottom: '50px' }}>
                     <div>
                         <h2 className="heading-lg">{t('popularCategories.title')}</h2>
                         <p style={{ color: 'var(--text-light)', marginTop: '10px' }}>{t('popularCategories.subtitle')}</p>
@@ -68,6 +68,10 @@ export default function Categories() {
                     transform: translateY(-5px);
                     box-shadow: 0 10px 40px -10px rgba(0,0,0,0.1);
                     border-color: var(--primary);
+                }
+                @media (max-width: 768px) {
+                    .categories-section { padding: 60px 0 !important; }
+                    .categories-header { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; margin-bottom: 32px !important; }
                 }
             `}</style>
         </section>

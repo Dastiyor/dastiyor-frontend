@@ -27,8 +27,7 @@ export default function Hero() {
             backgroundImage: 'linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)), url("https://images.unsplash.com/photo-1621905251918-48416bd8575a?auto=format&fit=crop&q=80&w=2000")',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            backgroundAttachment: 'fixed'
-        }}>
+        }} className="hero-section">
 
 
             <div className="container" style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
@@ -71,7 +70,7 @@ export default function Hero() {
                 </p>
 
                 {/* Search Bar */}
-                <div className="animate-fade-in" style={{
+                <div className="animate-fade-in hero-search" style={{
                     backgroundColor: 'white',
                     borderRadius: '16px',
                     padding: '8px',
@@ -117,18 +116,19 @@ export default function Hero() {
                     </button>
                 </div>
 
-                <div className="animate-fade-in" style={{
+                <div className="animate-fade-in hero-cta-row" style={{
                     display: 'flex',
                     justifyContent: 'center',
-                    gap: '24px',
+                    gap: '16px',
                     alignItems: 'center',
                     animationDelay: '0.4s',
-                    marginTop: '32px'
+                    marginTop: '32px',
+                    flexWrap: 'wrap',
                 }}>
-                    <Link href="/create-task" className="btn btn-primary" style={{ minWidth: '180px' }}>
+                    <Link href="/create-task" className="btn btn-primary hero-cta-btn">
                         {t('hero.postTask')}
                     </Link>
-                    <Link href="/register" className="btn btn-outline" style={{ minWidth: '180px' }}>
+                    <Link href="/register" className="btn btn-outline hero-cta-btn">
                         {t('hero.becomeProvider')}
                     </Link>
                 </div>
@@ -136,7 +136,18 @@ export default function Hero() {
 
             </div>
 
-
+            <style>{`
+                @media (max-width: 768px) {
+                    .hero-section { padding: 60px 0 80px !important; }
+                    .hero-search { flex-direction: column !important; border-radius: 12px !important; gap: 8px !important; padding: 12px !important; }
+                    .hero-search input { padding: 12px 16px !important; font-size: 1rem !important; width: 100% !important; }
+                    .hero-search button { width: 100% !important; border-radius: 8px !important; padding: 14px !important; }
+                    .hero-cta-btn { min-width: 140px !important; width: 100%; max-width: 280px; }
+                }
+                @media (max-width: 480px) {
+                    .hero-section { padding: 40px 0 60px !important; }
+                }
+            `}</style>
         </section>
     );
 }

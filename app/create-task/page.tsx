@@ -199,7 +199,7 @@ export default function CreateTaskPage() {
                     </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '32px' }}>
+                <div className="create-task-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '32px' }}>
                     {/* Main Form Column */}
                     <div>
                         {/* Progress Bar (Visual) */}
@@ -495,6 +495,12 @@ export default function CreateTaskPage() {
                         </div>
                     </div>
                 </div>
+            <style>{`
+                @media (max-width: 900px) {
+                    .create-task-grid { grid-template-columns: 1fr !important; }
+                    .create-task-grid > div:last-child { order: -1; }
+                }
+            `}</style>
             </div>
         </div>
     );

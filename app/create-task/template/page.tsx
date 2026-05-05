@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FileText, Lightbulb } from 'lucide-react';
-import { toast } from '@/components/ui/Toast';
 import { useTranslation } from '@/lib/i18n';
 
 const TASK_TEMPLATES = [
@@ -87,7 +86,6 @@ export default function TaskTemplatePage() {
         };
         sessionStorage.setItem('task_template', JSON.stringify(templateData));
         router.push('/create-task');
-        toast.info(t('createTask.templateLoaded2'));
     };
 
     return (

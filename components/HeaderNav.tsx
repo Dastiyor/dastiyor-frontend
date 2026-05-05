@@ -28,7 +28,7 @@ export default function HeaderNav({ userRole }: { userRole?: string | null }) {
             }}>
                 {t('header.findTasks')}
             </Link>
-            {(!userRole || userRole !== 'PROVIDER') && (
+            {!userRole && (
                 <Link href="/register?type=provider" style={{
                     fontWeight: '600',
                     color: '#4F46E5',

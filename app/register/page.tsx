@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import AuthLayout from '@/components/auth/AuthLayout';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -29,6 +29,16 @@ function RegisterContent() {
     const [showPassword, setShowPassword] = useState(false);
     const router = useRouter();
     const { t } = useTranslation();
+
+    useEffect(() => {
+        fetch('/api/auth/me').then(res => {
+            if (res.ok) return res.json();
+        }).then(data => {
+            if (data?.role) {
+                router.replace(data.role === 'PROVIDER' ? '/provider' : data.role === 'ADMIN' ? '/admin' : '/customer');
+            }
+        }).catch(() => {});
+    }, [router]);
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();

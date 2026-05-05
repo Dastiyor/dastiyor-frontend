@@ -80,7 +80,7 @@ export default function MobileMenu({ user }: { user: UserInfo }) {
                 <Link href="/tasks" onClick={close} style={{ padding: '14px 16px', borderRadius: '10px', fontWeight: '600', fontSize: '1rem', color: '#374151', textDecoration: 'none', backgroundColor: '#F9FAFB' }}>
                     {t('header.findTasks')}
                 </Link>
-                {(!user || user.role !== 'PROVIDER') && (
+                {!user && (
                     <Link href="/register?type=provider" onClick={close} style={{ padding: '14px 16px', borderRadius: '10px', fontWeight: '600', fontSize: '1rem', color: '#4F46E5', textDecoration: 'none', backgroundColor: '#EEF2FF' }}>
                         {t('header.becomeProvider')}
                     </Link>

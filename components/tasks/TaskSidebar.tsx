@@ -18,9 +18,10 @@ type TaskSidebarProps = {
     };
     isOwner: boolean;
     canRespond: boolean;
+    isLoggedIn?: boolean;
 };
 
-export default function TaskSidebar({ task, isOwner, canRespond }: TaskSidebarProps) {
+export default function TaskSidebar({ task, isOwner, canRespond, isLoggedIn }: TaskSidebarProps) {
     const { confirm, Dialog } = useConfirm();
     const pathname = usePathname();
     const { t } = useTranslation();
@@ -106,7 +107,7 @@ export default function TaskSidebar({ task, isOwner, canRespond }: TaskSidebarPr
                     </button>
                 )}
 
-                {!canRespond && !isOwner && task.status === 'OPEN' && (
+                {!canRespond && !isOwner && task.status === 'OPEN' && !isLoggedIn && (
                     <Link
                         href={`/login?redirect=${encodeURIComponent(pathname)}`}
                         className="btn btn-primary"
@@ -114,6 +115,11 @@ export default function TaskSidebar({ task, isOwner, canRespond }: TaskSidebarPr
                     >
                         {t('tasks.loginToRespond')}
                     </Link>
+                )}
+                {!canRespond && !isOwner && task.status === 'OPEN' && isLoggedIn && (
+                    <p style={{ fontSize: '0.9rem', color: 'var(--text-light)', textAlign: 'center', padding: '8px 0' }}>
+                        {t('tasks.onlyProvidersCanRespond')}
+                    </p>
                 )}
 
                 {isOwner && task.status === 'OPEN' && (

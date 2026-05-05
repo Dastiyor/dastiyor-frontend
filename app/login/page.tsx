@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import AuthLayout from '@/components/auth/AuthLayout';
@@ -29,6 +29,16 @@ function LoginContent() {
     const redirect = searchParams.get('redirect') || '';
     const titleKey = redirect === '/create-task' ? 'auth.loginToPostTask' : 'auth.welcomeBack';
     const subtitleKey = redirect === '/create-task' ? 'auth.loginToPostTaskSubtitle' : 'auth.loginSubtitle';
+
+    useEffect(() => {
+        fetch('/api/auth/me').then(res => {
+            if (res.ok) return res.json();
+        }).then(data => {
+            if (data?.role) {
+                router.replace(redirect || (data.role === 'PROVIDER' ? '/provider' : data.role === 'ADMIN' ? '/admin' : '/customer'));
+            }
+        }).catch(() => {});
+    }, [router, redirect]);
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();

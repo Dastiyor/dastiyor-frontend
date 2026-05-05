@@ -307,6 +307,7 @@ export default async function TaskDetailsPage({ params }: Props) {
                         <TaskSidebar
                             task={task}
                             isOwner={currentUserId === task.userId}
+                            isLoggedIn={!!currentUserId}
                             canRespond={!!currentUserId && currentUserId !== task.userId && currentUserRole === 'PROVIDER'}
                         />
                     </aside>

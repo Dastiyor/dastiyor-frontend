@@ -367,6 +367,7 @@
     "responseCountLabel": "{count} откликов",
     "respondButton": "Сделать предложение",
     "loginToRespond": "Войдите, чтобы откликнуться",
+    "onlyProvidersCanRespond": "Только исполнители могут откликаться на задания",
     "waitingForOffers": "Ожидание предложений от исполнителей",
     "taskInProgress": "Задание выполняется",
     "taskDone": "Задание завершено",

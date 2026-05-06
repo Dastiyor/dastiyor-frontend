@@ -9,8 +9,7 @@ const TASK_TEMPLATES = [
     {
         id: 'plumbing',
         name: 'Сантехнические работы',
-        category: 'Home Repair',
-        subcategory: 'Plumbing',
+        category: 'Сантехника',
         title: 'Ремонт сантехники',
         description: 'Требуется опытный сантехник для ремонта. Опишите проблему подробно.',
         budget: 'fixed',
@@ -19,8 +18,7 @@ const TASK_TEMPLATES = [
     {
         id: 'cleaning',
         name: 'Уборка',
-        category: 'Cleaning',
-        subcategory: 'Cleaning',
+        category: 'Уборка',
         title: 'Генеральная уборка',
         description: 'Требуется профессиональная уборка. Укажите площадь и тип помещения.',
         budget: 'fixed',
@@ -29,8 +27,7 @@ const TASK_TEMPLATES = [
     {
         id: 'delivery',
         name: 'Доставка',
-        category: 'Delivery',
-        subcategory: 'Delivery',
+        category: 'Доставка',
         title: 'Доставка груза',
         description: 'Требуется доставка. Укажите размер, вес и адреса отправления/назначения.',
         budget: 'fixed',
@@ -39,8 +36,7 @@ const TASK_TEMPLATES = [
     {
         id: 'tech',
         name: 'IT и Техника',
-        category: 'Tech Support',
-        subcategory: 'Tech Support',
+        category: 'IT и Веб',
         title: 'Ремонт техники',
         description: 'Требуется специалист по ремонту техники. Опишите проблему и модель устройства.',
         budget: 'fixed',
@@ -49,8 +45,7 @@ const TASK_TEMPLATES = [
     {
         id: 'electrician',
         name: 'Электрика',
-        category: 'Home Repair',
-        subcategory: 'Electrician',
+        category: 'Электрик',
         title: 'Электромонтажные работы',
         description: 'Требуется электрик. Опишите объем работ и требования.',
         budget: 'fixed',
@@ -59,8 +54,7 @@ const TASK_TEMPLATES = [
     {
         id: 'painting',
         name: 'Покраска',
-        category: 'Home Repair',
-        subcategory: 'Painting',
+        category: 'Ремонт',
         title: 'Покраска стен/потолка',
         description: 'Требуется маляр. Укажите площадь и тип поверхности.',
         budget: 'fixed',
@@ -77,7 +71,6 @@ export default function TaskTemplatePage() {
         // Store template data in sessionStorage and redirect to create-task
         const templateData = {
             category: template.category,
-            subcategory: template.subcategory,
             title: template.title,
             description: template.description,
             budget: template.budget,

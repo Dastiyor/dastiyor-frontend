@@ -2,24 +2,36 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { MapPin, Lightbulb } from 'lucide-react';
-import Step1Category from '@/components/create-task/Step1Category';
-import Step2Details from '@/components/create-task/Step2Details';
-import Step3Location from '@/components/create-task/Step3Location';
-import Step4Budget from '@/components/create-task/Step4Budget';
 import { toast } from '@/components/ui/Toast';
 import { useTranslation } from '@/lib/i18n';
+
+const CATEGORIES = [
+    'Ремонт',
+    'Уборка',
+    'Доставка',
+    'Сантехника',
+    'Электрик',
+    'Обучение',
+    'Красота',
+    'IT и Веб',
+    'Компьютерная помощь',
+    'Ремонт техники',
+    'Фото и видео',
+    'Дизайн',
+    'Мероприятия',
+    'Юридические услуги',
+    'Виртуальный помощник',
+];
 
 export default function CreateTaskPage() {
     const { t } = useTranslation();
     const router = useRouter();
-    const [step, setStep] = useState(1);
     const [uploading, setUploading] = useState(false);
     const [authChecked, setAuthChecked] = useState(false);
     const DRAFT_KEY = 'task_draft';
 
     const [formData, setFormData] = useState({
         category: '',
-        subcategory: '',
         title: '',
         description: '',
         city: 'Dushanbe',
@@ -122,22 +134,6 @@ export default function CreateTaskPage() {
         setFormData(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }));
     };
 
-    const handleNext = (data: any) => {
-        setFormData(prev => ({ ...prev, ...data }));
-        if (step < 4) {
-            setStep(step + 1);
-        } else {
-            // Submit form
-            handleSubmit({ ...formData, ...data });
-        }
-    };
-
-    const handleBack = () => {
-        if (step > 1) {
-            setStep(step - 1);
-        }
-    };
-
     const handleSubmit = async (finalData: any) => {
         setIsSubmitting(true);
         try {
@@ -226,37 +222,18 @@ export default function CreateTaskPage() {
                                 />
                             </div>
 
-                            <div className="form-row-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>{t('createTask.category')}</label>
-                                    <select
-                                        value={formData.category}
-                                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                        style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #D1D5DB', outline: 'none', backgroundColor: 'white' }}
-                                    >
-                                        <option value="">{t('createTask.selectCategory')}</option>
-                                        <option value="Home Repair">Домашний ремонт</option>
-                                        <option value="Cleaning">Уборка</option>
-                                        <option value="Delivery">Доставка</option>
-                                        <option value="Tech Support">IT и Техника</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>{t('createTask.subcategory')}</label>
-                                    <select
-                                        value={formData.subcategory}
-                                        onChange={(e) => setFormData({ ...formData, subcategory: e.target.value })}
-                                        style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #D1D5DB', outline: 'none', backgroundColor: 'white' }}
-                                    >
-                                        <option value="">{t('createTask.selectSubcategory')}</option>
-                                        <option value="Plumbing">Сантехника</option>
-                                        <option value="Electrician">Электрика</option>
-                                        <option value="Carpentry">Столярные работы</option>
-                                        <option value="Painting">Покраска</option>
-                                        <option value="Cleaning">Уборка</option>
-                                        <option value="Moving">Переезд</option>
-                                    </select>
-                                </div>
+                            <div style={{ marginBottom: '24px' }}>
+                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>{t('createTask.category')}</label>
+                                <select
+                                    value={formData.category}
+                                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #D1D5DB', outline: 'none', backgroundColor: 'white' }}
+                                >
+                                    <option value="">{t('createTask.selectCategory')}</option>
+                                    {CATEGORIES.map(cat => (
+                                        <option key={cat} value={cat}>{cat}</option>
+                                    ))}
+                                </select>
                             </div>
 
                             <div>

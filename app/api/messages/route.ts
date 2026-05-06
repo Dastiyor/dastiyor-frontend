@@ -132,12 +132,25 @@ export async function POST(request: Request) {
             }
         });
 
-        // Send email notification to receiver (non-blocking)
+        // Send email notification to receiver only if no message was sent in this
+        // conversation in the last 15 minutes (avoids inbox spam during active chats)
+        const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+        const recentMessage = await prisma.message.findFirst({
+            where: {
+                senderId,
+                receiverId,
+                ...(taskId ? { taskId } : {}),
+                createdAt: { gte: fifteenMinutesAgo },
+                id: { not: message.id },
+            },
+            select: { id: true },
+        });
+
         const receiver = await prisma.user.findUnique({
             where: { id: receiverId },
             select: { email: true }
         });
-        if (receiver?.email && content) {
+        if (!recentMessage && receiver?.email && content) {
             const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dastiyor.com';
             sendNewMessageNotification(
                 receiver.email,

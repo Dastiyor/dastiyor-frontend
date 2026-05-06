@@ -143,7 +143,7 @@ export async function POST(request: Request) {
                 task.title,
                 rating,
                 comment || null,
-                `${baseUrl}/provider/reviews`
+                `${baseUrl}/provider/profile`
             ).catch(err => console.error('Email notification error:', err));
         }
 

@@ -211,7 +211,7 @@ export async function sendNewReviewNotification(
             <p style="font-size: 24px; color: #f59e0b;">${stars}</p>
             ${commentLine}
             <a href="${profileLink}" style="display: inline-block; padding: 12px 24px; background-color: #3B82F6; color: white; text-decoration: none; border-radius: 8px; margin: 16px 0;">
-                Посмотреть отзывы
+                Посмотреть профиль
             </a>
         `,
         text: `Новый отзыв от ${reviewerName} за задание "${taskTitle}". Оценка: ${rating}/5.${comment ? ` Комментарий: ${comment}` : ''} Ссылка: ${profileLink}`,

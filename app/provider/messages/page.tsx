@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import ChatInterface from '@/components/chat/ChatInterface';
 import ConversationLink from '@/components/chat/ConversationLink';
+import { getServerTranslation } from '@/lib/i18n/server';
 
 export default async function ProviderMessagesPage() {
     const cookieStore = await cookies();
@@ -20,6 +21,7 @@ export default async function ProviderMessagesPage() {
     }
 
     const userId = payload.id as string;
+    const { t } = await getServerTranslation();
 
     const user = await prisma.user.findUnique({
         where: { id: userId },
@@ -85,7 +87,7 @@ export default async function ProviderMessagesPage() {
 
     return (
         <div>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#1E293B', marginBottom: '24px' }}> Messages</h1>
+            <h1 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#1E293B', marginBottom: '24px' }}>{t('common.messages')}</h1>
 
             <div className="messages-grid" style={{
                 display: 'grid',
@@ -109,7 +111,7 @@ export default async function ProviderMessagesPage() {
                         fontWeight: '600',
                         backgroundColor: '#F8FAFC'
                     }}>
-                        Conversations ({conversations.length})
+                        {t('chat.conversations')} ({conversations.length})
                     </div>
 
                     <div style={{ overflowY: 'auto', flex: 1 }}>
@@ -120,7 +122,7 @@ export default async function ProviderMessagesPage() {
                                 color: '#64748B'
                             }}>
                                 <div style={{ fontSize: '2rem', marginBottom: '8px' }}>💬</div>
-                                <p>No messages yet</p>
+                                <p>{t('chat.noMessages')}</p>
                             </div>
                         ) : (
                             conversations.map((conv) => (
@@ -141,7 +143,7 @@ export default async function ProviderMessagesPage() {
                         justifyContent: 'center',
                         color: '#64748B'
                     }}>
-                        <div>Loading chat...</div>
+                        <div>{t('chat.loadingChat')}</div>
                     </div>
                 }>
                     <ChatInterface currentUserId={userId} />

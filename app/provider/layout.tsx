@@ -10,6 +10,7 @@ import {
 import UserMenu from '@/components/UserMenu';
 import ProviderSidebarNav from './ProviderSidebarNav';
 import ProviderMobileNav from './ProviderMobileNav';
+import { getServerTranslation } from '@/lib/i18n/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -51,6 +52,7 @@ export default async function ProviderLayout({
     //     user.subscription?.plan === 'standard' ? 'Pro' :
     //         user.subscription?.plan === 'basic' ? 'Basic' : 'Free';
 
+    const { t } = await getServerTranslation();
     const accentColor = 'var(--primary)';
 
     return (
@@ -101,7 +103,7 @@ export default async function ProviderLayout({
                     </div>
                     <div>
                         <div style={{ fontWeight: '700', fontSize: '1.1rem', color: '#1E293B' }}>Dastiyor</div>
-                        <div style={{ fontSize: '0.7rem', color: '#64748B' }}>Provider Portal</div>
+                        <div style={{ fontSize: '0.7rem', color: '#64748B' }}>{t('provider.providerPortal')}</div>
                     </div>
                 </Link>
 
@@ -139,7 +141,7 @@ export default async function ProviderLayout({
                         <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
                         <input
                             type="text"
-                            placeholder="Search tasks, clients, or records..."
+                            placeholder={t('provider.searchPlaceholder')}
                             style={{
                                 width: '100%',
                                 padding: '10px 12px 10px 40px',

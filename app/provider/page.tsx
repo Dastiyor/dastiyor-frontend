@@ -12,6 +12,7 @@ import {
     Zap,
     Rocket
 } from 'lucide-react';
+import { getServerTranslation } from '@/lib/i18n/server';
 
 export default async function ProviderDashboard() {
     const cookieStore = await cookies();
@@ -108,6 +109,7 @@ export default async function ProviderDashboard() {
         rejected: responses.filter(r => r.status === 'REJECTED').length
     };
 
+    const { t } = await getServerTranslation();
     const accentColor = 'var(--primary)';
     const accentColorLight = '#DBEAFE';
 
@@ -116,10 +118,10 @@ export default async function ProviderDashboard() {
             {/* Welcome Section */}
             <div style={{ marginBottom: '28px' }}>
                 <h2 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#1E293B', marginBottom: '6px' }}>
-                    Welcome back, {user.fullName.split(' ')[0]}
+                    {t('provider.welcomeBack', { name: user.fullName.split(' ')[0] })}
                 </h2>
                 <p style={{ color: '#64748B', fontSize: '0.9rem' }}>
-                    Here&apos;s a snapshot of your business performance today.
+                    {t('provider.performanceSnapshot')}
                 </p>
             </div>
 
@@ -151,7 +153,7 @@ export default async function ProviderDashboard() {
                         )}
                     </div>
                     <div style={{ fontSize: '0.8rem', color: '#64748B', marginBottom: '4px' }}>
-                        Average Rating
+                        {t('provider.averageRating')}
                     </div>
                     <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#1E293B' }}>
                         {averageRating}<span style={{ fontSize: '1rem', color: '#94A3B8' }}>/5</span>
@@ -184,7 +186,7 @@ export default async function ProviderDashboard() {
                         )}
                     </div>
                     <div style={{ fontSize: '0.8rem', color: '#64748B', marginBottom: '4px' }}>
-                        Completed Tasks
+                        {t('provider.completedTasksCount')}
                     </div>
                     <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#1E293B' }}>
                         {completedTasks}
@@ -216,10 +218,10 @@ export default async function ProviderDashboard() {
                         */}
                     </div>
                     <div style={{ fontSize: '0.8rem', color: '#64748B', marginBottom: '4px' }}>
-                        Total Earned
+                        {t('provider.totalEarned')}
                     </div>
                     <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#1E293B' }}>
-                        ${user.balance.toFixed(2)}
+                        {user.balance.toFixed(2)} с.
                     </div>
                 </div>
             </div>
@@ -237,7 +239,7 @@ export default async function ProviderDashboard() {
                     }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                             <h3 style={{ fontSize: '1rem', fontWeight: '700', color: '#1E293B' }}>
-                                Active Tasks
+                                {t('provider.activeTasks')}
                             </h3>
                             <Link href="/provider/active-tasks" style={{
                                 fontSize: '0.8rem',
@@ -245,23 +247,23 @@ export default async function ProviderDashboard() {
                                 textDecoration: 'none',
                                 fontWeight: '600'
                             }}>
-                                View All
+                                {t('provider.viewAll')}
                             </Link>
                         </div>
 
                         {activeTasks.length === 0 ? (
                             <div style={{ textAlign: 'center', padding: '32px', color: '#64748B' }}>
                                 <Clock size={40} color="#CBD5E1" style={{ marginBottom: '8px' }} />
-                                <p style={{ fontSize: '0.9rem' }}>No active tasks</p>
+                                <p style={{ fontSize: '0.9rem' }}>{t('provider.noActiveTasks')}</p>
                             </div>
                         ) : (
                             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                                 <thead>
                                     <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
-                                        <th style={{ textAlign: 'left', padding: '10px 0', fontSize: '0.75rem', color: '#64748B', fontWeight: '600' }}>PROJECT NAME</th>
-                                        <th style={{ textAlign: 'left', padding: '10px 0', fontSize: '0.75rem', color: '#64748B', fontWeight: '600' }}>CUSTOMER</th>
-                                        <th style={{ textAlign: 'left', padding: '10px 0', fontSize: '0.75rem', color: '#64748B', fontWeight: '600' }}>DEADLINE</th>
-                                        <th style={{ textAlign: 'left', padding: '10px 0', fontSize: '0.75rem', color: '#64748B', fontWeight: '600' }}>STATUS</th>
+                                        <th style={{ textAlign: 'left', padding: '10px 0', fontSize: '0.75rem', color: '#64748B', fontWeight: '600' }}>{t('provider.projectNameCol')}</th>
+                                        <th style={{ textAlign: 'left', padding: '10px 0', fontSize: '0.75rem', color: '#64748B', fontWeight: '600' }}>{t('provider.customerCol')}</th>
+                                        <th style={{ textAlign: 'left', padding: '10px 0', fontSize: '0.75rem', color: '#64748B', fontWeight: '600' }}>{t('provider.deadlineCol')}</th>
+                                        <th style={{ textAlign: 'left', padding: '10px 0', fontSize: '0.75rem', color: '#64748B', fontWeight: '600' }}>{t('provider.statusCol')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -293,7 +295,7 @@ export default async function ProviderDashboard() {
                                                 </div>
                                             </td>
                                             <td style={{ padding: '14px 0', fontSize: '0.85rem', color: '#475569' }}>
-                                                {task.dueDate ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Not set'}
+                                                {task.dueDate ? new Date(task.dueDate).toLocaleDateString('ru-RU', { month: 'short', day: 'numeric', year: 'numeric' }) : t('provider.notSet')}
                                             </td>
                                             <td style={{ padding: '14px 0' }}>
                                                 <span style={{
@@ -304,7 +306,7 @@ export default async function ProviderDashboard() {
                                                     fontSize: '0.75rem',
                                                     fontWeight: '600'
                                                 }}>
-                                                    In Progress
+                                                    {t('provider.inProgress')}
                                                 </span>
                                             </td>
                                         </tr>
@@ -322,7 +324,7 @@ export default async function ProviderDashboard() {
                         border: '1px solid #E2E8F0'
                     }}>
                         <h3 style={{ fontSize: '1rem', fontWeight: '700', color: '#1E293B', marginBottom: '16px' }}>
-                            My Responses
+                            {t('provider.myResponsesTitle')}
                         </h3>
                         <div style={{ display: 'flex', gap: '12px' }}>
                             <div style={{
@@ -334,7 +336,7 @@ export default async function ProviderDashboard() {
                                 border: '1px solid #E2E8F0'
                             }}>
                                 <div style={{ fontSize: '0.7rem', color: '#64748B', marginBottom: '6px', fontWeight: '600' }}>
-                                    PENDING
+                                    {t('provider.pending').toUpperCase()}
                                 </div>
                                 <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#1E293B' }}>
                                     {String(responseStats.pending).padStart(2, '0')}
@@ -349,7 +351,7 @@ export default async function ProviderDashboard() {
                                 border: '1px solid #E2E8F0'
                             }}>
                                 <div style={{ fontSize: '0.7rem', color: '#64748B', marginBottom: '6px', fontWeight: '600' }}>
-                                    ACCEPTED
+                                    {t('provider.accepted').toUpperCase()}
                                 </div>
                                 <div style={{ fontSize: '1.75rem', fontWeight: '700', color: accentColor }}>
                                     {String(responseStats.accepted).padStart(2, '0')}
@@ -364,7 +366,7 @@ export default async function ProviderDashboard() {
                                 border: '1px solid #E2E8F0'
                             }}>
                                 <div style={{ fontSize: '0.7rem', color: '#64748B', marginBottom: '6px', fontWeight: '600' }}>
-                                    REJECTED
+                                    {t('provider.rejected').toUpperCase()}
                                 </div>
                                 <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#1E293B' }}>
                                     {String(responseStats.rejected).padStart(2, '0')}
@@ -387,7 +389,7 @@ export default async function ProviderDashboard() {
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                 <Zap size={18} color={accentColor} />
                                 <h3 style={{ fontSize: '1rem', fontWeight: '700', color: '#1E293B' }}>
-                                    New Opportunities
+                                    {t('provider.newOpportunities')}
                                 </h3>
                             </div>
                             <div style={{
@@ -405,7 +407,7 @@ export default async function ProviderDashboard() {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             {newOpportunities.length === 0 ? (
                                 <div style={{ textAlign: 'center', padding: '20px', color: '#64748B', fontSize: '0.85rem' }}>
-                                    No new opportunities
+                                    {t('provider.noNewOpportunities')}
                                 </div>
                             ) : (
                                 newOpportunities.map((task) => (
@@ -430,7 +432,7 @@ export default async function ProviderDashboard() {
                                         </div>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <div style={{ fontSize: '0.85rem', fontWeight: '600', color: accentColor }}>
-                                                {task.budgetType === 'fixed' ? `$${task.budgetAmount} - $${Number(task.budgetAmount || 0) + 50}` : 'Negotiable'}
+                                                {task.budgetType === 'fixed' ? `${task.budgetAmount} - ${Number(task.budgetAmount || 0) + 50} с.` : t('common.negotiable')}
                                             </div>
                                             <Link href={`/provider/tasks/${task.id}`} style={{
                                                 padding: '6px 12px',
@@ -442,7 +444,7 @@ export default async function ProviderDashboard() {
                                                 fontWeight: '600',
                                                 border: '1px solid #E2E8F0'
                                             }}>
-                                                View Details
+                                                {t('provider.viewDetails')}
                                             </Link>
                                         </div>
                                     </div>
@@ -459,7 +461,7 @@ export default async function ProviderDashboard() {
                             textDecoration: 'none',
                             fontWeight: '600'
                         }}>
-                            See all matches in your categories
+                            {t('provider.seeAllMatches')}
                         </Link>
                     </div>
 

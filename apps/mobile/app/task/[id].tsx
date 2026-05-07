@@ -41,13 +41,12 @@ export default function TaskDetailScreen() {
     })();
   }, [id]);
 
-  async function handleRespond() {
+  function handleRespond() {
     if (!user) {
       router.push('/(auth)/login');
       return;
     }
-    // Navigate to respond flow (to be built)
-    Alert.alert('Откликнуться', 'Функция будет доступна в следующей версии.');
+    router.push({ pathname: '/respond/[id]', params: { id: task!.id, title: task!.title } });
   }
 
   if (loading) {

@@ -33,6 +33,7 @@ function RootLayoutNav() {
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="task/[id]" options={{ title: 'Задание', headerBackTitle: 'Назад' }} />
+        <Stack.Screen name="respond/[id]" options={{ title: 'Откликнуться', headerBackTitle: 'Назад', presentation: 'modal' }} />
       </Stack>
       <StatusBar style="auto" />
     </>

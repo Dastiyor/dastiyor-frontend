@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyJWT } from '@/lib/auth';
+import { verifyJWT, getBearerToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import { logger } from '@/lib/logger';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
@@ -108,15 +108,16 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
     try {
         // 1. Authenticate Request
-        const cookieStore = await cookies();
-        const token = cookieStore.get('token')?.value;
+        const bearerToken = getBearerToken(request);
+        let token: string | undefined = bearerToken ?? undefined;
+        if (!token) {
+            const cookieStore = await cookies();
+            token = cookieStore.get('token')?.value;
+        }
         logger.debug('API /tasks request', { hasToken: !!token });
 
         if (!token) {
-            return NextResponse.json(
-                { error: `Unauthorized: Please log in. Cookies: ${cookieStore.getAll().map(c => c.name).join(', ')}` },
-                { status: 401 }
-            );
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
         const payload = await verifyJWT(token);

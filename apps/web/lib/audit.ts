@@ -18,6 +18,7 @@ export type AuditAction =
     | 'SEND_MESSAGE'
     | 'LEAVE_REVIEW'
     | 'UPDATE_PROFILE'
+    | 'CHANGE_PASSWORD'
     | 'UPLOAD_FILE'
     | 'ADMIN_ACTION';
 

@@ -70,6 +70,10 @@ export default function ProfileScreen() {
         <Text style={styles.editBtnText}>Редактировать профиль</Text>
       </TouchableOpacity>
 
+      <TouchableOpacity style={styles.editBtn} onPress={() => router.push('/change-password')}>
+        <Text style={styles.editBtnText}>Сменить пароль</Text>
+      </TouchableOpacity>
+
       <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
         <Text style={styles.logoutText}>Выйти из аккаунта</Text>
       </TouchableOpacity>

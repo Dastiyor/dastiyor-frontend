@@ -20,12 +20,15 @@ importers:
       '@dastiyor/types':
         specifier: workspace:*
         version: link:../../packages/types
+      '@expo/vector-icons':
+        specifier: ^14.1.0
+        version: 14.1.0(expo-font@13.3.2(expo@53.0.27(@babel/core@7.29.0)(@expo/metro-runtime@5.0.4(react-native@0.79.2(@babel/core@7.29.0)(@types/react@19.0.14)(react@19.0.0)))(graphql@16.14.0)(react-native@0.79.2(@babel/core@7.29.0)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0))(react@19.0.0))(react-native@0.79.2(@babel/core@7.29.0)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
       expo:
         specifier: ~53.0.0
         version: 53.0.27(@babel/core@7.29.0)(@expo/metro-runtime@5.0.4(react-native@0.79.2(@babel/core@7.29.0)(@types/react@19.0.14)(react@19.0.0)))(graphql@16.14.0)(react-native@0.79.2(@babel/core@7.29.0)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
       expo-router:
         specifier: ~5.0.0
-        version: 5.0.7(277ee0ddb71049bb82beb0a8a4e04a86)
+        version: 5.0.7(0b5ba50b3e4bea9b41998f0e9f9bb5fc)
       expo-secure-store:
         specifier: ~14.0.0
         version: 14.0.1(expo@53.0.27(@babel/core@7.29.0)(@expo/metro-runtime@5.0.4(react-native@0.79.2(@babel/core@7.29.0)(@types/react@19.0.14)(react@19.0.0)))(graphql@16.14.0)(react-native@0.79.2(@babel/core@7.29.0)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0))
@@ -48,6 +51,9 @@ importers:
       '@babel/core':
         specifier: ^7.25.0
         version: 7.29.0
+      '@types/node':
+        specifier: ^20.19.39
+        version: 20.19.39
       '@types/react':
         specifier: ~19.0.0
         version: 19.0.14
@@ -7949,7 +7955,7 @@ snapshots:
       eslint: 9.39.4
       eslint-import-resolver-node: 0.3.10
       eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.59.2(eslint@9.39.4)(typescript@5.9.3))(eslint@9.39.4))(eslint@9.39.4)
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.59.2(eslint@9.39.4)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.4)
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.59.2(eslint@9.39.4)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.59.2(eslint@9.39.4)(typescript@5.9.3))(eslint@9.39.4))(eslint@9.39.4))(eslint@9.39.4)
       eslint-plugin-jsx-a11y: 6.10.2(eslint@9.39.4)
       eslint-plugin-react: 7.37.5(eslint@9.39.4)
       eslint-plugin-react-hooks: 7.1.1(eslint@9.39.4)
@@ -7982,7 +7988,7 @@ snapshots:
       tinyglobby: 0.2.16
       unrs-resolver: 1.11.1
     optionalDependencies:
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.59.2(eslint@9.39.4)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.4)
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.59.2(eslint@9.39.4)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.59.2(eslint@9.39.4)(typescript@5.9.3))(eslint@9.39.4))(eslint@9.39.4))(eslint@9.39.4)
     transitivePeerDependencies:
       - supports-color
 
@@ -7997,7 +8003,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.59.2(eslint@9.39.4)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.4):
+  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.59.2(eslint@9.39.4)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.59.2(eslint@9.39.4)(typescript@5.9.3))(eslint@9.39.4))(eslint@9.39.4))(eslint@9.39.4):
     dependencies:
       '@rtsao/scc': 1.1.0
       array-includes: 3.1.9
@@ -8241,7 +8247,7 @@ snapshots:
     dependencies:
       invariant: 2.2.4
 
-  expo-router@5.0.7(277ee0ddb71049bb82beb0a8a4e04a86):
+  expo-router@5.0.7(0b5ba50b3e4bea9b41998f0e9f9bb5fc):
     dependencies:
       '@expo/metro-runtime': 5.0.4(react-native@0.79.2(@babel/core@7.29.0)(@types/react@19.0.14)(react@19.0.0))
       '@expo/server': 0.6.3
@@ -8251,7 +8257,7 @@ snapshots:
       '@react-navigation/native-stack': 7.14.12(@react-navigation/native@7.2.2(react-native@0.79.2(@babel/core@7.29.0)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0))(react-native-safe-area-context@4.14.0(react-native@0.79.2(@babel/core@7.29.0)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0))(react-native-screens@4.4.0(react-native@0.79.2(@babel/core@7.29.0)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0))(react-native@0.79.2(@babel/core@7.29.0)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
       client-only: 0.0.1
       expo: 53.0.27(@babel/core@7.29.0)(@expo/metro-runtime@5.0.4(react-native@0.79.2(@babel/core@7.29.0)(@types/react@19.0.14)(react@19.0.0)))(graphql@16.14.0)(react-native@0.79.2(@babel/core@7.29.0)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
-      expo-constants: 17.1.8(expo@53.0.27(@babel/core@7.29.0)(@expo/metro-runtime@5.0.4(react-native@0.79.2(@babel/core@7.29.0)(@types/react@19.0.14)(react@19.0.0)))(graphql@16.14.0)(react-native@0.79.2(@babel/core@7.29.0)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0))(react-native@0.79.2(@babel/core@7.29.0)(@types/react@19.0.14)(react@19.0.0))
+      expo-constants: 55.0.16(expo@53.0.27(@babel/core@7.29.0)(@expo/metro-runtime@5.0.4(react-native@0.79.2(@babel/core@7.29.0)(@types/react@19.0.14)(react@19.0.0)))(graphql@16.14.0)(react-native@0.79.2(@babel/core@7.29.0)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0))(react-native@0.79.2(@babel/core@7.29.0)(@types/react@19.0.14)(react@19.0.0))
       expo-linking: 55.0.15(expo@53.0.27(@babel/core@7.29.0)(@expo/metro-runtime@5.0.4(react-native@0.79.2(@babel/core@7.29.0)(@types/react@19.0.14)(react@19.0.0)))(graphql@16.14.0)(react-native@0.79.2(@babel/core@7.29.0)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0))(react-native@0.79.2(@babel/core@7.29.0)(@types/react@19.0.14)(react@19.0.0))(react@19.0.0)
       invariant: 2.2.4
       react-fast-compare: 3.2.2

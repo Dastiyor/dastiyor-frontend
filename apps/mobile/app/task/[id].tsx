@@ -178,7 +178,11 @@ export default function TaskDetailScreen() {
               return (
                 <View key={r.id} style={styles.responseCard}>
                   <View style={styles.responseHeader}>
-                    <Text style={styles.providerName}>{r.provider.fullName}</Text>
+                    <TouchableOpacity
+                      onPress={() => router.push({ pathname: '/provider/[id]', params: { id: r.provider.id, name: r.provider.fullName } })}
+                    >
+                      <Text style={[styles.providerName, styles.providerNameLink]}>{r.provider.fullName}</Text>
+                    </TouchableOpacity>
                     <View style={[styles.rsBadge, { backgroundColor: rs.bg }]}>
                       <Text style={[styles.rsBadgeText, { color: rs.color }]}>{rs.label}</Text>
                     </View>
@@ -330,6 +334,7 @@ const styles = StyleSheet.create({
   responseCard: { backgroundColor: '#F9FAFB', borderRadius: 14, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: '#E5E7EB' },
   responseHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   providerName: { fontSize: 14, fontWeight: '700', color: '#111827' },
+  providerNameLink: { color: '#2563EB', textDecorationLine: 'underline' },
   rsBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
   rsBadgeText: { fontSize: 11, fontWeight: '700' },
   responseMsg: { fontSize: 13, color: '#4B5563', lineHeight: 18, marginBottom: 8 },

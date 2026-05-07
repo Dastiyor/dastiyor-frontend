@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { api } from '@/lib/api-client';
+import { useAuth } from '@/contexts/AuthContext';
 import type { FeedTask } from '@dastiyor/types';
 
 const CATEGORIES = [
@@ -41,6 +42,7 @@ interface TasksResponse {
 }
 
 export default function TaskFeedScreen() {
+  const { user } = useAuth();
   const [tasks, setTasks] = useState<FeedTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -48,7 +50,15 @@ export default function TaskFeedScreen() {
   const [hasMore, setHasMore] = useState(true);
   const [category, setCategory] = useState('');
   const [query, setQuery] = useState('');
+  const [unreadCount, setUnreadCount] = useState(0);
   const page = useRef(1);
+
+  useEffect(() => {
+    if (!user) return;
+    api.get<{ unreadCount: number }>('/api/notifications')
+      .then((r) => setUnreadCount(r.unreadCount))
+      .catch(() => {});
+  }, [user]);
 
   async function fetchTasks(reset = false) {
     const p = reset ? 1 : page.current;
@@ -119,7 +129,19 @@ export default function TaskFeedScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Задания</Text>
+        <View style={styles.headerRow}>
+          <Text style={styles.headerTitle}>Задания</Text>
+          {user ? (
+            <TouchableOpacity style={styles.bellBtn} onPress={() => router.push('/notifications')}>
+              <Text style={styles.bellIcon}>🔔</Text>
+              {unreadCount > 0 ? (
+                <View style={styles.bellBadge}>
+                  <Text style={styles.bellBadgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+                </View>
+              ) : null}
+            </TouchableOpacity>
+          ) : null}
+        </View>
         <TextInput
           style={styles.search}
           placeholder="Поиск..."
@@ -175,7 +197,12 @@ export default function TaskFeedScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F3F4F6' },
   header: { backgroundColor: '#fff', paddingHorizontal: 16, paddingTop: 56, paddingBottom: 12 },
-  headerTitle: { fontSize: 28, fontWeight: '800', color: '#111827', marginBottom: 10 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
+  headerTitle: { fontSize: 28, fontWeight: '800', color: '#111827' },
+  bellBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  bellIcon: { fontSize: 22 },
+  bellBadge: { position: 'absolute', top: 2, right: 2, backgroundColor: '#EF4444', borderRadius: 8, minWidth: 16, height: 16, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },
+  bellBadgeText: { color: '#fff', fontSize: 9, fontWeight: '800' },
   search: {
     backgroundColor: '#F9FAFB',
     borderWidth: 1,

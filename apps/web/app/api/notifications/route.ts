@@ -1,71 +1,54 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyJWT } from '@/lib/auth';
+import { verifyJWT, getBearerToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
 
-// GET - Link notifications
-export async function GET() {
-    try {
+async function authenticate(request: Request) {
+    const bearerToken = getBearerToken(request);
+    let token: string | undefined = bearerToken ?? undefined;
+    if (!token) {
         const cookieStore = await cookies();
-        const token = cookieStore.get('token')?.value;
+        token = cookieStore.get('token')?.value;
+    }
+    if (!token) return null;
+    const payload = await verifyJWT(token);
+    return payload?.id ? payload : null;
+}
 
-        if (!token) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+export async function GET(request: Request) {
+    try {
+        const payload = await authenticate(request);
+        if (!payload) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-        const payload = await verifyJWT(token);
-        if (!payload || !payload.id) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        const notifications = await prisma.notification.findMany({
-            where: { userId: payload.id as string },
-            orderBy: { createdAt: 'desc' },
-            take: 20
-        });
-
-        const unreadCount = await prisma.notification.count({
-            where: {
-                userId: payload.id as string,
-                isRead: false
-            }
-        });
+        const [notifications, unreadCount] = await Promise.all([
+            prisma.notification.findMany({
+                where: { userId: payload.id as string },
+                orderBy: { createdAt: 'desc' },
+                take: 30,
+            }),
+            prisma.notification.count({
+                where: { userId: payload.id as string, isRead: false },
+            }),
+        ]);
 
         return NextResponse.json({ notifications, unreadCount });
-
-    } catch (error) {
-        console.error('Notifications Error:', error);
+    } catch {
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
 
-// PUT - Mark all as read
-export async function PUT() {
+export async function PUT(request: Request) {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get('token')?.value;
-
-        if (!token) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        const payload = await verifyJWT(token);
-        if (!payload || !payload.id) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+        const payload = await authenticate(request);
+        if (!payload) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         await prisma.notification.updateMany({
-            where: {
-                userId: payload.id as string,
-                isRead: false
-            },
-            data: { isRead: true }
+            where: { userId: payload.id as string, isRead: false },
+            data: { isRead: true },
         });
 
         return NextResponse.json({ success: true });
-
-    } catch (error) {
-        console.error('Notifications Error:', error);
+    } catch {
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

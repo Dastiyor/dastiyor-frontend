@@ -85,6 +85,26 @@ export interface ChatMessage {
   sender: { id: string; fullName: string };
 }
 
+export interface AppNotification {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  link: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export interface TaskResponse {
+  id: string;
+  message: string;
+  price: string;
+  estimatedTime: string | null;
+  status: string;
+  createdAt: string;
+  provider: Pick<ApiUser, 'id' | 'fullName' | 'avatar'>;
+}
+
 export interface ApiError {
   error: string;
   code?: string;

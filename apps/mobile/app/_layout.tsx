@@ -36,6 +36,7 @@ function RootLayoutNav() {
         <Stack.Screen name="respond/[id]" options={{ title: 'Откликнуться', headerBackTitle: 'Назад', presentation: 'modal' }} />
         <Stack.Screen name="chat/[partnerId]" options={{ headerBackTitle: 'Назад' }} />
         <Stack.Screen name="create-task" options={{ title: 'Новое задание', headerBackTitle: 'Назад', presentation: 'modal' }} />
+        <Stack.Screen name="notifications" options={{ title: 'Уведомления', headerBackTitle: 'Назад' }} />
       </Stack>
       <StatusBar style="auto" />
     </>

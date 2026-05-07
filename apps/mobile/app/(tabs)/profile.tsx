@@ -6,6 +6,7 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
+import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 
 const ROLE_LABEL: Record<string, { label: string; color: string; bg: string }> = {
@@ -65,6 +66,10 @@ export default function ProfileScreen() {
         <Row label="Телефон" value={user.phone} />
       </View>
 
+      <TouchableOpacity style={styles.editBtn} onPress={() => router.push('/edit-profile')}>
+        <Text style={styles.editBtnText}>Редактировать профиль</Text>
+      </TouchableOpacity>
+
       <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
         <Text style={styles.logoutText}>Выйти из аккаунта</Text>
       </TouchableOpacity>
@@ -107,6 +112,15 @@ const styles = StyleSheet.create({
   },
   rowLabel: { fontSize: 14, color: '#6B7280', fontWeight: '500' },
   rowValue: { fontSize: 14, color: '#111827', fontWeight: '600', flexShrink: 1, textAlign: 'right' },
+  editBtn: {
+    marginHorizontal: 16,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 14,
+    padding: 14,
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  editBtnText: { color: '#374151', fontWeight: '700', fontSize: 15 },
   logoutBtn: {
     marginHorizontal: 16,
     backgroundColor: '#FEE2E2',

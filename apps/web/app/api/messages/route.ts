@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyJWT } from '@/lib/auth';
+import { verifyJWT, getBearerToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import { sendNewMessageNotification } from '@/lib/notifications/email';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
@@ -9,8 +9,12 @@ import { sendPushNotification } from '@/lib/web-push';
 // GET - Fetch messages for a conversation (between current user and another user, optionally for a task)
 export async function GET(request: Request) {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get('token')?.value;
+        const bearerToken = getBearerToken(request);
+        let token: string | undefined = bearerToken ?? undefined;
+        if (!token) {
+            const cookieStore = await cookies();
+            token = cookieStore.get('token')?.value;
+        }
 
         if (!token) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -79,8 +83,12 @@ export async function GET(request: Request) {
 // POST - Send a new message
 export async function POST(request: Request) {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get('token')?.value;
+        const bearerToken = getBearerToken(request);
+        let token: string | undefined = bearerToken ?? undefined;
+        if (!token) {
+            const cookieStore = await cookies();
+            token = cookieStore.get('token')?.value;
+        }
 
         if (!token) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

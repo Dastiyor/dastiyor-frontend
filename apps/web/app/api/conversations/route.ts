@@ -1,13 +1,17 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyJWT } from '@/lib/auth';
+import { verifyJWT, getBearerToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
 
 // GET - Fetch all conversations for the current user
-export async function GET() {
+export async function GET(request: Request) {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get('token')?.value;
+        const bearerToken = getBearerToken(request);
+        let token: string | undefined = bearerToken ?? undefined;
+        if (!token) {
+            const cookieStore = await cookies();
+            token = cookieStore.get('token')?.value;
+        }
 
         if (!token) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

@@ -62,6 +62,29 @@ export interface PaginatedResult<T> {
   limit: number;
 }
 
+export interface Conversation {
+  id: string;
+  partnerId: string;
+  partnerName: string;
+  taskId: string | null;
+  taskTitle: string | null;
+  lastMessage: string;
+  lastMessageAt: string;
+  unreadCount: number;
+}
+
+export interface ChatMessage {
+  id: string;
+  content: string;
+  imageUrl: string | null;
+  senderId: string;
+  receiverId: string;
+  taskId: string | null;
+  isRead: boolean;
+  createdAt: string;
+  sender: { id: string; fullName: string };
+}
+
 export interface ApiError {
   error: string;
   code?: string;

@@ -35,6 +35,26 @@ export interface ApiResponse {
   provider: Pick<ApiUser, 'id' | 'fullName' | 'avatar'>;
 }
 
+export interface FeedTask {
+  id: string;
+  title: string;
+  category: string;
+  budget: string;
+  city: string;
+  postedAt: string;
+  description: string;
+  urgency: string;
+  responseCount: number;
+  status: string;
+}
+
+export interface TaskDetail extends FeedTask {
+  address?: string | null;
+  images: string[];
+  dueDate?: string | null;
+  customer: Pick<ApiUser, 'id' | 'fullName' | 'avatar'>;
+}
+
 export interface PaginatedResult<T> {
   items: T[];
   total: number;

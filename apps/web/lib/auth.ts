@@ -23,3 +23,8 @@ export async function verifyJWT(token: string) {
         return null;
     }
 }
+
+export function getBearerToken(request: Request): string | null {
+    const auth = request.headers.get('Authorization');
+    return auth?.startsWith('Bearer ') ? auth.slice(7) : null;
+}

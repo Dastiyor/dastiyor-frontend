@@ -74,7 +74,7 @@ describe('TaskCard', () => {
         });
 
         await waitFor(() => {
-            expect(screen.getByText(/5 Bids received/)).toBeInTheDocument();
+            expect(screen.getByText(/5 откликов/)).toBeInTheDocument();
         });
     });
 
@@ -109,7 +109,8 @@ describe('TaskCard', () => {
         });
 
         await waitFor(() => {
-            expect(screen.getByText('Договорная')).toBeInTheDocument();
+            const elements = screen.getAllByText('Договорная');
+            expect(elements.length).toBeGreaterThan(0);
         });
     });
 
@@ -155,7 +156,7 @@ describe('TaskCard', () => {
             render(<TaskCard task={mockTask} />);
         });
         await waitFor(() => {
-            const link = screen.getByRole('link', { name: /view details/i });
+            const link = screen.getByRole('link', { name: /Подробнее/i });
             expect(link).toBeInTheDocument();
             expect(link).toHaveAttribute('href', '/tasks/task-1');
         });

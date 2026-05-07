@@ -10,6 +10,7 @@ jest.mock('next/headers', () => ({
 
 jest.mock('@/lib/auth', () => ({
     verifyJWT: jest.fn(),
+    getBearerToken: jest.fn(() => null),
 }));
 
 jest.mock('@/lib/rate-limit', () => ({

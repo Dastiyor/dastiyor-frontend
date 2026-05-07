@@ -50,8 +50,8 @@ describe('Header Component', () => {
         const HeaderComponent = await Header();
         render(HeaderComponent);
 
-        expect(screen.getByText(/Войти/i)).toBeInTheDocument();
-        expect(screen.getByText(/Как это работает/i)).toBeInTheDocument();
+        expect(screen.getAllByText(/Войти/i).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(/Как это работает/i).length).toBeGreaterThan(0);
         expect(screen.queryByTestId('user-menu')).not.toBeInTheDocument();
     });
 

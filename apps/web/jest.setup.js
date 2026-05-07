@@ -123,3 +123,35 @@ jest.mock('@/lib/audit', () => ({
   logAction: jest.fn(),
   getRequestIP: jest.fn(() => '127.0.0.1'),
 }));
+
+// Mock i18n context so components can render without I18nProvider wrapper
+jest.mock('@/lib/i18n/context', () => {
+  const ru = require('./lib/i18n/locales/ru.json');
+
+  function getNestedValue(obj, path) {
+    const keys = path.split('.');
+    let current = obj;
+    for (const key of keys) {
+      if (current == null || typeof current !== 'object') return path;
+      current = current[key];
+    }
+    return typeof current === 'string' ? current : path;
+  }
+
+  return {
+    I18nProvider: ({ children }) => children,
+    useTranslation: () => ({
+      locale: 'ru',
+      setLocale: jest.fn(),
+      t: (key, params) => {
+        let value = getNestedValue(ru, key);
+        if (params && typeof value === 'string') {
+          Object.entries(params).forEach(([k, v]) => {
+            value = value.replace(new RegExp(`{${k}}`, 'g'), String(v));
+          });
+        }
+        return value;
+      },
+    }),
+  };
+});

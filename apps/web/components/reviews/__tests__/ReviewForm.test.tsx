@@ -24,7 +24,7 @@ describe('ReviewForm', () => {
 
     it('should render form with provider name', () => {
         render(<ReviewForm {...defaultProps} />);
-        expect(screen.getByText(/Leave a Review for Test Provider/i)).toBeInTheDocument();
+        expect(screen.getByText(/Оставить отзыв для Test Provider/i)).toBeInTheDocument();
     });
 
     it('should show warning when submitting without rating', async () => {
@@ -49,7 +49,7 @@ describe('ReviewForm', () => {
         const starButtons = screen.getAllByRole('button').filter(b => b.getAttribute('type') === 'button');
         if (starButtons.length >= 1) fireEvent.click(starButtons[0]);
 
-        const submitButton = screen.getByRole('button', { name: /submit review/i });
+        const submitButton = screen.getByRole('button', { name: /Отправить отзыв/i });
         fireEvent.click(submitButton);
 
         await waitFor(() => {
@@ -79,11 +79,11 @@ describe('ReviewForm', () => {
 
         const starButtons = screen.getAllByRole('button').filter(b => b.getAttribute('type') === 'button');
         if (starButtons.length >= 1) fireEvent.click(starButtons[0]);
-        const submitButton = screen.getByRole('button', { name: /submit review/i });
+        const submitButton = screen.getByRole('button', { name: /Отправить отзыв/i });
         fireEvent.click(submitButton);
 
         await waitFor(() => {
-            expect(screen.getByText(/Thank you for your review/i)).toBeInTheDocument();
+            expect(screen.getByText(/Спасибо за ваш отзыв/i)).toBeInTheDocument();
         }, { timeout: 2000 });
     });
 

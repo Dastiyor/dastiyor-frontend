@@ -3,9 +3,9 @@ import { prismaMock } from '../../../../__tests__/mocks/prisma';
 import { verifyJWT } from '@/lib/auth';
 import { cookies } from 'next/headers';
 
+const req = () => new Request('http://localhost/api/conversations');
 
-
-jest.mock('@/lib/auth', () => ({ verifyJWT: jest.fn() }));
+jest.mock('@/lib/auth', () => ({ verifyJWT: jest.fn(), getBearerToken: jest.fn(() => null) }));
 jest.mock('next/headers', () => ({ cookies: jest.fn() }));
 
 describe('/api/conversations', () => {
@@ -23,7 +23,7 @@ describe('/api/conversations', () => {
     it('should return 401 if no token', async () => {
         (cookies as jest.Mock).mockResolvedValue({ get: jest.fn(() => undefined) });
 
-        const response = await GET();
+        const response = await GET(req());
         const data = await response.json();
 
         expect(response.status).toBe(401);
@@ -48,7 +48,7 @@ describe('/api/conversations', () => {
 
         (prismaMock.message.findMany as jest.Mock).mockResolvedValue(mockMessages);
 
-        const response = await GET();
+        const response = await GET(req());
         const data = await response.json();
 
         expect(response.status).toBe(200);
@@ -70,7 +70,7 @@ describe('/api/conversations', () => {
     it('should handle empty conversations', async () => {
         (prismaMock.message.findMany as jest.Mock).mockResolvedValue([]);
 
-        const response = await GET();
+        const response = await GET(req());
         const data = await response.json();
 
         expect(response.status).toBe(200);
@@ -80,7 +80,7 @@ describe('/api/conversations', () => {
     it('should handle server errors', async () => {
         (prismaMock.message.findMany as jest.Mock).mockRejectedValue(new Error('DB error'));
 
-        const response = await GET();
+        const response = await GET(req());
         const data = await response.json();
 
         expect(response.status).toBe(500);

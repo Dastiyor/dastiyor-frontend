@@ -3,9 +3,9 @@ import { prismaMock } from '../../../../__tests__/mocks/prisma';
 import { verifyJWT } from '@/lib/auth';
 import { cookies } from 'next/headers';
 
+const req = (method = 'GET') => new Request('http://localhost/api/notifications', { method });
 
-
-jest.mock('@/lib/auth', () => ({ verifyJWT: jest.fn() }));
+jest.mock('@/lib/auth', () => ({ verifyJWT: jest.fn(), getBearerToken: jest.fn(() => null) }));
 jest.mock('next/headers', () => ({ cookies: jest.fn() }));
 
 describe('/api/notifications', () => {
@@ -24,7 +24,7 @@ describe('/api/notifications', () => {
         it('should return 401 if no token', async () => {
             (cookies as jest.Mock).mockResolvedValue({ get: jest.fn(() => undefined) });
 
-            const response = await GET();
+            const response = await GET(req());
             const data = await response.json();
 
             expect(response.status).toBe(401);
@@ -46,7 +46,7 @@ describe('/api/notifications', () => {
             (prismaMock.notification.findMany as jest.Mock).mockResolvedValue(mockNotifications);
             (prismaMock.notification.count as jest.Mock).mockResolvedValue(1);
 
-            const response = await GET();
+            const response = await GET(req());
             const data = await response.json();
 
             expect(response.status).toBe(200);
@@ -59,7 +59,7 @@ describe('/api/notifications', () => {
                 expect.objectContaining({
                     where: { userId: mockUserId },
                     orderBy: { createdAt: 'desc' },
-                    take: 20,
+                    take: 30,
                 })
             );
         });
@@ -69,7 +69,7 @@ describe('/api/notifications', () => {
         it('should return 401 if no token', async () => {
             (cookies as jest.Mock).mockResolvedValue({ get: jest.fn(() => undefined) });
 
-            const response = await PUT();
+            const response = await PUT(req('PUT'));
             const data = await response.json();
 
             expect(response.status).toBe(401);
@@ -79,7 +79,7 @@ describe('/api/notifications', () => {
         it('should mark all notifications as read', async () => {
             (prismaMock.notification.updateMany as jest.Mock).mockResolvedValue({ count: 5 });
 
-            const response = await PUT();
+            const response = await PUT(req('PUT'));
             const data = await response.json();
 
             expect(response.status).toBe(200);

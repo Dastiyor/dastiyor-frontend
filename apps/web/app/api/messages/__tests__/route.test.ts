@@ -9,6 +9,7 @@ import { cookies } from 'next/headers';
 
 jest.mock('@/lib/auth', () => ({
     verifyJWT: jest.fn(),
+    getBearerToken: jest.fn(() => null),
 }));
 
 jest.mock('next/headers', () => ({

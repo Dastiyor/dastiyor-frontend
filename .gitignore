@@ -1,8 +1,6 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # dependencies
-/node_modules
-/.pnp
+node_modules
+.pnp
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -10,15 +8,31 @@
 !.yarn/releases
 !.yarn/versions
 
+# pnpm
+.pnpm-store
+
 # testing
-/coverage
+coverage
+test-results
+playwright-report
+blob-report
+playwright/.cache
+playwright/.auth
 
 # next.js
-/.next/
-/out/
+.next/
+out/
+
+# expo / react-native
+.expo/
+dist/
+expo-env.d.ts
 
 # production
-/build
+build
+
+# turbo
+.turbo
 
 # misc
 .DS_Store
@@ -30,8 +44,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files
 .env*
+.env*.local
 
 # vercel
 .vercel
@@ -40,7 +55,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/app/generated/prisma
+# prisma generated
+app/generated/prisma
 
 # database
 *.db
@@ -50,13 +66,6 @@ prisma/*.db
 
 # uploads
 public/uploads/
-.env*.local
-.claude
 
-# Playwright
-node_modules/
-/test-results/
-/playwright-report/
-/blob-report/
-/playwright/.cache/
-/playwright/.auth/
+# claude
+.claude

@@ -1,0 +1,11 @@
+{
+  "name": "@dastiyor/types",
+  "version": "0.0.1",
+  "private": true,
+  "exports": {
+    ".": "./index.ts"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

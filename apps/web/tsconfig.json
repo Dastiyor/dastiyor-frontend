@@ -19,7 +19,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@dastiyor/types": ["../../packages/types/index.ts"]
     }
   },
   "include": [

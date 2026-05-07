@@ -6,17 +6,42 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Dastiyor (https://dastiyor.com) is an online services marketplace for Tajikistan where customers post tasks and service providers respond. Built with Next.js 16 (App Router), React 19, Prisma ORM, and TypeScript. The UI language is primarily Russian.
 
+## Monorepo Structure
+
+```
+apps/
+  web/        # Next.js 16 web app (main product)
+  mobile/     # Expo React Native app (iOS + Android)
+packages/
+  types/      # Shared TypeScript types (@dastiyor/types)
+  api/        # Shared API client (future)
+tooling/
+  tsconfig/   # Shared tsconfig bases
+```
+
+Package manager: **pnpm** (workspaces). Build orchestration: **Turborepo**.
+
 ## Commands
 
 ```bash
-npm run dev              # Start dev server (localhost:3000)
-npm run build            # prisma migrate deploy + next build
-npm run lint             # ESLint (next/core-web-vitals + typescript)
-npm test                 # Jest tests
-npm test -- --testPathPattern=path/to/test  # Run single test file
-npm run test:watch       # Jest watch mode
-npm run test:coverage    # Jest coverage
+# From repo root
+pnpm dev                 # Start all apps (turbo)
+pnpm build               # Build all apps (turbo)
+pnpm lint                # Lint all apps (turbo)
 
+# Web app only (from repo root or apps/web/)
+pnpm --filter @dastiyor/web dev     # Start web dev server (localhost:3000)
+pnpm --filter @dastiyor/web build   # Build web app
+pnpm --filter @dastiyor/web lint    # Lint web app
+pnpm --filter @dastiyor/web test    # Jest tests
+
+# Mobile app only
+pnpm --filter @dastiyor/mobile dev  # Start Expo (ios/android/web)
+
+# From apps/web/ directly
+npm run dev / npm run build / npm test  # also work if run from apps/web/
+
+# Prisma (run from apps/web/)
 npx prisma generate      # Regenerate Prisma Client after schema changes
 npx prisma migrate dev   # Create + apply migration (dev)
 npx prisma migrate deploy # Apply migrations (prod)

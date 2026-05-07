@@ -13,6 +13,7 @@ export async function GET(
             include: {
                 user: { select: { id: true, fullName: true, avatar: true } },
                 _count: { select: { responses: true } },
+                review: { select: { id: true } },
             },
         });
 
@@ -35,6 +36,7 @@ export async function GET(
             postedAt: new Date(task.createdAt).toLocaleDateString('ru-RU'),
             responseCount: task._count.responses,
             customer: task.user,
+            hasReview: !!task.review,
         });
     } catch {
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

@@ -52,6 +52,7 @@ export interface TaskDetail extends FeedTask {
   address?: string | null;
   images: string[];
   dueDate?: string | null;
+  hasReview: boolean;
   customer: Pick<ApiUser, 'id' | 'fullName' | 'avatar'>;
 }
 

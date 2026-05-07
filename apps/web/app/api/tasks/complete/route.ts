@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyJWT } from '@/lib/auth';
+import { verifyJWT, getBearerToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import { sendTaskCompletedNotification } from '@/lib/notifications/email';
 import { logAction, getRequestIP } from '@/lib/audit';
@@ -8,9 +8,12 @@ import { logAction, getRequestIP } from '@/lib/audit';
 export async function POST(request: Request) {
     try {
         // 1. Authenticate
-        const cookieStore = await cookies();
-        const token = cookieStore.get('token')?.value;
-
+        const bearerToken = getBearerToken(request);
+        let token: string | undefined = bearerToken ?? undefined;
+        if (!token) {
+            const cookieStore = await cookies();
+            token = cookieStore.get('token')?.value;
+        }
         if (!token) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }

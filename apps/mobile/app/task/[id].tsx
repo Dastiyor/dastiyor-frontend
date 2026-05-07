@@ -32,6 +32,7 @@ export default function TaskDetailScreen() {
   const [responses, setResponses] = useState<TaskResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [taskActionLoading, setTaskActionLoading] = useState<string | null>(null);
 
   async function loadTask() {
     if (!id) return;
@@ -218,6 +219,78 @@ export default function TaskDetailScreen() {
             <Text style={styles.noResponsesText}>Откликов пока нет</Text>
           </View>
         ) : null}
+
+        {/* Owner task lifecycle actions */}
+        {isOwner && task.status === 'IN_PROGRESS' ? (
+          <View style={styles.lifecycleRow}>
+            <TouchableOpacity
+              style={[styles.cancelTaskBtn, taskActionLoading === 'cancel' && styles.btnBusy]}
+              disabled={!!taskActionLoading}
+              onPress={() =>
+                Alert.alert('Отменить задание?', 'Это действие нельзя отменить', [
+                  { text: 'Нет', style: 'cancel' },
+                  {
+                    text: 'Отменить задание',
+                    style: 'destructive',
+                    onPress: async () => {
+                      setTaskActionLoading('cancel');
+                      try {
+                        await api.post('/api/tasks/cancel', { taskId: task.id });
+                        const d = await loadTask();
+                        if (d) await loadResponses(d);
+                      } catch (e) { Alert.alert('Ошибка', (e as Error).message); }
+                      finally { setTaskActionLoading(null); }
+                    },
+                  },
+                ])
+              }
+            >
+              {taskActionLoading === 'cancel' ? <ActivityIndicator color="#EF4444" size="small" /> : <Text style={styles.cancelTaskBtnText}>Отменить</Text>}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.completeBtn, taskActionLoading === 'complete' && styles.btnBusy]}
+              disabled={!!taskActionLoading}
+              onPress={() =>
+                Alert.alert('Завершить задание?', 'Пометить задание как выполненное?', [
+                  { text: 'Нет', style: 'cancel' },
+                  {
+                    text: 'Завершить',
+                    onPress: async () => {
+                      setTaskActionLoading('complete');
+                      try {
+                        await api.post('/api/tasks/complete', { taskId: task.id });
+                        const d = await loadTask();
+                        if (d) await loadResponses(d);
+                      } catch (e) { Alert.alert('Ошибка', (e as Error).message); }
+                      finally { setTaskActionLoading(null); }
+                    },
+                  },
+                ])
+              }
+            >
+              {taskActionLoading === 'complete' ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.completeBtnText}>✓ Завершить задание</Text>}
+            </TouchableOpacity>
+          </View>
+        ) : null}
+
+        {/* Leave review after completion */}
+        {isOwner && task.status === 'COMPLETED' && !task.hasReview ? (
+          <TouchableOpacity
+            style={styles.reviewBtn}
+            onPress={() => router.push({
+              pathname: '/review/[taskId]',
+              params: { taskId: task.id, taskTitle: task.title },
+            })}
+          >
+            <Text style={styles.reviewBtnText}>⭐ Оставить отзыв исполнителю</Text>
+          </TouchableOpacity>
+        ) : null}
+
+        {isOwner && task.status === 'COMPLETED' && task.hasReview ? (
+          <View style={styles.reviewedBadge}>
+            <Text style={styles.reviewedBadgeText}>✓ Отзыв оставлен</Text>
+          </View>
+        ) : null}
       </ScrollView>
 
       {!isOwner && user?.role === 'PROVIDER' && task.status === 'OPEN' ? (
@@ -274,4 +347,13 @@ const styles = StyleSheet.create({
   footer: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#fff', padding: 16, paddingBottom: 32, borderTopWidth: 1, borderTopColor: '#F3F4F6' },
   respondBtn: { backgroundColor: '#2563EB', borderRadius: 14, padding: 16, alignItems: 'center' },
   respondBtnText: { color: '#fff', fontSize: 17, fontWeight: '700' },
+  lifecycleRow: { flexDirection: 'row', gap: 10, marginTop: 20, borderTopWidth: 1, borderTopColor: '#F3F4F6', paddingTop: 20 },
+  cancelTaskBtn: { flex: 1, borderWidth: 1.5, borderColor: '#EF4444', borderRadius: 12, padding: 14, alignItems: 'center' },
+  cancelTaskBtnText: { color: '#EF4444', fontWeight: '700', fontSize: 14 },
+  completeBtn: { flex: 2, backgroundColor: '#059669', borderRadius: 12, padding: 14, alignItems: 'center' },
+  completeBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  reviewBtn: { marginTop: 16, backgroundColor: '#FEF3C7', borderRadius: 14, padding: 16, alignItems: 'center' },
+  reviewBtnText: { color: '#92400E', fontWeight: '700', fontSize: 15 },
+  reviewedBadge: { marginTop: 16, backgroundColor: '#D1FAE5', borderRadius: 14, padding: 14, alignItems: 'center' },
+  reviewedBadgeText: { color: '#065F46', fontWeight: '700', fontSize: 14 },
 });

@@ -1,6 +1,6 @@
 import * as SecureStore from 'expo-secure-store';
 
-const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? 'https://dastiyor.com';
+const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? 'https://www.dastiyor.com';
 
 async function getToken(): Promise<string | null> {
   return SecureStore.getItemAsync('auth_token');

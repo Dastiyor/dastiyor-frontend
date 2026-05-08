@@ -10,23 +10,24 @@ import {
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { api } from '@/lib/api-client';
 
-const STATUS_LABEL: Record<string, { label: string; color: string; bg: string }> = {
-  OPEN:        { label: 'Открыто',    color: '#059669', bg: '#D1FAE5' },
-  IN_PROGRESS: { label: 'В работе',  color: '#2563EB', bg: '#DBEAFE' },
-  COMPLETED:   { label: 'Завершено', color: '#6B7280', bg: '#F3F4F6' },
-  CANCELLED:   { label: 'Отменено',  color: '#EF4444', bg: '#FEE2E2' },
-  PENDING:     { label: 'На рассм.', color: '#F59E0B', bg: '#FEF3C7' },
-  ACCEPTED:    { label: 'Принят',    color: '#059669', bg: '#D1FAE5' },
-  REJECTED:    { label: 'Отклонён',  color: '#EF4444', bg: '#FEE2E2' },
+const STATUS_COLORS: Record<string, { color: string; bg: string }> = {
+  OPEN:        { color: '#059669', bg: '#D1FAE5' },
+  IN_PROGRESS: { color: '#2563EB', bg: '#DBEAFE' },
+  COMPLETED:   { color: '#6B7280', bg: '#F3F4F6' },
+  CANCELLED:   { color: '#EF4444', bg: '#FEE2E2' },
+  PENDING:     { color: '#F59E0B', bg: '#FEF3C7' },
+  ACCEPTED:    { color: '#059669', bg: '#D1FAE5' },
+  REJECTED:    { color: '#EF4444', bg: '#FEE2E2' },
 };
 
-function StatusBadge({ status }: { status: string }) {
-  const s = STATUS_LABEL[status] ?? { label: status, color: '#374151', bg: '#F3F4F6' };
+function StatusBadge({ status, label }: { status: string; label: string }) {
+  const s = STATUS_COLORS[status] ?? { color: '#374151', bg: '#F3F4F6' };
   return (
     <View style={[badge.wrap, { backgroundColor: s.bg }]}>
-      <Text style={[badge.text, { color: s.color }]}>{s.label}</Text>
+      <Text style={[badge.text, { color: s.color }]}>{label}</Text>
     </View>
   );
 }
@@ -59,6 +60,7 @@ interface MyResponse {
 
 export default function MyScreen() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const isCustomer = user?.role === 'CUSTOMER';
 
   const [tasks, setTasks] = useState<MyTask[]>([]);
@@ -99,13 +101,13 @@ export default function MyScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{isCustomer ? 'Мои задания' : 'Мои отклики'}</Text>
+        <Text style={styles.headerTitle}>{isCustomer ? t.my.myTasks : t.my.myResponses}</Text>
         {isCustomer ? (
           <TouchableOpacity
             style={styles.createBtn}
             onPress={() => router.push('/create-task')}
           >
-            <Text style={styles.createBtnText}>+ Создать</Text>
+            <Text style={styles.createBtnText}>{t.my.create}</Text>
           </TouchableOpacity>
         ) : null}
       </View>
@@ -113,15 +115,15 @@ export default function MyScreen() {
       {isCustomer ? (
         <FlatList
           data={tasks}
-          keyExtractor={(t) => t.id}
+          keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#2563EB" />}
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyTitle}>Нет заданий</Text>
-              <Text style={styles.emptyHint}>Создайте первое задание</Text>
+              <Text style={styles.emptyTitle}>{t.my.noTasks}</Text>
+              <Text style={styles.emptyHint}>{t.my.createFirst}</Text>
               <TouchableOpacity style={styles.emptyBtn} onPress={() => router.push('/create-task')}>
-                <Text style={styles.emptyBtnText}>Создать задание</Text>
+                <Text style={styles.emptyBtnText}>{t.my.createTask}</Text>
               </TouchableOpacity>
             </View>
           }
@@ -133,12 +135,12 @@ export default function MyScreen() {
             >
               <View style={styles.cardHeader}>
                 <Text style={styles.cardCategory}>{item.category}</Text>
-                <StatusBadge status={item.status} />
+                <StatusBadge status={item.status} label={t.status[item.status as keyof typeof t.status] ?? item.status} />
               </View>
               <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
               <View style={styles.cardFooter}>
                 <Text style={styles.cardBudget}>{item.budget}</Text>
-                <Text style={styles.cardMeta}>{item.city} · {item.responseCount} откл.</Text>
+                <Text style={styles.cardMeta}>{item.city} · {item.responseCount} {t.home.responses}</Text>
               </View>
             </TouchableOpacity>
           )}
@@ -146,13 +148,13 @@ export default function MyScreen() {
       ) : (
         <FlatList
           data={responses}
-          keyExtractor={(r) => r.id}
+          keyExtractor={(item) => item.id}
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#2563EB" />}
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyTitle}>Нет откликов</Text>
-              <Text style={styles.emptyHint}>Откликайтесь на задания в ленте</Text>
+              <Text style={styles.emptyTitle}>{t.my.noResponses}</Text>
+              <Text style={styles.emptyHint}>{t.my.browseHint}</Text>
             </View>
           }
           renderItem={({ item }) => (
@@ -163,7 +165,7 @@ export default function MyScreen() {
             >
               <View style={styles.cardHeader}>
                 <Text style={styles.cardCategory}>{item.task.category}</Text>
-                <StatusBadge status={item.status} />
+                <StatusBadge status={item.status} label={t.status[item.status as keyof typeof t.status] ?? item.status} />
               </View>
               <Text style={styles.cardTitle} numberOfLines={2}>{item.task.title}</Text>
               <Text style={styles.responseMsg} numberOfLines={2}>{item.message}</Text>

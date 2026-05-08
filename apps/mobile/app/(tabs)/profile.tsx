@@ -8,12 +8,8 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
-
-const ROLE_LABEL: Record<string, { label: string; color: string; bg: string }> = {
-  CUSTOMER: { label: 'Заказчик', color: '#059669', bg: '#D1FAE5' },
-  PROVIDER: { label: 'Исполнитель', color: '#2563EB', bg: '#DBEAFE' },
-  ADMIN: { label: 'Администратор', color: '#7C3AED', bg: '#EDE9FE' },
-};
+import { useLanguage } from '@/contexts/LanguageContext';
+import { LOCALE_NAMES, type Locale } from '@/lib/i18n';
 
 function Initials({ name }: { name: string }) {
   const parts = name.trim().split(' ');
@@ -37,45 +33,72 @@ function Row({ label, value }: { label: string; value?: string | null }) {
   );
 }
 
+const ROLE_COLORS: Record<string, { color: string; bg: string }> = {
+  CUSTOMER: { color: '#059669', bg: '#D1FAE5' },
+  PROVIDER: { color: '#2563EB', bg: '#DBEAFE' },
+  ADMIN:    { color: '#7C3AED', bg: '#EDE9FE' },
+};
+
+const LOCALES: Locale[] = ['ru', 'tj'];
+
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
+  const { t, locale, setLocale } = useLanguage();
 
   function handleLogout() {
-    Alert.alert('Выйти', 'Вы уверены?', [
-      { text: 'Отмена', style: 'cancel' },
-      { text: 'Выйти', style: 'destructive', onPress: logout },
+    Alert.alert(t.profile.logoutTitle, t.profile.logoutMessage, [
+      { text: t.profile.logoutCancel, style: 'cancel' },
+      { text: t.profile.logoutTitle, style: 'destructive', onPress: logout },
     ]);
   }
 
   if (!user) return null;
 
-  const role = ROLE_LABEL[user.role] ?? { label: user.role, color: '#374151', bg: '#F3F4F6' };
+  const roleColors = ROLE_COLORS[user.role] ?? { color: '#374151', bg: '#F3F4F6' };
+  const roleLabel = t.profile.roles[user.role as keyof typeof t.profile.roles] ?? user.role;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scroll}>
       <View style={styles.header}>
         <Initials name={user.fullName} />
         <Text style={styles.name}>{user.fullName}</Text>
-        <View style={[styles.roleBadge, { backgroundColor: role.bg }]}>
-          <Text style={[styles.roleText, { color: role.color }]}>{role.label}</Text>
+        <View style={[styles.roleBadge, { backgroundColor: roleColors.bg }]}>
+          <Text style={[styles.roleText, { color: roleColors.color }]}>{roleLabel}</Text>
         </View>
       </View>
 
       <View style={styles.card}>
-        <Row label="Email" value={user.email} />
-        <Row label="Телефон" value={user.phone} />
+        <Row label={t.profile.email} value={user.email} />
+        <Row label={t.profile.phone} value={user.phone} />
       </View>
 
       <TouchableOpacity style={styles.editBtn} onPress={() => router.push('/edit-profile')}>
-        <Text style={styles.editBtnText}>Редактировать профиль</Text>
+        <Text style={styles.editBtnText}>{t.profile.editProfile}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.editBtn} onPress={() => router.push('/change-password')}>
-        <Text style={styles.editBtnText}>Сменить пароль</Text>
+        <Text style={styles.editBtnText}>{t.profile.changePassword}</Text>
       </TouchableOpacity>
 
+      <View style={styles.langCard}>
+        <Text style={styles.langLabel}>{t.profile.language}</Text>
+        <View style={styles.langRow}>
+          {LOCALES.map((loc) => (
+            <TouchableOpacity
+              key={loc}
+              style={[styles.langBtn, locale === loc && styles.langBtnActive]}
+              onPress={() => setLocale(loc)}
+            >
+              <Text style={[styles.langBtnText, locale === loc && styles.langBtnTextActive]}>
+                {LOCALE_NAMES[loc]}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
       <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-        <Text style={styles.logoutText}>Выйти из аккаунта</Text>
+        <Text style={styles.logoutText}>{t.profile.logout}</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -125,6 +148,26 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   editBtnText: { color: '#374151', fontWeight: '700', fontSize: 15 },
+  langCard: {
+    marginHorizontal: 16,
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 12,
+  },
+  langLabel: { fontSize: 13, color: '#6B7280', fontWeight: '600', marginBottom: 12 },
+  langRow: { flexDirection: 'row', gap: 10 },
+  langBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
+    alignItems: 'center',
+  },
+  langBtnActive: { borderColor: '#2563EB', backgroundColor: '#EFF6FF' },
+  langBtnText: { fontSize: 14, fontWeight: '600', color: '#6B7280' },
+  langBtnTextActive: { color: '#2563EB' },
   logoutBtn: {
     marginHorizontal: 16,
     backgroundColor: '#FEE2E2',

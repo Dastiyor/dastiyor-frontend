@@ -13,27 +13,28 @@ import {
 import { router, useFocusEffect } from 'expo-router';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import type { FeedTask } from '@dastiyor/types';
 
-const CATEGORIES = [
-  { name: 'Все', value: '' },
-  { name: 'Ремонт', value: 'Ремонт' },
-  { name: 'Уборка', value: 'Уборка' },
-  { name: 'Доставка', value: 'Доставка' },
-  { name: 'Сантехника', value: 'Сантехника' },
-  { name: 'Электрик', value: 'Электрик' },
-  { name: 'IT и Веб', value: 'IT и Веб' },
-  { name: 'Обучение', value: 'Обучение' },
-  { name: 'Дизайн', value: 'Дизайн' },
-  { name: 'Красота', value: 'Красота' },
-  { name: 'Фото и видео', value: 'Фото и видео' },
-  { name: 'Мероприятия', value: 'Мероприятия' },
+const CATEGORY_VALUES = [
+  { key: 'all' as const, value: '' },
+  { key: 'repair' as const, value: 'Ремонт' },
+  { key: 'cleaning' as const, value: 'Уборка' },
+  { key: 'delivery' as const, value: 'Доставка' },
+  { key: 'plumbing' as const, value: 'Сантехника' },
+  { key: 'electrical' as const, value: 'Электрик' },
+  { key: 'it' as const, value: 'IT и Веб' },
+  { key: 'education' as const, value: 'Обучение' },
+  { key: 'design' as const, value: 'Дизайн' },
+  { key: 'beauty' as const, value: 'Красота' },
+  { key: 'photo' as const, value: 'Фото и видео' },
+  { key: 'events' as const, value: 'Мероприятия' },
 ];
 
-const URGENCY_LABEL: Record<string, { label: string; color: string }> = {
-  urgent: { label: 'Срочно', color: '#EF4444' },
-  normal: { label: 'Обычная', color: '#F59E0B' },
-  low: { label: 'Гибкий', color: '#10B981' },
+const URGENCY_COLORS: Record<string, string> = {
+  urgent: '#EF4444',
+  normal: '#F59E0B',
+  low: '#10B981',
 };
 
 interface TasksResponse {
@@ -43,6 +44,7 @@ interface TasksResponse {
 
 export default function TaskFeedScreen() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const [tasks, setTasks] = useState<FeedTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -101,7 +103,8 @@ export default function TaskFeedScreen() {
   }
 
   function renderTask({ item }: { item: FeedTask }) {
-    const urgency = URGENCY_LABEL[item.urgency] ?? { label: item.urgency, color: '#6B7280' };
+    const urgencyColor = URGENCY_COLORS[item.urgency] ?? '#6B7280';
+    const urgencyLabel = t.urgency[item.urgency as keyof typeof t.urgency] ?? item.urgency;
     return (
       <TouchableOpacity
         style={styles.card}
@@ -110,8 +113,8 @@ export default function TaskFeedScreen() {
       >
         <View style={styles.cardHeader}>
           <Text style={styles.cardCategory}>{item.category}</Text>
-          <View style={[styles.urgencyBadge, { backgroundColor: urgency.color + '20' }]}>
-            <Text style={[styles.urgencyText, { color: urgency.color }]}>{urgency.label}</Text>
+          <View style={[styles.urgencyBadge, { backgroundColor: urgencyColor + '20' }]}>
+            <Text style={[styles.urgencyText, { color: urgencyColor }]}>{urgencyLabel}</Text>
           </View>
         </View>
         <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
@@ -119,18 +122,23 @@ export default function TaskFeedScreen() {
         <View style={styles.cardFooter}>
           <Text style={styles.cardBudget}>{item.budget}</Text>
           <Text style={styles.cardMeta}>
-            {item.city ? `${item.city} · ` : ''}{item.postedAt} · {item.responseCount} откл.
+            {item.city ? `${item.city} · ` : ''}{item.postedAt} · {item.responseCount} {t.home.responses}
           </Text>
         </View>
       </TouchableOpacity>
     );
   }
 
+  const categories = CATEGORY_VALUES.map((c) => ({
+    name: t.categories[c.key],
+    value: c.value,
+  }));
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerRow}>
-          <Text style={styles.headerTitle}>Задания</Text>
+          <Text style={styles.headerTitle}>{t.home.title}</Text>
           {user ? (
             <TouchableOpacity style={styles.bellBtn} onPress={() => router.push('/notifications')}>
               <Text style={styles.bellIcon}>🔔</Text>
@@ -144,7 +152,7 @@ export default function TaskFeedScreen() {
         </View>
         <TextInput
           style={styles.search}
-          placeholder="Поиск..."
+          placeholder={t.home.search}
           placeholderTextColor="#9CA3AF"
           value={query}
           onChangeText={setQuery}
@@ -158,7 +166,7 @@ export default function TaskFeedScreen() {
         style={styles.catScroll}
         contentContainerStyle={styles.catContent}
       >
-        {CATEGORIES.map((cat) => (
+        {categories.map((cat) => (
           <TouchableOpacity
             key={cat.value || 'all'}
             style={[styles.catChip, category === cat.value && styles.catChipActive]}
@@ -176,14 +184,14 @@ export default function TaskFeedScreen() {
       ) : (
         <FlatList
           data={tasks}
-          keyExtractor={(t) => t.id}
+          keyExtractor={(item) => item.id}
           renderItem={renderTask}
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#2563EB" />}
           onEndReached={onLoadMore}
           onEndReachedThreshold={0.3}
           ListEmptyComponent={
-            <Text style={styles.empty}>Задания не найдены</Text>
+            <Text style={styles.empty}>{t.home.empty}</Text>
           }
           ListFooterComponent={
             loadingMore ? <ActivityIndicator color="#2563EB" style={{ margin: 16 }} /> : null

@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
+import * as SplashScreen from 'expo-splash-screen';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function RootIndex() {
@@ -13,6 +14,7 @@ export default function RootIndex() {
     async function navigate() {
       try {
         const onboardingDone = await SecureStore.getItemAsync('onboarding_done');
+        await SplashScreen.hideAsync();
         if (!onboardingDone) {
           router.replace('/(onboarding)');
         } else if (user) {
@@ -21,6 +23,7 @@ export default function RootIndex() {
           router.replace('/(auth)/login');
         }
       } catch {
+        await SplashScreen.hideAsync();
         router.replace('/(auth)/login');
       }
     }

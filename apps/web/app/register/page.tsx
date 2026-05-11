@@ -235,16 +235,7 @@ function RegisterContent() {
                     </button>
                 </div>
 
-                <div style={{ marginTop: '40px', width: '100%', maxWidth: '480px' }}>
-                    <OAuthDivider />
-                    <div style={{ marginTop: '16px' }}>
-                        <OAuthButtons role="customer" />
-                    </div>
-                    <p style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-light)', marginTop: '10px' }}>
-                        OAuth создаёт аккаунт заказчика. Роль можно сменить в профиле.
-                    </p>
-                </div>
-                <div style={{ marginTop: '24px' }}>
+                <div style={{ marginTop: '40px' }}>
                     {t('auth.haveAccount')} <Link href="/login" style={{ color: 'var(--primary)', fontWeight: '600' }}>{t('common.login')}</Link>
                 </div>
             </div>

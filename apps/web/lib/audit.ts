@@ -3,7 +3,10 @@ import { prisma } from '@/lib/prisma';
 export type AuditAction =
     | 'LOGIN'
     | 'LOGIN_FAILED'
+    | 'LOGIN_OAUTH'
+    | 'LOGIN_OAUTH_LINKED'
     | 'REGISTER'
+    | 'REGISTER_OAUTH'
     | 'LOGOUT'
     | 'PASSWORD_RESET_REQUEST'
     | 'PASSWORD_RESET'

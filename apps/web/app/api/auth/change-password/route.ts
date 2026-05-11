@@ -40,6 +40,10 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
 
+        if (!user.password) {
+            return NextResponse.json({ error: 'This account uses Google or Apple sign in and has no password' }, { status: 400 });
+        }
+
         const isValid = await bcrypt.compare(currentPassword, user.password);
         if (!isValid) {
             return NextResponse.json({ error: 'Current password is incorrect' }, { status: 400 });

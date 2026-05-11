@@ -192,7 +192,12 @@
     "linkValid": "Истинод 1 соат амал мекунад. Мактуб нагирифтед? Папкаи «Спам»-ро тафтиш кунед.",
     "tryAgain": "Дубора кӯшиш кунед",
     "forgotPasswordSubtitleShort": "Email-ро ворид кунед — мо истиноди барқарорсозиро мефиристем.",
-    "networkError": "Хатои шабака. Дубора кӯшиш кунед."
+    "networkError": "Хатои шабака. Дубора кӯшиш кунед.",
+    "continueWithGoogle": "Тавассути Google идома диҳед",
+    "continueWithApple": "Тавассути Apple идома диҳед",
+    "orDivider": "ё",
+    "oauthCancelled": "Воридшавӣ бекор шуд",
+    "oauthFailed": "Хатои OAuth. Дубора кӯшиш кунед."
   },
   "customer": {
     "dashboard": "Панели фармоишгар",

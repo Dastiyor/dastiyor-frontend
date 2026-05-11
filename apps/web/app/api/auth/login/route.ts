@@ -37,6 +37,14 @@ export async function POST(request: Request) {
             );
         }
 
+        if (!user.password) {
+            const provider = user.googleId ? 'Google' : user.appleId ? 'Apple' : 'OAuth';
+            return NextResponse.json(
+                { error: `Этот аккаунт использует вход через ${provider}. Нажмите кнопку ниже.` },
+                { status: 401 }
+            );
+        }
+
         // Verify Password
         const isValid = await bcrypt.compare(password, user.password);
 

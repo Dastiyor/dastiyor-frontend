@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import * as SecureStore from 'expo-secure-store';
+import { router } from 'expo-router';
 import { api } from '@/lib/api-client';
 import type { ApiUser } from '@dastiyor/types';
 
@@ -16,6 +17,8 @@ interface AuthState {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
+  loginWithGoogle: (accessToken: string, role?: string) => Promise<void>;
+  loginWithApple: (identityToken: string, email?: string, fullName?: string, role?: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -53,13 +56,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(res.user);
   }
 
+  async function loginWithGoogle(accessToken: string, role = 'customer') {
+    const res = await api.post<{ token: string; user: ApiUser }>('/api/auth/google/mobile', {
+      accessToken,
+      role,
+    });
+    await SecureStore.setItemAsync('auth_token', res.token);
+    setUser(res.user);
+  }
+
+  async function loginWithApple(
+    identityToken: string,
+    email?: string,
+    fullName?: string,
+    role = 'customer',
+  ) {
+    const res = await api.post<{ token: string; user: ApiUser }>('/api/auth/apple/mobile', {
+      identityToken,
+      email,
+      fullName,
+      role,
+    });
+    await SecureStore.setItemAsync('auth_token', res.token);
+    setUser(res.user);
+  }
+
   async function logout() {
     await SecureStore.deleteItemAsync('auth_token');
     setUser(null);
+    router.replace('/(auth)/login');
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, loginWithGoogle, loginWithApple, logout }}>
       {children}
     </AuthContext.Provider>
   );

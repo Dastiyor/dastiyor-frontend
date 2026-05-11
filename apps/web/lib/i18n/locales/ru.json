@@ -192,7 +192,12 @@
     "linkValid": "Ссылка действительна 1 час. Не получили письмо? Проверьте папку «Спам» или попробуйте ещё раз.",
     "tryAgain": "Попробовать снова",
     "forgotPasswordSubtitleShort": "Введите email — мы отправим ссылку для сброса.",
-    "networkError": "Ошибка сети. Попробуйте ещё раз."
+    "networkError": "Ошибка сети. Попробуйте ещё раз.",
+    "continueWithGoogle": "Продолжить с Google",
+    "continueWithApple": "Продолжить с Apple",
+    "orDivider": "или",
+    "oauthCancelled": "Вход отменён",
+    "oauthFailed": "Ошибка входа через OAuth. Попробуйте ещё раз."
   },
   "customer": {
     "dashboard": "Панель заказчика",

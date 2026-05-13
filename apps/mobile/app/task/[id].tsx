@@ -7,32 +7,37 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  RefreshControl,
 } from 'react-native';
 import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import type { TaskDetail, TaskResponse } from '@dastiyor/types';
-
-const URGENCY_LABEL: Record<string, { label: string; color: string }> = {
-  urgent: { label: 'Срочно', color: '#EF4444' },
-  normal: { label: 'Обычная', color: '#F59E0B' },
-  low: { label: 'Гибкий', color: '#10B981' },
-};
-
-const RESPONSE_STATUS: Record<string, { label: string; color: string; bg: string }> = {
-  PENDING:  { label: 'На рассм.', color: '#F59E0B', bg: '#FEF3C7' },
-  ACCEPTED: { label: 'Принят',    color: '#059669', bg: '#D1FAE5' },
-  REJECTED: { label: 'Отклонён',  color: '#EF4444', bg: '#FEE2E2' },
-};
 
 export default function TaskDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
+  const { t } = useLanguage();
+  const tk = t.task;
   const [task, setTask] = useState<TaskDetail | null>(null);
   const [responses, setResponses] = useState<TaskResponse[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [taskActionLoading, setTaskActionLoading] = useState<string | null>(null);
+
+  const URGENCY_LABEL: Record<string, { label: string; color: string }> = {
+    urgent: { label: t.urgency.urgent, color: '#EF4444' },
+    normal: { label: t.urgency.normal, color: '#F59E0B' },
+    low:    { label: t.urgency.low,    color: '#10B981' },
+  };
+
+  const RESPONSE_STATUS: Record<string, { label: string; color: string; bg: string }> = {
+    PENDING:  { label: t.status.PENDING,  color: '#F59E0B', bg: '#FEF3C7' },
+    ACCEPTED: { label: t.status.ACCEPTED, color: '#059669', bg: '#D1FAE5' },
+    REJECTED: { label: t.status.REJECTED, color: '#EF4444', bg: '#FEE2E2' },
+  };
 
   async function loadTask() {
     if (!id) return;
@@ -58,7 +63,7 @@ export default function TaskDetailScreen() {
           const data = await loadTask();
           if (data) await loadResponses(data);
         } catch (e) {
-          Alert.alert('Ошибка', (e as Error).message);
+          Alert.alert(t.common.error, (e as Error).message);
           router.back();
         } finally {
           setLoading(false);
@@ -69,23 +74,20 @@ export default function TaskDetailScreen() {
 
   async function handleAccept(response: TaskResponse) {
     Alert.alert(
-      'Принять исполнителя',
-      `Принять ${response.provider.fullName} за ${response.price} TJS?`,
+      tk.confirmAccept,
+      tk.confirmAcceptMsg.replace('{name}', response.provider.fullName).replace('{price}', String(response.price)),
       [
-        { text: 'Отмена', style: 'cancel' },
+        { text: t.common.cancel, style: 'cancel' },
         {
-          text: 'Принять',
+          text: tk.accept,
           onPress: async () => {
             setActionLoading(response.id);
             try {
-              await api.post('/api/tasks/accept', {
-                taskId: task!.id,
-                providerId: response.provider.id,
-              });
+              await api.post('/api/tasks/accept', { taskId: task!.id, providerId: response.provider.id });
               const [newTask] = await Promise.all([loadTask()]);
               if (newTask) await loadResponses(newTask);
             } catch (e) {
-              Alert.alert('Ошибка', (e as Error).message);
+              Alert.alert(t.common.error, (e as Error).message);
             } finally {
               setActionLoading(null);
             }
@@ -96,10 +98,10 @@ export default function TaskDetailScreen() {
   }
 
   async function handleReject(response: TaskResponse) {
-    Alert.alert('Отклонить', 'Отклонить этот отклик?', [
-      { text: 'Отмена', style: 'cancel' },
+    Alert.alert(tk.confirmReject, tk.confirmRejectMsg, [
+      { text: t.common.cancel, style: 'cancel' },
       {
-        text: 'Отклонить',
+        text: tk.reject,
         style: 'destructive',
         onPress: async () => {
           setActionLoading(response.id);
@@ -108,7 +110,7 @@ export default function TaskDetailScreen() {
             const newTask = await loadTask();
             if (newTask) await loadResponses(newTask);
           } catch (e) {
-            Alert.alert('Ошибка', (e as Error).message);
+            Alert.alert(t.common.error, (e as Error).message);
           } finally {
             setActionLoading(null);
           }
@@ -117,14 +119,7 @@ export default function TaskDetailScreen() {
     ]);
   }
 
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#2563EB" />
-      </View>
-    );
-  }
-
+  if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#2563EB" /></View>;
   if (!task) return null;
 
   const urgency = URGENCY_LABEL[task.urgency] ?? { label: task.urgency, color: '#6B7280' };
@@ -132,7 +127,20 @@ export default function TaskDetailScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            tintColor="#2563EB"
+            onRefresh={async () => {
+              setRefreshing(true);
+              try { const d = await loadTask(); if (d) await loadResponses(d); } catch {}
+              setRefreshing(false);
+            }}
+          />
+        }
+      >
         <View style={styles.badgeRow}>
           <View style={[styles.badge, { backgroundColor: urgency.color + '18' }]}>
             <Text style={[styles.badgeText, { color: urgency.color }]}>{urgency.label}</Text>
@@ -145,42 +153,39 @@ export default function TaskDetailScreen() {
         <View style={styles.metaRow}>
           {task.city ? <Text style={styles.meta}>📍 {task.city}</Text> : null}
           <Text style={styles.meta}>📅 {task.postedAt}</Text>
-          <Text style={styles.meta}>💬 {task.responseCount} откл.</Text>
+          <Text style={styles.meta}>💬 {task.responseCount} {t.home.responses}</Text>
         </View>
 
         <View style={styles.budgetBox}>
-          <Text style={styles.budgetLabel}>Бюджет</Text>
+          <Text style={styles.budgetLabel}>{tk.budget}</Text>
           <Text style={styles.budgetValue}>{task.budget}</Text>
         </View>
 
-        <Text style={styles.sectionTitle}>Описание</Text>
+        <Text style={styles.sectionTitle}>{tk.description}</Text>
         <Text style={styles.description}>{task.description}</Text>
 
         {task.address ? (
           <>
-            <Text style={styles.sectionTitle}>Адрес</Text>
+            <Text style={styles.sectionTitle}>{tk.address}</Text>
             <Text style={styles.description}>{task.address}</Text>
           </>
         ) : null}
 
         <View style={styles.customerBox}>
-          <Text style={styles.customerLabel}>Заказчик</Text>
+          <Text style={styles.customerLabel}>{tk.customer}</Text>
           <Text style={styles.customerName}>{task.customer?.fullName ?? '—'}</Text>
         </View>
 
-        {/* Responses section — owner only */}
         {isOwner && responses.length > 0 ? (
           <View style={styles.responsesSection}>
-            <Text style={styles.sectionTitle}>Отклики ({responses.length})</Text>
+            <Text style={styles.sectionTitle}>{tk.responses} ({responses.length})</Text>
             {responses.map((r) => {
               const rs = RESPONSE_STATUS[r.status] ?? { label: r.status, color: '#374151', bg: '#F3F4F6' };
               const busy = actionLoading === r.id;
               return (
                 <View key={r.id} style={styles.responseCard}>
                   <View style={styles.responseHeader}>
-                    <TouchableOpacity
-                      onPress={() => router.push({ pathname: '/provider/[id]', params: { id: r.provider.id, name: r.provider.fullName } })}
-                    >
+                    <TouchableOpacity onPress={() => router.push({ pathname: '/provider/[id]', params: { id: r.provider.id, name: r.provider.fullName } })}>
                       <Text style={[styles.providerName, styles.providerNameLink]}>{r.provider.fullName}</Text>
                     </TouchableOpacity>
                     <View style={[styles.rsBadge, { backgroundColor: rs.bg }]}>
@@ -190,25 +195,15 @@ export default function TaskDetailScreen() {
                   <Text style={styles.responseMsg} numberOfLines={3}>{r.message}</Text>
                   <View style={styles.responseMeta}>
                     <Text style={styles.responsePrice}>{r.price} TJS</Text>
-                    {r.estimatedTime ? (
-                      <Text style={styles.responseTime}>⏱ {r.estimatedTime}</Text>
-                    ) : null}
+                    {r.estimatedTime ? <Text style={styles.responseTime}>⏱ {r.estimatedTime}</Text> : null}
                   </View>
                   {r.status === 'PENDING' && task.status === 'OPEN' ? (
                     <View style={styles.responseActions}>
-                      <TouchableOpacity
-                        style={[styles.rejectBtn, busy && styles.btnBusy]}
-                        onPress={() => handleReject(r)}
-                        disabled={!!actionLoading}
-                      >
-                        {busy ? <ActivityIndicator size="small" color="#EF4444" /> : <Text style={styles.rejectBtnText}>Отклонить</Text>}
+                      <TouchableOpacity style={[styles.rejectBtn, busy && styles.btnBusy]} onPress={() => handleReject(r)} disabled={!!actionLoading}>
+                        {busy ? <ActivityIndicator size="small" color="#EF4444" /> : <Text style={styles.rejectBtnText}>{tk.reject}</Text>}
                       </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[styles.acceptBtn, busy && styles.btnBusy]}
-                        onPress={() => handleAccept(r)}
-                        disabled={!!actionLoading}
-                      >
-                        {busy ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.acceptBtnText}>Принять</Text>}
+                      <TouchableOpacity style={[styles.acceptBtn, busy && styles.btnBusy]} onPress={() => handleAccept(r)} disabled={!!actionLoading}>
+                        {busy ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.acceptBtnText}>{tk.accept}</Text>}
                       </TouchableOpacity>
                     </View>
                   ) : null}
@@ -219,22 +214,19 @@ export default function TaskDetailScreen() {
         ) : null}
 
         {isOwner && responses.length === 0 && task.status === 'OPEN' ? (
-          <View style={styles.noResponses}>
-            <Text style={styles.noResponsesText}>Откликов пока нет</Text>
-          </View>
+          <View style={styles.noResponses}><Text style={styles.noResponsesText}>{tk.noResponses}</Text></View>
         ) : null}
 
-        {/* Owner task lifecycle actions */}
         {isOwner && task.status === 'IN_PROGRESS' ? (
           <View style={styles.lifecycleRow}>
             <TouchableOpacity
               style={[styles.cancelTaskBtn, taskActionLoading === 'cancel' && styles.btnBusy]}
               disabled={!!taskActionLoading}
               onPress={() =>
-                Alert.alert('Отменить задание?', 'Это действие нельзя отменить', [
-                  { text: 'Нет', style: 'cancel' },
+                Alert.alert(tk.confirmCancel, tk.confirmCancelMsg, [
+                  { text: t.common.no, style: 'cancel' },
                   {
-                    text: 'Отменить задание',
+                    text: tk.cancelTask,
                     style: 'destructive',
                     onPress: async () => {
                       setTaskActionLoading('cancel');
@@ -242,68 +234,56 @@ export default function TaskDetailScreen() {
                         await api.post('/api/tasks/cancel', { taskId: task.id });
                         const d = await loadTask();
                         if (d) await loadResponses(d);
-                      } catch (e) { Alert.alert('Ошибка', (e as Error).message); }
+                      } catch (e) { Alert.alert(t.common.error, (e as Error).message); }
                       finally { setTaskActionLoading(null); }
                     },
                   },
                 ])
               }
             >
-              {taskActionLoading === 'cancel' ? <ActivityIndicator color="#EF4444" size="small" /> : <Text style={styles.cancelTaskBtnText}>Отменить</Text>}
+              {taskActionLoading === 'cancel' ? <ActivityIndicator color="#EF4444" size="small" /> : <Text style={styles.cancelTaskBtnText}>{tk.cancel}</Text>}
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.completeBtn, taskActionLoading === 'complete' && styles.btnBusy]}
               disabled={!!taskActionLoading}
               onPress={() =>
-                Alert.alert('Завершить задание?', 'Пометить задание как выполненное?', [
-                  { text: 'Нет', style: 'cancel' },
+                Alert.alert(tk.confirmComplete, tk.confirmCompleteMsg, [
+                  { text: t.common.no, style: 'cancel' },
                   {
-                    text: 'Завершить',
+                    text: tk.completeBtn,
                     onPress: async () => {
                       setTaskActionLoading('complete');
                       try {
                         await api.post('/api/tasks/complete', { taskId: task.id });
                         const d = await loadTask();
                         if (d) await loadResponses(d);
-                      } catch (e) { Alert.alert('Ошибка', (e as Error).message); }
+                      } catch (e) { Alert.alert(t.common.error, (e as Error).message); }
                       finally { setTaskActionLoading(null); }
                     },
                   },
                 ])
               }
             >
-              {taskActionLoading === 'complete' ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.completeBtnText}>✓ Завершить задание</Text>}
+              {taskActionLoading === 'complete' ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.completeBtnText}>{tk.complete}</Text>}
             </TouchableOpacity>
           </View>
         ) : null}
 
-        {/* Leave review after completion */}
         {isOwner && task.status === 'COMPLETED' && !task.hasReview ? (
-          <TouchableOpacity
-            style={styles.reviewBtn}
-            onPress={() => router.push({
-              pathname: '/review/[taskId]',
-              params: { taskId: task.id, taskTitle: task.title },
-            })}
-          >
-            <Text style={styles.reviewBtnText}>⭐ Оставить отзыв исполнителю</Text>
+          <TouchableOpacity style={styles.reviewBtn} onPress={() => router.push({ pathname: '/review/[taskId]', params: { taskId: task.id, taskTitle: task.title } })}>
+            <Text style={styles.reviewBtnText}>{tk.leaveReview}</Text>
           </TouchableOpacity>
         ) : null}
 
         {isOwner && task.status === 'COMPLETED' && task.hasReview ? (
-          <View style={styles.reviewedBadge}>
-            <Text style={styles.reviewedBadgeText}>✓ Отзыв оставлен</Text>
-          </View>
+          <View style={styles.reviewedBadge}><Text style={styles.reviewedBadgeText}>{tk.reviewed}</Text></View>
         ) : null}
       </ScrollView>
 
       {!isOwner && user?.role === 'PROVIDER' && task.status === 'OPEN' ? (
         <View style={styles.footer}>
-          <TouchableOpacity
-            style={styles.respondBtn}
-            onPress={() => router.push({ pathname: '/respond/[id]', params: { id: task.id, title: task.title } })}
-          >
-            <Text style={styles.respondBtnText}>Откликнуться</Text>
+          <TouchableOpacity style={styles.respondBtn} onPress={() => router.push({ pathname: '/respond/[id]', params: { id: task.id, title: task.title } })}>
+            <Text style={styles.respondBtnText}>{tk.respond}</Text>
           </TouchableOpacity>
         </View>
       ) : null}

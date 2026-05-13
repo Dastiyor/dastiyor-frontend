@@ -12,6 +12,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Link, router } from 'expo-router';
+import { AuthBackground } from '@/components/AuthBackground';
 import * as SecureStore from 'expo-secure-store';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
@@ -117,7 +118,8 @@ export default function RegisterScreen() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ScrollView contentContainerStyle={styles.inner} keyboardShouldPersistTaps="handled">
+      <AuthBackground />
+      <ScrollView contentContainerStyle={styles.inner} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
         <Text style={styles.logo}>Dastiyor</Text>
         <Text style={styles.subtitle}>{r.subtitle}</Text>
 
@@ -176,6 +178,7 @@ export default function RegisterScreen() {
           value={fullName}
           onChangeText={setFullName}
           autoComplete="name"
+          maxLength={100}
         />
 
         <TextInput
@@ -187,6 +190,7 @@ export default function RegisterScreen() {
           autoCapitalize="none"
           keyboardType="email-address"
           autoComplete="email"
+          maxLength={255}
         />
 
         <TextInput
@@ -197,6 +201,7 @@ export default function RegisterScreen() {
           onChangeText={setPhone}
           keyboardType="phone-pad"
           autoComplete="tel"
+          maxLength={20}
         />
 
         <TextInput
@@ -207,12 +212,15 @@ export default function RegisterScreen() {
           onChangeText={setPassword}
           secureTextEntry
           autoComplete="new-password"
+          maxLength={128}
         />
 
         <TouchableOpacity
           style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleRegister}
           disabled={loading}
+          accessibilityLabel={r.btn}
+          accessibilityRole="button"
         >
           {loading ? (
             <ActivityIndicator color="#fff" />
@@ -230,7 +238,7 @@ export default function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1 },
   inner: { flexGrow: 1, justifyContent: 'center', padding: 24 },
   logo: { fontSize: 36, fontWeight: '800', color: '#2563EB', marginBottom: 8, textAlign: 'center' },
   subtitle: { fontSize: 16, color: '#6B7280', textAlign: 'center', marginBottom: 24 },

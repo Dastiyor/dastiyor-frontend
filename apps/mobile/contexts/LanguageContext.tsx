@@ -17,7 +17,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     SecureStore.getItemAsync(STORAGE_KEY)
-      .then((val) => { if (val === 'ru' || val === 'tj') setLocaleState(val); })
+      .then((val) => { if (val === 'ru' || val === 'tj' || val === 'en') setLocaleState(val); })
       .catch(() => {});
   }, []);
 

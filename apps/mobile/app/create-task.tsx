@@ -13,30 +13,12 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { api } from '@/lib/api-client';
+import { useLanguage } from '@/contexts/LanguageContext';
 
-const CATEGORIES = [
-  'Ремонт', 'Уборка', 'Доставка', 'Сантехника', 'Электрик',
-  'IT и Веб', 'Обучение', 'Дизайн', 'Красота', 'Фото и видео',
-  'Мероприятия', 'Ремонт техники', 'Юридические услуги',
-];
-
-const CITIES = [
-  'Душанбе', 'Худжанд', 'Бохтар', 'Кӯлоб',
-  'Истаравшан', 'Турсунзода', 'Онлайн',
-];
-
-const URGENCY = [
-  { value: 'urgent', label: 'Срочно' },
-  { value: 'normal', label: 'Обычная' },
-  { value: 'low', label: 'Гибкий' },
-];
+const CITIES = ['Душанбе', 'Худжанд', 'Бохтар', 'Кӯлоб', 'Истаравшан', 'Турсунзода', 'Онлайн'];
 
 function ChipGroup<T extends string>({
-  options,
-  value,
-  onChange,
-  getLabel,
-  getValue,
+  options, value, onChange, getLabel, getValue,
 }: {
   options: T[] | { value: T; label: string }[];
   value: T;
@@ -51,11 +33,7 @@ function ChipGroup<T extends string>({
         const l = getLabel ? getLabel(opt) : String(opt);
         const active = value === v;
         return (
-          <TouchableOpacity
-            key={v}
-            style={[chip.btn, active && chip.active]}
-            onPress={() => onChange(v)}
-          >
+          <TouchableOpacity key={v} style={[chip.btn, active && chip.active]} onPress={() => onChange(v)}>
             <Text style={[chip.text, active && chip.activeText]}>{l}</Text>
           </TouchableOpacity>
         );
@@ -73,6 +51,22 @@ const chip = StyleSheet.create({
 });
 
 export default function CreateTaskScreen() {
+  const { t } = useLanguage();
+  const ct = t.createTask;
+
+  const CATEGORIES = [
+    t.categories.repair, t.categories.cleaning, t.categories.delivery,
+    t.categories.plumbing, t.categories.electrical, t.categories.it,
+    t.categories.education, t.categories.design, t.categories.beauty,
+    t.categories.photo, t.categories.events,
+  ];
+
+  const URGENCY = [
+    { value: 'urgent', label: t.urgency.urgent },
+    { value: 'normal', label: t.urgency.normal },
+    { value: 'low', label: t.urgency.low },
+  ];
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
@@ -85,14 +79,13 @@ export default function CreateTaskScreen() {
 
   async function handleCreate() {
     if (!title.trim() || !description.trim() || !category || !city) {
-      Alert.alert('Ошибка', 'Заполните обязательные поля: название, описание, категорию и город');
+      Alert.alert(t.common.error, ct.errRequired);
       return;
     }
     if (budgetType === 'fixed' && (!amount || isNaN(Number(amount)))) {
-      Alert.alert('Ошибка', 'Укажите сумму бюджета');
+      Alert.alert(t.common.error, ct.errBudget);
       return;
     }
-
     setLoading(true);
     try {
       await api.post('/api/tasks', {
@@ -105,84 +98,46 @@ export default function CreateTaskScreen() {
         urgency,
         address: address.trim() || undefined,
       });
-      Alert.alert('Готово!', 'Задание опубликовано', [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
+      Alert.alert(t.common.done, ct.published, [{ text: t.common.ok, onPress: () => router.back() }]);
     } catch (e) {
-      Alert.alert('Ошибка', (e as Error).message);
+      Alert.alert(t.common.error, (e as Error).message);
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-        <Text style={styles.label}>Название задания *</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Кратко опишите что нужно сделать"
-          placeholderTextColor="#9CA3AF"
-          value={title}
-          onChangeText={setTitle}
-          maxLength={120}
-        />
+    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
+        <Text style={styles.label}>{ct.titleLabel}</Text>
+        <TextInput style={styles.input} placeholder={ct.titlePh} placeholderTextColor="#9CA3AF" value={title} onChangeText={setTitle} maxLength={120} />
 
-        <Text style={styles.label}>Описание *</Text>
-        <TextInput
-          style={[styles.input, styles.textarea]}
-          placeholder="Подробно опишите задание, требования, нюансы..."
-          placeholderTextColor="#9CA3AF"
-          value={description}
-          onChangeText={setDescription}
-          multiline
-          textAlignVertical="top"
-        />
+        <Text style={styles.label}>{ct.descLabel}</Text>
+        <TextInput style={[styles.input, styles.textareaNoMb]} placeholder={ct.descPh} placeholderTextColor="#9CA3AF" value={description} onChangeText={setDescription} multiline textAlignVertical="top" maxLength={1000} />
+        <Text style={styles.charCount}>{description.length}/1000</Text>
 
-        <Text style={styles.label}>Категория *</Text>
-        <ChipGroup
-          options={CATEGORIES}
-          value={category}
-          onChange={setCategory}
-        />
+        <Text style={styles.label}>{ct.categoryLabel}</Text>
+        <ChipGroup options={CATEGORIES} value={category} onChange={setCategory} />
 
-        <Text style={styles.label}>Город *</Text>
-        <ChipGroup
-          options={CITIES}
-          value={city}
-          onChange={setCity}
-        />
+        <Text style={styles.label}>{ct.cityLabel}</Text>
+        <ChipGroup options={CITIES} value={city} onChange={setCity} />
 
-        <Text style={styles.label}>Бюджет</Text>
+        <Text style={styles.label}>{ct.budgetLabel}</Text>
         <View style={styles.segmented}>
-          {(['fixed', 'negotiable'] as const).map((t) => (
-            <TouchableOpacity
-              key={t}
-              style={[styles.segBtn, budgetType === t && styles.segBtnActive]}
-              onPress={() => setBudgetType(t)}
-            >
-              <Text style={[styles.segText, budgetType === t && styles.segTextActive]}>
-                {t === 'fixed' ? 'Фиксированный' : 'Договорная'}
+          {(['fixed', 'negotiable'] as const).map((bv) => (
+            <TouchableOpacity key={bv} style={[styles.segBtn, budgetType === bv && styles.segBtnActive]} onPress={() => setBudgetType(bv)}>
+              <Text style={[styles.segText, budgetType === bv && styles.segTextActive]}>
+                {bv === 'fixed' ? ct.fixed : ct.negotiable}
               </Text>
             </TouchableOpacity>
           ))}
         </View>
 
         {budgetType === 'fixed' ? (
-          <TextInput
-            style={[styles.input, { marginBottom: 20 }]}
-            placeholder="Сумма в TJS"
-            placeholderTextColor="#9CA3AF"
-            value={amount}
-            onChangeText={setAmount}
-            keyboardType="numeric"
-          />
+          <TextInput style={[styles.input, { marginBottom: 20 }]} placeholder={ct.amountPh} placeholderTextColor="#9CA3AF" value={amount} onChangeText={setAmount} keyboardType="numeric" />
         ) : null}
 
-        <Text style={styles.label}>Срочность</Text>
+        <Text style={styles.label}>{ct.urgencyLabel}</Text>
         <ChipGroup
           options={URGENCY}
           value={urgency}
@@ -191,25 +146,11 @@ export default function CreateTaskScreen() {
           getValue={(o) => (o as { value: string }).value as any}
         />
 
-        <Text style={styles.label}>Адрес (необязательно)</Text>
-        <TextInput
-          style={[styles.input, { marginBottom: 28 }]}
-          placeholder="ул. Рудаки, д. 12"
-          placeholderTextColor="#9CA3AF"
-          value={address}
-          onChangeText={setAddress}
-        />
+        <Text style={styles.label}>{ct.addressLabel}</Text>
+        <TextInput style={[styles.input, { marginBottom: 28 }]} placeholder={ct.addressPh} placeholderTextColor="#9CA3AF" value={address} onChangeText={setAddress} />
 
-        <TouchableOpacity
-          style={[styles.btn, loading && styles.btnDisabled]}
-          onPress={handleCreate}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.btnText}>Опубликовать задание</Text>
-          )}
+        <TouchableOpacity style={[styles.btn, loading && styles.btnDisabled]} onPress={handleCreate} disabled={loading} accessibilityLabel={ct.publish} accessibilityRole="button">
+          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>{ct.publish}</Text>}
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -220,17 +161,10 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   scroll: { padding: 20, paddingBottom: 40 },
   label: { fontSize: 13, fontWeight: '700', color: '#374151', marginBottom: 10 },
-  input: {
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 12,
-    padding: 14,
-    fontSize: 15,
-    color: '#111827',
-    backgroundColor: '#F9FAFB',
-    marginBottom: 20,
-  },
+  input: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, padding: 14, fontSize: 15, color: '#111827', backgroundColor: '#F9FAFB', marginBottom: 20 },
   textarea: { minHeight: 110, lineHeight: 22 },
+  textareaNoMb: { minHeight: 110, lineHeight: 22, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, padding: 14, fontSize: 15, color: '#111827', backgroundColor: '#F9FAFB', marginBottom: 4 },
+  charCount: { fontSize: 11, color: '#9CA3AF', textAlign: 'right', marginBottom: 20 },
   segmented: { flexDirection: 'row', borderRadius: 12, borderWidth: 1.5, borderColor: '#E5E7EB', overflow: 'hidden', marginBottom: 14 },
   segBtn: { flex: 1, padding: 12, alignItems: 'center', backgroundColor: '#F9FAFB' },
   segBtnActive: { backgroundColor: '#2563EB' },

@@ -11,6 +11,7 @@ import {
   Alert,
 } from 'react-native';
 import { Link, router } from 'expo-router';
+import { AuthBackground } from '@/components/AuthBackground';
 import * as SecureStore from 'expo-secure-store';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
@@ -127,6 +128,7 @@ export default function LoginScreen() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      <AuthBackground />
       <View style={styles.inner}>
         <Text style={styles.logo}>Dastiyor</Text>
         <Text style={styles.subtitle}>{L.subtitle}</Text>
@@ -176,6 +178,7 @@ export default function LoginScreen() {
           autoCapitalize="none"
           keyboardType="email-address"
           autoComplete="email"
+          maxLength={255}
         />
 
         <TextInput
@@ -186,12 +189,15 @@ export default function LoginScreen() {
           onChangeText={setPassword}
           secureTextEntry
           autoComplete="password"
+          maxLength={128}
         />
 
         <TouchableOpacity
           style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleLogin}
           disabled={loading}
+          accessibilityLabel={L.btn}
+          accessibilityRole="button"
         >
           {loading ? (
             <ActivityIndicator color="#fff" />
@@ -223,7 +229,7 @@ function GoogleIcon() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1 },
   inner: { flex: 1, justifyContent: 'center', padding: 24 },
   logo: { fontSize: 36, fontWeight: '800', color: '#2563EB', marginBottom: 8, textAlign: 'center' },
   subtitle: { fontSize: 16, color: '#6B7280', textAlign: 'center', marginBottom: 24 },

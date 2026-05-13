@@ -1,19 +1,25 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import {
   View,
   Text,
-  FlatList,
+  TextInput,
   TouchableOpacity,
   StyleSheet,
-  RefreshControl,
-  ActivityIndicator,
   ScrollView,
-  TextInput,
+  RefreshControl,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { timeAgo } from '@/lib/timeAgo';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { FilterSheet, DEFAULT_FILTERS, hasActiveFilters } from '@/components/FilterSheet';
+import { TaskCardSkeleton, FeaturedCardSkeleton } from '@/components/Skeleton';
+import { EmptyState } from '@/components/EmptyState';
+import { useToast } from '@/contexts/ToastContext';
+import type { FilterState } from '@/components/FilterSheet';
 import type { FeedTask } from '@dastiyor/types';
 
 const CATEGORY_VALUES = [
@@ -31,6 +37,22 @@ const CATEGORY_VALUES = [
   { key: 'events' as const, value: 'Мероприятия' },
 ];
 
+const CATEGORY_ICONS: Record<string, React.ComponentProps<typeof Ionicons>['name']> = {
+  'Ремонт': 'construct-outline',
+  'Уборка': 'sparkles-outline',
+  'Доставка': 'bicycle-outline',
+  'Сантехника': 'water-outline',
+  'Электрик': 'flash-outline',
+  'IT и Веб': 'laptop-outline',
+  'Обучение': 'school-outline',
+  'Дизайн': 'color-palette-outline',
+  'Красота': 'cut-outline',
+  'Фото и видео': 'camera-outline',
+  'Мероприятия': 'musical-notes-outline',
+};
+
+const CARD_COLORS = ['#2563EB', '#1E293B', '#7C3AED', '#0F766E'];
+
 const URGENCY_COLORS: Record<string, string> = {
   urgent: '#EF4444',
   normal: '#F59E0B',
@@ -39,221 +61,390 @@ const URGENCY_COLORS: Record<string, string> = {
 
 interface TasksResponse {
   tasks: FeedTask[];
-  pagination: { hasMore: boolean; page: number };
 }
 
-export default function TaskFeedScreen() {
+export default function HomeScreen() {
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
+  const toast = useToast();
   const [tasks, setTasks] = useState<FeedTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [category, setCategory] = useState('');
-  const [query, setQuery] = useState('');
   const [unreadCount, setUnreadCount] = useState(0);
-  const page = useRef(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterVisible, setFilterVisible] = useState(false);
+  const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
 
-  useEffect(() => {
-    if (!user) return;
-    api.get<{ unreadCount: number }>('/api/notifications')
-      .then((r) => setUnreadCount(r.unreadCount))
-      .catch(() => {});
-  }, [user]);
+  const firstName = user?.fullName?.split(' ')[0] ?? '';
 
-  async function fetchTasks(reset = false) {
-    const p = reset ? 1 : page.current;
-    const params = new URLSearchParams({ page: String(p), limit: '20' });
-    if (category) params.set('category', category);
-    if (query.trim()) params.set('query', query.trim());
-
-    const res = await api.get<TasksResponse>(`/api/tasks?${params}`);
-    if (reset) {
-      setTasks(res.tasks);
-      page.current = 2;
-    } else {
-      setTasks((prev) => [...prev, ...res.tasks]);
-      page.current = p + 1;
+  async function loadData() {
+    const [tasksRes, notifRes] = await Promise.allSettled([
+      api.get<TasksResponse>('/api/tasks?page=1&limit=10'),
+      user
+        ? api.get<{ unreadCount: number }>('/api/notifications')
+        : Promise.resolve({ unreadCount: 0 }),
+    ]);
+    if (tasksRes.status === 'fulfilled') setTasks(tasksRes.value.tasks);
+    if (notifRes.status === 'fulfilled') {
+      setUnreadCount((notifRes.value as { unreadCount: number }).unreadCount ?? 0);
     }
-    setHasMore(res.pagination.hasMore);
   }
 
   useFocusEffect(
     useCallback(() => {
-      (async () => {
-        setLoading(true);
-        try { await fetchTasks(true); } catch {}
-        setLoading(false);
-      })();
-    }, [category, query])
+      setLoading(true);
+      loadData().catch(() => toast.show('Не удалось загрузить данные', 'error')).finally(() => setLoading(false));
+    }, [user])
   );
 
   async function onRefresh() {
     setRefreshing(true);
-    try { await fetchTasks(true); } catch {}
+    await loadData().catch(() => {});
     setRefreshing(false);
   }
 
-  async function onLoadMore() {
-    if (loadingMore || !hasMore) return;
-    setLoadingMore(true);
-    try { await fetchTasks(false); } catch {}
-    setLoadingMore(false);
-  }
+  const featured = tasks.slice(0, 1);
+  const popular = tasks.slice(4);
+  const categories = CATEGORY_VALUES.map((c) => ({ name: t.categories[c.key], value: c.value }));
 
-  function renderTask({ item }: { item: FeedTask }) {
-    const urgencyColor = URGENCY_COLORS[item.urgency] ?? '#6B7280';
-    const urgencyLabel = t.urgency[item.urgency as keyof typeof t.urgency] ?? item.urgency;
-    return (
-      <TouchableOpacity
-        style={styles.card}
-        onPress={() => router.push(`/task/${item.id}`)}
-        activeOpacity={0.75}
-      >
-        <View style={styles.cardHeader}>
-          <Text style={styles.cardCategory}>{item.category}</Text>
-          <View style={[styles.urgencyBadge, { backgroundColor: urgencyColor + '20' }]}>
-            <Text style={[styles.urgencyText, { color: urgencyColor }]}>{urgencyLabel}</Text>
-          </View>
-        </View>
-        <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
-        <Text style={styles.cardDesc} numberOfLines={2}>{item.description}</Text>
-        <View style={styles.cardFooter}>
-          <Text style={styles.cardBudget}>{item.budget}</Text>
-          <Text style={styles.cardMeta}>
-            {item.city ? `${item.city} · ` : ''}{item.postedAt} · {item.responseCount} {t.home.responses}
-          </Text>
-        </View>
-      </TouchableOpacity>
-    );
-  }
-
-  const categories = CATEGORY_VALUES.map((c) => ({
-    name: t.categories[c.key],
-    value: c.value,
-  }));
+  const L = {
+    en: {
+      welcome: firstName ? `Welcome back, ${firstName}` : 'Welcome',
+      headline: 'Find the right service',
+      featured: 'Featured Tasks',
+      popular: 'Popular Tasks',
+      seeAll: 'See All',
+      open: 'Open',
+      urgent: 'Urgent',
+    },
+    ru: {
+      welcome: firstName ? `Добро пожаловать, ${firstName}` : 'Добро пожаловать',
+      headline: 'Найдите нужного мастера',
+      featured: 'Актуальные задания',
+      popular: 'Популярные задания',
+      seeAll: 'Все',
+      open: 'Открыть',
+      urgent: 'Срочно',
+    },
+    tj: {
+      welcome: firstName ? `Хуш омадед, ${firstName}` : 'Хуш омадед',
+      headline: 'Устоди лозимиро ёбед',
+      featured: 'Супоришҳои нав',
+      popular: 'Маъмул',
+      seeAll: 'Ҳама',
+      open: 'Кушодан',
+      urgent: 'Фаврӣ',
+    },
+  }[locale];
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.headerRow}>
-          <Text style={styles.headerTitle}>{t.home.title}</Text>
-          {user ? (
-            <TouchableOpacity style={styles.bellBtn} onPress={() => router.push('/notifications')}>
-              <Text style={styles.bellIcon}>🔔</Text>
-              {unreadCount > 0 ? (
-                <View style={styles.bellBadge}>
-                  <Text style={styles.bellBadgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
-                </View>
-              ) : null}
-            </TouchableOpacity>
-          ) : null}
-        </View>
-        <TextInput
-          style={styles.search}
-          placeholder={t.home.search}
-          placeholderTextColor="#9CA3AF"
-          value={query}
-          onChangeText={setQuery}
-          returnKeyType="search"
-        />
-      </View>
+      <ScreenHeader title={t.tabs.home} unreadCount={unreadCount} />
 
       <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.catScroll}
-        contentContainerStyle={styles.catContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#2563EB" />}
+        contentContainerStyle={styles.scroll}
       >
-        {categories.map((cat) => (
-          <TouchableOpacity
-            key={cat.value || 'all'}
-            style={[styles.catChip, category === cat.value && styles.catChipActive]}
-            onPress={() => setCategory(cat.value)}
+        {/* Welcome */}
+        <View style={styles.welcomeSection}>
+          <Text style={styles.welcomeSub}>{L.welcome}</Text>
+          <Text style={styles.welcomeTitle}>{L.headline}</Text>
+        </View>
+
+        {/* Search bar */}
+        <View style={styles.searchBar}>
+          <Ionicons name="search-outline" size={18} color="#9CA3AF" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder={t.home.search}
+            placeholderTextColor="#9CA3AF"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            returnKeyType="search"
+            onSubmitEditing={() => {
+              if (searchQuery.trim()) {
+                router.push({ pathname: '/(tabs)/tasks', params: { query: searchQuery.trim() } });
+              }
+            }}
+          />
+          {searchQuery.length > 0 ? (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <Ionicons name="close-circle" size={18} color="#9CA3AF" />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity onPress={() => setFilterVisible(true)}>
+              <Ionicons
+                name="options-outline"
+                size={18}
+                color={hasActiveFilters(filters) ? '#2563EB' : '#6B7280'}
+              />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Category chips */}
+        <View style={styles.catOuter}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.catList}
           >
-            <Text style={[styles.catChipText, category === cat.value && styles.catChipTextActive]}>
-              {cat.name}
-            </Text>
-          </TouchableOpacity>
-        ))}
+            {categories.map((cat) => (
+              <TouchableOpacity
+                key={cat.value === '' ? '__all__' : cat.value}
+                style={styles.catChip}
+                onPress={() =>
+                  router.push({
+                    pathname: '/(tabs)/tasks',
+                    params: { category: cat.value },
+                  })
+                }
+              >
+                <Text style={styles.catChipText}>{cat.name}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        {loading ? (
+          <>
+            <View style={styles.sectionRow}>
+              <View style={{ width: 140, height: 18, backgroundColor: '#E2E8F0', borderRadius: 8 }} />
+            </View>
+            <FeaturedCardSkeleton />
+            <View style={[styles.sectionRow, { marginTop: 24 }]}>
+              <View style={{ width: 160, height: 18, backgroundColor: '#E2E8F0', borderRadius: 8 }} />
+            </View>
+            {[1, 2, 3].map((i) => <TaskCardSkeleton key={i} />)}
+          </>
+        ) : (
+          <>
+            {/* Featured horizontal scroll */}
+            {featured.length > 0 && (
+              <>
+                <View style={styles.sectionRow}>
+                  <Text style={styles.sectionTitle}>{L.featured}</Text>
+                </View>
+
+                {featured.map((task, i) => {
+                  const iconName = CATEGORY_ICONS[task.category] ?? 'briefcase-outline';
+                  const bgColor = CARD_COLORS[i % CARD_COLORS.length];
+                  return (
+                    <TouchableOpacity
+                      key={task.id}
+                      style={[styles.featCard, { backgroundColor: bgColor }]}
+                      onPress={() => router.push(`/task/${task.id}`)}
+                      activeOpacity={0.85}
+                    >
+                      <View style={styles.featCardTop}>
+                        <View style={styles.featIconCircle}>
+                          <Ionicons name={iconName} size={16} color="#fff" />
+                        </View>
+                        <View style={styles.featBadge}>
+                          <Text style={styles.featBadgeText}>
+                            {task.urgency === 'urgent' ? L.urgent : task.category}
+                          </Text>
+                        </View>
+                      </View>
+                      <Text style={styles.featTitle} numberOfLines={2}>{task.title}</Text>
+                      {task.city ? (
+                        <View style={styles.featLocation}>
+                          <Ionicons name="location-outline" size={11} color="rgba(255,255,255,0.75)" />
+                          <Text style={styles.featLocationText}>{task.city}</Text>
+                        </View>
+                      ) : null}
+                      <View style={styles.featTags}>
+                        <View style={styles.featTag}>
+                          <Text style={styles.featTagText}>{task.category}</Text>
+                        </View>
+                        <View style={styles.featTag}>
+                          <Text style={styles.featTagText}>{task.budget}</Text>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </>
+            )}
+
+            {/* Popular vertical list */}
+            {popular.length > 0 && (
+              <>
+                <View style={styles.sectionRow}>
+                  <Text style={styles.sectionTitle}>{L.popular}</Text>
+                  <TouchableOpacity onPress={() => router.push('/(tabs)/tasks')}>
+                    <Text style={styles.seeAll}>{L.seeAll}</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {popular.map((task) => {
+                  const iconName = CATEGORY_ICONS[task.category] ?? 'briefcase-outline';
+                  const urgencyColor = URGENCY_COLORS[task.urgency] ?? '#6B7280';
+                  const urgencyLabel = t.urgency[task.urgency as keyof typeof t.urgency] ?? task.urgency;
+                  return (
+                    <TouchableOpacity
+                      key={task.id}
+                      style={styles.popCard}
+                      onPress={() => router.push(`/task/${task.id}`)}
+                      activeOpacity={0.75}
+                    >
+                      <View style={styles.popIconBox}>
+                        <Ionicons name={iconName} size={22} color="#2563EB" />
+                      </View>
+                      <View style={styles.popBody}>
+                        <View style={styles.popTopRow}>
+                          <Text style={styles.popCategory} numberOfLines={1}>{task.category}</Text>
+                          <View style={[styles.popBadge, { backgroundColor: urgencyColor + '22' }]}>
+                            <Text style={[styles.popBadgeText, { color: urgencyColor }]}>{urgencyLabel}</Text>
+                          </View>
+                        </View>
+                        <Text style={styles.popTitle} numberOfLines={1}>{task.title}</Text>
+                        {task.description ? (
+                          <Text style={styles.popDesc} numberOfLines={1}>{task.description}</Text>
+                        ) : null}
+                        {task.city ? (
+                          <View style={styles.popLocation}>
+                            <Ionicons name="location-outline" size={11} color="#9CA3AF" />
+                            <Text style={styles.popLocationText}>{task.city}</Text>
+                          </View>
+                        ) : null}
+                        <View style={styles.popFooter}>
+                          <Text style={styles.popBudget}>{task.budget}</Text>
+                          <Text style={styles.popMeta}>{timeAgo(task.postedAt, locale)}</Text>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </>
+            )}
+
+            {tasks.length === 0 && (
+              <EmptyState
+                icon="search-outline"
+                title="Заданий не найдено"
+                subtitle="Попробуйте изменить фильтры или загляните позже"
+              />
+            )}
+          </>
+        )}
       </ScrollView>
 
-      {loading ? (
-        <ActivityIndicator style={styles.center} size="large" color="#2563EB" />
-      ) : (
-        <FlatList
-          data={tasks}
-          keyExtractor={(item) => item.id}
-          renderItem={renderTask}
-          contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#2563EB" />}
-          onEndReached={onLoadMore}
-          onEndReachedThreshold={0.3}
-          ListEmptyComponent={
-            <Text style={styles.empty}>{t.home.empty}</Text>
-          }
-          ListFooterComponent={
-            loadingMore ? <ActivityIndicator color="#2563EB" style={{ margin: 16 }} /> : null
-          }
-        />
-      )}
+      <FilterSheet
+        visible={filterVisible}
+        filters={filters}
+        onChange={setFilters}
+        onClose={() => setFilterVisible(false)}
+        locale={locale}
+        onApply={(f) => {
+          setFilterVisible(false);
+          router.push({
+            pathname: '/(tabs)/tasks',
+            params: {
+              ...(f.category ? { category: f.category } : {}),
+              ...(f.urgency ? { urgency: f.urgency } : {}),
+              ...(f.city ? { city: f.city } : {}),
+              ...(f.minBudget ? { minBudget: f.minBudget } : {}),
+              ...(f.maxBudget ? { maxBudget: f.maxBudget } : {}),
+              ...(f.sort !== 'newest' ? { sort: f.sort } : {}),
+              ...(searchQuery.trim() ? { query: searchQuery.trim() } : {}),
+            },
+          });
+        }}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F3F4F6' },
-  header: { backgroundColor: '#fff', paddingHorizontal: 16, paddingTop: 56, paddingBottom: 12 },
-  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
-  headerTitle: { fontSize: 28, fontWeight: '800', color: '#111827' },
-  bellBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  bellIcon: { fontSize: 22 },
-  bellBadge: { position: 'absolute', top: 2, right: 2, backgroundColor: '#EF4444', borderRadius: 8, minWidth: 16, height: 16, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },
-  bellBadgeText: { color: '#fff', fontSize: 9, fontWeight: '800' },
-  search: {
-    backgroundColor: '#F9FAFB',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontSize: 15,
-    color: '#111827',
+  container: { flex: 1, backgroundColor: '#F0F4FF' },
+
+
+  scroll: { paddingBottom: 32 },
+
+  welcomeSection: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 4 },
+  welcomeSub: { fontSize: 14, color: '#6B7280', marginBottom: 4 },
+  welcomeTitle: { fontSize: 26, fontWeight: '800', color: '#111827', lineHeight: 32 },
+
+  searchBar: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: '#fff', borderRadius: 14, marginHorizontal: 20, marginTop: 16,
+    paddingHorizontal: 14, paddingVertical: 11,
+    shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2,
   },
-  catScroll: { backgroundColor: '#fff', maxHeight: 52, borderBottomWidth: 1, borderBottomColor: '#E5E7EB' },
-  catContent: { paddingHorizontal: 12, paddingVertical: 10, gap: 8 },
+  searchInput: { flex: 1, fontSize: 15, color: '#111827', padding: 0 },
+
+  catOuter: {
+    height: 54,
+    justifyContent: 'center',
+  },
+  catList: {
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
   catChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
-    backgroundColor: '#F3F4F6',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20,
+    backgroundColor: '#fff', borderWidth: 1, borderColor: '#E5E7EB',
+    marginRight: 8,
   },
-  catChipActive: { backgroundColor: '#2563EB', borderColor: '#2563EB' },
   catChipText: { fontSize: 13, color: '#374151', fontWeight: '500' },
-  catChipTextActive: { color: '#fff' },
-  list: { padding: 12, gap: 10 },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+
+  sectionRow: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingHorizontal: 20, marginTop: 20, marginBottom: 12,
   },
-  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
-  cardCategory: { fontSize: 12, color: '#6B7280', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
-  urgencyBadge: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 },
-  urgencyText: { fontSize: 11, fontWeight: '700' },
-  cardTitle: { fontSize: 16, fontWeight: '700', color: '#111827', marginBottom: 4 },
-  cardDesc: { fontSize: 14, color: '#6B7280', lineHeight: 20, marginBottom: 10 },
-  cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  cardBudget: { fontSize: 15, fontWeight: '700', color: '#2563EB' },
-  cardMeta: { fontSize: 12, color: '#9CA3AF' },
-  center: { flex: 1, marginTop: 60 },
+  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#111827' },
+  seeAll: { fontSize: 14, fontWeight: '600', color: '#2563EB' },
+
+  /* Featured card */
+  featCard: {
+    borderRadius: 20, padding: 18, marginHorizontal: 20,
+    minHeight: 190, justifyContent: 'space-between',
+  },
+  featCardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
+  featIconCircle: {
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.25)', alignItems: 'center', justifyContent: 'center',
+  },
+  featBadge: {
+    backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20,
+    paddingHorizontal: 10, paddingVertical: 4,
+  },
+  featBadgeText: { color: '#fff', fontSize: 11, fontWeight: '700' },
+  featTitle: { fontSize: 16, fontWeight: '700', color: '#fff', lineHeight: 22, flex: 1 },
+  featLocation: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 6 },
+  featLocationText: { fontSize: 12, color: 'rgba(255,255,255,0.75)' },
+  featTags: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 12 },
+  featTag: {
+    backgroundColor: 'rgba(255,255,255,0.18)', borderRadius: 10,
+    paddingHorizontal: 10, paddingVertical: 4,
+  },
+  featTagText: { color: '#fff', fontSize: 11, fontWeight: '600' },
+
+  /* Popular cards — same design as tasks page */
+  popCard: {
+    flexDirection: 'row', alignItems: 'flex-start',
+    backgroundColor: '#fff', borderRadius: 16, padding: 14,
+    marginHorizontal: 20, marginBottom: 10,
+    shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2,
+  },
+  popIconBox: {
+    width: 48, height: 48, borderRadius: 14, backgroundColor: '#EFF6FF',
+    alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginRight: 12,
+  },
+  popBody: { flex: 1, minWidth: 0 },
+  popTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3 },
+  popCategory: { fontSize: 11, color: '#9CA3AF', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.4, flex: 1, marginRight: 6 },
+  popBadge: { borderRadius: 6, paddingHorizontal: 7, paddingVertical: 2, flexShrink: 0 },
+  popBadgeText: { fontSize: 10, fontWeight: '700' },
+  popTitle: { fontSize: 15, fontWeight: '700', color: '#111827', marginBottom: 3 },
+  popDesc: { fontSize: 13, color: '#6B7280', marginBottom: 6 },
+  popLocation: { flexDirection: 'row', alignItems: 'center', gap: 3, marginBottom: 6 },
+  popLocationText: { fontSize: 11, color: '#9CA3AF' },
+  popFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  popBudget: { fontSize: 14, fontWeight: '700', color: '#2563EB' },
+  popMeta: { fontSize: 11, color: '#9CA3AF' },
+
   empty: { textAlign: 'center', color: '#9CA3AF', marginTop: 60, fontSize: 15 },
 });

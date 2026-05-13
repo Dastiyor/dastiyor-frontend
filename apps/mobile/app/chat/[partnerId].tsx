@@ -10,10 +10,10 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
-import { useLocalSearchParams, useNavigation } from 'expo-router';
-import { useFocusEffect } from 'expo-router';
+import { useLocalSearchParams, useNavigation, useFocusEffect } from 'expo-router';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import type { ChatMessage } from '@dastiyor/types';
 
 function formatTime(iso: string): string {
@@ -21,13 +21,9 @@ function formatTime(iso: string): string {
 }
 
 export default function ChatScreen() {
-  const { partnerId, partnerName, taskId, taskTitle } = useLocalSearchParams<{
-    partnerId: string;
-    partnerName: string;
-    taskId?: string;
-    taskTitle?: string;
-  }>();
+  const { partnerId, partnerName, taskId, taskTitle } = useLocalSearchParams<{ partnerId: string; partnerName: string; taskId?: string; taskTitle?: string }>();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const navigation = useNavigation();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,9 +32,7 @@ export default function ChatScreen() {
   const listRef = useRef<FlatList>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  useEffect(() => {
-    navigation.setOptions({ title: partnerName ?? 'Чат' });
-  }, [partnerName]);
+  useEffect(() => { navigation.setOptions({ title: partnerName ?? t.chat.empty }); }, [partnerName]);
 
   async function fetchMessages() {
     const params = new URLSearchParams({ userId: partnerId });
@@ -51,23 +45,14 @@ export default function ChatScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      (async () => {
-        setLoading(true);
-        await fetchMessages();
-        setLoading(false);
-      })();
-
+      (async () => { setLoading(true); await fetchMessages(); setLoading(false); })();
       pollRef.current = setInterval(fetchMessages, 4000);
-      return () => {
-        if (pollRef.current) clearInterval(pollRef.current);
-      };
+      return () => { if (pollRef.current) clearInterval(pollRef.current); };
     }, [partnerId, taskId])
   );
 
   useEffect(() => {
-    if (messages.length > 0) {
-      setTimeout(() => listRef.current?.scrollToEnd({ animated: false }), 100);
-    }
+    if (messages.length > 0) setTimeout(() => listRef.current?.scrollToEnd({ animated: false }), 100);
   }, [messages.length]);
 
   async function sendMessage() {
@@ -76,11 +61,7 @@ export default function ChatScreen() {
     setSending(true);
     setText('');
     try {
-      await api.post('/api/messages', {
-        receiverId: partnerId,
-        content,
-        taskId: taskId || undefined,
-      });
+      await api.post('/api/messages', { receiverId: partnerId, content, taskId: taskId || undefined });
       await fetchMessages();
       setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
     } catch {
@@ -104,14 +85,8 @@ export default function ChatScreen() {
         ) : null}
         <View style={[styles.msgRow, own ? styles.msgRowOwn : styles.msgRowOther]}>
           <View style={[styles.bubble, own ? styles.bubbleOwn : styles.bubbleOther]}>
-            {item.content ? (
-              <Text style={[styles.bubbleText, own ? styles.bubbleTextOwn : styles.bubbleTextOther]}>
-                {item.content}
-              </Text>
-            ) : null}
-            <Text style={[styles.bubbleTime, own ? styles.bubbleTimeOwn : styles.bubbleTimeOther]}>
-              {formatTime(item.createdAt)}
-            </Text>
+            {item.content ? <Text style={[styles.bubbleText, own ? styles.bubbleTextOwn : styles.bubbleTextOther]}>{item.content}</Text> : null}
+            <Text style={[styles.bubbleTime, own ? styles.bubbleTimeOwn : styles.bubbleTimeOther]}>{formatTime(item.createdAt)}</Text>
           </View>
         </View>
       </>
@@ -119,16 +94,8 @@ export default function ChatScreen() {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-    >
-      {taskTitle ? (
-        <View style={styles.taskBar}>
-          <Text style={styles.taskBarText} numberOfLines={1}>📋 {taskTitle}</Text>
-        </View>
-      ) : null}
+    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}>
+      {taskTitle ? <View style={styles.taskBar}><Text style={styles.taskBarText} numberOfLines={1}>📋 {taskTitle}</Text></View> : null}
 
       {loading ? (
         <ActivityIndicator style={styles.center} size="large" color="#2563EB" />
@@ -139,9 +106,7 @@ export default function ChatScreen() {
           keyExtractor={(m) => m.id}
           renderItem={renderMessage}
           contentContainerStyle={styles.list}
-          ListEmptyComponent={
-            <Text style={styles.empty}>Начните переписку</Text>
-          }
+          ListEmptyComponent={<Text style={styles.empty}>{t.chat.empty}</Text>}
           onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: false })}
         />
       )}
@@ -149,7 +114,7 @@ export default function ChatScreen() {
       <View style={styles.inputBar}>
         <TextInput
           style={styles.input}
-          placeholder="Сообщение..."
+          placeholder={t.chat.placeholder}
           placeholderTextColor="#9CA3AF"
           value={text}
           onChangeText={setText}
@@ -157,16 +122,8 @@ export default function ChatScreen() {
           maxLength={2000}
           returnKeyType="default"
         />
-        <TouchableOpacity
-          style={[styles.sendBtn, (!text.trim() || sending) && styles.sendBtnDisabled]}
-          onPress={sendMessage}
-          disabled={!text.trim() || sending}
-        >
-          {sending ? (
-            <ActivityIndicator color="#fff" size="small" />
-          ) : (
-            <Text style={styles.sendIcon}>↑</Text>
-          )}
+        <TouchableOpacity style={[styles.sendBtn, (!text.trim() || sending) && styles.sendBtnDisabled]} onPress={sendMessage} disabled={!text.trim() || sending}>
+          {sending ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.sendIcon}>↑</Text>}
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -176,13 +133,7 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F3F4F6' },
   center: { flex: 1, marginTop: 60 },
-  taskBar: {
-    backgroundColor: '#EFF6FF',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#DBEAFE',
-  },
+  taskBar: { backgroundColor: '#EFF6FF', paddingHorizontal: 16, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#DBEAFE' },
   taskBarText: { fontSize: 13, color: '#2563EB', fontWeight: '600' },
   list: { padding: 12, paddingBottom: 8 },
   dateSep: { textAlign: 'center', color: '#9CA3AF', fontSize: 12, marginVertical: 12 },
@@ -198,35 +149,9 @@ const styles = StyleSheet.create({
   bubbleTime: { fontSize: 10, marginTop: 2, textAlign: 'right' },
   bubbleTimeOwn: { color: 'rgba(255,255,255,0.65)' },
   bubbleTimeOther: { color: '#9CA3AF' },
-  inputBar: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    backgroundColor: '#fff',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    paddingBottom: Platform.OS === 'ios' ? 28 : 8,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    gap: 8,
-  },
-  input: {
-    flex: 1,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 22,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    fontSize: 15,
-    color: '#111827',
-    maxHeight: 120,
-  },
-  sendBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#2563EB',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  inputBar: { flexDirection: 'row', alignItems: 'flex-end', backgroundColor: '#fff', paddingHorizontal: 12, paddingVertical: 8, paddingBottom: Platform.OS === 'ios' ? 28 : 8, borderTopWidth: 1, borderTopColor: '#E5E7EB', gap: 8 },
+  input: { flex: 1, backgroundColor: '#F3F4F6', borderRadius: 22, paddingHorizontal: 16, paddingVertical: 10, fontSize: 15, color: '#111827', maxHeight: 120 },
+  sendBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#2563EB', alignItems: 'center', justifyContent: 'center' },
   sendBtnDisabled: { backgroundColor: '#93C5FD' },
   sendIcon: { color: '#fff', fontSize: 18, fontWeight: '700' },
   empty: { textAlign: 'center', color: '#9CA3AF', marginTop: 60, fontSize: 15 },

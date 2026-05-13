@@ -2,6 +2,13 @@ import * as SecureStore from 'expo-secure-store';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? 'https://www.dastiyor.com';
 
+// Callbacks registered by AuthProvider / app shell
+let _onUnauthorized: (() => void) | null = null;
+let _onNetworkError: (() => void) | null = null;
+
+export function setOnUnauthorized(cb: () => void) { _onUnauthorized = cb; }
+export function setOnNetworkError(cb: () => void) { _onNetworkError = cb; }
+
 async function getToken(): Promise<string | null> {
   return SecureStore.getItemAsync('auth_token');
 }
@@ -14,11 +21,23 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  } catch {
+    _onNetworkError?.();
+    throw new Error('Нет подключения к интернету');
+  }
+
+  if (res.status === 401) {
+    _onUnauthorized?.();
+    throw new Error('Сессия истекла. Войдите снова.');
+  }
+
   const data = await res.json();
 
   if (!res.ok) {
-    throw new Error((data as { error?: string }).error ?? 'Request failed');
+    throw new Error((data as { error?: string }).error ?? 'Ошибка запроса');
   }
 
   return data as T;

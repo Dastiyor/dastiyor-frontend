@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
-import { api } from '@/lib/api-client';
+import { api, setOnUnauthorized } from '@/lib/api-client';
 import type { ApiUser } from '@dastiyor/types';
 
 interface RegisterData {
@@ -27,6 +27,14 @@ const AuthContext = createContext<AuthState | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<ApiUser | null>(null);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setOnUnauthorized(async () => {
+      await SecureStore.deleteItemAsync('auth_token');
+      setUser(null);
+      router.replace('/(auth)/login');
+    });
+  }, []);
 
   useEffect(() => {
     (async () => {

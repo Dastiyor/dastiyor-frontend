@@ -10,6 +10,9 @@ import {
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { api } from '@/lib/api-client';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { EmptyState } from '@/components/EmptyState';
+import { useToast } from '@/contexts/ToastContext';
 import type { AppNotification } from '@dastiyor/types';
 
 const TYPE_ICON: Record<string, string> = {
@@ -21,17 +24,19 @@ const TYPE_ICON: Record<string, string> = {
   TASK_CANCELLED: '🚫',
 };
 
-function timeAgo(iso: string): string {
+function timeAgo(iso: string, time: { justNow: string; min: string; h: string; d: string }): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'только что';
-  if (mins < 60) return `${mins} мин`;
+  if (mins < 1) return time.justNow;
+  if (mins < 60) return `${mins} ${time.min}`;
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours} ч`;
-  return `${Math.floor(hours / 24)} д`;
+  if (hours < 24) return `${hours} ${time.h}`;
+  return `${Math.floor(hours / 24)} ${time.d}`;
 }
 
 export default function NotificationsScreen() {
+  const { t } = useLanguage();
+  const toast = useToast();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -40,34 +45,38 @@ export default function NotificationsScreen() {
     try {
       const res = await api.get<{ notifications: AppNotification[] }>('/api/notifications');
       setNotifications(res.notifications);
-      // Mark all as read silently
       api.put('/api/notifications', {}).catch(() => {});
-    } catch {}
+    } catch {
+      toast.show('Не удалось загрузить уведомления', 'error');
+    }
   }
 
   useFocusEffect(
     useCallback(() => {
-      (async () => {
-        setLoading(true);
-        await load();
-        setLoading(false);
-      })();
+      (async () => { setLoading(true); await load(); setLoading(false); })();
     }, [])
   );
 
-  async function onRefresh() {
-    setRefreshing(true);
-    await load();
-    setRefreshing(false);
-  }
+  async function onRefresh() { setRefreshing(true); await load(); setRefreshing(false); }
 
   function handleTap(n: AppNotification) {
-    // Parse task ID from link like /tasks/abc123
     const match = n.link.match(/\/tasks\/([^/?]+)/);
-    if (match?.[1]) {
-      router.push(`/task/${match[1]}`);
-    }
+    if (match?.[1]) router.push(`/task/${match[1]}`);
   }
+
+  const renderNotification = useCallback(({ item }: { item: AppNotification }) => (
+    <TouchableOpacity style={[styles.row, !item.isRead && styles.rowUnread]} onPress={() => handleTap(item)} activeOpacity={0.7}>
+      <Text style={styles.icon}>{TYPE_ICON[item.type] ?? '🔔'}</Text>
+      <View style={styles.body}>
+        <View style={styles.topRow}>
+          <Text style={styles.title}>{item.title}</Text>
+          <Text style={styles.time}>{timeAgo(item.createdAt, t.time)}</Text>
+        </View>
+        <Text style={styles.message} numberOfLines={2}>{item.message}</Text>
+      </View>
+      {!item.isRead && <View style={styles.dot} />}
+    </TouchableOpacity>
+  ), [t]);
 
   if (loading) return <ActivityIndicator style={styles.center} size="large" color="#2563EB" />;
 
@@ -78,28 +87,9 @@ export default function NotificationsScreen() {
         keyExtractor={(n) => n.id}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#2563EB" />}
         ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={styles.emptyIcon}>🔔</Text>
-            <Text style={styles.emptyText}>Нет уведомлений</Text>
-          </View>
+          <EmptyState icon="notifications-outline" title={t.notifications.empty} />
         }
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[styles.row, !item.isRead && styles.rowUnread]}
-            onPress={() => handleTap(item)}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.icon}>{TYPE_ICON[item.type] ?? '🔔'}</Text>
-            <View style={styles.body}>
-              <View style={styles.topRow}>
-                <Text style={styles.title}>{item.title}</Text>
-                <Text style={styles.time}>{timeAgo(item.createdAt)}</Text>
-              </View>
-              <Text style={styles.message} numberOfLines={2}>{item.message}</Text>
-            </View>
-            {!item.isRead && <View style={styles.dot} />}
-          </TouchableOpacity>
-        )}
+        renderItem={renderNotification}
         ItemSeparatorComponent={() => <View style={styles.sep} />}
       />
     </View>

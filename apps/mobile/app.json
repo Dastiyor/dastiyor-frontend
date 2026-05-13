@@ -6,32 +6,15 @@
     "orientation": "portrait",
     "scheme": "dastiyor",
     "platforms": ["ios", "android"],
-
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
-
-    "updates": {
-      "enabled": true,
-      "checkAutomatically": "ON_LOAD",
-      "fallbackToCacheTimeout": 3000,
-      "url": "https://u.expo.dev/YOUR_EAS_PROJECT_ID"
-    },
-
     "splash": {
       "backgroundColor": "#2563EB",
       "resizeMode": "contain"
     },
-
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.dastiyor.app",
-      "buildNumber": "1",
-      "privacyManifests": {
-        "NSPrivacyAccessedAPITypes": []
-      }
+      "buildNumber": "1"
     },
-
     "android": {
       "package": "com.dastiyor.app",
       "versionCode": 1,
@@ -39,22 +22,11 @@
         "backgroundColor": "#ffffff"
       }
     },
-
-    "plugins": [
-      "expo-router",
-      "expo-secure-store",
-      "expo-splash-screen",
-      "expo-updates"
-    ],
-
+    "plugins": ["expo-router", "expo-secure-store", "expo-splash-screen"],
     "extra": {
       "privacyPolicyUrl": "https://dastiyor.com/privacy",
-      "termsOfServiceUrl": "https://dastiyor.com/terms",
-      "eas": {
-        "projectId": "YOUR_EAS_PROJECT_ID"
-      }
+      "termsOfServiceUrl": "https://dastiyor.com/terms"
     },
-
     "experiments": {
       "typedRoutes": true
     }

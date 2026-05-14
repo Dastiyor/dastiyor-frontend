@@ -344,9 +344,9 @@ function RegisterContent() {
                             id="reg-phone"
                             type="tel"
                             placeholder="XX XXX XXXX"
-                            maxLength={15}
+                            maxLength={9}
                             value={phoneLocal}
-                            onChange={(e) => setPhoneLocal(e.target.value.replace(/[^0-9\s\-]/g, ''))}
+                            onChange={(e) => setPhoneLocal(e.target.value.replace(/\D/g, '').slice(0, 9))}
                             style={{
                                 flex: 1,
                                 padding: '12px 16px',
@@ -360,7 +360,7 @@ function RegisterContent() {
                         <input
                             type="hidden"
                             name="phone"
-                            value={phoneLocal ? `+992${phoneLocal.replace(/[\s\-]/g, '')}` : ''}
+                            value={phoneLocal ? `+992${phoneLocal}` : ''}
                         />
                     </div>
                 </div>

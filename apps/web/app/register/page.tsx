@@ -78,6 +78,7 @@ function RegisterContent() {
     const [error, setError] = useState('');
     const [passwordFeedback, setPasswordFeedback] = useState<string[]>([]);
     const [showPassword, setShowPassword] = useState(false);
+    const [phoneLocal, setPhoneLocal] = useState('');
     const router = useRouter();
     const { t } = useTranslation();
 
@@ -317,21 +318,51 @@ function RegisterContent() {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <label htmlFor="reg-phone" style={{ fontWeight: '500', fontSize: '0.9rem' }}>{t('auth.phone')}</label>
-                    <input
-                        id="reg-phone"
-                        name="phone"
-                        type="tel"
-                        placeholder="+992 00 000 0000"
-                        pattern="[+]?[0-9\s\-\(\)]{7,20}"
-                        maxLength={20}
-                        style={{
-                            padding: '12px 16px',
-                            borderRadius: '8px',
-                            border: '1px solid var(--border)',
+                    <div style={{
+                        display: 'flex',
+                        borderRadius: '8px',
+                        border: '1px solid var(--border)',
+                        overflow: 'hidden',
+                    }}>
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '12px 14px',
+                            backgroundColor: '#f5f7fa',
+                            borderRight: '1px solid var(--border)',
+                            whiteSpace: 'nowrap',
                             fontSize: '1rem',
-                            outline: 'none',
-                        }}
-                    />
+                            color: '#374151',
+                            fontWeight: '500',
+                            userSelect: 'none',
+                            flexShrink: 0,
+                        }}>
+                            🇹🇯 +992
+                        </div>
+                        <input
+                            id="reg-phone"
+                            type="tel"
+                            placeholder="XX XXX XXXX"
+                            maxLength={15}
+                            value={phoneLocal}
+                            onChange={(e) => setPhoneLocal(e.target.value.replace(/[^0-9\s\-]/g, ''))}
+                            style={{
+                                flex: 1,
+                                padding: '12px 16px',
+                                border: 'none',
+                                fontSize: '1rem',
+                                outline: 'none',
+                                backgroundColor: 'transparent',
+                                minWidth: 0,
+                            }}
+                        />
+                        <input
+                            type="hidden"
+                            name="phone"
+                            value={phoneLocal ? `+992${phoneLocal.replace(/[\s\-]/g, '')}` : ''}
+                        />
+                    </div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>

@@ -8,6 +8,18 @@ import { cookies } from 'next/headers';
 
 jest.mock('@/lib/auth', () => ({ verifyJWT: jest.fn() }));
 jest.mock('next/headers', () => ({ cookies: jest.fn() }));
+jest.mock('@/lib/payments', () => ({
+    PLANS: {
+        basic: { name: 'Basic', nameRu: 'Базовый', price: 99, durationDays: 7 },
+        standard: { name: 'Standard', nameRu: 'Стандарт', price: 199, durationDays: 30 },
+        premium: { name: 'Premium', nameRu: 'Премиум', price: 399, durationDays: 30 },
+    },
+    isValidPlan: jest.fn((plan: string) => ['basic', 'standard', 'premium'].includes(plan)),
+    createSmartPayOrder: jest.fn(),
+    generateOrderId: jest.fn(() => 'ORDER-MOCK-001'),
+}));
+
+import { createSmartPayOrder } from '@/lib/payments';
 
 describe('/api/subscription', () => {
     const mockUserId = 'user-1';
@@ -112,15 +124,23 @@ describe('/api/subscription', () => {
             expect(res2.status).toBe(400);
         });
 
-        it.skip('should create new subscription for valid plan', async () => {
-            (prismaMock.subscription.findUnique as jest.Mock).mockResolvedValue(null);
-            (prismaMock.subscription.create as jest.Mock).mockResolvedValue({
-                id: 'sub-1',
+        it('should initiate SmartPay payment and return paymentUrl', async () => {
+            prismaMock.user.findUnique.mockResolvedValue({
+                id: mockUserId,
+                email: 'user@test.com',
+                phone: '+992901234567',
+            } as any);
+            prismaMock.payment.create.mockResolvedValue({
+                id: 'pay-1',
                 userId: mockUserId,
-                plan: 'basic',
-                startDate: new Date(),
-                endDate: new Date(),
-                isActive: true,
+                status: 'PENDING',
+                smartpayOrderId: 'ORDER-MOCK-001',
+            } as any);
+            prismaMock.payment.update.mockResolvedValue({} as any);
+            (createSmartPayOrder as jest.Mock).mockResolvedValue({
+                success: true,
+                paymentUrl: 'https://smartpay.tj/checkout/abc123',
+                transactionId: 'sp_tx_001',
             });
 
             const request = new NextRequest('http://localhost/api/subscription', {
@@ -132,21 +152,34 @@ describe('/api/subscription', () => {
             const data = await response.json();
 
             expect(response.status).toBe(200);
-            expect(data.message).toBe('Subscription activated successfully');
-            expect(data.subscription).toBeDefined();
-            expect(data.subscription.planDetails).toBeDefined();
-            expect(prismaMock.subscription.create).toHaveBeenCalled();
+            expect(data.paymentUrl).toBe('https://smartpay.tj/checkout/abc123');
+            expect(data.orderId).toBe('ORDER-MOCK-001');
+            expect(data.paymentId).toBe('pay-1');
+            expect(prismaMock.payment.create).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    data: expect.objectContaining({
+                        userId: mockUserId,
+                        plan: 'basic',
+                        status: 'PENDING',
+                        currency: 'TJS',
+                    }),
+                })
+            );
         });
 
-        it.skip('should accept standard and premium plans', async () => {
-            (prismaMock.subscription.findUnique as jest.Mock).mockResolvedValue(null);
-            (prismaMock.subscription.create as jest.Mock).mockResolvedValue({
-                id: 'sub-1',
-                userId: mockUserId,
-                plan: 'standard',
-                startDate: new Date(),
-                endDate: new Date(),
-                isActive: true,
+        it('should return 502 when SmartPay order creation fails', async () => {
+            prismaMock.user.findUnique.mockResolvedValue({
+                id: mockUserId,
+                email: 'user@test.com',
+                phone: null,
+            } as any);
+            prismaMock.payment.create.mockResolvedValue({ id: 'pay-1' } as any);
+            prismaMock.payment.update.mockResolvedValue({} as any);
+            (createSmartPayOrder as jest.Mock).mockResolvedValue({
+                success: false,
+                paymentUrl: '',
+                transactionId: '',
+                error: 'Gateway error',
             });
 
             const request = new NextRequest('http://localhost/api/subscription', {
@@ -155,7 +188,12 @@ describe('/api/subscription', () => {
             });
 
             const response = await POST(request);
-            expect(response.status).toBe(200);
+            const data = await response.json();
+
+            expect(response.status).toBe(502);
+            expect(prismaMock.payment.update).toHaveBeenCalledWith(
+                expect.objectContaining({ data: { status: 'FAILED' } })
+            );
         });
     });
 

@@ -44,56 +44,7 @@ describe('/api/responses', () => {
         (prismaMock.notification.create as jest.Mock).mockResolvedValue({});
     });
 
-    describe('GET', () => {
-        // GET is not exported from app/api/responses/route.ts
-        it.skip('should return 401 if no token provided', async () => {
-            (cookies as jest.Mock).mockResolvedValue({
-                get: jest.fn(() => undefined),
-                getAll: jest.fn(() => []),
-            });
-
-            const request = new NextRequest('http://localhost/api/responses?taskId=task-1');
-            const response = await (await import('../route')).GET(request);
-            const data = await response.json();
-
-            expect(response.status).toBe(401);
-            expect(data.error).toContain('Unauthorized');
-        });
-
-        it.skip('should return 400 if taskId is missing', async () => {
-            const request = new NextRequest('http://localhost/api/responses');
-            const response = await (await import('../route')).GET(request);
-            const data = await response.json();
-
-            expect(response.status).toBe(400);
-            expect(data.error).toContain('taskId');
-        });
-
-        it.skip('should fetch responses for a task', async () => {
-            const mockResponses = [
-                {
-                    id: 'resp-1',
-                    message: 'I can help with this',
-                    price: '500',
-                    status: 'PENDING',
-                    user: {
-                        id: 'user-2',
-                        fullName: 'Provider User',
-                    },
-                },
-            ];
-
-            (prismaMock.response.findMany as jest.Mock).mockResolvedValue(mockResponses);
-
-            const request = new NextRequest('http://localhost/api/responses?taskId=task-1');
-            const response = await (await import('../route')).GET(request);
-            const data = await response.json();
-
-            expect(response.status).toBe(200);
-            expect(data.responses).toBeDefined();
-            expect(data.responses).toHaveLength(1);
-        });
-    });
+    // GET responses lives at /api/tasks/[id]/responses — tested in tasks/[id]/responses/__tests__/route.test.ts
 
     describe('POST', () => {
         it('should return 401 if no token provided', async () => {

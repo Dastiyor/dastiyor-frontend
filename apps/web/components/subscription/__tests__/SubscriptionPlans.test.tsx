@@ -45,15 +45,21 @@ describe('SubscriptionPlans', () => {
         expect(screen.getByRole('button', { name: /текущий план/i })).toBeInTheDocument();
     });
 
-    it.skip('should call API when subscribing to a plan', async () => {
+    it('should call subscription API and redirect to paymentUrl', async () => {
+        const mockAssign = jest.fn();
+        Object.defineProperty(window, 'location', {
+            writable: true,
+            value: { assign: mockAssign },
+        });
+
         (global.fetch as jest.Mock).mockResolvedValue({
             ok: true,
-            json: () => Promise.resolve({ subscription: {}, message: 'OK' }),
+            json: () => Promise.resolve({ paymentUrl: 'https://smartpay.tj/checkout/abc', orderId: 'ORDER-001', paymentId: 'pay-1' }),
         });
 
         render(<SubscriptionPlans {...defaultProps} />);
 
-        const subscribeButtons = screen.getAllByRole('button', { name: /подписаться/i });
+        const subscribeButtons = screen.getAllByRole('button', { name: /оплатить/i });
         expect(subscribeButtons.length).toBeGreaterThanOrEqual(1);
         fireEvent.click(subscribeButtons[0]);
 
@@ -63,9 +69,12 @@ describe('SubscriptionPlans', () => {
                 expect.objectContaining({
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ plan: 'basic' }),
                 })
             );
+        });
+
+        await waitFor(() => {
+            expect(mockAssign).toHaveBeenCalledWith('https://smartpay.tj/checkout/abc');
         });
     });
 });

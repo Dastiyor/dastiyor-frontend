@@ -56,6 +56,10 @@ model User {
 
   // Payments
   payments         Payment[]
+
+  // Reports
+  reportsMade      Report[]  @relation("ReportReporter")
+  reportsAgainst   Report[]  @relation("ReportTargetUser")
 }
 
 // Task Model
@@ -92,6 +96,9 @@ model Task {
   
   // Favorites
   favorites TaskFavorite[]
+
+  // Reports
+  reports   Report[] @relation("ReportTargetTask")
 
   @@index([status])
   @@index([category])
@@ -186,6 +193,7 @@ model Review {
   id        String   @id @default(cuid())
   rating    Int      // 1-5 stars
   comment   String?
+  hidden    Boolean  @default(false)
   createdAt DateTime @default(now())
 
   // Reviewer (Customer who leaves the review)
@@ -287,4 +295,40 @@ model PushSubscription {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+// Report Model (User/Task reports for moderation)
+model Report {
+  id           String   @id @default(cuid())
+  reason       String
+  status       String   @default("OPEN") // OPEN, RESOLVED, DISMISSED
+  createdAt    DateTime @default(now())
+
+  reporterId   String
+  reporter     User     @relation("ReportReporter", fields: [reporterId], references: [id])
+  targetUserId String?
+  targetUser   User?    @relation("ReportTargetUser", fields: [targetUserId], references: [id])
+  targetTaskId String?
+  targetTask   Task?    @relation("ReportTargetTask", fields: [targetTaskId], references: [id])
+
+  @@index([status])
+  @@index([reporterId])
+}
+
+// Category Model (Service categories managed by admin)
+model Category {
+  id            String   @id @default(cuid())
+  name          String
+  slug          String   @unique
+  order         Int      @default(0)
+  subcategories String?  // JSON array of subcategory names
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// System Setting Model (Key-value config managed by admin)
+model SystemSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
 }

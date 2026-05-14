@@ -91,7 +91,7 @@ function LoginContent() {
             if (res.ok) return res.json();
         }).then(data => {
             if (data?.role) {
-                router.replace(redirect || (data.role === 'PROVIDER' ? '/provider' : data.role === 'ADMIN' ? '/admin' : '/customer'));
+                router.replace(redirect || (data.role === 'PROVIDER' ? '/provider' : '/customer'));
             }
         }).catch(() => {});
     }, [router, redirect]);

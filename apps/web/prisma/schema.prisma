@@ -21,7 +21,7 @@ model User {
   skills    String?  // Comma-separated skills
   avatar    String?  // Profile image URL
   balance   Float    @default(0) // Provider earnings/balance (in TJS)
-  role      String   @default("CUSTOMER") // CUSTOMER, PROVIDER, ADMIN
+  role      String   @default("CUSTOMER") // CUSTOMER, PROVIDER
   isVerified Boolean  @default(false) // Provider verification status
   verificationDocuments String? // JSON array of document URLs
   createdAt DateTime @default(now())

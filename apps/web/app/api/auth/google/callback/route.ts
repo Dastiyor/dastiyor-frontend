@@ -55,7 +55,7 @@ export async function GET(request: Request) {
             ipAddress: getClientIP(request),
         });
 
-        const dashboard = user.role === 'PROVIDER' ? '/provider' : user.role === 'ADMIN' ? '/admin' : '/customer';
+        const dashboard = user.role === 'PROVIDER' ? '/provider' : '/customer';
         const response = NextResponse.redirect(`${appUrl}${dashboard}`);
         response.cookies.set('token', token, oauthCookieOptions());
         return response;

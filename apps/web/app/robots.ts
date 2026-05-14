@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
             {
                 userAgent: '*',
                 allow: '/',
-                disallow: ['/api/', '/admin/', '/customer/', '/provider/'],
+                disallow: ['/api/', '/customer/', '/provider/'],
             },
         ],
         sitemap: 'https://dastiyor.com/sitemap.xml',

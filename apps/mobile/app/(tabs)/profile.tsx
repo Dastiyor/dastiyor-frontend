@@ -29,7 +29,6 @@ function Initials({ name }: { name: string }) {
 const ROLE_COLORS: Record<string, { color: string; bg: string }> = {
   CUSTOMER: { color: '#059669', bg: '#D1FAE5' },
   PROVIDER: { color: '#2563EB', bg: '#DBEAFE' },
-  ADMIN:    { color: '#7C3AED', bg: '#EDE9FE' },
 };
 
 const LOCALES: Locale[] = __DEV__ ? ['ru', 'tj'] : ['ru', 'tj'];

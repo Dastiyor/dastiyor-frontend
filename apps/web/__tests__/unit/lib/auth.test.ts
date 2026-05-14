@@ -2,7 +2,7 @@ import { signJWT, verifyJWT } from '@/lib/auth';
 
 describe('Authentication Utilities', () => {
     it('should sign and verify a JWT token successfully', async () => {
-        const payload = { userId: '123', role: 'ADMIN' };
+        const payload = { userId: '123', role: 'CUSTOMER' };
         const token = await signJWT(payload);
         expect(typeof token).toBe('string');
 

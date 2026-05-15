@@ -11,9 +11,12 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, useNavigation, useFocusEffect } from 'expo-router';
+import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useToast } from '@/contexts/ToastContext';
+import { POLL_INTERVAL_MS } from '@/lib/constants';
 import type { ChatMessage } from '@dastiyor/types';
 
 function formatTime(iso: string): string {
@@ -24,9 +27,11 @@ export default function ChatScreen() {
   const { partnerId, partnerName, taskId, taskTitle } = useLocalSearchParams<{ partnerId: string; partnerName: string; taskId?: string; taskTitle?: string }>();
   const { user } = useAuth();
   const { t } = useLanguage();
-  const navigation = useNavigation();
+  const toast = useToast();
+  const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
   const listRef = useRef<FlatList>(null);
@@ -34,19 +39,26 @@ export default function ChatScreen() {
 
   useEffect(() => { navigation.setOptions({ title: partnerName ?? t.chat.empty }); }, [partnerName]);
 
-  async function fetchMessages() {
+  async function fetchMessages(isInitial = false) {
     const params = new URLSearchParams({ userId: partnerId });
     if (taskId) params.set('taskId', taskId);
     try {
       const res = await api.get<{ messages: ChatMessage[] }>(`/api/messages?${params}`);
       setMessages(res.messages);
-    } catch {}
+      if (isInitial) setLoadError(false);
+    } catch {
+      if (isInitial) {
+        setLoadError(true);
+      } else {
+        toast.show(t.chat.loadError, 'error');
+      }
+    }
   }
 
   useFocusEffect(
     useCallback(() => {
-      (async () => { setLoading(true); await fetchMessages(); setLoading(false); })();
-      pollRef.current = setInterval(fetchMessages, 4000);
+      (async () => { setLoading(true); await fetchMessages(true); setLoading(false); })();
+      pollRef.current = setInterval(() => fetchMessages(false), POLL_INTERVAL_MS);
       return () => { if (pollRef.current) clearInterval(pollRef.current); };
     }, [partnerId, taskId])
   );
@@ -62,10 +74,11 @@ export default function ChatScreen() {
     setText('');
     try {
       await api.post('/api/messages', { receiverId: partnerId, content, taskId: taskId || undefined });
-      await fetchMessages();
+      await fetchMessages(false);
       setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
     } catch {
       setText(content);
+      toast.show(t.chat.sendError, 'error');
     } finally {
       setSending(false);
     }
@@ -99,6 +112,13 @@ export default function ChatScreen() {
 
       {loading ? (
         <ActivityIndicator style={styles.center} size="large" color="#2563EB" />
+      ) : loadError ? (
+        <View style={styles.center}>
+          <Text style={styles.errorText}>{t.chat.loadError}</Text>
+          <TouchableOpacity style={styles.retryBtn} onPress={() => { setLoading(true); fetchMessages(true).finally(() => setLoading(false)); }}>
+            <Text style={styles.retryBtnText}>{t.common.errorRetry}</Text>
+          </TouchableOpacity>
+        </View>
       ) : (
         <FlatList
           ref={listRef}
@@ -155,4 +175,7 @@ const styles = StyleSheet.create({
   sendBtnDisabled: { backgroundColor: '#93C5FD' },
   sendIcon: { color: '#fff', fontSize: 18, fontWeight: '700' },
   empty: { textAlign: 'center', color: '#9CA3AF', marginTop: 60, fontSize: 15 },
+  errorText: { color: '#6B7280', fontSize: 15, marginBottom: 16, textAlign: 'center' },
+  retryBtn: { backgroundColor: '#2563EB', borderRadius: 12, paddingHorizontal: 24, paddingVertical: 12 },
+  retryBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
 });

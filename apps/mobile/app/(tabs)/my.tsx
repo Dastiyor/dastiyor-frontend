@@ -25,11 +25,15 @@ const CATEGORY_ICONS: Record<string, React.ComponentProps<typeof Ionicons>['name
   'Сантехника': 'water-outline',
   'Электрик': 'flash-outline',
   'IT и Веб': 'laptop-outline',
+  'Компьютерная помощь': 'desktop-outline',
+  'Ремонт техники': 'hardware-chip-outline',
   'Обучение': 'school-outline',
   'Дизайн': 'color-palette-outline',
   'Красота': 'cut-outline',
   'Фото и видео': 'camera-outline',
   'Мероприятия': 'musical-notes-outline',
+  'Юридические услуги': 'document-text-outline',
+  'Виртуальный помощник': 'headset-outline',
 };
 
 const STATUS_COLORS: Record<string, { color: string; bg: string }> = {
@@ -98,7 +102,7 @@ export default function MyScreen() {
         setResponses(res.responses);
       }
     } catch {
-      toast.show('Не удалось загрузить данные', 'error');
+      toast.show(t.my.loadError, 'error');
     }
   }
 

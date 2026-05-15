@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { api } from '@/lib/api-client';
+import { BACK_PRESS_TIMEOUT_MS } from '@/lib/constants';
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -39,8 +40,8 @@ export default function TabLayout() {
           return true;
         }
         backPressedOnce.current = true;
-        ToastAndroid.show('Нажмите ещё раз для выхода', ToastAndroid.SHORT);
-        setTimeout(() => { backPressedOnce.current = false; }, 2000);
+        ToastAndroid.show(t.common.exitApp, ToastAndroid.SHORT);
+        setTimeout(() => { backPressedOnce.current = false; }, BACK_PRESS_TIMEOUT_MS);
         return true;
       });
       return () => sub.remove();

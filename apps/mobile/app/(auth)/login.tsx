@@ -23,7 +23,7 @@ WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
   const { login, loginWithGoogle, loginWithApple } = useAuth();
-  const { locale } = useLanguage();
+  const { locale, t } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -58,10 +58,7 @@ export default function LoginScreen() {
 
   async function handleLogin() {
     if (!email.trim() || !password) {
-      Alert.alert(
-        locale === 'en' ? 'Error' : 'Ошибка',
-        locale === 'en' ? 'Enter email and password' : locale === 'tj' ? 'Email ва паролро ворид кунед' : 'Введите email и пароль',
-      );
+      Alert.alert(L.errTitle, L.errRequired);
       return;
     }
     setLoading(true);
@@ -69,10 +66,7 @@ export default function LoginScreen() {
       await login(email.trim().toLowerCase(), password);
       router.replace('/(tabs)');
     } catch (e) {
-      Alert.alert(
-        locale === 'en' ? 'Login failed' : locale === 'tj' ? 'Хатои воридшавӣ' : 'Ошибка входа',
-        (e as Error).message,
-      );
+      Alert.alert(L.errOauth, (e as Error).message);
     } finally {
       setLoading(false);
     }
@@ -107,17 +101,23 @@ export default function LoginScreen() {
     ru: {
       subtitle: 'Войдите в аккаунт', emailPh: 'Email', passPh: 'Пароль', btn: 'Войти',
       reg: 'Нет аккаунта?', regLink: 'Зарегистрироваться', orDivider: 'или',
-      googleBtn: 'Продолжить с Google', appleBtn: 'Продолжить с Apple', errOauth: 'Ошибка входа',
+      googleBtn: 'Продолжить с Google', appleBtn: 'Продолжить с Apple',
+      errTitle: 'Ошибка', errOauth: 'Ошибка входа',
+      errRequired: 'Введите email и пароль',
     },
     tj: {
       subtitle: 'Ба ҳисоб ворид шавед', emailPh: 'Email', passPh: 'Парол', btn: 'Воридшавӣ',
       reg: 'Ҳисоб надоред?', regLink: 'Бақайдгирӣ', orDivider: 'ё',
-      googleBtn: 'Тавассути Google', appleBtn: 'Тавассути Apple', errOauth: 'Хатои воридшавӣ',
+      googleBtn: 'Тавассути Google', appleBtn: 'Тавассути Apple',
+      errTitle: 'Хато', errOauth: 'Хатои воридшавӣ',
+      errRequired: 'Email ва паролро ворид кунед',
     },
     en: {
       subtitle: 'Sign in to your account', emailPh: 'Email', passPh: 'Password', btn: 'Sign In',
       reg: "Don't have an account?", regLink: 'Register', orDivider: 'or',
-      googleBtn: 'Continue with Google', appleBtn: 'Continue with Apple', errOauth: 'Login error',
+      googleBtn: 'Continue with Google', appleBtn: 'Continue with Apple',
+      errTitle: 'Error', errOauth: 'Login error',
+      errRequired: 'Enter email and password',
     },
   }[locale];
 
@@ -206,6 +206,10 @@ export default function LoginScreen() {
           )}
         </TouchableOpacity>
 
+        <TouchableOpacity style={styles.forgotLink} onPress={() => router.push('/(auth)/forgot-password')}>
+          <Text style={styles.forgotLinkText}>{t.forgotPassword.title}?</Text>
+        </TouchableOpacity>
+
         <Link href="/(auth)/register" style={styles.link}>
           {L.reg} <Text style={styles.linkBold}>{L.regLink}</Text>
         </Link>
@@ -253,6 +257,8 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: { opacity: 0.6 },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  forgotLink: { alignItems: 'center', marginTop: 12 },
+  forgotLinkText: { color: '#6B7280', fontSize: 14 },
   link: { textAlign: 'center', marginTop: 20, color: '#6B7280', fontSize: 14 },
   linkBold: { color: '#2563EB', fontWeight: '600' },
   devBtn: { marginTop: 32, alignItems: 'center' },

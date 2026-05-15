@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { Text } from 'react-native';
-import { ErrorBoundary } from '../ErrorBoundary';
+import { ErrorBoundaryClass as ErrorBoundary } from '../ErrorBoundary';
 
 function ThrowingChild({ shouldThrow }: { shouldThrow: boolean }) {
   if (shouldThrow) throw new Error('Test crash message');

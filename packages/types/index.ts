@@ -106,6 +106,15 @@ export interface TaskResponse {
   provider: Pick<ApiUser, 'id' | 'fullName' | 'avatar'>;
 }
 
+export interface MyResponse {
+  id: string;
+  message: string;
+  price: string;
+  estimatedTime: string | null;
+  status: ResponseStatus;
+  createdAt: string;
+}
+
 export interface ApiError {
   error: string;
   code?: string;

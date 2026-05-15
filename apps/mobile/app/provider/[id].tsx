@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, router, useNavigation } from 'expo-router';
+import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -45,23 +46,37 @@ export default function ProviderProfileScreen() {
   const { user } = useAuth();
   const { t } = useLanguage();
   const pv = t.provider;
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const [profile, setProfile] = useState<ProviderProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => { if (name) navigation.setOptions({ title: name }); }, [name]);
 
-  useEffect(() => {
+  function loadProfile() {
     if (!id) return;
+    setLoading(true);
+    setError(null);
     api.get<{ user: ProviderProfile }>(`/api/users/${id}`)
       .then((res) => setProfile(res.user))
-      .catch(() => {})
+      .catch(() => setError(pv.loadError))
       .finally(() => setLoading(false));
-  }, [id]);
+  }
+
+  useEffect(() => { loadProfile(); }, [id]);
 
   if (loading) return <ActivityIndicator style={styles.center} size="large" color="#2563EB" />;
 
-  if (!profile) return <View style={styles.center}><Text style={styles.errorText}>{pv.notFound}</Text></View>;
+  if (error || !profile) return (
+    <View style={styles.center}>
+      <Text style={styles.errorText}>{error ?? pv.notFound}</Text>
+      {error ? (
+        <TouchableOpacity style={styles.retryBtn} onPress={loadProfile}>
+          <Text style={styles.retryBtnText}>{t.common.errorRetry}</Text>
+        </TouchableOpacity>
+      ) : null}
+    </View>
+  );
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scroll}>
@@ -139,7 +154,9 @@ export default function ProviderProfileScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F3F4F6' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 60 },
-  errorText: { color: '#6B7280', fontSize: 15 },
+  errorText: { color: '#6B7280', fontSize: 15, marginBottom: 16, textAlign: 'center', paddingHorizontal: 24 },
+  retryBtn: { backgroundColor: '#2563EB', borderRadius: 12, paddingHorizontal: 24, paddingVertical: 12 },
+  retryBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
   scroll: { paddingBottom: 40 },
   header: { alignItems: 'center', backgroundColor: '#fff', paddingTop: 40, paddingBottom: 28, marginBottom: 16 },
   avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#2563EB', alignItems: 'center', justifyContent: 'center', marginBottom: 14 },

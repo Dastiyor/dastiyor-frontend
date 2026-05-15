@@ -22,21 +22,7 @@ import { useToast } from '@/contexts/ToastContext';
 import { FilterSheet, DEFAULT_FILTERS, hasActiveFilters } from '@/components/FilterSheet';
 import type { FilterState } from '@/components/FilterSheet';
 import type { FeedTask } from '@dastiyor/types';
-
-const CATEGORY_VALUES = [
-  { key: 'all' as const, value: '' },
-  { key: 'repair' as const, value: 'Ремонт' },
-  { key: 'cleaning' as const, value: 'Уборка' },
-  { key: 'delivery' as const, value: 'Доставка' },
-  { key: 'plumbing' as const, value: 'Сантехника' },
-  { key: 'electrical' as const, value: 'Электрик' },
-  { key: 'it' as const, value: 'IT и Веб' },
-  { key: 'education' as const, value: 'Обучение' },
-  { key: 'design' as const, value: 'Дизайн' },
-  { key: 'beauty' as const, value: 'Красота' },
-  { key: 'photo' as const, value: 'Фото и видео' },
-  { key: 'events' as const, value: 'Мероприятия' },
-];
+import { useConfig } from '@/lib/useConfig';
 
 const CATEGORY_ICONS: Record<string, React.ComponentProps<typeof Ionicons>['name']> = {
   'Ремонт': 'construct-outline',
@@ -45,11 +31,15 @@ const CATEGORY_ICONS: Record<string, React.ComponentProps<typeof Ionicons>['name
   'Сантехника': 'water-outline',
   'Электрик': 'flash-outline',
   'IT и Веб': 'laptop-outline',
+  'Компьютерная помощь': 'desktop-outline',
+  'Ремонт техники': 'hardware-chip-outline',
   'Обучение': 'school-outline',
   'Дизайн': 'color-palette-outline',
   'Красота': 'cut-outline',
   'Фото и видео': 'camera-outline',
   'Мероприятия': 'musical-notes-outline',
+  'Юридические услуги': 'document-text-outline',
+  'Виртуальный помощник': 'headset-outline',
 };
 
 const URGENCY_COLORS: Record<string, string> = {
@@ -65,6 +55,7 @@ interface TasksResponse {
 
 export default function TaskBrowseScreen() {
   const { t, locale } = useLanguage();
+  const { config } = useConfig();
   const toast = useToast();
   const params = useLocalSearchParams<{
     category?: string; query?: string; urgency?: string;
@@ -130,20 +121,20 @@ export default function TaskBrowseScreen() {
   useFocusEffect(
     useCallback(() => {
       setLoading(true);
-      fetchTasks(true).catch(() => toast.show('Не удалось загрузить задания', 'error')).finally(() => setLoading(false));
+      fetchTasks(true).catch(() => toast.show(t.task.loadMoreError, 'error')).finally(() => setLoading(false));
     }, [filters, debouncedQuery])
   );
 
   async function onRefresh() {
     setRefreshing(true);
-    await fetchTasks(true).catch(() => {});
+    await fetchTasks(true).catch(() => toast.show(t.task.loadMoreError, 'error'));
     setRefreshing(false);
   }
 
   async function onLoadMore() {
     if (loadingMore || !hasMore) return;
     setLoadingMore(true);
-    await fetchTasks(false).catch(() => {});
+    await fetchTasks(false).catch(() => toast.show(t.task.loadMoreError, 'error'));
     setLoadingMore(false);
   }
 
@@ -186,7 +177,10 @@ export default function TaskBrowseScreen() {
     );
   }, [t, locale]);
 
-  const categories = CATEGORY_VALUES.map((c) => ({ name: t.categories[c.key], value: c.value }));
+  const categories = [
+    { name: t.categories.all, value: '' },
+    ...config.categories.map((c) => ({ name: c, value: c })),
+  ];
 
   return (
     <View style={styles.container}>
@@ -249,6 +243,7 @@ export default function TaskBrowseScreen() {
         onChange={setFilters}
         onClose={() => setFilterVisible(false)}
         locale={locale}
+        categories={config.categories}
         onApply={(f) => {
           setFilters(f);
           setFilterVisible(false);

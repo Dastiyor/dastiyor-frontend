@@ -4,24 +4,7 @@ import { useRouter } from 'next/navigation';
 import { MapPin, Lightbulb } from 'lucide-react';
 import { toast } from '@/components/ui/Toast';
 import { useTranslation } from '@/lib/i18n';
-
-const CATEGORIES = [
-    'Ремонт',
-    'Уборка',
-    'Доставка',
-    'Сантехника',
-    'Электрик',
-    'Обучение',
-    'Красота',
-    'IT и Веб',
-    'Компьютерная помощь',
-    'Ремонт техники',
-    'Фото и видео',
-    'Дизайн',
-    'Мероприятия',
-    'Юридические услуги',
-    'Виртуальный помощник',
-];
+import { CATEGORIES } from '@/app/api/config/route';
 
 export default function CreateTaskPage() {
     const { t } = useTranslation();

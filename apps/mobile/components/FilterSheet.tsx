@@ -32,20 +32,6 @@ export function hasActiveFilters(f: FilterState) {
   return !!(f.category || f.urgency || f.city || f.minBudget || f.maxBudget || f.sort !== 'newest');
 }
 
-const CATEGORY_VALUES = [
-  { label: '', value: '' },
-  { label: 'Ремонт', value: 'Ремонт' },
-  { label: 'Уборка', value: 'Уборка' },
-  { label: 'Доставка', value: 'Доставка' },
-  { label: 'Сантехника', value: 'Сантехника' },
-  { label: 'Электрик', value: 'Электрик' },
-  { label: 'IT и Веб', value: 'IT и Веб' },
-  { label: 'Обучение', value: 'Обучение' },
-  { label: 'Дизайн', value: 'Дизайн' },
-  { label: 'Красота', value: 'Красота' },
-  { label: 'Фото и видео', value: 'Фото и видео' },
-  { label: 'Мероприятия', value: 'Мероприятия' },
-];
 
 const URGENCY_OPTIONS = [
   { label: { ru: 'Все', tj: 'Ҳама', en: 'All' }, value: '' },
@@ -69,6 +55,7 @@ interface Props {
   onApply: (f: FilterState) => void;
   onClose: () => void;
   locale: Locale;
+  categories?: string[];
 }
 
 const L = {
@@ -116,7 +103,7 @@ const L = {
   },
 };
 
-export function FilterSheet({ visible, filters, onChange, onApply, onClose, locale }: Props) {
+export function FilterSheet({ visible, filters, onChange, onApply, onClose, locale, categories = [] }: Props) {
   const t = L[locale] ?? L.ru;
 
   function set(key: keyof FilterState, value: string) {
@@ -140,7 +127,7 @@ export function FilterSheet({ visible, filters, onChange, onApply, onClose, loca
           {/* Category */}
           <Text style={styles.label}>{t.category}</Text>
           <View style={styles.chips}>
-            {CATEGORY_VALUES.map((c) => {
+            {[{ label: t.all, value: '' }, ...categories.map((c) => ({ label: c, value: c }))].map((c) => {
               const active = filters.category === c.value;
               return (
                 <TouchableOpacity
@@ -148,9 +135,7 @@ export function FilterSheet({ visible, filters, onChange, onApply, onClose, loca
                   style={[styles.chip, active && styles.chipActive]}
                   onPress={() => set('category', c.value)}
                 >
-                  <Text style={[styles.chipText, active && styles.chipTextActive]}>
-                    {c.value || t.all}
-                  </Text>
+                  <Text style={[styles.chipText, active && styles.chipTextActive]}>{c.label}</Text>
                 </TouchableOpacity>
               );
             })}

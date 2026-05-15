@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useRef, useEffect, useCallback, ReactNode } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { TOAST_HIDE_DELAY_MS } from '@/lib/constants';
 
 type ToastType = 'success' | 'error' | 'info';
 
@@ -16,7 +17,7 @@ interface ToastContextValue {
 
 const ToastContext = createContext<ToastContextValue | null>(null);
 
-const COLORS: Record<ToastType, { bg: string; icon: string }> = {
+const COLORS: Record<ToastType, { bg: string; icon: React.ComponentProps<typeof Ionicons>['name'] }> = {
   success: { bg: '#059669', icon: 'checkmark-circle' },
   error:   { bg: '#DC2626', icon: 'alert-circle' },
   info:    { bg: '#2563EB', icon: 'information-circle' },
@@ -31,7 +32,7 @@ function ToastItem({ item, onHide }: { item: ToastItem; onHide: () => void }) {
 
   useEffect(() => {
     Animated.timing(anim, { toValue: 1, duration: 260, useNativeDriver: true }).start(() => {
-      setTimeout(hide, 2800);
+      setTimeout(hide, TOAST_HIDE_DELAY_MS);
     });
   }, []);
 
@@ -45,7 +46,7 @@ function ToastItem({ item, onHide }: { item: ToastItem; onHide: () => void }) {
         { opacity: anim, transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [20, 0] }) }] },
       ]}
     >
-      <Ionicons name={icon as any} size={18} color="#fff" />
+      <Ionicons name={icon} size={18} color="#fff" />
       <Text style={styles.toastText} numberOfLines={3}>{item.message}</Text>
     </Animated.View>
   );

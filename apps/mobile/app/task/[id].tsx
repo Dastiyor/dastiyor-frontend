@@ -13,7 +13,7 @@ import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import type { TaskDetail, TaskResponse } from '@dastiyor/types';
+import type { TaskDetail, TaskResponse, MyResponse } from '@dastiyor/types';
 
 export default function TaskDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -22,6 +22,7 @@ export default function TaskDetailScreen() {
   const tk = t.task;
   const [task, setTask] = useState<TaskDetail | null>(null);
   const [responses, setResponses] = useState<TaskResponse[]>([]);
+  const [myResponse, setMyResponse] = useState<MyResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -47,10 +48,16 @@ export default function TaskDetailScreen() {
   }
 
   async function loadResponses(taskData: TaskDetail) {
-    if (user && user.id === taskData.customer?.id) {
+    if (!user || !id) return;
+    if (user.id === taskData.customer?.id) {
       try {
         const res = await api.get<{ responses: TaskResponse[] }>(`/api/tasks/${id}/responses`);
         setResponses(res.responses);
+      } catch {}
+    } else if (user.role === 'PROVIDER') {
+      try {
+        const res = await api.get<{ response: MyResponse | null }>(`/api/tasks/${id}/my-response`);
+        setMyResponse(res.response);
       } catch {}
     }
   }
@@ -270,7 +277,10 @@ export default function TaskDetailScreen() {
         ) : null}
 
         {isOwner && task.status === 'COMPLETED' && !task.hasReview ? (
-          <TouchableOpacity style={styles.reviewBtn} onPress={() => router.push({ pathname: '/review/[taskId]', params: { taskId: task.id, taskTitle: task.title } })}>
+          <TouchableOpacity style={styles.reviewBtn} onPress={() => {
+            const accepted = responses.find(r => r.status === 'ACCEPTED');
+            router.push({ pathname: '/review/[taskId]', params: { taskId: task.id, taskTitle: task.title, providerName: accepted?.provider.fullName ?? '' } });
+          }}>
             <Text style={styles.reviewBtnText}>{tk.leaveReview}</Text>
           </TouchableOpacity>
         ) : null}
@@ -278,9 +288,27 @@ export default function TaskDetailScreen() {
         {isOwner && task.status === 'COMPLETED' && task.hasReview ? (
           <View style={styles.reviewedBadge}><Text style={styles.reviewedBadgeText}>{tk.reviewed}</Text></View>
         ) : null}
+
+        {!isOwner && user?.role === 'PROVIDER' && myResponse ? (
+          <View style={styles.myResponseCard}>
+            <View style={styles.myResponseHeader}>
+              <Text style={styles.myResponseTitle}>{tk.myResponseTitle}</Text>
+              <View style={[styles.rsBadge, { backgroundColor: RESPONSE_STATUS[myResponse.status]?.bg ?? '#F3F4F6' }]}>
+                <Text style={[styles.rsBadgeText, { color: RESPONSE_STATUS[myResponse.status]?.color ?? '#374151' }]}>
+                  {RESPONSE_STATUS[myResponse.status]?.label ?? myResponse.status}
+                </Text>
+              </View>
+            </View>
+            <Text style={styles.myResponseMsg}>{myResponse.message}</Text>
+            <View style={styles.responseMeta}>
+              <Text style={styles.responsePrice}>{myResponse.price} TJS</Text>
+              {myResponse.estimatedTime ? <Text style={styles.responseTime}>⏱ {myResponse.estimatedTime}</Text> : null}
+            </View>
+          </View>
+        ) : null}
       </ScrollView>
 
-      {!isOwner && user?.role === 'PROVIDER' && task.status === 'OPEN' ? (
+      {!isOwner && user?.role === 'PROVIDER' && task.status === 'OPEN' && !myResponse ? (
         <View style={styles.footer}>
           <TouchableOpacity style={styles.respondBtn} onPress={() => router.push({ pathname: '/respond/[id]', params: { id: task.id, title: task.title } })}>
             <Text style={styles.respondBtnText}>{tk.respond}</Text>
@@ -329,6 +357,10 @@ const styles = StyleSheet.create({
   btnBusy: { opacity: 0.5 },
   noResponses: { alignItems: 'center', paddingVertical: 20 },
   noResponsesText: { color: '#9CA3AF', fontSize: 14 },
+  myResponseCard: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 14, padding: 14, marginTop: 20, backgroundColor: '#F9FAFB' },
+  myResponseHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  myResponseTitle: { fontSize: 13, fontWeight: '700', color: '#374151' },
+  myResponseMsg: { fontSize: 13, color: '#4B5563', lineHeight: 18, marginBottom: 8 },
   footer: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#fff', padding: 16, paddingBottom: 32, borderTopWidth: 1, borderTopColor: '#F3F4F6' },
   respondBtn: { backgroundColor: '#2563EB', borderRadius: 14, padding: 16, alignItems: 'center' },
   respondBtnText: { color: '#fff', fontSize: 17, fontWeight: '700' },

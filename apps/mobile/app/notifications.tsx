@@ -47,7 +47,7 @@ export default function NotificationsScreen() {
       setNotifications(res.notifications);
       api.put('/api/notifications', {}).catch(() => {});
     } catch {
-      toast.show('Не удалось загрузить уведомления', 'error');
+      toast.show(t.notifications.loadError, 'error');
     }
   }
 

@@ -86,6 +86,24 @@ export async function sendPasswordResetEmail(email: string, resetLink: string): 
     });
 }
 
+export async function sendPasswordResetCodeEmail(email: string, code: string): Promise<boolean> {
+    return sendEmail({
+        to: email,
+        subject: 'Сброс пароля - Dastiyor',
+        html: `
+            <h2>Сброс пароля</h2>
+            <p>Вы запросили сброс пароля для вашего аккаунта на Dastiyor.</p>
+            <p>Введите следующий код в приложении:</p>
+            <div style="font-size: 36px; font-weight: bold; letter-spacing: 8px; text-align: center; padding: 24px; background: #F3F4F6; border-radius: 8px; margin: 16px 0;">
+                ${code}
+            </div>
+            <p>Код действителен в течение 15 минут.</p>
+            <p>Если вы не запрашивали сброс пароля, проигнорируйте это письмо.</p>
+        `,
+        text: `Сброс пароля - Dastiyor\n\nВаш код для сброса пароля: ${code}\n\nКод действителен в течение 15 минут.`,
+    });
+}
+
 export async function sendTaskResponseNotification(
     email: string,
     taskTitle: string,

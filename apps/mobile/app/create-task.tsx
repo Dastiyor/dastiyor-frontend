@@ -14,8 +14,7 @@ import {
 import { router } from 'expo-router';
 import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
-
-const CITIES = ['Душанбе', 'Худжанд', 'Бохтар', 'Кӯлоб', 'Истаравшан', 'Турсунзода', 'Онлайн'];
+import { useConfig } from '@/lib/useConfig';
 
 function ChipGroup<T extends string>({
   options, value, onChange, getLabel, getValue,
@@ -53,13 +52,7 @@ const chip = StyleSheet.create({
 export default function CreateTaskScreen() {
   const { t } = useLanguage();
   const ct = t.createTask;
-
-  const CATEGORIES = [
-    t.categories.repair, t.categories.cleaning, t.categories.delivery,
-    t.categories.plumbing, t.categories.electrical, t.categories.it,
-    t.categories.education, t.categories.design, t.categories.beauty,
-    t.categories.photo, t.categories.events,
-  ];
+  const { config } = useConfig();
 
   const URGENCY = [
     { value: 'urgent', label: t.urgency.urgent },
@@ -117,10 +110,10 @@ export default function CreateTaskScreen() {
         <Text style={styles.charCount}>{description.length}/1000</Text>
 
         <Text style={styles.label}>{ct.categoryLabel}</Text>
-        <ChipGroup options={CATEGORIES} value={category} onChange={setCategory} />
+        <ChipGroup options={config.categories} value={category} onChange={setCategory} />
 
         <Text style={styles.label}>{ct.cityLabel}</Text>
-        <ChipGroup options={CITIES} value={city} onChange={setCity} />
+        <ChipGroup options={config.cities} value={city} onChange={setCity} />
 
         <Text style={styles.label}>{ct.budgetLabel}</Text>
         <View style={styles.segmented}>

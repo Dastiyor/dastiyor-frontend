@@ -21,21 +21,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { useToast } from '@/contexts/ToastContext';
 import type { FilterState } from '@/components/FilterSheet';
 import type { FeedTask } from '@dastiyor/types';
-
-const CATEGORY_VALUES = [
-  { key: 'all' as const, value: '' },
-  { key: 'repair' as const, value: 'Ремонт' },
-  { key: 'cleaning' as const, value: 'Уборка' },
-  { key: 'delivery' as const, value: 'Доставка' },
-  { key: 'plumbing' as const, value: 'Сантехника' },
-  { key: 'electrical' as const, value: 'Электрик' },
-  { key: 'it' as const, value: 'IT и Веб' },
-  { key: 'education' as const, value: 'Обучение' },
-  { key: 'design' as const, value: 'Дизайн' },
-  { key: 'beauty' as const, value: 'Красота' },
-  { key: 'photo' as const, value: 'Фото и видео' },
-  { key: 'events' as const, value: 'Мероприятия' },
-];
+import { useConfig } from '@/lib/useConfig';
 
 const CATEGORY_ICONS: Record<string, React.ComponentProps<typeof Ionicons>['name']> = {
   'Ремонт': 'construct-outline',
@@ -44,11 +30,15 @@ const CATEGORY_ICONS: Record<string, React.ComponentProps<typeof Ionicons>['name
   'Сантехника': 'water-outline',
   'Электрик': 'flash-outline',
   'IT и Веб': 'laptop-outline',
+  'Компьютерная помощь': 'desktop-outline',
+  'Ремонт техники': 'hardware-chip-outline',
   'Обучение': 'school-outline',
   'Дизайн': 'color-palette-outline',
   'Красота': 'cut-outline',
   'Фото и видео': 'camera-outline',
   'Мероприятия': 'musical-notes-outline',
+  'Юридические услуги': 'document-text-outline',
+  'Виртуальный помощник': 'headset-outline',
 };
 
 const CARD_COLORS = ['#2563EB', '#1E293B', '#7C3AED', '#0F766E'];
@@ -66,6 +56,7 @@ interface TasksResponse {
 export default function HomeScreen() {
   const { user } = useAuth();
   const { t, locale } = useLanguage();
+  const { config } = useConfig();
   const toast = useToast();
   const [tasks, setTasks] = useState<FeedTask[]>([]);
   const [loading, setLoading] = useState(true);
@@ -78,22 +69,21 @@ export default function HomeScreen() {
   const firstName = user?.fullName?.split(' ')[0] ?? '';
 
   async function loadData() {
+    const notifPromise: Promise<{ unreadCount: number }> = user
+      ? api.get<{ unreadCount: number }>('/api/notifications')
+      : Promise.resolve({ unreadCount: 0 });
     const [tasksRes, notifRes] = await Promise.allSettled([
       api.get<TasksResponse>('/api/tasks?page=1&limit=10'),
-      user
-        ? api.get<{ unreadCount: number }>('/api/notifications')
-        : Promise.resolve({ unreadCount: 0 }),
-    ]);
+      notifPromise,
+    ] as [Promise<TasksResponse>, Promise<{ unreadCount: number }>]);
     if (tasksRes.status === 'fulfilled') setTasks(tasksRes.value.tasks);
-    if (notifRes.status === 'fulfilled') {
-      setUnreadCount((notifRes.value as { unreadCount: number }).unreadCount ?? 0);
-    }
+    if (notifRes.status === 'fulfilled') setUnreadCount(notifRes.value.unreadCount ?? 0);
   }
 
   useFocusEffect(
     useCallback(() => {
       setLoading(true);
-      loadData().catch(() => toast.show('Не удалось загрузить данные', 'error')).finally(() => setLoading(false));
+      loadData().catch(() => toast.show(t.home.loadError, 'error')).finally(() => setLoading(false));
     }, [user])
   );
 
@@ -105,7 +95,10 @@ export default function HomeScreen() {
 
   const featured = tasks.slice(0, 1);
   const popular = tasks.slice(4);
-  const categories = CATEGORY_VALUES.map((c) => ({ name: t.categories[c.key], value: c.value }));
+  const categories = [
+    { name: t.categories.all, value: '' },
+    ...config.categories.map((c) => ({ name: c, value: c })),
+  ];
 
   const L = {
     en: {
@@ -337,6 +330,7 @@ export default function HomeScreen() {
         onChange={setFilters}
         onClose={() => setFilterVisible(false)}
         locale={locale}
+        categories={config.categories}
         onApply={(f) => {
           setFilterVisible(false);
           router.push({

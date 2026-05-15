@@ -43,8 +43,8 @@ export default function MessagesScreen() {
     try {
       const res = await api.get<{ conversations: Conversation[] }>('/api/conversations');
       setConversations(res.conversations);
-    } catch (e) {
-      toast.show('Не удалось загрузить сообщения', 'error');
+    } catch {
+      toast.show(t.messages.loadError, 'error');
     }
   }
 

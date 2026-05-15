@@ -11,8 +11,8 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   return (
-    <ErrorBoundary>
-      <LanguageProvider>
+    <LanguageProvider>
+      <ErrorBoundary>
         <ToastProvider>
         <AuthProvider>
           <Stack>
@@ -34,7 +34,7 @@ export default function RootLayout() {
           <OfflineBanner />
         </AuthProvider>
         </ToastProvider>
-      </LanguageProvider>
-    </ErrorBoundary>
+      </ErrorBoundary>
+    </LanguageProvider>
   );
 }

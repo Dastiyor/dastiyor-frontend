@@ -1,12 +1,18 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useLanguage } from '@/contexts/LanguageContext';
+
+interface Props extends React.PropsWithChildren {
+  title?: string;
+  retryText?: string;
+}
 
 interface State {
   hasError: boolean;
   error: Error | null;
 }
 
-export class ErrorBoundary extends React.Component<React.PropsWithChildren, State> {
+class ErrorBoundaryClass extends React.Component<Props, State> {
   state: State = { hasError: false, error: null };
 
   static getDerivedStateFromError(error: Error): State {
@@ -15,10 +21,12 @@ export class ErrorBoundary extends React.Component<React.PropsWithChildren, Stat
 
   render() {
     if (this.state.hasError) {
+      const title = this.props.title ?? 'Что-то пошло не так';
+      const retryText = this.props.retryText ?? 'Попробовать снова';
       return (
         <View style={styles.container}>
           <Text style={styles.emoji}>⚠️</Text>
-          <Text style={styles.title}>Что-то пошло не так</Text>
+          <Text style={styles.title}>{title}</Text>
           {this.state.error?.message ? (
             <Text style={styles.message}>{this.state.error.message}</Text>
           ) : null}
@@ -26,7 +34,7 @@ export class ErrorBoundary extends React.Component<React.PropsWithChildren, Stat
             style={styles.btn}
             onPress={() => this.setState({ hasError: false, error: null })}
           >
-            <Text style={styles.btnText}>Попробовать снова</Text>
+            <Text style={styles.btnText}>{retryText}</Text>
           </TouchableOpacity>
         </View>
       );
@@ -34,6 +42,17 @@ export class ErrorBoundary extends React.Component<React.PropsWithChildren, Stat
     return this.props.children;
   }
 }
+
+export function ErrorBoundary({ children }: React.PropsWithChildren) {
+  const { t } = useLanguage();
+  return (
+    <ErrorBoundaryClass title={t.common.errorTitle} retryText={t.common.errorRetry}>
+      {children}
+    </ErrorBoundaryClass>
+  );
+}
+
+export { ErrorBoundaryClass };
 
 const styles = StyleSheet.create({
   container: {

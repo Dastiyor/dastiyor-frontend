@@ -3,28 +3,27 @@ import { prisma } from '@/lib/prisma';
 import { verifyJWT, getBearerToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
 
+async function authenticate(request: Request) {
+    const bearerToken = getBearerToken(request);
+    let token: string | undefined = bearerToken ?? undefined;
+    if (!token) {
+        const cookieStore = await cookies();
+        token = cookieStore.get('token')?.value;
+    }
+    if (!token) return null;
+    const payload = await verifyJWT(token);
+    return payload?.id ? payload : null;
+}
+
 // GET - Fetch all conversations for the current user
 export async function GET(request: Request) {
     try {
-        const bearerToken = getBearerToken(request);
-        let token: string | undefined = bearerToken ?? undefined;
-        if (!token) {
-            const cookieStore = await cookies();
-            token = cookieStore.get('token')?.value;
-        }
-
-        if (!token) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        const payload = await verifyJWT(token);
-        if (!payload || !payload.id) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+        const payload = await authenticate(request);
+        if (!payload) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const userId = payload.id as string;
 
-        // Get all messages where user is sender or receiver
+        // Limit to most recent 500 messages to bound memory usage
         const messages = await prisma.message.findMany({
             where: {
                 OR: [
@@ -33,6 +32,7 @@ export async function GET(request: Request) {
                 ]
             },
             orderBy: { createdAt: 'desc' },
+            take: 500,
             include: {
                 sender: {
                     select: { id: true, fullName: true }

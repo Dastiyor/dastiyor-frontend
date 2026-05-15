@@ -83,8 +83,18 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        if (rating < 1 || rating > 5) {
-            return NextResponse.json({ error: 'Rating must be between 1 and 5' }, { status: 400 });
+        const ratingNum = Number(rating);
+        if (!Number.isInteger(ratingNum) || ratingNum < 1 || ratingNum > 5) {
+            return NextResponse.json({ error: 'Rating must be an integer between 1 and 5' }, { status: 400 });
+        }
+
+        if (comment !== undefined && comment !== null) {
+            if (typeof comment !== 'string') {
+                return NextResponse.json({ error: 'Comment must be a string' }, { status: 400 });
+            }
+            if (comment.length > 1000) {
+                return NextResponse.json({ error: 'Comment must not exceed 1000 characters' }, { status: 400 });
+            }
         }
 
         // Get the task
@@ -120,8 +130,8 @@ export async function POST(request: Request) {
         // Create the review
         const review = await prisma.review.create({
             data: {
-                rating,
-                comment: comment || null,
+                rating: ratingNum,
+                comment: (comment as string | undefined) || null,
                 reviewerId,
                 reviewedId: task.assignedUserId,
                 taskId
@@ -144,8 +154,8 @@ export async function POST(request: Request) {
                 reviewed.email,
                 review.reviewer.fullName,
                 task.title,
-                rating,
-                comment || null,
+                ratingNum,
+                (comment as string | undefined) || null,
                 `${baseUrl}/provider/profile`
             ).catch(err => console.error('Email notification error:', err));
         }

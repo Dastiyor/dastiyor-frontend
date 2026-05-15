@@ -5,6 +5,7 @@ import { cookies } from 'next/headers';
 import { sendNewMessageNotification } from '@/lib/notifications/email';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 import { sendPushNotification } from '@/lib/web-push';
+import { sanitizeString } from '@/lib/validation';
 
 // GET - Fetch messages for a conversation (between current user and another user, optionally for a task)
 export async function GET(request: Request) {
@@ -120,14 +121,20 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Message must have content or image' }, { status: 400 });
         }
 
+        if (content && typeof content === 'string' && content.length > 2000) {
+            return NextResponse.json({ error: 'Message must not exceed 2000 characters' }, { status: 400 });
+        }
+
         if (receiverId === senderId) {
             return NextResponse.json({ error: 'Cannot message yourself' }, { status: 400 });
         }
 
+        const sanitizedContent = content ? sanitizeString(content) : '';
+
         // Create the message
         const message = await prisma.message.create({
             data: {
-                content: content || '',
+                content: sanitizedContent,
                 imageUrl: imageUrl || null,
                 senderId,
                 receiverId,
@@ -158,12 +165,12 @@ export async function POST(request: Request) {
             where: { id: receiverId },
             select: { email: true }
         });
-        if (!recentMessage && receiver?.email && content) {
+        if (!recentMessage && receiver?.email && sanitizedContent) {
             const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dastiyor.com';
             sendNewMessageNotification(
                 receiver.email,
                 message.sender.fullName,
-                content,
+                sanitizedContent,
                 `${baseUrl}/messages?userId=${senderId}${taskId ? `&taskId=${taskId}` : ''}`
             ).catch(err => console.error('Email notification error:', err));
         }
@@ -171,7 +178,7 @@ export async function POST(request: Request) {
         // Web push notification to receiver (non-blocking)
         sendPushNotification(receiverId, {
             title: `${message.sender.fullName}`,
-            body: content || 'Отправил(а) изображение',
+            body: sanitizedContent || 'Отправил(а) изображение',
             url: `/messages?userId=${senderId}${taskId ? `&taskId=${taskId}` : ''}`,
         }).catch(() => {});
 

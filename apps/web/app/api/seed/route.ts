@@ -12,9 +12,9 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const secret = searchParams.get('secret');
 
-    // Simple protection
-    if (secret !== 'seed-demo') {
-        return NextResponse.json({ error: 'Unauthorized. Use ?secret=seed-demo' }, { status: 401 });
+    const expectedSecret = process.env.SEED_SECRET || 'seed-demo';
+    if (secret !== expectedSecret) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     try {
@@ -144,13 +144,7 @@ export async function GET(request: Request) {
             }
         }
 
-        return NextResponse.json({
-            message: 'Database seeded successfully',
-            users: {
-                customer: 'customer@example.com / password123',
-                provider: 'provider@example.com / password123'
-            }
-        });
+        return NextResponse.json({ message: 'Database seeded successfully' });
 
     } catch (error: any) {
         console.error('Seed error:', error);

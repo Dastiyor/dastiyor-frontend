@@ -21,6 +21,16 @@ export async function GET(
             return NextResponse.json({ error: 'Task not found' }, { status: 404 });
         }
 
+        let images: string[] = [];
+        if (task.images) {
+            try {
+                const parsed = JSON.parse(task.images);
+                images = Array.isArray(parsed) ? parsed : [];
+            } catch {
+                images = [];
+            }
+        }
+
         return NextResponse.json({
             id: task.id,
             title: task.title,
@@ -29,7 +39,7 @@ export async function GET(
             budget: task.budgetType === 'fixed' ? `${task.budgetAmount} TJS` : 'Договорная',
             city: task.city,
             address: task.address,
-            images: task.images ? JSON.parse(task.images) : [],
+            images,
             urgency: task.urgency,
             dueDate: task.dueDate,
             status: task.status,

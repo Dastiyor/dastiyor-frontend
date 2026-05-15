@@ -7,10 +7,18 @@ export function isValidEmail(email: string): boolean {
 }
 
 // Phone number validation (Tajikistan format)
+// Accepts +992XXXXXXXXX or 992XXXXXXXXX — country code required, 9 local digits
 export function isValidPhone(phone: string): boolean {
-    // Accepts formats: +992XXXXXXXXX, 992XXXXXXXXX, or just 9 digits
-    const phoneRegex = /^(\+?992)?[0-9]{9}$/;
-    return phoneRegex.test(phone.replace(/\s/g, ''));
+    const phoneRegex = /^\+?992[0-9]{9}$/;
+    return phoneRegex.test(phone.replace(/[\s\-()]/g, ''));
+}
+
+// Normalize phone to E.164 (+992XXXXXXXXX)
+export function normalizePhone(phone: string): string {
+    const stripped = phone.replace(/[\s\-()]/g, '');
+    if (stripped.startsWith('+')) return stripped;
+    if (stripped.startsWith('992')) return `+${stripped}`;
+    return `+992${stripped}`;
 }
 
 // Password strength check

@@ -45,20 +45,44 @@ export async function POST(request: Request) {
             );
         }
 
+        // Check account lockout
+        if (user.lockedUntil && user.lockedUntil > new Date()) {
+            const retryAfterSec = Math.ceil((user.lockedUntil.getTime() - Date.now()) / 1000);
+            return NextResponse.json(
+                { error: 'Аккаунт временно заблокирован. Попробуйте позже.', retryAfter: retryAfterSec },
+                { status: 429 }
+            );
+        }
+
         // Verify Password
         const isValid = await bcrypt.compare(password, user.password);
 
         if (!isValid) {
+            const attempts = (user.loginAttempts ?? 0) + 1;
+            const lockout = attempts >= 5;
+            await prisma.user.update({
+                where: { id: user.id },
+                data: {
+                    loginAttempts: attempts,
+                    lockedUntil: lockout ? new Date(Date.now() + 15 * 60 * 1000) : null,
+                },
+            });
             logAction({
                 action: 'LOGIN_FAILED',
-                details: { email },
+                details: { email, attempts },
                 ipAddress: getRequestIP(request),
             });
             return NextResponse.json(
-                { error: 'Invalid credentials' },
+                { error: lockout ? 'Аккаунт заблокирован на 15 минут из-за многократных неудачных попыток.' : 'Invalid credentials' },
                 { status: 401 }
             );
         }
+
+        // Reset attempts on successful login
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { loginAttempts: 0, lockedUntil: null },
+        });
 
         // Generate Token
         const token = await signJWT({

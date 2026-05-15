@@ -24,6 +24,8 @@ model User {
   role      String   @default("CUSTOMER") // CUSTOMER, PROVIDER
   isVerified Boolean  @default(false) // Provider verification status
   verificationDocuments String? // JSON array of document URLs
+  loginAttempts Int      @default(0)
+  lockedUntil   DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -161,6 +163,9 @@ model Message {
   // Task context (optional - messages related to a task)
   taskId    String?
   task      Task?   @relation(fields: [taskId], references: [id])
+
+  @@index([senderId, createdAt])
+  @@index([receiverId, isRead, createdAt])
 }
 
 // Password Reset Token Model
@@ -223,6 +228,8 @@ model Notification {
   // Recipient
   userId    String
   user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, isRead, createdAt])
 }
 
 // Action Log Model (Audit Trail)

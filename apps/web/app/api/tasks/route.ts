@@ -4,7 +4,7 @@ import { verifyJWT, getBearerToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import { logger } from '@/lib/logger';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
-import { validateTaskInput } from '@/lib/validation';
+import { validateTaskInput, sanitizeString } from '@/lib/validation';
 import { logAction, getRequestIP } from '@/lib/audit';
 
 const TASKS_PER_PAGE = 20;
@@ -164,15 +164,15 @@ export async function POST(request: Request) {
         const amountNum = amount != null && amount !== '' ? parseInt(String(amount), 10) : null;
         const task = await prisma.task.create({
             data: {
-                title,
-                description,
+                title: sanitizeString(title),
+                description: sanitizeString(description),
                 category,
-                subcategory: subcategory || null,
+                subcategory: subcategory ? sanitizeString(subcategory) : null,
                 budgetType: String(budget),
                 budgetAmount: amount ? String(amount) : null,
                 budgetAmountNum: amountNum != null && !isNaN(amountNum) ? amountNum : null,
-                city,
-                address,
+                city: sanitizeString(city),
+                address: address ? sanitizeString(address) : undefined,
                 userId: payload.id as string,
                 images: images ? JSON.stringify(images) : undefined,
                 dueDate: dueDate ? new Date(dueDate) : null,

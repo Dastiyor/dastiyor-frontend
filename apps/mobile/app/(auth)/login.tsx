@@ -24,7 +24,7 @@ WebBrowser.maybeCompleteAuthSession();
 export default function LoginScreen() {
   const { login, loginWithGoogle, loginWithApple } = useAuth();
   const { locale, t } = useLanguage();
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -57,13 +57,13 @@ export default function LoginScreen() {
   }, [response]);
 
   async function handleLogin() {
-    if (!email.trim() || !password) {
+    if (!identifier.trim() || !password) {
       Alert.alert(L.errTitle, L.errRequired);
       return;
     }
     setLoading(true);
     try {
-      await login(email.trim().toLowerCase(), password);
+      await login(identifier.trim(), password);
       router.replace('/(tabs)');
     } catch (e) {
       Alert.alert(L.errOauth, (e as Error).message);
@@ -99,25 +99,25 @@ export default function LoginScreen() {
 
   const L = {
     ru: {
-      subtitle: 'Войдите в аккаунт', emailPh: 'Email', passPh: 'Пароль', btn: 'Войти',
+      subtitle: 'Войдите в аккаунт', identifierPh: 'Телефон или Email', passPh: 'Пароль', btn: 'Войти',
       reg: 'Нет аккаунта?', regLink: 'Зарегистрироваться', orDivider: 'или',
       googleBtn: 'Продолжить с Google', appleBtn: 'Продолжить с Apple',
       errTitle: 'Ошибка', errOauth: 'Ошибка входа',
-      errRequired: 'Введите email и пароль',
+      errRequired: 'Введите телефон или email и пароль',
     },
     tj: {
-      subtitle: 'Ба ҳисоб ворид шавед', emailPh: 'Email', passPh: 'Парол', btn: 'Воридшавӣ',
+      subtitle: 'Ба ҳисоб ворид шавед', identifierPh: 'Телефон ё Email', passPh: 'Парол', btn: 'Воридшавӣ',
       reg: 'Ҳисоб надоред?', regLink: 'Бақайдгирӣ', orDivider: 'ё',
       googleBtn: 'Тавассути Google', appleBtn: 'Тавассути Apple',
       errTitle: 'Хато', errOauth: 'Хатои воридшавӣ',
-      errRequired: 'Email ва паролро ворид кунед',
+      errRequired: 'Телефон ё email ва паролро ворид кунед',
     },
     en: {
-      subtitle: 'Sign in to your account', emailPh: 'Email', passPh: 'Password', btn: 'Sign In',
+      subtitle: 'Sign in to your account', identifierPh: 'Phone or Email', passPh: 'Password', btn: 'Sign In',
       reg: "Don't have an account?", regLink: 'Register', orDivider: 'or',
       googleBtn: 'Continue with Google', appleBtn: 'Continue with Apple',
       errTitle: 'Error', errOauth: 'Login error',
-      errRequired: 'Enter email and password',
+      errRequired: 'Enter phone or email and password',
     },
   }[locale];
 
@@ -171,13 +171,13 @@ export default function LoginScreen() {
 
         <TextInput
           style={styles.input}
-          placeholder={L.emailPh}
+          placeholder={L.identifierPh}
           placeholderTextColor="#9CA3AF"
-          value={email}
-          onChangeText={setEmail}
+          value={identifier}
+          onChangeText={setIdentifier}
           autoCapitalize="none"
-          keyboardType="email-address"
-          autoComplete="email"
+          keyboardType="default"
+          autoComplete="username"
           maxLength={255}
         />
 

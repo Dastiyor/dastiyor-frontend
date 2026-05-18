@@ -6,7 +6,7 @@ export type ResponseStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED';
 
 export interface ApiUser {
   id: string;
-  email: string;
+  email?: string | null;
   fullName: string;
   role: UserRole;
   phone?: string | null;

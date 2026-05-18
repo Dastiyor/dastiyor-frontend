@@ -65,6 +65,7 @@ const translations = {
     profile: {
       email: 'Email',
       phone: 'Phone',
+      addEmail: 'Add Email',
       editProfile: 'Edit Profile',
       changePassword: 'Change Password',
       logout: 'Log Out',
@@ -72,6 +73,9 @@ const translations = {
       logoutMessage: 'Are you sure?',
       logoutCancel: 'Cancel',
       language: 'Language',
+      sectionAccount: 'Account',
+      sectionContacts: 'Contacts',
+      sectionSettings: 'Settings',
       roles: { CUSTOMER: 'Customer', PROVIDER: 'Provider', ADMIN: 'Admin' },
     },
     common: {
@@ -306,6 +310,7 @@ const translations = {
     profile: {
       email: 'Email',
       phone: 'Телефон',
+      addEmail: 'Добавить Email',
       editProfile: 'Редактировать профиль',
       changePassword: 'Сменить пароль',
       logout: 'Выйти из аккаунта',
@@ -313,6 +318,9 @@ const translations = {
       logoutMessage: 'Вы уверены?',
       logoutCancel: 'Отмена',
       language: 'Язык',
+      sectionAccount: 'Аккаунт',
+      sectionContacts: 'Контакты',
+      sectionSettings: 'Настройки',
       roles: { CUSTOMER: 'Заказчик', PROVIDER: 'Исполнитель', ADMIN: 'Администратор' },
     },
     common: {
@@ -547,6 +555,7 @@ const translations = {
     profile: {
       email: 'Почтаи электронӣ',
       phone: 'Телефон',
+      addEmail: 'Илова кардани Email',
       editProfile: 'Таҳрири профил',
       changePassword: 'Иваз кардани парол',
       logout: 'Баромадан аз ҳисоб',
@@ -554,6 +563,9 @@ const translations = {
       logoutMessage: 'Шумо мутмаин ҳастед?',
       logoutCancel: 'Бекор',
       language: 'Забон',
+      sectionAccount: 'Ҳисоб',
+      sectionContacts: 'Тамос',
+      sectionSettings: 'Танзимот',
       roles: { CUSTOMER: 'Фармоишгар', PROVIDER: 'Иҷрокунанда', ADMIN: 'Маъмур' },
     },
     common: {

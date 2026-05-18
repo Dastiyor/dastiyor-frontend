@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import { signJWT } from '@/lib/auth';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 import { logAction, getRequestIP } from '@/lib/audit';
+import { normalizePhone } from '@/lib/validation';
 
 export async function POST(request: Request) {
     try {
@@ -16,19 +17,27 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json();
-        const { email, password } = body;
+        // Accept `identifier` (phone or email) or legacy `email` field
+        const identifier: string = (body.identifier || body.email || '').trim();
+        const { password } = body;
 
-        if (!email || !password) {
+        if (!identifier || !password) {
             return NextResponse.json(
-                { error: 'Email and password are required' },
+                { error: 'Email/phone and password are required' },
                 { status: 400 }
             );
         }
 
-        // Find User
-        const user = await prisma.user.findUnique({
-            where: { email },
-        });
+        // Detect if identifier is a phone number
+        const looksLikePhone = /^\+?[0-9]{9,15}$/.test(identifier.replace(/[\s\-()]/g, ''));
+
+        let user;
+        if (looksLikePhone) {
+            const normalized = normalizePhone(identifier);
+            user = await prisma.user.findFirst({ where: { phone: normalized } });
+        } else {
+            user = await prisma.user.findUnique({ where: { email: identifier.toLowerCase() } });
+        }
 
         if (!user) {
             return NextResponse.json(
@@ -69,7 +78,7 @@ export async function POST(request: Request) {
             });
             logAction({
                 action: 'LOGIN_FAILED',
-                details: { email, attempts },
+                details: { identifier, attempts },
                 ipAddress: getRequestIP(request),
             });
             return NextResponse.json(

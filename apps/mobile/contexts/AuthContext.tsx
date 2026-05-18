@@ -5,17 +5,17 @@ import { api, setOnUnauthorized } from '@/lib/api-client';
 import type { ApiUser } from '@dastiyor/types';
 
 interface RegisterData {
-  email: string;
+  phone: string;
+  email?: string;
   password: string;
   fullName: string;
-  phone?: string;
   role: 'customer' | 'provider';
 }
 
 interface AuthState {
   user: ApiUser | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (identifier: string, password: string) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   loginWithGoogle: (accessToken: string, role?: string) => Promise<void>;
   loginWithApple: (identityToken: string, email?: string, fullName?: string, role?: string) => Promise<void>;
@@ -52,8 +52,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })();
   }, []);
 
-  async function login(email: string, password: string) {
-    const res = await api.post<{ token: string; user: ApiUser }>('/api/auth/login', { email, password });
+  async function login(identifier: string, password: string) {
+    const res = await api.post<{ token: string; user: ApiUser }>('/api/auth/login', { identifier, password });
     await SecureStore.setItemAsync('auth_token', res.token);
     setUser(res.user);
   }

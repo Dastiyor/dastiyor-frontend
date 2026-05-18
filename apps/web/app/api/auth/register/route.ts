@@ -3,16 +3,14 @@ import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { signJWT } from '@/lib/auth';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
-import { validatePassword, isValidPhone } from '@/lib/validation';
+import { validatePassword, isValidPhone, normalizePhone } from '@/lib/validation';
 import { sendWelcomeEmail } from '@/lib/notifications/email';
 import { logAction, getRequestIP } from '@/lib/audit';
 
 export async function POST(request: Request) {
     try {
-        // Rate limiting
         const clientIP = getClientIP(request);
         const rateLimit = checkRateLimit(clientIP, 'auth');
-
         if (!rateLimit.allowed) {
             return rateLimitExceededResponse(rateLimit.resetIn);
         }
@@ -20,9 +18,14 @@ export async function POST(request: Request) {
         const body = await request.json();
         const { email, password, fullName, phone, role } = body;
 
-        if (!email || !password || !fullName) {
+        if (!password || !fullName) {
+            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        }
+
+        // Need at least one contact: phone (mobile flow) or email (web flow)
+        if (!phone && !email) {
             return NextResponse.json(
-                { error: 'Missing required fields' },
+                { error: 'Укажите номер телефона или email' },
                 { status: 400 }
             );
         }
@@ -36,44 +39,43 @@ export async function POST(request: Request) {
 
         const passwordValidation = validatePassword(String(password));
         if (!passwordValidation.valid) {
-            return NextResponse.json(
-                { error: passwordValidation.error },
-                { status: 400 }
-            );
+            return NextResponse.json({ error: passwordValidation.error }, { status: 400 });
         }
 
-        // Check existing user
-        const existingUser = await prisma.user.findUnique({
-            where: { email },
-        });
+        const normalizedPhone = phone ? normalizePhone(String(phone)) : null;
 
-        if (existingUser) {
-            return NextResponse.json(
-                { error: 'User already exists' },
-                { status: 400 }
-            );
+        // Generate placeholder email for phone-only registrations
+        const resolvedEmail = email
+            ? String(email).trim().toLowerCase()
+            : `phone_${normalizedPhone!.replace(/\+/g, '')}@phone.dastiyor.local`;
+
+        // Duplicate checks
+        if (email) {
+            const byEmail = await prisma.user.findUnique({ where: { email: resolvedEmail } });
+            if (byEmail) {
+                return NextResponse.json({ error: 'Пользователь с таким email уже существует' }, { status: 400 });
+            }
+        }
+        if (normalizedPhone) {
+            const byPhone = await prisma.user.findFirst({ where: { phone: normalizedPhone } });
+            if (byPhone) {
+                return NextResponse.json({ error: 'Пользователь с таким номером телефона уже существует' }, { status: 400 });
+            }
         }
 
-        // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Create User
         const user = await prisma.user.create({
             data: {
-                email,
+                email: resolvedEmail,
                 password: hashedPassword,
                 fullName,
-                phone,
+                phone: normalizedPhone,
                 role: role === 'provider' ? 'PROVIDER' : 'CUSTOMER',
             },
         });
 
-        // Generate Token
-        const token = await signJWT({
-            id: user.id,
-            email: user.email,
-            role: user.role
-        });
+        const token = await signJWT({ id: user.id, email: user.email, role: user.role });
 
         const response = NextResponse.json(
             {
@@ -83,31 +85,33 @@ export async function POST(request: Request) {
                     id: user.id,
                     email: user.email,
                     fullName: user.fullName,
-                    role: user.role
-                }
+                    role: user.role,
+                    phone: user.phone,
+                },
             },
             { status: 201 }
         );
 
-        // Set cookie
         response.cookies.set('token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            maxAge: 86400, // 1 day
+            maxAge: 86400,
             path: '/',
         });
 
-        // Send welcome email (non-blocking)
-        sendWelcomeEmail(user.email, user.fullName, user.role)
-            .catch(err => console.error('Welcome email error:', err));
+        // Only send welcome email if a real email address was given
+        if (email) {
+            sendWelcomeEmail(resolvedEmail, user.fullName, user.role)
+                .catch(err => console.error('Welcome email error:', err));
+        }
 
         logAction({
             action: 'REGISTER',
             userId: user.id,
             entity: 'User',
             entityId: user.id,
-            details: { role: user.role },
+            details: { role: user.role, hasEmail: !!email, hasPhone: !!phone },
             ipAddress: clientIP,
         });
 
@@ -115,9 +119,6 @@ export async function POST(request: Request) {
 
     } catch (error) {
         console.error('Registration Error:', error);
-        return NextResponse.json(
-            { error: 'Internal Server Error' },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

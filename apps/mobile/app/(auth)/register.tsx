@@ -29,7 +29,6 @@ export default function RegisterScreen() {
   const { t } = useLanguage();
   const r = t.register;
   const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<Role>('customer');
@@ -66,7 +65,7 @@ export default function RegisterScreen() {
   }, [response]);
 
   async function handleRegister() {
-    if (!fullName.trim() || !email.trim() || !password) {
+    if (!fullName.trim() || !phone.trim() || !password) {
       Alert.alert(t.common.error, r.errRequired);
       return;
     }
@@ -74,8 +73,7 @@ export default function RegisterScreen() {
     try {
       await register({
         fullName: fullName.trim(),
-        email: email.trim().toLowerCase(),
-        phone: phone.trim() || undefined,
+        phone: phone.trim(),
         password,
         role,
       });
@@ -179,18 +177,6 @@ export default function RegisterScreen() {
           onChangeText={setFullName}
           autoComplete="name"
           maxLength={100}
-        />
-
-        <TextInput
-          style={styles.input}
-          placeholder="Email *"
-          placeholderTextColor="#9CA3AF"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          autoComplete="email"
-          maxLength={255}
         />
 
         <TextInput

@@ -168,7 +168,12 @@ export default function RegisterScreen() {
               style={[styles.roleBtn, role === rv && styles.roleBtnActive]}
               onPress={() => setRole(rv)}
             >
-              <Text style={styles.roleEmoji}>{rv === 'customer' ? '👤' : '💼'}</Text>
+              <Ionicons
+                name={rv === 'customer' ? 'person-outline' : 'briefcase-outline'}
+                size={26}
+                color={role === rv ? '#2563EB' : '#9CA3AF'}
+                style={styles.roleIcon}
+              />
               <Text style={[styles.roleBtnText, role === rv && styles.roleBtnTextActive]}>
                 {rv === 'customer' ? r.postTask : r.doTask}
               </Text>
@@ -311,7 +316,7 @@ const styles = StyleSheet.create({
     padding: 14, alignItems: 'center', backgroundColor: '#fff',
   },
   roleBtnActive: { borderColor: '#2563EB', backgroundColor: '#EFF6FF' },
-  roleEmoji: { fontSize: 24, marginBottom: 6 },
+  roleIcon: { marginBottom: 6 },
   roleBtnText: { fontSize: 12, color: '#6B7280', fontWeight: '500', textAlign: 'center' },
   roleBtnTextActive: { color: '#2563EB', fontWeight: '700' },
 

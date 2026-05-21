@@ -33,6 +33,10 @@ function passwordStrength(pw: string): string[] {
   return issues;
 }
 
+const EMOJI_CUSTOMER = String.fromCodePoint(0x1F4CB);  // 📋
+const EMOJI_PROVIDER  = String.fromCodePoint(0x1F527);  // 🔧
+const EMOJI_FLAG_TJ   = String.fromCodePoint(0x1F1F9, 0x1F1EF); // 🇹🇯
+
 export default function RegisterScreen() {
   const { register, loginWithGoogle, loginWithApple } = useAuth();
   const { t } = useLanguage();
@@ -168,7 +172,7 @@ export default function RegisterScreen() {
               style={[styles.roleBtn, role === rv && styles.roleBtnActive]}
               onPress={() => setRole(rv)}
             >
-              <Text style={styles.roleEmoji}>{rv === 'customer' ? '📋' : '🔧'}</Text>
+              <Text style={styles.roleEmoji}>{rv === 'customer' ? EMOJI_CUSTOMER : EMOJI_PROVIDER}</Text>
               <Text style={[styles.roleBtnText, role === rv && styles.roleBtnTextActive]}>
                 {rv === 'customer' ? r.postTask : r.doTask}
               </Text>
@@ -222,7 +226,7 @@ export default function RegisterScreen() {
         <View style={styles.phoneRow}>
           <View style={styles.phonePrefix}>
             {Platform.OS === 'ios'
-              ? <Text style={styles.phonePrefixText}>🇹🇯 +992</Text>
+              ? <Text style={styles.phonePrefixText}>{EMOJI_FLAG_TJ} +992</Text>
               : <>
                   <Text style={styles.phonePrefixFlag}>TJ</Text>
                   <Text style={styles.phonePrefixText}>+992</Text>

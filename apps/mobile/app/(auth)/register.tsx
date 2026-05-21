@@ -221,7 +221,8 @@ export default function RegisterScreen() {
         <Text style={styles.fieldLabel}>{r.phone}</Text>
         <View style={styles.phoneRow}>
           <View style={styles.phonePrefix}>
-            <Text style={styles.phonePrefixText}>🇹🇯 +992</Text>
+            <Text style={styles.phonePrefixFlag}>TJ</Text>
+            <Text style={styles.phonePrefixText}>+992</Text>
           </View>
           <TextInput
             style={styles.phoneInput}
@@ -337,8 +338,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 13,
     backgroundColor: '#F0F4FF',
     borderRightWidth: 1, borderRightColor: '#E5E7EB',
-    justifyContent: 'center',
+    justifyContent: 'center', alignItems: 'center', flexDirection: 'row', gap: 6,
   },
+  phonePrefixFlag: { fontSize: 11, fontWeight: '700', color: '#2563EB', letterSpacing: 0.5 },
   phonePrefixText: { fontSize: 15, fontWeight: '600', color: '#374151' },
   phoneInput: {
     flex: 1, padding: 13, fontSize: 15, color: '#111827',

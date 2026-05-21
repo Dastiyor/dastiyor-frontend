@@ -221,8 +221,13 @@ export default function RegisterScreen() {
         <Text style={styles.fieldLabel}>{r.phone}</Text>
         <View style={styles.phoneRow}>
           <View style={styles.phonePrefix}>
-            <Text style={styles.phonePrefixFlag}>TJ</Text>
-            <Text style={styles.phonePrefixText}>+992</Text>
+            {Platform.OS === 'ios'
+              ? <Text style={styles.phonePrefixText}>🇹🇯 +992</Text>
+              : <>
+                  <Text style={styles.phonePrefixFlag}>TJ</Text>
+                  <Text style={styles.phonePrefixText}>+992</Text>
+                </>
+            }
           </View>
           <TextInput
             style={styles.phoneInput}
@@ -303,10 +308,10 @@ const styles = StyleSheet.create({
   roleRow: { flexDirection: 'row', gap: 10, marginBottom: 20 },
   roleBtn: {
     flex: 1, borderWidth: 1.5, borderColor: '#E5E7EB', borderRadius: 12,
-    padding: 14, alignItems: 'center', gap: 6, backgroundColor: '#fff',
+    padding: 14, alignItems: 'center', backgroundColor: '#fff',
   },
   roleBtnActive: { borderColor: '#2563EB', backgroundColor: '#EFF6FF' },
-  roleEmoji: { fontSize: 24 },
+  roleEmoji: { fontSize: 24, marginBottom: 6 },
   roleBtnText: { fontSize: 12, color: '#6B7280', fontWeight: '500', textAlign: 'center' },
   roleBtnTextActive: { color: '#2563EB', fontWeight: '700' },
 

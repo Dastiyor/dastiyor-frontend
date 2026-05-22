@@ -118,7 +118,7 @@ export async function POST(request: Request) {
             // Send receipt email (fire-and-forget)
             if (payment.user.email) {
                 sendPaymentReceiptEmail(
-                    payment.user.email,
+                    payment.user.email!,
                     payment.user.fullName,
                     payment.amount,
                     payment.description,

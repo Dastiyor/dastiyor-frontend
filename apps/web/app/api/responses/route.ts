@@ -132,7 +132,7 @@ export async function POST(request: Request) {
         if (task.user?.email) {
             const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dastiyor.com';
             sendTaskResponseNotification(
-                task.user.email,
+                task.user.email!,
                 task.title,
                 user.fullName || 'Исполнитель',
                 priceStr,

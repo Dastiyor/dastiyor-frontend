@@ -72,7 +72,7 @@ export async function POST(request: Request) {
 
         const baseUrl = getResetLinkBase(request);
         const resetLink = `${baseUrl}/reset-password?token=${token}`;
-        const sent = await sendPasswordResetEmail(user.email, resetLink);
+        const sent = await sendPasswordResetEmail(user.email!, resetLink);
 
         if (!sent && process.env.NODE_ENV === 'development') {
             // Token logged server-side only — never expose to client

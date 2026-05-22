@@ -67,7 +67,7 @@ export async function POST(request: Request) {
         for (const resp of pendingResponses) {
             if (resp.user?.email) {
                 sendTaskCancelledNotification(
-                    resp.user.email,
+                    resp.user.email!,
                     task.title,
                     `${baseUrl}/tasks`
                 ).catch(err => console.error('Email notification error:', err));

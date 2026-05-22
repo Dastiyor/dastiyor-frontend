@@ -68,7 +68,7 @@ export async function upsertOAuthUser({
 
     const token = await signJWT({ id: newUser.id, email: newUser.email, role: newUser.role });
 
-    sendWelcomeEmail(newUser.email, newUser.fullName, newUser.role)
+    sendWelcomeEmail(newUser.email!, newUser.fullName, newUser.role)
         .catch(err => console.error('Welcome email error:', err));
 
     logAction({

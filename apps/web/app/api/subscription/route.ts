@@ -101,7 +101,7 @@ export async function POST(request: Request) {
             description: `Dastiyor — Подписка ${planConfig.nameRu} (${planConfig.durationDays} дн.)`,
             returnUrl: `${APP_URL}/payment/result?orderId=${orderId}`,
             callbackUrl: `${APP_URL}/api/webhooks/smartpay`,
-            customerEmail: user?.email,
+            customerEmail: user?.email ?? undefined,
             customerPhone: user?.phone || undefined,
         });
 

@@ -7,33 +7,35 @@ import {
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { EmptyState } from '@/components/EmptyState';
 import { useToast } from '@/contexts/ToastContext';
 import type { Conversation } from '@dastiyor/types';
 
-function timeAgo(iso: string, time: { justNow: string; min: string; h: string; d: string }): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return time.justNow;
-  if (mins < 60) return `${mins} ${time.min}`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours} ${time.h}`;
-  return `${Math.floor(hours / 24)} ${time.d}`;
-}
-
-function Initials({ name }: { name: string }) {
+function Avatar({ name, avatarUrl }: { name: string; avatarUrl?: string | null }) {
+  const { colors } = useTheme();
   const parts = name.trim().split(' ');
   const ini = parts.length >= 2 ? (parts[0][0] + parts[1][0]).toUpperCase() : name.slice(0, 2).toUpperCase();
-  return <View style={styles.avatar}><Text style={styles.avatarText}>{ini}</Text></View>;
+
+  if (avatarUrl) {
+    return <Image source={{ uri: avatarUrl }} style={styles.avatar} />;
+  }
+  return (
+    <View style={[styles.avatar, { backgroundColor: colors.accent }]}>
+      <Text style={styles.avatarText}>{ini}</Text>
+    </View>
+  );
 }
 
 export default function MessagesScreen() {
   const { t } = useLanguage();
+  const { colors } = useTheme();
   const toast = useToast();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,70 +65,75 @@ export default function MessagesScreen() {
     });
   }
 
-  const renderConversation = useCallback(({ item }: { item: Conversation }) => (
-    <TouchableOpacity style={styles.row} onPress={() => openChat(item)} activeOpacity={0.7}>
-      <Initials name={item.partnerName} />
-      <View style={styles.rowBody}>
-        <View style={styles.rowTop}>
-          <Text style={styles.partnerName} numberOfLines={1}>{item.partnerName}</Text>
-          <Text style={styles.time}>{timeAgo(item.lastMessageAt, t.time)}</Text>
+  const renderConversation = useCallback(({ item }: { item: Conversation }) => {
+    const partnerRole = (item as any).partnerRole as string | undefined;
+    return (
+      <TouchableOpacity style={[styles.row, { backgroundColor: colors.surface }]} onPress={() => openChat(item)} activeOpacity={0.7}>
+        <Avatar name={item.partnerName} avatarUrl={(item as any).partnerAvatar} />
+        <View style={styles.rowBody}>
+          <View style={styles.rowTop}>
+            <Text style={[styles.partnerName, { color: colors.text }]} numberOfLines={1}>{item.partnerName}</Text>
+            {partnerRole ? (
+              <View style={[styles.roleBadge, { backgroundColor: colors.iconBg }]}>
+                <Text style={[styles.roleBadgeText, { color: colors.accent }]}>{partnerRole}</Text>
+              </View>
+            ) : null}
+          </View>
+          <View style={styles.rowBottom}>
+            <Text style={[styles.lastMsg, { color: colors.textSecondary }]} numberOfLines={1}>{item.lastMessage}</Text>
+            {item.unreadCount > 0 ? (
+              <View style={[styles.badge, { backgroundColor: colors.accent }]}>
+                <Text style={styles.badgeText}>{item.unreadCount}</Text>
+              </View>
+            ) : null}
+          </View>
         </View>
-        {item.taskTitle ? <Text style={styles.taskTitle} numberOfLines={1}>📋 {item.taskTitle}</Text> : null}
-        <View style={styles.rowBottom}>
-          <Text style={styles.lastMsg} numberOfLines={1}>{item.lastMessage}</Text>
-          {item.unreadCount > 0 ? (
-            <View style={styles.badge}><Text style={styles.badgeText}>{item.unreadCount}</Text></View>
-          ) : null}
-        </View>
-      </View>
-    </TouchableOpacity>
-  ), [t]);
-
-  if (loading) return (
-    <View style={styles.container}>
-      <ScreenHeader title={t.messages.title} />
-      <ActivityIndicator style={styles.center} size="large" color="#2563EB" />
-    </View>
-  );
+      </TouchableOpacity>
+    );
+  }, [colors]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.bg }]}>
       <ScreenHeader title={t.messages.title} />
-      <FlatList
-        data={conversations}
-        keyExtractor={(c) => c.id}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#2563EB" />}
-        ListEmptyComponent={
-          <EmptyState
-            icon="chatbubbles-outline"
-            title={t.messages.empty}
-            subtitle={t.messages.hint}
-          />
-        }
-        renderItem={renderConversation}
-        ItemSeparatorComponent={() => <View style={styles.sep} />}
-      />
+      {loading ? (
+        <ActivityIndicator style={styles.center} size="large" color="#2563EB" />
+      ) : (
+        <FlatList
+          data={conversations}
+          keyExtractor={(c) => c.id}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#2563EB" />}
+          ListEmptyComponent={
+            <EmptyState icon="chatbubbles-outline" title={t.messages.empty} subtitle={t.messages.hint} />
+          }
+          renderItem={renderConversation}
+          ItemSeparatorComponent={() => <View style={[styles.sep, { backgroundColor: colors.border, marginLeft: 76 }]} />}
+          ListFooterComponent={conversations.length > 0 ? (
+            <View style={[styles.footer, { backgroundColor: colors.bg }]}>
+              <Text style={[styles.footerText, { color: colors.textTertiary }]}>{t.messages.noMore}</Text>
+            </View>
+          ) : null}
+        />
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1 },
   center: { flex: 1, marginTop: 60 },
-  row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 },
-  avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#2563EB', alignItems: 'center', justifyContent: 'center', marginRight: 12, flexShrink: 0 },
-  avatarText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14 },
+  avatar: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center', marginRight: 12, flexShrink: 0 },
+  avatarText: { color: '#fff', fontWeight: '700', fontSize: 17 },
   rowBody: { flex: 1 },
-  rowTop: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 2 },
-  partnerName: { fontSize: 15, fontWeight: '700', color: '#111827', flex: 1, marginRight: 8 },
-  time: { fontSize: 12, color: '#9CA3AF' },
-  taskTitle: { fontSize: 12, color: '#6B7280', marginBottom: 2 },
+  rowTop: { flexDirection: 'row', alignItems: 'center', marginBottom: 4, gap: 8 },
+  partnerName: { fontSize: 15, fontWeight: '700', flex: 1 },
+  roleBadge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12, flexShrink: 0 },
+  roleBadgeText: { fontSize: 12, fontWeight: '600' },
   rowBottom: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  lastMsg: { fontSize: 13, color: '#6B7280', flex: 1, marginRight: 8 },
-  badge: { backgroundColor: '#2563EB', borderRadius: 10, minWidth: 20, height: 20, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 },
+  lastMsg: { fontSize: 13, flex: 1, marginRight: 8 },
+  badge: { borderRadius: 10, minWidth: 20, height: 20, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 },
   badgeText: { color: '#fff', fontSize: 11, fontWeight: '700' },
-  sep: { height: 1, backgroundColor: '#F3F4F6', marginLeft: 76 },
-  empty: { alignItems: 'center', marginTop: 80 },
-  emptyText: { fontSize: 17, fontWeight: '700', color: '#374151', marginBottom: 8 },
-  emptyHint: { fontSize: 14, color: '#9CA3AF', textAlign: 'center' },
+  sep: { height: 1 },
+  footer: { paddingVertical: 32, paddingHorizontal: 24, alignItems: 'center' },
+  footerText: { fontSize: 13, textAlign: 'center', lineHeight: 18 },
 });

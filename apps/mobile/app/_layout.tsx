@@ -4,6 +4,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { ToastProvider } from '@/contexts/ToastContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { OfflineBanner } from '@/components/OfflineBanner';
 
@@ -11,6 +12,7 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   return (
+    <ThemeProvider>
     <LanguageProvider>
       <ErrorBoundary>
         <ToastProvider>
@@ -24,11 +26,13 @@ export default function RootLayout() {
             <Stack.Screen name="respond/[id]" options={{ title: 'Откликнуться', headerBackTitle: 'Назад', presentation: 'modal' }} />
             <Stack.Screen name="chat/[partnerId]" options={{ headerBackTitle: 'Назад' }} />
             <Stack.Screen name="create-task" options={{ title: 'Новое задание', headerBackTitle: 'Назад', presentation: 'modal' }} />
-            <Stack.Screen name="notifications" options={{ title: 'Уведомления', headerBackTitle: 'Назад' }} />
+            <Stack.Screen name="notifications" options={{ headerShown: false }} />
             <Stack.Screen name="review/[taskId]" options={{ title: 'Оставить отзыв', headerBackTitle: 'Назад', presentation: 'modal' }} />
             <Stack.Screen name="provider/[id]" options={{ title: 'Профиль', headerBackTitle: 'Назад' }} />
             <Stack.Screen name="change-password" options={{ title: 'Смена пароля', headerBackTitle: 'Назад' }} />
             <Stack.Screen name="edit-profile" options={{ title: 'Редактировать профиль', headerBackTitle: 'Назад', presentation: 'modal' }} />
+            <Stack.Screen name="settings" options={{ headerShown: false }} />
+            <Stack.Screen name="profile" options={{ headerShown: false }} />
           </Stack>
           <StatusBar style="auto" />
           <OfflineBanner />
@@ -36,5 +40,6 @@ export default function RootLayout() {
         </ToastProvider>
       </ErrorBoundary>
     </LanguageProvider>
+    </ThemeProvider>
   );
 }

@@ -63,6 +63,7 @@ const translations = {
       REJECTED: 'Rejected',
     },
     profile: {
+      title: 'Profile',
       email: 'Email',
       phone: 'Phone',
       addEmail: 'Add Email',
@@ -174,6 +175,7 @@ const translations = {
       errCode: 'Invalid or expired code',
     },
     notifications: {
+      title: 'Notification',
       empty: 'No notifications',
       loadError: 'Failed to load notifications',
     },
@@ -181,6 +183,7 @@ const translations = {
       title: 'Messages',
       empty: 'No messages',
       hint: 'Start a chat by responding to a task',
+      noMore: 'No more messages. Place a new order to start talking to experts',
       loadError: 'Failed to load messages',
     },
     task: {
@@ -312,6 +315,7 @@ const translations = {
       REJECTED: 'Отклонён',
     },
     profile: {
+      title: 'Профиль',
       email: 'Email',
       phone: 'Телефон',
       addEmail: 'Добавить Email',
@@ -423,6 +427,7 @@ const translations = {
       errCode: 'Неверный или просроченный код',
     },
     notifications: {
+      title: 'Уведомления',
       empty: 'Нет уведомлений',
       loadError: 'Не удалось загрузить уведомления',
     },
@@ -430,6 +435,7 @@ const translations = {
       title: 'Сообщения',
       empty: 'Нет сообщений',
       hint: 'Начните чат, откликнувшись на задание',
+      noMore: 'Больше сообщений нет. Разместите новый заказ, чтобы начать общение с мастерами',
       loadError: 'Не удалось загрузить сообщения',
     },
     task: {
@@ -561,6 +567,7 @@ const translations = {
       REJECTED: 'Рад',
     },
     profile: {
+      title: 'Профил',
       email: 'Почтаи электронӣ',
       phone: 'Телефон',
       addEmail: 'Илова кардани Email',
@@ -672,6 +679,7 @@ const translations = {
       errCode: 'Рамзи нодуруст ё мӯҳлат гузашта',
     },
     notifications: {
+      title: 'Огоҳиҳо',
       empty: 'Огоҳӣ нест',
       loadError: 'Огоҳиҳоро бор кардан нашуд',
     },
@@ -679,6 +687,7 @@ const translations = {
       title: 'Паёмҳо',
       empty: 'Паём нест',
       hint: 'Бо посух додан ба супориш чат оғоз кунед',
+      noMore: 'Дигар паём нест. Фармоиши нав диҳед то бо мутахассисон гуфтугӯ оғоз кунед',
       loadError: 'Паёмҳоро бор кардан нашуд',
     },
     task: {

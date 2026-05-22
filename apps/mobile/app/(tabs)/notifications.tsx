@@ -36,7 +36,7 @@ function timeAgo(iso: string, time: { justNow: string; min: string; h: string; d
   return `${Math.floor(hours / 24)} ${time.d}`;
 }
 
-export default function NotificationsScreen() {
+export default function NotificationsTabScreen() {
   const { t } = useLanguage();
   const { colors } = useTheme();
   const toast = useToast();
@@ -87,14 +87,14 @@ export default function NotificationsScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
-      <ScreenHeader title={t.notifications.title} showBack showMenu={false} />
+      <ScreenHeader title={t.notifications.title ?? 'Notification'} />
       {loading ? (
-        <ActivityIndicator style={styles.center} size="large" color={colors.accent} />
+        <ActivityIndicator style={styles.center} size="large" color="#2563EB" />
       ) : (
         <FlatList
           data={notifications}
           keyExtractor={(n) => n.id}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#2563EB" />}
           ListEmptyComponent={
             <EmptyState icon="notifications-outline" title={t.notifications.empty} />
           }

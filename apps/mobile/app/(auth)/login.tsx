@@ -11,19 +11,20 @@ import {
   Alert,
 } from 'react-native';
 import { Link, router } from 'expo-router';
-import { AuthBackground } from '@/components/AuthBackground';
 import * as SecureStore from 'expo-secure-store';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
   const { login, loginWithGoogle, loginWithApple } = useAuth();
   const { locale, t } = useLanguage();
+  const { colors, isDark } = useTheme();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -35,7 +36,6 @@ export default function LoginScreen() {
     (Platform.OS !== 'android' || process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID)
   );
 
-  // Hook always called (rules of hooks), but uses 'unconfigured' placeholder when env vars missing
   const [request, response, promptAsync] = Google.useAuthRequest({
     clientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || 'unconfigured',
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || 'unconfigured',
@@ -99,25 +99,28 @@ export default function LoginScreen() {
 
   const L = {
     ru: {
-      subtitle: 'Войдите в аккаунт', identifierPh: 'Телефон или Email', passPh: 'Пароль', btn: 'Войти',
+      subtitle: 'Войдите в аккаунт', identifierPh: 'Email', passPh: 'Пароль', btn: 'Войти',
       reg: 'Нет аккаунта?', regLink: 'Зарегистрироваться', orDivider: 'или',
-      googleBtn: 'Продолжить с Google', appleBtn: 'Продолжить с Apple',
+      googleBtn: 'Продолжить с Google', appleBtn: 'Войти через Apple',
       errTitle: 'Ошибка', errOauth: 'Ошибка входа',
       errRequired: 'Введите телефон или email и пароль',
+      emailLabel: 'Email', passLabel: 'Пароль',
     },
     tj: {
-      subtitle: 'Ба ҳисоб ворид шавед', identifierPh: 'Телефон ё Email', passPh: 'Парол', btn: 'Воридшавӣ',
+      subtitle: 'Ба ҳисоб ворид шавед', identifierPh: 'Email', passPh: 'Парол', btn: 'Воридшавӣ',
       reg: 'Ҳисоб надоред?', regLink: 'Бақайдгирӣ', orDivider: 'ё',
       googleBtn: 'Тавассути Google', appleBtn: 'Тавассути Apple',
       errTitle: 'Хато', errOauth: 'Хатои воридшавӣ',
       errRequired: 'Телефон ё email ва паролро ворид кунед',
+      emailLabel: 'Email', passLabel: 'Парол',
     },
     en: {
-      subtitle: 'Sign in to your account', identifierPh: 'Phone or Email', passPh: 'Password', btn: 'Sign In',
+      subtitle: 'Sign in to your account', identifierPh: 'Email', passPh: 'Password', btn: 'Sign in',
       reg: "Don't have an account?", regLink: 'Register', orDivider: 'or',
-      googleBtn: 'Continue with Google', appleBtn: 'Continue with Apple',
+      googleBtn: 'Continue with Google', appleBtn: 'Sign in with Apple',
       errTitle: 'Error', errOauth: 'Login error',
       errRequired: 'Enter phone or email and password',
+      emailLabel: 'Email', passLabel: 'Password',
     },
   }[locale];
 
@@ -125,54 +128,53 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.bg === '#F0F4FF' ? '#FFFFFF' : '#000000' }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <AuthBackground />
       <View style={styles.inner}>
-        <Text style={styles.logo}>Dastiyor</Text>
-        <Text style={styles.subtitle}>{L.subtitle}</Text>
-
-        {/* OAuth Buttons */}
-        {googleConfigured && (
-          <TouchableOpacity
-            style={styles.oauthBtn}
-            onPress={() => promptAsync()}
-            disabled={!request || googleLoading}
-          >
-            {googleLoading ? (
-              <ActivityIndicator color="#374151" />
-            ) : (
-              <>
-                <GoogleIcon />
-                <Text style={styles.oauthBtnText}>{L.googleBtn}</Text>
-              </>
-            )}
-          </TouchableOpacity>
-        )}
+        <Text style={[styles.logo, { color: colors.accent }]}>Dastiyor</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{L.subtitle}</Text>
 
         {isAppleAvailable && (
           <AppleAuthentication.AppleAuthenticationButton
             buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
-            buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-            cornerRadius={12}
+            buttonStyle={isDark
+              ? AppleAuthentication.AppleAuthenticationButtonStyle.WHITE
+              : AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
+            }
+            cornerRadius={14}
             style={styles.appleBtn}
             onPress={handleAppleLogin}
           />
         )}
 
+        {googleConfigured && (
+          <TouchableOpacity
+            style={[styles.oauthBtn, { borderColor: colors.border, backgroundColor: colors.surface }]}
+            onPress={() => promptAsync()}
+            disabled={!request || googleLoading}
+          >
+            {googleLoading ? (
+              <ActivityIndicator color={colors.text} />
+            ) : (
+              <Text style={[styles.oauthBtnText, { color: colors.text }]}>{L.googleBtn}</Text>
+            )}
+          </TouchableOpacity>
+        )}
+
         {(googleConfigured || isAppleAvailable) && (
           <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>{L.orDivider}</Text>
-            <View style={styles.dividerLine} />
+            <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+            <Text style={[styles.dividerText, { color: colors.textTertiary }]}>{L.orDivider}</Text>
+            <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
           </View>
         )}
 
+        <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>{L.emailLabel}</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: colors.inputBg, borderColor: identifier ? colors.inputBorder : colors.border, color: colors.text }]}
           placeholder={L.identifierPh}
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={colors.textTertiary}
           value={identifier}
           onChangeText={setIdentifier}
           autoCapitalize="none"
@@ -181,10 +183,11 @@ export default function LoginScreen() {
           maxLength={255}
         />
 
+        <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>{L.passLabel}</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: colors.inputBg, borderColor: password ? colors.inputBorder : colors.border, color: colors.text }]}
           placeholder={L.passPh}
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={colors.textTertiary}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -207,11 +210,11 @@ export default function LoginScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.forgotLink} onPress={() => router.push('/(auth)/forgot-password')}>
-          <Text style={styles.forgotLinkText}>{t.forgotPassword.title}?</Text>
+          <Text style={[styles.forgotLinkText, { color: colors.textSecondary }]}>{t.forgotPassword.title}?</Text>
         </TouchableOpacity>
 
-        <Link href="/(auth)/register" style={styles.link}>
-          {L.reg} <Text style={styles.linkBold}>{L.regLink}</Text>
+        <Link href="/(auth)/register" style={[styles.link, { color: colors.textSecondary }]}>
+          {L.reg} <Text style={[styles.linkBold, { color: colors.accent }]}>{L.regLink}</Text>
         </Link>
 
         {__DEV__ && (
@@ -224,43 +227,36 @@ export default function LoginScreen() {
   );
 }
 
-function GoogleIcon() {
-  return (
-    <View style={{ width: 18, height: 18, marginRight: 8 }}>
-      <Text style={{ fontSize: 14 }}>G</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   container: { flex: 1 },
   inner: { flex: 1, justifyContent: 'center', padding: 24 },
-  logo: { fontSize: 36, fontWeight: '800', color: '#2563EB', marginBottom: 8, textAlign: 'center' },
-  subtitle: { fontSize: 16, color: '#6B7280', textAlign: 'center', marginBottom: 24 },
+  logo: { fontSize: 36, fontWeight: '800', marginBottom: 8, textAlign: 'center' },
+  subtitle: { fontSize: 16, textAlign: 'center', marginBottom: 28 },
   oauthBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12,
-    padding: 14, backgroundColor: '#fff', marginBottom: 10,
+    borderWidth: 1, borderRadius: 14,
+    padding: 14, marginBottom: 10,
   },
-  oauthBtnText: { fontSize: 15, fontWeight: '600', color: '#374151' },
-  appleBtn: { width: '100%', height: 50, marginBottom: 10 },
+  oauthBtnText: { fontSize: 15, fontWeight: '600' },
+  appleBtn: { width: '100%', height: 52, marginBottom: 10, borderRadius: 14 },
   divider: { flexDirection: 'row', alignItems: 'center', marginVertical: 16 },
-  dividerLine: { flex: 1, height: 1, backgroundColor: '#E5E7EB' },
-  dividerText: { marginHorizontal: 12, color: '#9CA3AF', fontSize: 13 },
+  dividerLine: { flex: 1, height: 1 },
+  dividerText: { marginHorizontal: 12, fontSize: 13 },
+  fieldLabel: { fontSize: 13, fontWeight: '500', marginBottom: 6 },
   input: {
-    borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12,
-    padding: 14, fontSize: 16, color: '#111827', marginBottom: 12, backgroundColor: '#F9FAFB',
+    borderWidth: 1.5, borderRadius: 14,
+    padding: 14, fontSize: 16, marginBottom: 16,
   },
   button: {
-    backgroundColor: '#2563EB', borderRadius: 12, padding: 16,
-    alignItems: 'center', marginTop: 8,
+    backgroundColor: '#2563EB', borderRadius: 14, padding: 16,
+    alignItems: 'center', marginTop: 4,
   },
   buttonDisabled: { opacity: 0.6 },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  forgotLink: { alignItems: 'center', marginTop: 12 },
-  forgotLinkText: { color: '#6B7280', fontSize: 14 },
-  link: { textAlign: 'center', marginTop: 20, color: '#6B7280', fontSize: 14 },
-  linkBold: { color: '#2563EB', fontWeight: '600' },
+  forgotLink: { alignItems: 'center', marginTop: 14 },
+  forgotLinkText: { fontSize: 14 },
+  link: { textAlign: 'center', marginTop: 20, fontSize: 14 },
+  linkBold: { fontWeight: '600' },
   devBtn: { marginTop: 32, alignItems: 'center' },
   devBtnText: { color: '#D1D5DB', fontSize: 12, textDecorationLine: 'underline' },
 });

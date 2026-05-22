@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { api } from '@/lib/api-client';
 import { timeAgo } from '@/lib/timeAgo';
 import { ScreenHeader } from '@/components/ScreenHeader';
@@ -84,6 +85,7 @@ interface MyResponse {
 export default function MyScreen() {
   const { user } = useAuth();
   const { t, locale } = useLanguage();
+  const { colors } = useTheme();
   const toast = useToast();
   const isCustomer = user?.role === 'CUSTOMER';
 
@@ -124,65 +126,65 @@ export default function MyScreen() {
 
   const renderTask = useCallback(({ item }: { item: MyTask }) => (
     <TouchableOpacity
-      style={styles.card}
+      style={[styles.card, { backgroundColor: colors.surface }]}
       onPress={() => router.push(`/task/${item.id}`)}
       activeOpacity={0.75}
     >
-      <View style={styles.cardIconBox}>
+      <View style={[styles.cardIconBox, { backgroundColor: colors.iconBg }]}>
         <Ionicons name={CATEGORY_ICONS[item.category] ?? 'briefcase-outline'} size={22} color="#2563EB" />
       </View>
       <View style={styles.cardBody}>
         <View style={styles.cardTopRow}>
-          <Text style={styles.cardCategory} numberOfLines={1}>{item.category}</Text>
+          <Text style={[styles.cardCategory, { color: colors.textTertiary }]} numberOfLines={1}>{item.category}</Text>
           <StatusBadge status={item.status} label={t.status[item.status as keyof typeof t.status] ?? item.status} />
         </View>
-        <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
+        <Text style={[styles.cardTitle, { color: colors.text }]} numberOfLines={1}>{item.title}</Text>
         {item.city ? (
           <View style={styles.cardLocation}>
-            <Ionicons name="location-outline" size={11} color="#9CA3AF" />
-            <Text style={styles.cardLocationText}>{item.city}</Text>
+            <Ionicons name="location-outline" size={11} color={colors.textTertiary} />
+            <Text style={[styles.cardLocationText, { color: colors.textTertiary }]}>{item.city}</Text>
           </View>
         ) : null}
         <View style={styles.cardFooter}>
           <Text style={styles.cardBudget}>{item.budget}</Text>
-          <Text style={styles.cardMeta}>{timeAgo(item.postedAt, locale)}</Text>
+          <Text style={[styles.cardMeta, { color: colors.textTertiary }]}>{timeAgo(item.postedAt, locale)}</Text>
         </View>
       </View>
     </TouchableOpacity>
-  ), [t, locale]);
+  ), [t, locale, colors]);
 
   const renderResponse = useCallback(({ item }: { item: MyResponse }) => (
     <TouchableOpacity
-      style={styles.card}
+      style={[styles.card, { backgroundColor: colors.surface }]}
       onPress={() => router.push(`/task/${item.task.id}`)}
       activeOpacity={0.75}
     >
-      <View style={styles.cardIconBox}>
+      <View style={[styles.cardIconBox, { backgroundColor: colors.iconBg }]}>
         <Ionicons name={CATEGORY_ICONS[item.task.category] ?? 'briefcase-outline'} size={22} color="#2563EB" />
       </View>
       <View style={styles.cardBody}>
         <View style={styles.cardTopRow}>
-          <Text style={styles.cardCategory} numberOfLines={1}>{item.task.category}</Text>
+          <Text style={[styles.cardCategory, { color: colors.textTertiary }]} numberOfLines={1}>{item.task.category}</Text>
           <StatusBadge status={item.status} label={t.status[item.status as keyof typeof t.status] ?? item.status} />
         </View>
-        <Text style={styles.cardTitle} numberOfLines={1}>{item.task.title}</Text>
-        <Text style={styles.responseMsg} numberOfLines={1}>{item.message}</Text>
+        <Text style={[styles.cardTitle, { color: colors.text }]} numberOfLines={1}>{item.task.title}</Text>
+        <Text style={[styles.responseMsg, { color: colors.textSecondary }]} numberOfLines={1}>{item.message}</Text>
         {item.task.city ? (
           <View style={styles.cardLocation}>
-            <Ionicons name="location-outline" size={11} color="#9CA3AF" />
-            <Text style={styles.cardLocationText}>{item.task.city}</Text>
+            <Ionicons name="location-outline" size={11} color={colors.textTertiary} />
+            <Text style={[styles.cardLocationText, { color: colors.textTertiary }]}>{item.task.city}</Text>
           </View>
         ) : null}
         <View style={styles.cardFooter}>
           <Text style={styles.cardBudget}>{item.price} TJS</Text>
-          <Text style={styles.cardMeta}>{timeAgo(item.createdAt, locale)}</Text>
+          <Text style={[styles.cardMeta, { color: colors.textTertiary }]}>{timeAgo(item.createdAt, locale)}</Text>
         </View>
       </View>
     </TouchableOpacity>
-  ), [t, locale]);
+  ), [t, locale, colors]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.bg }]}>
       <ScreenHeader title={isCustomer ? t.my.myTasks : t.my.myResponses} />
 
       {loading ? (

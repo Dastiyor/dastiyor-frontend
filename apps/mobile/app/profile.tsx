@@ -5,14 +5,13 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
-  Platform,
-  StatusBar,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { ScreenHeader } from '@/components/ScreenHeader';
 
 function Avatar({ name, size = 56 }: { name: string; size?: number }) {
   const { colors } = useTheme();
@@ -40,7 +39,6 @@ function RowItem({
   sublabel,
   onPress,
   danger,
-  rightText,
 }: {
   icon: IoniconName;
   iconBg?: string;
@@ -49,40 +47,29 @@ function RowItem({
   sublabel?: string;
   onPress?: () => void;
   danger?: boolean;
-  rightText?: string;
 }) {
   const { colors } = useTheme();
-  const content = (
-    <View style={[styles.rowItem, { borderBottomColor: colors.border }]}>
-      <View style={[styles.rowIconWrap, { backgroundColor: iconBg ?? colors.iconBg }]}>
-        <Ionicons name={icon} size={20} color={danger ? '#EF4444' : (iconColor ?? colors.accent)} />
-      </View>
-      <View style={styles.rowBody}>
-        <Text style={[styles.rowLabel, danger && styles.rowLabelDanger, { color: danger ? '#EF4444' : colors.text }]}>{label}</Text>
-        {sublabel ? <Text style={[styles.rowSublabel, { color: colors.textSecondary }]}>{sublabel}</Text> : null}
-      </View>
-      {rightText ? (
-        <Text style={[styles.rowRight, { color: colors.accent }]}>{rightText}</Text>
-      ) : (
-        <Ionicons name="chevron-forward" size={16} color={danger ? '#FCA5A5' : colors.textTertiary} />
-      )}
-    </View>
-  );
-
-  if (!onPress) return content;
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.6}>
-      {content}
+      <View style={[styles.rowItem, { borderBottomColor: colors.border }]}>
+        <View style={[styles.rowIconWrap, { backgroundColor: iconBg ?? colors.iconBg }]}>
+          <Ionicons name={icon} size={20} color={danger ? '#EF4444' : (iconColor ?? colors.accent)} />
+        </View>
+        <View style={styles.rowBody}>
+          <Text style={[styles.rowLabel, { color: danger ? '#EF4444' : colors.text }]}>{label}</Text>
+          {sublabel ? <Text style={[styles.rowSublabel, { color: colors.textSecondary }]}>{sublabel}</Text> : null}
+        </View>
+        <Ionicons name="chevron-forward" size={16} color={danger ? '#FCA5A5' : colors.textTertiary} />
+      </View>
     </TouchableOpacity>
   );
 }
 
-export default function ProfileScreen() {
+export default function ProfileModalScreen() {
   const { user, logout } = useAuth();
   const { t } = useLanguage();
   const { colors } = useTheme();
   const p = t.profile;
-  const statusBarHeight = Platform.OS === 'ios' ? 44 : (StatusBar.currentHeight ?? 24);
 
   function handleLogout() {
     Alert.alert(p.logoutTitle, p.logoutMessage, [
@@ -100,18 +87,7 @@ export default function ProfileScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
-      {/* Header bar */}
-      <View style={[styles.headerBar, { paddingTop: statusBarHeight + 8, backgroundColor: colors.header, borderBottomColor: colors.border }]}>
-        <View style={styles.iconBtn}>
-          <Ionicons name="menu" size={26} color={colors.text} />
-        </View>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>{p.title ?? 'Profile'}</Text>
-        <TouchableOpacity style={styles.headerRightBtn} onPress={() => router.push('/settings' as any)}>
-          <View style={[styles.avatarSmall, { backgroundColor: colors.accent }]}>
-            <Ionicons name="person" size={16} color="#fff" />
-          </View>
-        </TouchableOpacity>
-      </View>
+      <ScreenHeader title={p.title ?? 'Profile'} showBack showMenu={false} />
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
@@ -131,18 +107,8 @@ export default function ProfileScreen() {
 
         {/* Account actions */}
         <View style={[styles.card, { backgroundColor: colors.surface }]}>
-          <RowItem
-            icon="person-outline"
-            label={p.editProfile}
-            onPress={() => router.push('/edit-profile')}
-          />
-          <RowItem
-            icon="lock-closed-outline"
-            iconBg="rgba(124,58,237,0.12)"
-            iconColor="#7C3AED"
-            label={p.changePassword}
-            onPress={() => router.push('/change-password')}
-          />
+          <RowItem icon="person-outline" label={p.editProfile} onPress={() => router.push('/edit-profile')} />
+          <RowItem icon="lock-closed-outline" iconBg="rgba(124,58,237,0.12)" iconColor="#7C3AED" label={p.changePassword} onPress={() => router.push('/change-password')} />
         </View>
 
         {/* Phone */}
@@ -184,27 +150,11 @@ export default function ProfileScreen() {
               </View>
             </TouchableOpacity>
           </View>
-        ) : (
-          <View style={[styles.card, { backgroundColor: colors.surface }]}>
-            <RowItem
-              icon="mail-outline"
-              iconBg="rgba(245,158,11,0.12)"
-              iconColor="#F59E0B"
-              label={p.addEmail}
-              onPress={() => router.push('/edit-profile')}
-            />
-          </View>
-        )}
+        ) : null}
 
         {/* Logout */}
         <View style={[styles.card, { backgroundColor: colors.surface }]}>
-          <RowItem
-            icon="log-out-outline"
-            iconBg="rgba(239,68,68,0.1)"
-            label={p.logout}
-            onPress={handleLogout}
-            danger
-          />
+          <RowItem icon="log-out-outline" iconBg="rgba(239,68,68,0.1)" label={p.logout} onPress={handleLogout} danger />
         </View>
 
       </ScrollView>
@@ -214,31 +164,11 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-
-  headerBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingBottom: 14,
-    borderBottomWidth: 1,
-  },
-  iconBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700' },
-  headerRightBtn: { width: 40, alignItems: 'flex-end' },
-  avatarSmall: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
-
   scroll: { padding: 16, gap: 12, paddingBottom: 48 },
-
   card: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    borderRadius: 16, overflow: 'hidden',
+    shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2,
   },
-
   userRow: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 12 },
   avatar: { alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   avatarText: { color: '#fff', fontWeight: '700' },
@@ -247,39 +177,19 @@ const styles = StyleSheet.create({
   userHandle: { fontSize: 13, marginTop: 2 },
   roleBadge: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20 },
   roleText: { fontSize: 12, fontWeight: '600' },
-
   rowItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    gap: 12,
+    flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14, gap: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   rowIconWrap: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   rowBody: { flex: 1 },
   rowLabel: { fontSize: 15, fontWeight: '600' },
-  rowLabelDanger: { color: '#EF4444' },
   rowSublabel: { fontSize: 12, marginTop: 1 },
-  rowRight: { fontSize: 14, fontWeight: '500' },
-
-  infoSection: {
-    paddingHorizontal: 16,
-    paddingTop: 14,
-    paddingBottom: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
+  infoSection: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 12, borderBottomWidth: StyleSheet.hairlineWidth },
   infoHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 },
   infoLabel: { fontSize: 12, fontWeight: '500' },
   infoValue: { fontSize: 16, fontWeight: '600' },
   infoHint: { fontSize: 12, marginTop: 4, lineHeight: 16 },
-
-  linkRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 13,
-  },
+  linkRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 13 },
   linkText: { fontSize: 14, fontWeight: '600' },
 });

@@ -4,6 +4,7 @@ import { Tabs, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { api } from '@/lib/api-client';
 import { BACK_PRESS_TIMEOUT_MS } from '@/lib/constants';
 
@@ -18,6 +19,7 @@ function icon(active: IoniconName, inactive: IoniconName) {
 export default function TabLayout() {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const { colors } = useTheme();
   const isCustomer = user?.role === 'CUSTOMER';
   const [unreadMessages, setUnreadMessages] = useState(0);
   const backPressedOnce = useRef(false);
@@ -53,10 +55,10 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: '#2563EB',
-        tabBarInactiveTintColor: '#9CA3AF',
+        tabBarInactiveTintColor: colors.textTertiary,
         tabBarStyle: {
-          borderTopColor: '#F3F4F6',
-          backgroundColor: '#fff',
+          borderTopColor: colors.tabBorder,
+          backgroundColor: colors.tabBar,
           elevation: 8,
           shadowColor: '#000',
           shadowOpacity: 0.08,
@@ -97,11 +99,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="profile"
+        name="notifications"
         options={{
-          title: t.tabs.profile,
-          tabBarIcon: icon('person-circle', 'person-circle-outline'),
+          title: 'Notification',
+          tabBarIcon: icon('notifications', 'notifications-outline'),
         }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{ href: null }}
       />
     </Tabs>
   );

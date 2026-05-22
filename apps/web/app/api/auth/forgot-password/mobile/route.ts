@@ -44,7 +44,7 @@ export async function POST(request: Request) {
             ipAddress: getRequestIP(request),
         });
 
-        await sendPasswordResetCodeEmail(user.email, code);
+        await sendPasswordResetCodeEmail(user.email!, code);
 
         return NextResponse.json({ message: 'If an account exists, a code has been sent.' });
     } catch (error) {

@@ -114,14 +114,14 @@ export default function ProfileModalScreen() {
         {user.phone ? (
           <View style={[styles.card, { backgroundColor: colors.surface }]}>
             <View style={[styles.infoSection, { borderBottomColor: colors.border }]}>
-              <View style={styles.infoHeader}>
-                <Ionicons name="call-outline" size={18} color={colors.accent} />
+              <Ionicons name="call-outline" size={22} color={colors.accent} style={styles.rowIcon} />
+              <View style={styles.rowBody}>
                 <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>{p.phone}</Text>
+                <Text style={[styles.infoValue, { color: colors.text }]}>{user.phone}</Text>
+                <Text style={[styles.infoHint, { color: colors.textTertiary }]}>
+                  When you change the number, all your data will be linked to the new number.
+                </Text>
               </View>
-              <Text style={[styles.infoValue, { color: colors.text }]}>{user.phone}</Text>
-              <Text style={[styles.infoHint, { color: colors.textTertiary }]}>
-                When you change the number, all your data will be linked to the new number.
-              </Text>
             </View>
             <TouchableOpacity activeOpacity={0.6} onPress={() => router.push('/edit-profile')}>
               <View style={styles.linkRow}>
@@ -136,11 +136,11 @@ export default function ProfileModalScreen() {
         {hasRealEmail ? (
           <View style={[styles.card, { backgroundColor: colors.surface }]}>
             <View style={[styles.infoSection, { borderBottomColor: colors.border }]}>
-              <View style={styles.infoHeader}>
-                <Ionicons name="mail-outline" size={18} color={colors.accent} />
+              <Ionicons name="mail-outline" size={22} color={colors.accent} style={styles.rowIcon} />
+              <View style={styles.rowBody}>
                 <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>{p.email}</Text>
+                <Text style={[styles.infoValue, { color: colors.text }]} numberOfLines={1}>{user.email}</Text>
               </View>
-              <Text style={[styles.infoValue, { color: colors.text }]} numberOfLines={1}>{user.email}</Text>
             </View>
             <TouchableOpacity activeOpacity={0.6} onPress={() => router.push('/edit-profile')}>
               <View style={styles.linkRow}>
@@ -184,8 +184,7 @@ const styles = StyleSheet.create({
   rowBody: { flex: 1 },
   rowLabel: { fontSize: 15, fontWeight: '600' },
   rowSublabel: { fontSize: 12, marginTop: 1 },
-  infoSection: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 12, borderBottomWidth: StyleSheet.hairlineWidth },
-  infoHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 },
+  infoSection: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingHorizontal: 16, paddingTop: 14, paddingBottom: 12, borderBottomWidth: StyleSheet.hairlineWidth },
   infoLabel: { fontSize: 12, fontWeight: '500' },
   infoValue: { fontSize: 16, fontWeight: '600' },
   infoHint: { fontSize: 12, marginTop: 4, lineHeight: 16 },

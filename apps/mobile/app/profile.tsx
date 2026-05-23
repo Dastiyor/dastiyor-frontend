@@ -25,8 +25,8 @@ function Avatar({ name, size = 56 }: { name: string; size?: number }) {
 }
 
 const ROLE_COLORS: Record<string, { color: string; bg: string }> = {
-  CUSTOMER: { color: '#374151', bg: 'rgba(209,213,219,0.6)' },
-  PROVIDER: { color: '#2563EB', bg: 'rgba(219,234,254,0.8)' },
+  CUSTOMER: { color: '#2563EB', bg: 'rgba(37,99,235,0.18)' },
+  PROVIDER: { color: '#2563EB', bg: 'rgba(37,99,235,0.18)' },
 };
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
@@ -49,17 +49,16 @@ function RowItem({
   danger?: boolean;
 }) {
   const { colors } = useTheme();
+  const iconColor_ = danger ? '#EF4444' : (iconColor ?? colors.accent);
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.6}>
       <View style={[styles.rowItem, { borderBottomColor: colors.border }]}>
-        <View style={[styles.rowIconWrap, { backgroundColor: iconBg ?? colors.iconBg }]}>
-          <Ionicons name={icon} size={20} color={danger ? '#EF4444' : (iconColor ?? colors.accent)} />
-        </View>
+        <Ionicons name={icon} size={22} color={iconColor_} style={styles.rowIcon} />
         <View style={styles.rowBody}>
           <Text style={[styles.rowLabel, { color: danger ? '#EF4444' : colors.text }]}>{label}</Text>
           {sublabel ? <Text style={[styles.rowSublabel, { color: colors.textSecondary }]}>{sublabel}</Text> : null}
         </View>
-        <Ionicons name="chevron-forward" size={16} color={danger ? '#FCA5A5' : colors.textTertiary} />
+        <Ionicons name="chevron-forward" size={16} color={danger ? '#EF4444' : colors.textTertiary} />
       </View>
     </TouchableOpacity>
   );
@@ -181,7 +180,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14, gap: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  rowIconWrap: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  rowIcon: { width: 28, textAlign: 'center', flexShrink: 0 },
   rowBody: { flex: 1 },
   rowLabel: { fontSize: 15, fontWeight: '600' },
   rowSublabel: { fontSize: 12, marginTop: 1 },

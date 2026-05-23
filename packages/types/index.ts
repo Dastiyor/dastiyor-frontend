@@ -67,10 +67,11 @@ export interface Conversation {
   id: string;
   partnerId: string;
   partnerName: string;
-  partnerRole?: string;
+  partnerRole?: string | null;
   partnerAvatar?: string | null;
   taskId: string | null;
   taskTitle: string | null;
+  taskCategory?: string | null;
   lastMessage: string;
   lastMessageAt: string;
   unreadCount: number;

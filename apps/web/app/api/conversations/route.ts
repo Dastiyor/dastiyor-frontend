@@ -35,13 +35,13 @@ export async function GET(request: Request) {
             take: 500,
             include: {
                 sender: {
-                    select: { id: true, fullName: true, role: true }
+                    select: { id: true, fullName: true, role: true, skills: true }
                 },
                 receiver: {
-                    select: { id: true, fullName: true, role: true }
+                    select: { id: true, fullName: true, role: true, skills: true }
                 },
                 task: {
-                    select: { id: true, title: true }
+                    select: { id: true, title: true, category: true }
                 }
             }
         });
@@ -57,13 +57,17 @@ export async function GET(request: Request) {
             const key = msg.taskId ? `${partnerId}-${msg.taskId}` : partnerId;
 
             if (!conversationsMap.has(key)) {
+                const partnerSkills = (partner as any).skills as string | null;
+                const firstSkill = partnerSkills ? partnerSkills.split(',')[0].trim() : null;
+                const badge = msg.task?.category || firstSkill || null;
                 conversationsMap.set(key, {
                     id: key,
                     partnerId,
                     partnerName: partner.fullName,
-                    partnerRole: partner.role,
+                    partnerRole: badge,
                     taskId: msg.taskId,
                     taskTitle: msg.task?.title || null,
+                    taskCategory: msg.task?.category || null,
                     lastMessage: msg.content,
                     lastMessageAt: msg.createdAt,
                     unreadCount: 0

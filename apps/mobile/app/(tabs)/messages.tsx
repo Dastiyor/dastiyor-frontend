@@ -66,19 +66,16 @@ export default function MessagesScreen() {
   }
 
   const renderConversation = useCallback(({ item }: { item: Conversation }) => {
-    const roleLabel = item.partnerRole === 'PROVIDER' ? t.profile.roles.PROVIDER
-      : item.partnerRole === 'CUSTOMER' ? t.profile.roles.CUSTOMER
-      : item.partnerRole === 'ADMIN' ? t.profile.roles.ADMIN
-      : null;
+    const badge = item.partnerRole;
     return (
       <TouchableOpacity style={[styles.row, { backgroundColor: colors.surface }]} onPress={() => openChat(item)} activeOpacity={0.7}>
         <Avatar name={item.partnerName} avatarUrl={item.partnerAvatar} />
         <View style={styles.rowBody}>
           <View style={styles.rowTop}>
             <Text style={[styles.partnerName, { color: colors.text }]} numberOfLines={1}>{item.partnerName}</Text>
-            {roleLabel ? (
+            {badge ? (
               <View style={[styles.roleBadge, { backgroundColor: colors.iconBg }]}>
-                <Text style={[styles.roleBadgeText, { color: colors.accent }]}>{roleLabel}</Text>
+                <Text style={[styles.roleBadgeText, { color: colors.accent }]}>{badge}</Text>
               </View>
             ) : null}
           </View>

@@ -35,10 +35,10 @@ export async function GET(request: Request) {
             take: 500,
             include: {
                 sender: {
-                    select: { id: true, fullName: true, role: true, skills: true }
+                    select: { id: true, fullName: true, role: true, skills: true, avatar: true }
                 },
                 receiver: {
-                    select: { id: true, fullName: true, role: true, skills: true }
+                    select: { id: true, fullName: true, role: true, skills: true, avatar: true }
                 },
                 task: {
                     select: { id: true, title: true, category: true }
@@ -64,6 +64,7 @@ export async function GET(request: Request) {
                     id: key,
                     partnerId,
                     partnerName: partner.fullName,
+                    partnerAvatar: (partner as any).avatar ?? null,
                     partnerRole: badge,
                     taskId: msg.taskId,
                     taskTitle: msg.task?.title || null,

@@ -67,6 +67,8 @@ export interface Conversation {
   id: string;
   partnerId: string;
   partnerName: string;
+  partnerRole?: string;
+  partnerAvatar?: string | null;
   taskId: string | null;
   taskTitle: string | null;
   lastMessage: string;

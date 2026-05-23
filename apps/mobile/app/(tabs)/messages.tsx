@@ -80,7 +80,7 @@ export default function MessagesScreen() {
             ) : null}
           </View>
           <View style={styles.rowBottom}>
-            <Text style={[styles.lastMsg, { color: colors.textSecondary }]} numberOfLines={1}>{item.lastMessage}</Text>
+            <Text style={[styles.lastMsg, { color: colors.textSecondary }]} numberOfLines={2}>{item.lastMessage}</Text>
             {item.unreadCount > 0 ? (
               <View style={[styles.badge, { backgroundColor: colors.accent }]}>
                 <Text style={styles.badgeText}>{item.unreadCount}</Text>
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
   partnerName: { fontSize: 15, fontWeight: '700', flex: 1 },
   roleBadge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12, flexShrink: 0 },
   roleBadgeText: { fontSize: 12, fontWeight: '600' },
-  rowBottom: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  rowBottom: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
   lastMsg: { fontSize: 13, flex: 1, marginRight: 8 },
   badge: { borderRadius: 10, minWidth: 20, height: 20, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5 },
   badgeText: { color: '#fff', fontSize: 11, fontWeight: '700' },

@@ -71,11 +71,13 @@ export default function CreateTaskScreen() {
   const [loading, setLoading] = useState(false);
 
   async function handleCreate() {
-    if (!title.trim() || !description.trim() || !category || !city) {
-      Alert.alert(t.common.error, ct.errRequired);
-      return;
-    }
-    if (budgetType === 'fixed' && (!amount || isNaN(Number(amount)))) {
+    if (!title.trim()) { Alert.alert(t.common.error, ct.errRequired); return; }
+    if (title.trim().length < 5) { Alert.alert(t.common.error, ct.errTitleShort); return; }
+    if (!description.trim()) { Alert.alert(t.common.error, ct.errRequired); return; }
+    if (description.trim().length < 20) { Alert.alert(t.common.error, ct.errDescShort); return; }
+    if (!category) { Alert.alert(t.common.error, ct.errCategory); return; }
+    if (!city) { Alert.alert(t.common.error, ct.errCity); return; }
+    if (budgetType === 'fixed' && (!amount || isNaN(Number(amount)) || Number(amount) <= 0)) {
       Alert.alert(t.common.error, ct.errBudget);
       return;
     }

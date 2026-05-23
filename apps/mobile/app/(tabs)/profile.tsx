@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  infoLabel: { fontSize: 12, fontWeight: '500' },
+  infoLabel: { fontSize: 12, fontWeight: '500', marginBottom: 4 },
   infoValue: { fontSize: 16, fontWeight: '600' },
   infoHint: { fontSize: 12, marginTop: 4, lineHeight: 16 },
 

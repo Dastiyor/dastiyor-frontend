@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
   rowLabel: { fontSize: 15, fontWeight: '600' },
   rowSublabel: { fontSize: 12, marginTop: 1 },
   infoSection: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingHorizontal: 16, paddingTop: 14, paddingBottom: 12, borderBottomWidth: StyleSheet.hairlineWidth },
-  infoLabel: { fontSize: 12, fontWeight: '500' },
+  infoLabel: { fontSize: 12, fontWeight: '500', marginBottom: 4 },
   infoValue: { fontSize: 16, fontWeight: '600' },
   infoHint: { fontSize: 12, marginTop: 4, lineHeight: 16 },
   linkRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 13 },

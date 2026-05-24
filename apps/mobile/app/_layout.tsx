@@ -34,8 +34,6 @@ function ThemedStack() {
       <Stack.Screen name="provider/[id]" options={{ title: 'Профиль' }} />
       <Stack.Screen name="change-password" options={{ title: 'Смена пароля' }} />
       <Stack.Screen name="edit-profile" options={{ title: 'Редактировать профиль', presentation: 'modal' }} />
-      <Stack.Screen name="settings" options={{ headerShown: false }} />
-      <Stack.Screen name="profile" options={{ headerShown: false }} />
     </Stack>
   );
 }

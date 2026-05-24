@@ -106,7 +106,7 @@ export default function CreateTaskScreen() {
   const inputStyle = [styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }];
 
   return (
-    <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
         <Text style={[styles.label, { color: colors.text }]}>{ct.titleLabel}</Text>
         <TextInput style={inputStyle} placeholder={ct.titlePh} placeholderTextColor={colors.textTertiary} value={title} onChangeText={setTitle} maxLength={120} />

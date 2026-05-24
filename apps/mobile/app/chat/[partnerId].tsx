@@ -9,9 +9,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from 'react-native';
 import { useLocalSearchParams, useNavigation, useFocusEffect } from 'expo-router';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -20,16 +23,17 @@ import { useToast } from '@/contexts/ToastContext';
 import { POLL_INTERVAL_MS } from '@/lib/constants';
 import type { ChatMessage } from '@dastiyor/types';
 
-function formatTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+function formatTime(iso: string, locale: string): string {
+  return new Date(iso).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
 }
 
 export default function ChatScreen() {
   const { partnerId, partnerName, taskId, taskTitle } = useLocalSearchParams<{ partnerId: string; partnerName: string; taskId?: string; taskTitle?: string }>();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const { colors } = useTheme();
   const toast = useToast();
+  const insets = useSafeAreaInsets();
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,6 +42,7 @@ export default function ChatScreen() {
   const [sending, setSending] = useState(false);
   const listRef = useRef<FlatList>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const isAtBottomRef = useRef(true);
 
   useEffect(() => { navigation.setOptions({ title: partnerName ?? t.chat.empty }); }, [partnerName]);
 
@@ -66,14 +71,23 @@ export default function ChatScreen() {
   );
 
   useEffect(() => {
-    if (messages.length > 0) setTimeout(() => listRef.current?.scrollToEnd({ animated: false }), 100);
+    if (messages.length > 0 && isAtBottomRef.current) {
+      setTimeout(() => listRef.current?.scrollToEnd({ animated: false }), 100);
+    }
   }, [messages.length]);
+
+  function handleScroll(e: NativeSyntheticEvent<NativeScrollEvent>) {
+    const { contentOffset, contentSize, layoutMeasurement } = e.nativeEvent;
+    const distanceFromBottom = contentSize.height - contentOffset.y - layoutMeasurement.height;
+    isAtBottomRef.current = distanceFromBottom < 60;
+  }
 
   async function sendMessage() {
     const content = text.trim();
     if (!content || sending) return;
     setSending(true);
     setText('');
+    isAtBottomRef.current = true;
     try {
       await api.post('/api/messages', { receiverId: partnerId, content, taskId: taskId || undefined });
       await fetchMessages(false);
@@ -98,13 +112,13 @@ export default function ChatScreen() {
       <>
         {showDate ? (
           <Text style={styles.dateSep}>
-            {new Date(item.createdAt).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
+            {new Date(item.createdAt).toLocaleDateString(locale, { day: 'numeric', month: 'long' })}
           </Text>
         ) : null}
         <View style={[styles.msgRow, own ? styles.msgRowOwn : styles.msgRowOther, { marginBottom }]}>
           <View style={[styles.bubble, own ? styles.bubbleOwn : [styles.bubbleOther, { backgroundColor: colors.surface }]]}>
             {item.content ? <Text style={[styles.bubbleText, own ? styles.bubbleTextOwn : [styles.bubbleTextOther, { color: colors.text }]]}>{item.content}</Text> : null}
-            <Text style={[styles.bubbleTime, own ? styles.bubbleTimeOwn : styles.bubbleTimeOther]}>{formatTime(item.createdAt)}</Text>
+            <Text style={[styles.bubbleTime, own ? styles.bubbleTimeOwn : styles.bubbleTimeOther]}>{formatTime(item.createdAt, locale)}</Text>
           </View>
         </View>
       </>
@@ -132,11 +146,12 @@ export default function ChatScreen() {
           renderItem={renderMessage}
           contentContainerStyle={styles.list}
           ListEmptyComponent={<Text style={[styles.empty, { color: colors.textTertiary }]}>{t.chat.empty}</Text>}
-          onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: false })}
+          onScroll={handleScroll}
+          scrollEventThrottle={100}
         />
       )}
 
-      <View style={[styles.inputBar, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
+      <View style={[styles.inputBar, { backgroundColor: colors.surface, borderTopColor: colors.border, paddingBottom: insets.bottom + 8 }]}>
         <TextInput
           style={[styles.input, { backgroundColor: colors.surfaceAlt, color: colors.text }]}
           placeholder={t.chat.placeholder}
@@ -174,7 +189,7 @@ const styles = StyleSheet.create({
   bubbleTime: { fontSize: 10, marginTop: 2, textAlign: 'right' },
   bubbleTimeOwn: { color: 'rgba(255,255,255,0.65)' },
   bubbleTimeOther: { color: '#9CA3AF' },
-  inputBar: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 12, paddingVertical: 8, paddingBottom: Platform.OS === 'ios' ? 28 : 8, borderTopWidth: 1, gap: 8 },
+  inputBar: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 12, paddingTop: 8, borderTopWidth: 1, gap: 8 },
   input: { flex: 1, borderRadius: 22, paddingHorizontal: 16, paddingVertical: 10, fontSize: 15, maxHeight: 120 },
   sendBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#2563EB', alignItems: 'center', justifyContent: 'center' },
   sendBtnDisabled: { backgroundColor: '#93C5FD' },

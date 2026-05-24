@@ -7,7 +7,6 @@ import {
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
-  Image,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { api } from '@/lib/api-client';
@@ -15,23 +14,9 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { EmptyState } from '@/components/EmptyState';
+import { Avatar } from '@/components/Avatar';
 import { useToast } from '@/contexts/ToastContext';
 import type { Conversation } from '@dastiyor/types';
-
-function Avatar({ name, avatarUrl }: { name: string; avatarUrl?: string | null }) {
-  const { colors } = useTheme();
-  const parts = name.trim().split(' ');
-  const ini = parts.length >= 2 ? (parts[0][0] + parts[1][0]).toUpperCase() : name.slice(0, 2).toUpperCase();
-
-  if (avatarUrl) {
-    return <Image source={{ uri: avatarUrl }} style={styles.avatar} />;
-  }
-  return (
-    <View style={[styles.avatar, { backgroundColor: colors.accent }]}>
-      <Text style={styles.avatarText}>{ini}</Text>
-    </View>
-  );
-}
 
 export default function MessagesScreen() {
   const { t } = useLanguage();
@@ -69,7 +54,7 @@ export default function MessagesScreen() {
     const badge = item.partnerRole;
     return (
       <TouchableOpacity style={[styles.row, { backgroundColor: colors.surface }]} onPress={() => openChat(item)} activeOpacity={0.7}>
-        <Avatar name={item.partnerName} avatarUrl={item.partnerAvatar} />
+        <Avatar name={item.partnerName} avatarUrl={item.partnerAvatar} size={52} />
         <View style={styles.rowBody}>
           <View style={styles.rowTop}>
             <Text style={[styles.partnerName, { color: colors.text }]} numberOfLines={1}>{item.partnerName}</Text>
@@ -121,9 +106,7 @@ export default function MessagesScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   center: { flex: 1, marginTop: 60 },
-  row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14 },
-  avatar: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center', marginRight: 12, flexShrink: 0 },
-  avatarText: { color: '#fff', fontWeight: '700', fontSize: 17 },
+  row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14, gap: 12 },
   rowBody: { flex: 1 },
   rowTop: { flexDirection: 'row', alignItems: 'center', marginBottom: 4, gap: 8 },
   partnerName: { fontSize: 15, fontWeight: '700', flex: 1 },

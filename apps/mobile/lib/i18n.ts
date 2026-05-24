@@ -78,6 +78,9 @@ const translations = {
       sectionContacts: 'Contacts',
       sectionSettings: 'Settings',
       roles: { CUSTOMER: 'Customer', PROVIDER: 'Provider', ADMIN: 'Admin' },
+      phoneHint: 'When you change the number, all your data will be linked to the new number.',
+      changePhone: 'Change number',
+      changeEmail: 'Change email address',
     },
     common: {
       error: 'Error',
@@ -89,6 +92,7 @@ const translations = {
       errorTitle: 'Something went wrong',
       errorRetry: 'Try again',
       exitApp: 'Press again to exit',
+      noInternet: 'No internet connection',
     },
     time: { justNow: 'just now', min: 'min', h: 'h', d: 'd' },
     register: {
@@ -342,6 +346,9 @@ const translations = {
       sectionContacts: 'Контакты',
       sectionSettings: 'Настройки',
       roles: { CUSTOMER: 'Заказчик', PROVIDER: 'Исполнитель', ADMIN: 'Администратор' },
+      phoneHint: 'При смене номера все данные будут привязаны к новому номеру.',
+      changePhone: 'Изменить номер',
+      changeEmail: 'Изменить email',
     },
     common: {
       error: 'Ошибка',
@@ -353,6 +360,7 @@ const translations = {
       errorTitle: 'Что-то пошло не так',
       errorRetry: 'Попробовать снова',
       exitApp: 'Нажмите ещё раз для выхода',
+      noInternet: 'Нет подключения к интернету',
     },
     time: { justNow: 'только что', min: 'мин', h: 'ч', d: 'д' },
     register: {
@@ -606,6 +614,9 @@ const translations = {
       sectionContacts: 'Тамос',
       sectionSettings: 'Танзимот',
       roles: { CUSTOMER: 'Фармоишгар', PROVIDER: 'Иҷрокунанда', ADMIN: 'Маъмур' },
+      phoneHint: 'Бо иваз кардани рақам, ҳамаи маълумот ба рақами нав пайваст мешавад.',
+      changePhone: 'Рақамро иваз кунед',
+      changeEmail: 'Email-ро иваз кунед',
     },
     common: {
       error: 'Хато',
@@ -617,6 +628,7 @@ const translations = {
       errorTitle: 'Чизе хато шуд',
       errorRetry: 'Дубора кӯшиш кунед',
       exitApp: 'Барои хуруҷ боз пахш кунед',
+      noInternet: 'Пайвастшавӣ нест',
     },
     time: { justNow: 'ҳозир', min: 'дақ', h: 'с', d: 'р' },
     register: {

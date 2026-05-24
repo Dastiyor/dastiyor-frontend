@@ -15,12 +15,13 @@ import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { timeAgo } from '@/lib/timeAgo';
 import type { TaskDetail, TaskResponse, MyResponse } from '@dastiyor/types';
 
 export default function TaskDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const { colors } = useTheme();
   const tk = t.task;
   const [task, setTask] = useState<TaskDetail | null>(null);
@@ -169,7 +170,7 @@ export default function TaskDetailScreen() {
           ) : null}
           <View style={styles.metaItem}>
             <Ionicons name="calendar-outline" size={13} color={colors.textSecondary} />
-            <Text style={[styles.meta, { color: colors.textSecondary }]}>{task.postedAt}</Text>
+            <Text style={[styles.meta, { color: colors.textSecondary }]}>{timeAgo(task.postedAt, locale)}</Text>
           </View>
           <View style={styles.metaItem}>
             <Ionicons name="chatbubble-outline" size={13} color={colors.textSecondary} />

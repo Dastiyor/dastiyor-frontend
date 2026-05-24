@@ -5,28 +5,17 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
-  Platform,
-  StatusBar,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { Avatar } from '@/components/Avatar';
 import { LOCALE_NAMES, type Locale } from '@/lib/i18n';
 
 const LOCALES: Locale[] = ['ru', 'tj', 'en'];
-
-function Avatar({ name, size = 56 }: { name: string; size?: number }) {
-  const { colors } = useTheme();
-  const parts = name.trim().split(' ');
-  const ini = parts.length >= 2 ? (parts[0][0] + parts[1][0]).toUpperCase() : name.slice(0, 2).toUpperCase();
-  return (
-    <View style={[styles.avatar, { width: size, height: size, borderRadius: size / 2, backgroundColor: colors.accent }]}>
-      <Text style={[styles.avatarText, { fontSize: size * 0.36 }]}>{ini}</Text>
-    </View>
-  );
-}
 
 const ROLE_COLORS: Record<string, { color: string; bg: string }> = {
   CUSTOMER: { color: '#2563EB', bg: 'rgba(37,99,235,0.18)' },
@@ -83,8 +72,9 @@ export default function ProfileScreen() {
   const { user, logout } = useAuth();
   const { locale, setLocale, t } = useLanguage();
   const { colors, isDark, toggleTheme } = useTheme();
+  const insets = useSafeAreaInsets();
   const p = t.profile;
-  const statusBarHeight = Platform.OS === 'ios' ? 44 : (StatusBar.currentHeight ?? 24);
+  const statusBarHeight = insets.top;
 
   function handleLogout() {
     Alert.alert(p.logoutTitle, p.logoutMessage, [
@@ -148,13 +138,13 @@ export default function ProfileScreen() {
                 <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>{p.phone}</Text>
                 <Text style={[styles.infoValue, { color: colors.text }]}>{user.phone}</Text>
                 <Text style={[styles.infoHint, { color: colors.textTertiary }]}>
-                  When you change the number, all your data will be linked to the new number.
+                  {p.phoneHint}
                 </Text>
               </View>
             </View>
             <TouchableOpacity activeOpacity={0.6} onPress={() => router.push('/edit-profile')}>
               <View style={styles.linkRow}>
-                <Text style={[styles.linkText, { color: colors.accent }]}>Change the number</Text>
+                <Text style={[styles.linkText, { color: colors.accent }]}>{p.changePhone}</Text>
                 <Ionicons name="chevron-forward" size={16} color={colors.accent} />
               </View>
             </TouchableOpacity>
@@ -173,7 +163,7 @@ export default function ProfileScreen() {
             </View>
             <TouchableOpacity activeOpacity={0.6} onPress={() => router.push('/edit-profile')}>
               <View style={styles.linkRow}>
-                <Text style={[styles.linkText, { color: colors.accent }]}>Change email address</Text>
+                <Text style={[styles.linkText, { color: colors.accent }]}>{p.changeEmail}</Text>
                 <Ionicons name="chevron-forward" size={16} color={colors.accent} />
               </View>
             </TouchableOpacity>
@@ -264,8 +254,6 @@ const styles = StyleSheet.create({
   },
 
   userRow: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 12 },
-  avatar: { alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  avatarText: { color: '#fff', fontWeight: '700' },
   userInfo: { flex: 1 },
   userName: { fontSize: 16, fontWeight: '700' },
   userHandle: { fontSize: 13, marginTop: 2 },

@@ -17,10 +17,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 
+
 interface ProfileData { fullName: string; phone: string; bio: string; skills: string; }
 
 export default function EditProfileScreen() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { t } = useLanguage();
   const { colors } = useTheme();
   const ep = t.editProfile;
@@ -52,6 +53,7 @@ export default function EditProfileScreen() {
         bio: form.bio.trim() || undefined,
         skills: form.skills.trim() || undefined,
       });
+      await refreshUser();
       Alert.alert(ep.saved, ep.profileUpdated, [{ text: t.common.ok, onPress: () => router.back() }]);
     } catch (e) {
       Alert.alert(t.common.error, (e as Error).message);
@@ -65,7 +67,7 @@ export default function EditProfileScreen() {
   const inputStyle = [styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }];
 
   return (
-    <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
         <Text style={[styles.label, { color: colors.text }]}>{ep.fullName}</Text>
         <TextInput style={inputStyle} value={form.fullName} onChangeText={set('fullName')} autoComplete="name" maxLength={100} />

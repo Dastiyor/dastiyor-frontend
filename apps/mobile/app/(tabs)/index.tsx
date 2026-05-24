@@ -23,24 +23,7 @@ import type { FilterState } from '@/components/FilterSheet';
 import type { FeedTask } from '@dastiyor/types';
 import { useConfig } from '@/lib/useConfig';
 import { useTheme } from '@/contexts/ThemeContext';
-
-const CATEGORY_ICONS: Record<string, React.ComponentProps<typeof Ionicons>['name']> = {
-  'Ремонт': 'construct-outline',
-  'Уборка': 'sparkles-outline',
-  'Доставка': 'bicycle-outline',
-  'Сантехника': 'water-outline',
-  'Электрик': 'flash-outline',
-  'IT и Веб': 'laptop-outline',
-  'Компьютерная помощь': 'desktop-outline',
-  'Ремонт техники': 'hardware-chip-outline',
-  'Обучение': 'school-outline',
-  'Дизайн': 'color-palette-outline',
-  'Красота': 'cut-outline',
-  'Фото и видео': 'camera-outline',
-  'Мероприятия': 'musical-notes-outline',
-  'Юридические услуги': 'document-text-outline',
-  'Виртуальный помощник': 'headset-outline',
-};
+import { CATEGORY_ICONS } from '@/lib/categoryIcons';
 
 const CARD_COLORS = ['#2563EB', '#1E293B', '#7C3AED', '#0F766E'];
 
@@ -96,7 +79,7 @@ export default function HomeScreen() {
   }
 
   const featured = tasks.slice(0, 1);
-  const popular = tasks.slice(4);
+  const popular = tasks.slice(1);
   const categories = [
     { name: t.categories.all, value: '' },
     ...config.categories.map((c) => ({ name: c, value: c })),

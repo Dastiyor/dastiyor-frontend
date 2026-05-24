@@ -15,6 +15,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { EmptyState } from '@/components/EmptyState';
 import { useToast } from '@/contexts/ToastContext';
+import { timeAgo } from '@/lib/timeAgo';
 import type { AppNotification } from '@dastiyor/types';
 
 const TYPE_ICON: Record<string, string> = {
@@ -26,18 +27,8 @@ const TYPE_ICON: Record<string, string> = {
   TASK_CANCELLED: '🚫',
 };
 
-function timeAgo(iso: string, time: { justNow: string; min: string; h: string; d: string }): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return time.justNow;
-  if (mins < 60) return `${mins} ${time.min}`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours} ${time.h}`;
-  return `${Math.floor(hours / 24)} ${time.d}`;
-}
-
 export default function NotificationsScreen() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const { colors } = useTheme();
   const toast = useToast();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
@@ -63,8 +54,13 @@ export default function NotificationsScreen() {
   async function onRefresh() { setRefreshing(true); await load(); setRefreshing(false); }
 
   function handleTap(n: AppNotification) {
-    const match = n.link.match(/\/tasks\/([^/?]+)/);
-    if (match?.[1]) router.push(`/task/${match[1]}`);
+    const taskMatch = n.link.match(/\/tasks\/([^/?]+)/);
+    if (taskMatch?.[1]) { router.push(`/task/${taskMatch[1]}`); return; }
+
+    const msgMatch = n.link.match(/\/conversations\/([^/?]+)/);
+    if (msgMatch?.[1]) { router.push('/(tabs)/messages' as any); return; }
+
+    toast.show(t.notifications.title, 'info');
   }
 
   const renderNotification = useCallback(({ item }: { item: AppNotification }) => (
@@ -77,7 +73,7 @@ export default function NotificationsScreen() {
       <View style={styles.body}>
         <View style={styles.topRow}>
           <Text style={[styles.title, { color: colors.text }]}>{item.title}</Text>
-          <Text style={[styles.time, { color: colors.textTertiary }]}>{timeAgo(item.createdAt, t.time)}</Text>
+          <Text style={[styles.time, { color: colors.textTertiary }]}>{timeAgo(item.createdAt, locale)}</Text>
         </View>
         <Text style={[styles.message, { color: colors.textSecondary }]} numberOfLines={2}>{item.message}</Text>
       </View>

@@ -20,6 +20,7 @@ interface AuthState {
   loginWithGoogle: (accessToken: string, role?: string) => Promise<void>;
   loginWithApple: (identityToken: string, email?: string, fullName?: string, role?: string) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthState | null>(null);
@@ -89,6 +90,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(res.user);
   }
 
+  async function refreshUser() {
+    try {
+      const me = await api.get<ApiUser>('/api/auth/me');
+      setUser(me);
+    } catch {}
+  }
+
   async function logout() {
     await SecureStore.deleteItemAsync('auth_token');
     setUser(null);
@@ -96,7 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, loginWithGoogle, loginWithApple, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, loginWithGoogle, loginWithApple, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

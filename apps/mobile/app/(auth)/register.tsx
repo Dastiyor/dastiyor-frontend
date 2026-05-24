@@ -21,6 +21,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import type { Locale } from '@/lib/i18n';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -36,9 +37,16 @@ function passwordStrength(pw: string): string[] {
 
 const ROLE_ICONS = { customer: 'clipboard-outline', provider: 'construct-outline' } as const;
 
+const OR_LABEL: Record<Locale, string> = { ru: 'или', tj: 'ё', en: 'or' };
+const GOOGLE_LABEL: Record<Locale, string> = {
+  ru: 'Зарегистрироваться с Google',
+  tj: 'Бақайдгирӣ бо Google',
+  en: 'Sign up with Google',
+};
+
 export default function RegisterScreen() {
   const { register, loginWithGoogle, loginWithApple } = useAuth();
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const { colors, isDark } = useTheme();
   const r = t.register;
 
@@ -130,9 +138,13 @@ export default function RegisterScreen() {
           AppleAuthentication.AppleAuthenticationScope.EMAIL,
         ],
       });
+      if (!credential.identityToken) {
+        Alert.alert(r.errRegister, r.errRequired);
+        return;
+      }
       const fullNameStr = [credential.fullName?.givenName, credential.fullName?.familyName]
         .filter(Boolean).join(' ') || undefined;
-      await loginWithApple(credential.identityToken!, credential.email ?? undefined, fullNameStr, role);
+      await loginWithApple(credential.identityToken, credential.email ?? undefined, fullNameStr, role);
       await SecureStore.setItemAsync('onboarding_done', '1');
       router.replace('/(tabs)');
     } catch (e: any) {
@@ -143,9 +155,8 @@ export default function RegisterScreen() {
   }
 
   const isAppleAvailable = Platform.OS === 'ios';
-  const orLabel = r.btn === 'Зарегистрироваться' ? 'или' : r.btn === 'Бақайдгирӣ' ? 'ё' : 'or';
-  const googleBtnLabel = r.btn === 'Зарегистрироваться' ? 'Зарегистрироваться с Google'
-    : r.btn === 'Бақайдгирӣ' ? 'Бақайдгирӣ бо Google' : 'Sign up with Google';
+  const orLabel = OR_LABEL[locale];
+  const googleBtnLabel = GOOGLE_LABEL[locale];
 
   const pwOk = password.length > 0 && pwIssues.length === 0;
 

@@ -1,6 +1,7 @@
-import { View, Text, TouchableOpacity, StyleSheet, Platform, StatusBar } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/contexts/ThemeContext';
 
 interface Props {
@@ -11,7 +12,8 @@ interface Props {
 
 export function ScreenHeader({ title, unreadCount = 0, showBack = false }: Props) {
   const { colors } = useTheme();
-  const statusBarHeight = Platform.OS === 'ios' ? 44 : (StatusBar.currentHeight ?? 24);
+  const insets = useSafeAreaInsets();
+  const statusBarHeight = insets.top;
 
   return (
     <View style={[styles.header, { paddingTop: statusBarHeight + 8, backgroundColor: colors.header, borderBottomColor: colors.border }]}>
@@ -25,15 +27,19 @@ export function ScreenHeader({ title, unreadCount = 0, showBack = false }: Props
 
       <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
 
-      <TouchableOpacity
-        style={styles.iconBtn}
-        onPress={() => router.push('/notifications' as any)}
-        accessibilityLabel="Notifications"
-        accessibilityRole="button"
-      >
-        <Ionicons name={unreadCount > 0 ? 'notifications' : 'notifications-outline'} size={24} color={colors.text} />
-        {unreadCount > 0 && <View style={styles.notifDot} />}
-      </TouchableOpacity>
+      {showBack ? (
+        <View style={styles.iconBtn} />
+      ) : (
+        <TouchableOpacity
+          style={styles.iconBtn}
+          onPress={() => router.push('/notifications' as any)}
+          accessibilityLabel="Notifications"
+          accessibilityRole="button"
+        >
+          <Ionicons name={unreadCount > 0 ? 'notifications' : 'notifications-outline'} size={24} color={colors.text} />
+          {unreadCount > 0 && <View style={styles.notifDot} />}
+        </TouchableOpacity>
+      )}
     </View>
   );
 }

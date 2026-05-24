@@ -80,10 +80,14 @@ export default function LoginScreen() {
           AppleAuthentication.AppleAuthenticationScope.EMAIL,
         ],
       });
+      if (!credential.identityToken) {
+        Alert.alert(L.errOauth, L.errRequired);
+        return;
+      }
       const fullName = [credential.fullName?.givenName, credential.fullName?.familyName]
         .filter(Boolean)
         .join(' ') || undefined;
-      await loginWithApple(credential.identityToken!, credential.email ?? undefined, fullName);
+      await loginWithApple(credential.identityToken, credential.email ?? undefined, fullName);
       router.replace('/(tabs)');
     } catch (e: any) {
       if (e.code !== 'ERR_REQUEST_CANCELED') {
@@ -128,7 +132,7 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: colors.bg === '#F0F4FF' ? '#FFFFFF' : '#000000' }]}
+      style={[styles.container, { backgroundColor: colors.header }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.inner}>

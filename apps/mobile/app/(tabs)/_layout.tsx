@@ -23,10 +23,14 @@ export default function TabLayout() {
   const isCustomer = user?.role === 'CUSTOMER';
   const [unreadMessages, setUnreadMessages] = useState(0);
   const backPressedOnce = useRef(false);
+  const lastFetchRef = useRef(0);
 
   useFocusEffect(
     useCallback(() => {
       if (!user) return;
+      const now = Date.now();
+      if (now - lastFetchRef.current < 30_000) return;
+      lastFetchRef.current = now;
       api.get<{ conversations: { unreadCount: number }[] }>('/api/conversations')
         .then((r) => setUnreadMessages(r.conversations.reduce((s, c) => s + c.unreadCount, 0)))
         .catch(() => {});

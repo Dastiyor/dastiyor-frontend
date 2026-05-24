@@ -10,15 +10,18 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import type { TaskDetail, TaskResponse, MyResponse } from '@dastiyor/types';
 
 export default function TaskDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
   const { t } = useLanguage();
+  const { colors } = useTheme();
   const tk = t.task;
   const [task, setTask] = useState<TaskDetail | null>(null);
   const [responses, setResponses] = useState<TaskResponse[]>([]);
@@ -133,7 +136,7 @@ export default function TaskDetailScreen() {
   const isOwner = user?.id === task.customer?.id;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.bg }]}>
       <ScrollView
         contentContainerStyle={styles.scroll}
         refreshControl={
@@ -152,35 +155,46 @@ export default function TaskDetailScreen() {
           <View style={[styles.badge, { backgroundColor: urgency.color + '18' }]}>
             <Text style={[styles.badgeText, { color: urgency.color }]}>{urgency.label}</Text>
           </View>
-          <Text style={styles.category}>{task.category}</Text>
+          <Text style={[styles.category, { color: colors.textSecondary }]}>{task.category}</Text>
         </View>
 
-        <Text style={styles.title}>{task.title}</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{task.title}</Text>
 
         <View style={styles.metaRow}>
-          {task.city ? <Text style={styles.meta}>📍 {task.city}</Text> : null}
-          <Text style={styles.meta}>📅 {task.postedAt}</Text>
-          <Text style={styles.meta}>💬 {task.responseCount} {t.home.responses}</Text>
+          {task.city ? (
+            <View style={styles.metaItem}>
+              <Ionicons name="location-outline" size={13} color={colors.textSecondary} />
+              <Text style={[styles.meta, { color: colors.textSecondary }]}>{task.city}</Text>
+            </View>
+          ) : null}
+          <View style={styles.metaItem}>
+            <Ionicons name="calendar-outline" size={13} color={colors.textSecondary} />
+            <Text style={[styles.meta, { color: colors.textSecondary }]}>{task.postedAt}</Text>
+          </View>
+          <View style={styles.metaItem}>
+            <Ionicons name="chatbubble-outline" size={13} color={colors.textSecondary} />
+            <Text style={[styles.meta, { color: colors.textSecondary }]}>{task.responseCount} {t.home.responses}</Text>
+          </View>
         </View>
 
-        <View style={styles.budgetBox}>
+        <View style={[styles.budgetBox, { backgroundColor: colors.iconBg }]}>
           <Text style={styles.budgetLabel}>{tk.budget}</Text>
           <Text style={styles.budgetValue}>{task.budget}</Text>
         </View>
 
-        <Text style={styles.sectionTitle}>{tk.description}</Text>
-        <Text style={styles.description}>{task.description}</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{tk.description}</Text>
+        <Text style={[styles.description, { color: colors.textSecondary }]}>{task.description}</Text>
 
         {task.address ? (
           <>
-            <Text style={styles.sectionTitle}>{tk.address}</Text>
-            <Text style={styles.description}>{task.address}</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{tk.address}</Text>
+            <Text style={[styles.description, { color: colors.textSecondary }]}>{task.address}</Text>
           </>
         ) : null}
 
-        <View style={styles.customerBox}>
-          <Text style={styles.customerLabel}>{tk.customer}</Text>
-          <Text style={styles.customerName}>{task.customer?.fullName ?? '—'}</Text>
+        <View style={[styles.customerBox, { borderTopColor: colors.border }]}>
+          <Text style={[styles.customerLabel, { color: colors.textTertiary }]}>{tk.customer}</Text>
+          <Text style={[styles.customerName, { color: colors.text }]}>{task.customer?.fullName ?? '—'}</Text>
         </View>
 
         {isOwner && responses.length > 0 ? (
@@ -190,7 +204,7 @@ export default function TaskDetailScreen() {
               const rs = RESPONSE_STATUS[r.status] ?? { label: r.status, color: '#374151', bg: '#F3F4F6' };
               const busy = actionLoading === r.id;
               return (
-                <View key={r.id} style={styles.responseCard}>
+                <View key={r.id} style={[styles.responseCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                   <View style={styles.responseHeader}>
                     <TouchableOpacity onPress={() => router.push({ pathname: '/provider/[id]', params: { id: r.provider.id, name: r.provider.fullName } })}>
                       <Text style={[styles.providerName, styles.providerNameLink]}>{r.provider.fullName}</Text>
@@ -199,10 +213,15 @@ export default function TaskDetailScreen() {
                       <Text style={[styles.rsBadgeText, { color: rs.color }]}>{rs.label}</Text>
                     </View>
                   </View>
-                  <Text style={styles.responseMsg} numberOfLines={3}>{r.message}</Text>
+                  <Text style={[styles.responseMsg, { color: colors.textSecondary }]} numberOfLines={3}>{r.message}</Text>
                   <View style={styles.responseMeta}>
                     <Text style={styles.responsePrice}>{r.price} TJS</Text>
-                    {r.estimatedTime ? <Text style={styles.responseTime}>⏱ {r.estimatedTime}</Text> : null}
+                    {r.estimatedTime ? (
+                      <View style={styles.metaItem}>
+                        <Ionicons name="time-outline" size={13} color={colors.textSecondary} />
+                        <Text style={styles.responseTime}>{r.estimatedTime}</Text>
+                      </View>
+                    ) : null}
                   </View>
                   {r.status === 'PENDING' && task.status === 'OPEN' ? (
                     <View style={styles.responseActions}>
@@ -290,7 +309,7 @@ export default function TaskDetailScreen() {
         ) : null}
 
         {!isOwner && user?.role === 'PROVIDER' && myResponse ? (
-          <View style={styles.myResponseCard}>
+          <View style={[styles.myResponseCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.myResponseHeader}>
               <Text style={styles.myResponseTitle}>{tk.myResponseTitle}</Text>
               <View style={[styles.rsBadge, { backgroundColor: RESPONSE_STATUS[myResponse.status]?.bg ?? '#F3F4F6' }]}>
@@ -299,17 +318,22 @@ export default function TaskDetailScreen() {
                 </Text>
               </View>
             </View>
-            <Text style={styles.myResponseMsg}>{myResponse.message}</Text>
+            <Text style={[styles.myResponseMsg, { color: colors.textSecondary }]}>{myResponse.message}</Text>
             <View style={styles.responseMeta}>
               <Text style={styles.responsePrice}>{myResponse.price} TJS</Text>
-              {myResponse.estimatedTime ? <Text style={styles.responseTime}>⏱ {myResponse.estimatedTime}</Text> : null}
+              {myResponse.estimatedTime ? (
+                <View style={styles.metaItem}>
+                  <Ionicons name="time-outline" size={13} color={colors.textSecondary} />
+                  <Text style={styles.responseTime}>{myResponse.estimatedTime}</Text>
+                </View>
+              ) : null}
             </View>
           </View>
         ) : null}
       </ScrollView>
 
       {!isOwner && user?.role === 'PROVIDER' && task.status === 'OPEN' && !myResponse ? (
-        <View style={styles.footer}>
+        <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
           <TouchableOpacity style={styles.respondBtn} onPress={() => router.push({ pathname: '/respond/[id]', params: { id: task.id, title: task.title } })}>
             <Text style={styles.respondBtnText}>{tk.respond}</Text>
           </TouchableOpacity>
@@ -320,7 +344,7 @@ export default function TaskDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   scroll: { padding: 20, paddingBottom: 110 },
   badgeRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
@@ -329,6 +353,7 @@ const styles = StyleSheet.create({
   category: { fontSize: 13, color: '#6B7280', fontWeight: '600' },
   title: { fontSize: 22, fontWeight: '800', color: '#111827', marginBottom: 12, lineHeight: 30 },
   metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 16 },
+  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   meta: { fontSize: 13, color: '#6B7280' },
   budgetBox: { backgroundColor: '#EFF6FF', borderRadius: 12, padding: 16, marginBottom: 20 },
   budgetLabel: { fontSize: 12, color: '#2563EB', fontWeight: '600', marginBottom: 4 },

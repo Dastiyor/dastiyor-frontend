@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
   fieldLabel: { fontSize: 13, fontWeight: '500', marginBottom: 6 },
   input: {
     borderWidth: 1.5, borderRadius: 14,
-    padding: 14, fontSize: 16, marginBottom: 16,
+    padding: 14, fontSize: 16, marginBottom: 16, letterSpacing: 0,
   },
   button: {
     backgroundColor: '#2563EB', borderRadius: 14, padding: 16,

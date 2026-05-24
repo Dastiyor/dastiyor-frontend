@@ -15,9 +15,11 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { AuthBackground } from '@/components/AuthBackground';
 import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function ResetPasswordScreen() {
   const { t } = useLanguage();
+  const { colors } = useTheme();
   const rp = t.resetPassword;
   const { email } = useLocalSearchParams<{ email: string }>();
   const [code, setCode] = useState('');
@@ -60,13 +62,13 @@ export default function ResetPasswordScreen() {
       <AuthBackground />
       <ScrollView contentContainerStyle={styles.inner} keyboardShouldPersistTaps="handled">
         <Text style={styles.logo}>Dastiyor</Text>
-        <Text style={styles.title}>{rp.title}</Text>
-        <Text style={styles.subtitle}>{rp.subtitle}</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{rp.title}</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{rp.subtitle}</Text>
 
         <TextInput
-          style={[styles.input, styles.codeInput]}
+          style={[styles.input, styles.codeInput, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]}
           placeholder={rp.codePh}
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={colors.textTertiary}
           value={code}
           onChangeText={setCode}
           keyboardType="number-pad"
@@ -75,9 +77,9 @@ export default function ResetPasswordScreen() {
         />
 
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]}
           placeholder={rp.newPh}
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={colors.textTertiary}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
@@ -85,9 +87,9 @@ export default function ResetPasswordScreen() {
         />
 
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]}
           placeholder={rp.confirmPh}
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={colors.textTertiary}
           value={confirm}
           onChangeText={setConfirm}
           secureTextEntry
@@ -118,10 +120,10 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 14, color: '#6B7280', textAlign: 'center', marginBottom: 28, lineHeight: 20 },
   input: {
     borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12,
-    padding: 14, fontSize: 16, color: '#111827', marginBottom: 12, backgroundColor: '#F9FAFB',
+    padding: 14, fontSize: 16, color: '#111827', marginBottom: 12, backgroundColor: '#F9FAFB', letterSpacing: 0,
   },
   codeInput: {
-    fontSize: 24, fontWeight: '700', letterSpacing: 8,
+    fontSize: 24, fontWeight: '700', letterSpacing: 3,
     color: '#111827', marginBottom: 20,
   },
   button: {

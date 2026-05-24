@@ -86,7 +86,7 @@ export default function ProfileModalScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
-      <ScreenHeader title={p.title ?? 'Profile'} showBack showMenu={false} />
+      <ScreenHeader title={p.title ?? 'Profile'} showBack />
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 

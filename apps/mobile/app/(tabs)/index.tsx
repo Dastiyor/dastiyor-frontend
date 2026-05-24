@@ -22,6 +22,7 @@ import { useToast } from '@/contexts/ToastContext';
 import type { FilterState } from '@/components/FilterSheet';
 import type { FeedTask } from '@dastiyor/types';
 import { useConfig } from '@/lib/useConfig';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const CATEGORY_ICONS: Record<string, React.ComponentProps<typeof Ionicons>['name']> = {
   'Ремонт': 'construct-outline',
@@ -56,6 +57,7 @@ interface TasksResponse {
 export default function HomeScreen() {
   const { user } = useAuth();
   const { t, locale } = useLanguage();
+  const { colors } = useTheme();
   const { config } = useConfig();
   const toast = useToast();
   const [tasks, setTasks] = useState<FeedTask[]>([]);
@@ -131,7 +133,7 @@ export default function HomeScreen() {
   }[locale];
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.bg }]}>
       <ScreenHeader title={t.tabs.home} unreadCount={unreadCount} />
 
       <ScrollView
@@ -141,17 +143,17 @@ export default function HomeScreen() {
       >
         {/* Welcome */}
         <View style={styles.welcomeSection}>
-          <Text style={styles.welcomeSub}>{L.welcome}</Text>
-          <Text style={styles.welcomeTitle}>{L.headline}</Text>
+          <Text style={[styles.welcomeSub, { color: colors.textSecondary }]}>{L.welcome}</Text>
+          <Text style={[styles.welcomeTitle, { color: colors.text }]}>{L.headline}</Text>
         </View>
 
         {/* Search bar */}
-        <View style={styles.searchBar}>
-          <Ionicons name="search-outline" size={18} color="#9CA3AF" />
+        <View style={[styles.searchBar, { backgroundColor: colors.surface }]}>
+          <Ionicons name="search-outline" size={18} color={colors.textTertiary} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: colors.text }]}
             placeholder={t.home.search}
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={colors.textTertiary}
             value={searchQuery}
             onChangeText={setSearchQuery}
             returnKeyType="search"
@@ -163,14 +165,14 @@ export default function HomeScreen() {
           />
           {searchQuery.length > 0 ? (
             <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Ionicons name="close-circle" size={18} color="#9CA3AF" />
+              <Ionicons name="close-circle" size={18} color={colors.textTertiary} />
             </TouchableOpacity>
           ) : (
             <TouchableOpacity onPress={() => setFilterVisible(true)}>
               <Ionicons
                 name="options-outline"
                 size={18}
-                color={hasActiveFilters(filters) ? '#2563EB' : '#6B7280'}
+                color={hasActiveFilters(filters) ? '#2563EB' : colors.textSecondary}
               />
             </TouchableOpacity>
           )}
@@ -186,7 +188,7 @@ export default function HomeScreen() {
             {categories.map((cat) => (
               <TouchableOpacity
                 key={cat.value === '' ? '__all__' : cat.value}
-                style={styles.catChip}
+                style={[styles.catChip, { backgroundColor: colors.surface, borderColor: colors.border }]}
                 onPress={() =>
                   router.push({
                     pathname: '/(tabs)/tasks',
@@ -194,7 +196,7 @@ export default function HomeScreen() {
                   })
                 }
               >
-                <Text style={styles.catChipText}>{cat.name}</Text>
+                <Text style={[styles.catChipText, { color: colors.text }]}>{cat.name}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -203,11 +205,11 @@ export default function HomeScreen() {
         {loading ? (
           <>
             <View style={styles.sectionRow}>
-              <View style={{ width: 140, height: 18, backgroundColor: '#E2E8F0', borderRadius: 8 }} />
+              <View style={{ width: 140, height: 18, backgroundColor: colors.border, borderRadius: 8 }} />
             </View>
             <FeaturedCardSkeleton />
             <View style={[styles.sectionRow, { marginTop: 24 }]}>
-              <View style={{ width: 160, height: 18, backgroundColor: '#E2E8F0', borderRadius: 8 }} />
+              <View style={{ width: 160, height: 18, backgroundColor: colors.border, borderRadius: 8 }} />
             </View>
             {[1, 2, 3].map((i) => <TaskCardSkeleton key={i} />)}
           </>
@@ -217,7 +219,7 @@ export default function HomeScreen() {
             {featured.length > 0 && (
               <>
                 <View style={styles.sectionRow}>
-                  <Text style={styles.sectionTitle}>{L.featured}</Text>
+                  <Text style={[styles.sectionTitle, { color: colors.text }]}>{L.featured}</Text>
                 </View>
 
                 {featured.map((task, i) => {
@@ -265,7 +267,7 @@ export default function HomeScreen() {
             {popular.length > 0 && (
               <>
                 <View style={styles.sectionRow}>
-                  <Text style={styles.sectionTitle}>{L.popular}</Text>
+                  <Text style={[styles.sectionTitle, { color: colors.text }]}>{L.popular}</Text>
                   <TouchableOpacity onPress={() => router.push('/(tabs)/tasks')}>
                     <Text style={styles.seeAll}>{L.seeAll}</Text>
                   </TouchableOpacity>
@@ -278,33 +280,33 @@ export default function HomeScreen() {
                   return (
                     <TouchableOpacity
                       key={task.id}
-                      style={styles.popCard}
+                      style={[styles.popCard, { backgroundColor: colors.surface }]}
                       onPress={() => router.push(`/task/${task.id}`)}
                       activeOpacity={0.75}
                     >
-                      <View style={styles.popIconBox}>
+                      <View style={[styles.popIconBox, { backgroundColor: colors.iconBg }]}>
                         <Ionicons name={iconName} size={22} color="#2563EB" />
                       </View>
                       <View style={styles.popBody}>
                         <View style={styles.popTopRow}>
-                          <Text style={styles.popCategory} numberOfLines={1}>{task.category}</Text>
+                          <Text style={[styles.popCategory, { color: colors.textTertiary }]} numberOfLines={1}>{task.category}</Text>
                           <View style={[styles.popBadge, { backgroundColor: urgencyColor + '22' }]}>
                             <Text style={[styles.popBadgeText, { color: urgencyColor }]}>{urgencyLabel}</Text>
                           </View>
                         </View>
-                        <Text style={styles.popTitle} numberOfLines={1}>{task.title}</Text>
+                        <Text style={[styles.popTitle, { color: colors.text }]} numberOfLines={1}>{task.title}</Text>
                         {task.description ? (
-                          <Text style={styles.popDesc} numberOfLines={1}>{task.description}</Text>
+                          <Text style={[styles.popDesc, { color: colors.textSecondary }]} numberOfLines={1}>{task.description}</Text>
                         ) : null}
                         {task.city ? (
                           <View style={styles.popLocation}>
-                            <Ionicons name="location-outline" size={11} color="#9CA3AF" />
-                            <Text style={styles.popLocationText}>{task.city}</Text>
+                            <Ionicons name="location-outline" size={11} color={colors.textTertiary} />
+                            <Text style={[styles.popLocationText, { color: colors.textTertiary }]}>{task.city}</Text>
                           </View>
                         ) : null}
                         <View style={styles.popFooter}>
                           <Text style={styles.popBudget}>{task.budget}</Text>
-                          <Text style={styles.popMeta}>{timeAgo(task.postedAt, locale)}</Text>
+                          <Text style={[styles.popMeta, { color: colors.textTertiary }]}>{timeAgo(task.postedAt, locale)}</Text>
                         </View>
                       </View>
                     </TouchableOpacity>

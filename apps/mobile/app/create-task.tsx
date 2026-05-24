@@ -14,6 +14,7 @@ import {
 import { router } from 'expo-router';
 import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useConfig } from '@/lib/useConfig';
 
 function ChipGroup<T extends string>({
@@ -51,6 +52,7 @@ const chip = StyleSheet.create({
 
 export default function CreateTaskScreen() {
   const { t } = useLanguage();
+  const { colors } = useTheme();
   const ct = t.createTask;
   const { config } = useConfig();
 
@@ -101,27 +103,29 @@ export default function CreateTaskScreen() {
     }
   }
 
-  return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
-        <Text style={styles.label}>{ct.titleLabel}</Text>
-        <TextInput style={styles.input} placeholder={ct.titlePh} placeholderTextColor="#9CA3AF" value={title} onChangeText={setTitle} maxLength={120} />
+  const inputStyle = [styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }];
 
-        <Text style={styles.label}>{ct.descLabel}</Text>
-        <TextInput style={[styles.input, styles.textareaNoMb]} placeholder={ct.descPh} placeholderTextColor="#9CA3AF" value={description} onChangeText={setDescription} multiline textAlignVertical="top" maxLength={1000} />
+  return (
+    <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
+        <Text style={[styles.label, { color: colors.text }]}>{ct.titleLabel}</Text>
+        <TextInput style={inputStyle} placeholder={ct.titlePh} placeholderTextColor={colors.textTertiary} value={title} onChangeText={setTitle} maxLength={120} />
+
+        <Text style={[styles.label, { color: colors.text }]}>{ct.descLabel}</Text>
+        <TextInput style={[...inputStyle, styles.textareaNoMb]} placeholder={ct.descPh} placeholderTextColor={colors.textTertiary} value={description} onChangeText={setDescription} multiline textAlignVertical="top" maxLength={1000} />
         <Text style={styles.charCount}>{description.length}/1000</Text>
 
-        <Text style={styles.label}>{ct.categoryLabel}</Text>
+        <Text style={[styles.label, { color: colors.text }]}>{ct.categoryLabel}</Text>
         <ChipGroup options={config.categories} value={category} onChange={setCategory} />
 
-        <Text style={styles.label}>{ct.cityLabel}</Text>
+        <Text style={[styles.label, { color: colors.text }]}>{ct.cityLabel}</Text>
         <ChipGroup options={config.cities} value={city} onChange={setCity} />
 
-        <Text style={styles.label}>{ct.budgetLabel}</Text>
-        <View style={styles.segmented}>
+        <Text style={[styles.label, { color: colors.text }]}>{ct.budgetLabel}</Text>
+        <View style={[styles.segmented, { borderColor: colors.border }]}>
           {(['fixed', 'negotiable'] as const).map((bv) => (
-            <TouchableOpacity key={bv} style={[styles.segBtn, budgetType === bv && styles.segBtnActive]} onPress={() => setBudgetType(bv)}>
-              <Text style={[styles.segText, budgetType === bv && styles.segTextActive]}>
+            <TouchableOpacity key={bv} style={[styles.segBtn, { backgroundColor: colors.surfaceAlt }, budgetType === bv && styles.segBtnActive]} onPress={() => setBudgetType(bv)}>
+              <Text style={[styles.segText, { color: colors.textSecondary }, budgetType === bv && styles.segTextActive]}>
                 {bv === 'fixed' ? ct.fixed : ct.negotiable}
               </Text>
             </TouchableOpacity>
@@ -129,10 +133,10 @@ export default function CreateTaskScreen() {
         </View>
 
         {budgetType === 'fixed' ? (
-          <TextInput style={[styles.input, { marginBottom: 20 }]} placeholder={ct.amountPh} placeholderTextColor="#9CA3AF" value={amount} onChangeText={setAmount} keyboardType="numeric" />
+          <TextInput style={[...inputStyle, { marginBottom: 20 }]} placeholder={ct.amountPh} placeholderTextColor={colors.textTertiary} value={amount} onChangeText={setAmount} keyboardType="numeric" />
         ) : null}
 
-        <Text style={styles.label}>{ct.urgencyLabel}</Text>
+        <Text style={[styles.label, { color: colors.text }]}>{ct.urgencyLabel}</Text>
         <ChipGroup
           options={URGENCY}
           value={urgency}
@@ -141,8 +145,8 @@ export default function CreateTaskScreen() {
           getValue={(o) => (o as { value: string }).value as any}
         />
 
-        <Text style={styles.label}>{ct.addressLabel}</Text>
-        <TextInput style={[styles.input, { marginBottom: 28 }]} placeholder={ct.addressPh} placeholderTextColor="#9CA3AF" value={address} onChangeText={setAddress} />
+        <Text style={[styles.label, { color: colors.text }]}>{ct.addressLabel}</Text>
+        <TextInput style={[...inputStyle, { marginBottom: 28 }]} placeholder={ct.addressPh} placeholderTextColor={colors.textTertiary} value={address} onChangeText={setAddress} />
 
         <TouchableOpacity style={[styles.btn, loading && styles.btnDisabled]} onPress={handleCreate} disabled={loading} accessibilityLabel={ct.publish} accessibilityRole="button">
           {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>{ct.publish}</Text>}
@@ -153,7 +157,7 @@ export default function CreateTaskScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1 },
   scroll: { padding: 20, paddingBottom: 40 },
   label: { fontSize: 13, fontWeight: '700', color: '#374151', marginBottom: 10 },
   input: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, padding: 14, fontSize: 15, color: '#111827', backgroundColor: '#F9FAFB', marginBottom: 20 },

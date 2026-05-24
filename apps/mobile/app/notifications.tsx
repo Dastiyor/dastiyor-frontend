@@ -87,7 +87,7 @@ export default function NotificationsScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
-      <ScreenHeader title={t.notifications.title} showBack showMenu={false} />
+      <ScreenHeader title={t.notifications.title} showBack />
       {loading ? (
         <ActivityIndicator style={styles.center} size="large" color={colors.accent} />
       ) : (

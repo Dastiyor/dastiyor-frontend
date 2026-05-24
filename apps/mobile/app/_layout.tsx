@@ -4,11 +4,41 @@ import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { ToastProvider } from '@/contexts/ToastContext';
-import { ThemeProvider } from '@/contexts/ThemeContext';
+import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { OfflineBanner } from '@/components/OfflineBanner';
 
 SplashScreen.preventAutoHideAsync();
+
+function ThemedStack() {
+  const { colors, isDark } = useTheme();
+  return (
+    <Stack
+      screenOptions={{
+        headerStyle: { backgroundColor: colors.surface },
+        headerTintColor: colors.text,
+        headerShadowVisible: false,
+        headerBackTitle: 'Назад',
+      }}
+    >
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="(onboarding)" options={{ headerShown: false, animation: 'none' }} />
+      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="task/[id]" options={{ title: 'Задание' }} />
+      <Stack.Screen name="respond/[id]" options={{ title: 'Откликнуться', presentation: 'modal' }} />
+      <Stack.Screen name="chat/[partnerId]" options={{}} />
+      <Stack.Screen name="create-task" options={{ title: 'Новое задание', presentation: 'modal' }} />
+      <Stack.Screen name="notifications" options={{ headerShown: false }} />
+      <Stack.Screen name="review/[taskId]" options={{ title: 'Оставить отзыв', presentation: 'modal' }} />
+      <Stack.Screen name="provider/[id]" options={{ title: 'Профиль' }} />
+      <Stack.Screen name="change-password" options={{ title: 'Смена пароля' }} />
+      <Stack.Screen name="edit-profile" options={{ title: 'Редактировать профиль', presentation: 'modal' }} />
+      <Stack.Screen name="settings" options={{ headerShown: false }} />
+      <Stack.Screen name="profile" options={{ headerShown: false }} />
+    </Stack>
+  );
+}
 
 export default function RootLayout() {
   return (
@@ -17,23 +47,7 @@ export default function RootLayout() {
       <ErrorBoundary>
         <ToastProvider>
         <AuthProvider>
-          <Stack>
-            <Stack.Screen name="index" options={{ headerShown: false }} />
-            <Stack.Screen name="(onboarding)" options={{ headerShown: false, animation: 'none' }} />
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="task/[id]" options={{ title: 'Задание', headerBackTitle: 'Назад' }} />
-            <Stack.Screen name="respond/[id]" options={{ title: 'Откликнуться', headerBackTitle: 'Назад', presentation: 'modal' }} />
-            <Stack.Screen name="chat/[partnerId]" options={{ headerBackTitle: 'Назад' }} />
-            <Stack.Screen name="create-task" options={{ title: 'Новое задание', headerBackTitle: 'Назад', presentation: 'modal' }} />
-            <Stack.Screen name="notifications" options={{ headerShown: false }} />
-            <Stack.Screen name="review/[taskId]" options={{ title: 'Оставить отзыв', headerBackTitle: 'Назад', presentation: 'modal' }} />
-            <Stack.Screen name="provider/[id]" options={{ title: 'Профиль', headerBackTitle: 'Назад' }} />
-            <Stack.Screen name="change-password" options={{ title: 'Смена пароля', headerBackTitle: 'Назад' }} />
-            <Stack.Screen name="edit-profile" options={{ title: 'Редактировать профиль', headerBackTitle: 'Назад', presentation: 'modal' }} />
-            <Stack.Screen name="settings" options={{ headerShown: false }} />
-            <Stack.Screen name="profile" options={{ headerShown: false }} />
-          </Stack>
+          <ThemedStack />
           <StatusBar style="auto" />
           <OfflineBanner />
         </AuthProvider>

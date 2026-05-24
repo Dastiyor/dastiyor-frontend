@@ -14,6 +14,7 @@ import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { timeAgo } from '@/lib/timeAgo';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { TaskCardSkeleton } from '@/components/Skeleton';
@@ -55,6 +56,7 @@ interface TasksResponse {
 
 export default function TaskBrowseScreen() {
   const { t, locale } = useLanguage();
+  const { colors } = useTheme();
   const { config } = useConfig();
   const toast = useToast();
   const params = useLocalSearchParams<{
@@ -145,32 +147,32 @@ export default function TaskBrowseScreen() {
 
     return (
       <TouchableOpacity
-        style={styles.card}
+        style={[styles.card, { backgroundColor: colors.surface }]}
         onPress={() => router.push(`/task/${item.id}`)}
         activeOpacity={0.75}
       >
-        <View style={styles.cardIconBox}>
+        <View style={[styles.cardIconBox, { backgroundColor: colors.iconBg }]}>
           <Ionicons name={iconName} size={22} color="#2563EB" />
         </View>
 
         <View style={styles.cardBody}>
           <View style={styles.cardTopRow}>
-            <Text style={styles.cardCategory} numberOfLines={1}>{item.category}</Text>
+            <Text style={[styles.cardCategory, { color: colors.textTertiary }]} numberOfLines={1}>{item.category}</Text>
             <View style={[styles.urgencyBadge, { backgroundColor: urgencyColor + '22' }]}>
               <Text style={[styles.urgencyText, { color: urgencyColor }]}>{urgencyLabel}</Text>
             </View>
           </View>
-          <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
-          <Text style={styles.cardDesc} numberOfLines={1}>{item.description}</Text>
+          <Text style={[styles.cardTitle, { color: colors.text }]} numberOfLines={1}>{item.title}</Text>
+          <Text style={[styles.cardDesc, { color: colors.textSecondary }]} numberOfLines={1}>{item.description}</Text>
           {item.city ? (
             <View style={styles.cardLocation}>
-              <Ionicons name="location-outline" size={11} color="#9CA3AF" />
-              <Text style={styles.cardLocationText}>{item.city}</Text>
+              <Ionicons name="location-outline" size={11} color={colors.textTertiary} />
+              <Text style={[styles.cardLocationText, { color: colors.textTertiary }]}>{item.city}</Text>
             </View>
           ) : null}
           <View style={styles.cardFooter}>
             <Text style={styles.cardBudget}>{item.budget}</Text>
-            <Text style={styles.cardMeta}>{timeAgo(item.postedAt, locale)}</Text>
+            <Text style={[styles.cardMeta, { color: colors.textTertiary }]}>{timeAgo(item.postedAt, locale)}</Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -183,30 +185,30 @@ export default function TaskBrowseScreen() {
   ];
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.bg }]}>
       <ScreenHeader title={t.tabs.tasks} />
       {/* Search bar */}
-      <View style={styles.searchWrap}>
-        <View style={styles.searchBar}>
-          <Ionicons name="search-outline" size={18} color="#9CA3AF" />
+      <View style={[styles.searchWrap, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+        <View style={[styles.searchBar, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
+          <Ionicons name="search-outline" size={18} color={colors.textTertiary} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: colors.text }]}
             placeholder={t.home.search}
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={colors.textTertiary}
             value={query}
             onChangeText={setQuery}
             returnKeyType="search"
           />
           {query.length > 0 && (
             <TouchableOpacity onPress={() => setQuery('')}>
-              <Ionicons name="close-circle" size={18} color="#9CA3AF" />
+              <Ionicons name="close-circle" size={18} color={colors.textTertiary} />
             </TouchableOpacity>
           )}
           <TouchableOpacity onPress={() => setFilterVisible(true)} style={styles.filterBtn}>
             <Ionicons
               name="options-outline"
               size={18}
-              color={hasActiveFilters(filters) ? '#2563EB' : '#6B7280'}
+              color={hasActiveFilters(filters) ? '#2563EB' : colors.textSecondary}
             />
             {hasActiveFilters(filters) && <View style={styles.filterDot} />}
           </TouchableOpacity>
@@ -214,7 +216,7 @@ export default function TaskBrowseScreen() {
       </View>
 
       {/* Category chips */}
-      <View style={styles.catScroll}>
+      <View style={[styles.catScroll, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -225,10 +227,10 @@ export default function TaskBrowseScreen() {
             return (
               <TouchableOpacity
                 key={cat.value === '' ? '__all__' : cat.value}
-                style={[styles.catChip, isActive && styles.catChipActive]}
+                style={[styles.catChip, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }, isActive && styles.catChipActive]}
                 onPress={() => setFilters((prev) => ({ ...prev, category: cat.value }))}
               >
-                <Text style={[styles.catChipText, { color: isActive ? '#fff' : '#374151' }]}>
+                <Text style={[styles.catChipText, { color: isActive ? '#fff' : colors.text }]}>
                   {cat.name}
                 </Text>
               </TouchableOpacity>
@@ -278,21 +280,19 @@ export default function TaskBrowseScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F0F4FF' },
+  container: { flex: 1 },
 
   searchWrap: {
-    backgroundColor: '#fff',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
   },
   searchBar: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#F9FAFB', borderWidth: 1, borderColor: '#E5E7EB',
+    borderWidth: 1,
     borderRadius: 14, paddingHorizontal: 14, paddingVertical: 11,
   },
-  searchInput: { flex: 1, fontSize: 15, color: '#111827', marginHorizontal: 8, padding: 0 },
+  searchInput: { flex: 1, fontSize: 15, marginHorizontal: 8, padding: 0 },
   filterBtn: { marginLeft: 6, position: 'relative' },
   filterDot: {
     position: 'absolute', top: -2, right: -2,
@@ -301,9 +301,7 @@ const styles = StyleSheet.create({
 
   catScroll: {
     height: 54,
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
     justifyContent: 'center',
   },
   catContent: {
@@ -314,9 +312,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 7,
     borderRadius: 20,
-    backgroundColor: '#F3F4F6',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
     marginRight: 8,
   },
   catChipActive: { backgroundColor: '#2563EB', borderColor: '#2563EB' },
@@ -328,7 +324,6 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: '#fff',
     borderRadius: 16,
     padding: 14,
     marginBottom: 10,
@@ -342,7 +337,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 14,
-    backgroundColor: '#EFF6FF',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -357,7 +351,6 @@ const styles = StyleSheet.create({
   },
   cardCategory: {
     fontSize: 11,
-    color: '#9CA3AF',
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.4,
@@ -366,13 +359,13 @@ const styles = StyleSheet.create({
   },
   urgencyBadge: { borderRadius: 6, paddingHorizontal: 7, paddingVertical: 2, flexShrink: 0 },
   urgencyText: { fontSize: 10, fontWeight: '700' },
-  cardTitle: { fontSize: 15, fontWeight: '700', color: '#111827', marginBottom: 3 },
-  cardDesc: { fontSize: 13, color: '#6B7280', marginBottom: 6 },
+  cardTitle: { fontSize: 15, fontWeight: '700', marginBottom: 3 },
+  cardDesc: { fontSize: 13, marginBottom: 6 },
   cardLocation: { flexDirection: 'row', alignItems: 'center', gap: 3, marginBottom: 6 },
-  cardLocationText: { fontSize: 11, color: '#9CA3AF' },
+  cardLocationText: { fontSize: 11 },
   cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardBudget: { fontSize: 14, fontWeight: '700', color: '#2563EB' },
-  cardMeta: { fontSize: 11, color: '#9CA3AF' },
+  cardMeta: { fontSize: 11 },
 
   center: { flex: 1, marginTop: 60 },
   skeletonList: { paddingTop: 12 },

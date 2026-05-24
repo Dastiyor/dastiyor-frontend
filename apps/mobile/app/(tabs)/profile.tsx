@@ -13,6 +13,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { LOCALE_NAMES, type Locale } from '@/lib/i18n';
+
+const LOCALES: Locale[] = ['ru', 'tj', 'en'];
 
 function Avatar({ name, size = 56 }: { name: string; size?: number }) {
   const { colors } = useTheme();
@@ -78,8 +81,8 @@ function RowItem({
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
-  const { t } = useLanguage();
-  const { colors } = useTheme();
+  const { locale, setLocale, t } = useLanguage();
+  const { colors, isDark, toggleTheme } = useTheme();
   const p = t.profile;
   const statusBarHeight = Platform.OS === 'ios' ? 44 : (StatusBar.currentHeight ?? 24);
 
@@ -101,15 +104,7 @@ export default function ProfileScreen() {
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
       {/* Header bar */}
       <View style={[styles.headerBar, { paddingTop: statusBarHeight + 8, backgroundColor: colors.header, borderBottomColor: colors.border }]}>
-        <View style={styles.iconBtn}>
-          <Ionicons name="menu" size={26} color={colors.text} />
-        </View>
         <Text style={[styles.headerTitle, { color: colors.text }]}>{p.title ?? 'Profile'}</Text>
-        <TouchableOpacity style={styles.headerRightBtn} onPress={() => router.push('/settings' as any)}>
-          <View style={[styles.avatarSmall, { backgroundColor: colors.accent }]}>
-            <Ionicons name="person" size={16} color="#fff" />
-          </View>
-        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -195,6 +190,37 @@ export default function ProfileScreen() {
           </View>
         )}
 
+        {/* Appearance */}
+        <View style={[styles.card, { backgroundColor: colors.surface }]}>
+          {/* Language */}
+          <View style={[styles.rowItem, { borderBottomColor: colors.border }]}>
+            <Ionicons name="language-outline" size={22} color="#7C3AED" style={styles.rowIcon} />
+            <Text style={[styles.rowLabel, { color: colors.text }]}>{t.settings?.language ?? 'Language'}</Text>
+            <View style={styles.pills}>
+              {LOCALES.map((loc) => (
+                <TouchableOpacity
+                  key={loc}
+                  style={[styles.pill, { borderColor: locale === loc ? colors.accent : colors.border, backgroundColor: locale === loc ? colors.iconBg : 'transparent' }]}
+                  onPress={() => setLocale(loc)}
+                >
+                  <Text style={[styles.pillText, { color: locale === loc ? colors.accent : colors.textSecondary }]}>
+                    {LOCALE_NAMES[loc]}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+          {/* Theme */}
+          <TouchableOpacity onPress={toggleTheme} activeOpacity={0.6}>
+            <View style={[styles.rowItem, { borderBottomColor: 'transparent' }]}>
+              <Ionicons name={isDark ? 'moon-outline' : 'sunny-outline'} size={22} color="#10B981" style={styles.rowIcon} />
+              <Text style={[styles.rowLabel, { color: colors.text }]}>{t.settings?.theme ?? 'Theme'}</Text>
+              <Text style={[styles.themeValue, { color: colors.textSecondary }]}>{isDark ? (t.settings?.dark ?? 'Dark') : (t.settings?.light ?? 'Light')}</Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
+            </View>
+          </TouchableOpacity>
+        </View>
+
         {/* Logout */}
         <View style={[styles.card, { backgroundColor: colors.surface }]}>
           <RowItem
@@ -221,7 +247,6 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
     borderBottomWidth: 1,
   },
-  iconBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700' },
   headerRightBtn: { width: 40, alignItems: 'flex-end' },
   avatarSmall: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
@@ -282,4 +307,8 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
   },
   linkText: { fontSize: 14, fontWeight: '600' },
+  pills: { flexDirection: 'row', gap: 6 },
+  pill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 16, borderWidth: 1.5 },
+  pillText: { fontSize: 12, fontWeight: '600' },
+  themeValue: { fontSize: 13, marginRight: 6 },
 });

@@ -12,6 +12,7 @@ import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface Review {
   id: string;
@@ -45,6 +46,7 @@ export default function ProviderProfileScreen() {
   const { id, name } = useLocalSearchParams<{ id: string; name?: string }>();
   const { user } = useAuth();
   const { t } = useLanguage();
+  const { colors } = useTheme();
   const pv = t.provider;
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const [profile, setProfile] = useState<ProviderProfile | null>(null);
@@ -79,38 +81,38 @@ export default function ProviderProfileScreen() {
   );
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.scroll}>
-      <View style={styles.header}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.bg }]} contentContainerStyle={styles.scroll}>
+      <View style={[styles.header, { backgroundColor: colors.surface }]}>
         <Initials name={profile.fullName} />
-        <Text style={styles.name}>{profile.fullName}</Text>
+        <Text style={[styles.name, { color: colors.text }]}>{profile.fullName}</Text>
         <View style={styles.statsRow}>
           <View style={styles.statBox}>
-            <Text style={styles.statValue}>{profile.completedCount}</Text>
-            <Text style={styles.statLabel}>{pv.completed}</Text>
+            <Text style={[styles.statValue, { color: colors.text }]}>{profile.completedCount}</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{pv.completed}</Text>
           </View>
-          <View style={styles.statDivider} />
+          <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
           <View style={styles.statBox}>
             <Text style={[styles.statValue, { color: '#F59E0B' }]}>
               {profile.avgRating > 0 ? profile.avgRating.toFixed(1) : '—'}
             </Text>
-            <Text style={styles.statLabel}>{profile.reviewCount} {pv.reviews}</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{profile.reviewCount} {pv.reviews}</Text>
           </View>
         </View>
       </View>
 
       {profile.bio ? (
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>{pv.bio}</Text>
-          <Text style={styles.cardText}>{profile.bio}</Text>
+        <View style={[styles.card, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>{pv.bio}</Text>
+          <Text style={[styles.cardText, { color: colors.textSecondary }]}>{profile.bio}</Text>
         </View>
       ) : null}
 
       {profile.skills ? (
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>{pv.skills}</Text>
+        <View style={[styles.card, { backgroundColor: colors.surface }]}>
+          <Text style={[styles.cardTitle, { color: colors.text }]}>{pv.skills}</Text>
           <View style={styles.skillsRow}>
             {profile.skills.split(',').map((s, i) => (
-              <View key={i} style={styles.skillBadge}>
+              <View key={i} style={[styles.skillBadge, { backgroundColor: colors.iconBg }]}>
                 <Text style={styles.skillText}>{s.trim()}</Text>
               </View>
             ))}
@@ -130,21 +132,21 @@ export default function ProviderProfileScreen() {
       <View style={styles.reviewsSection}>
         {profile.reviews.length > 0 ? (
           <>
-            <Text style={styles.sectionTitle}>{pv.reviews} ({profile.reviewCount})</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{pv.reviews} ({profile.reviewCount})</Text>
             {profile.reviews.map((r) => (
-              <View key={r.id} style={styles.reviewCard}>
+              <View key={r.id} style={[styles.reviewCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 <View style={styles.reviewHeader}>
-                  <Text style={styles.reviewerName}>{r.reviewer.fullName}</Text>
+                  <Text style={[styles.reviewerName, { color: colors.text }]}>{r.reviewer.fullName}</Text>
                   <Text style={styles.reviewStars}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</Text>
                 </View>
-                <Text style={styles.reviewTask} numberOfLines={1}>{r.task.title}</Text>
-                {r.comment ? <Text style={styles.reviewComment}>{r.comment}</Text> : null}
-                <Text style={styles.reviewDate}>{new Date(r.createdAt).toLocaleDateString('ru-RU')}</Text>
+                <Text style={[styles.reviewTask, { color: colors.textSecondary }]} numberOfLines={1}>{r.task.title}</Text>
+                {r.comment ? <Text style={[styles.reviewComment, { color: colors.textSecondary }]}>{r.comment}</Text> : null}
+                <Text style={[styles.reviewDate, { color: colors.textTertiary }]}>{new Date(r.createdAt).toLocaleDateString('ru-RU')}</Text>
               </View>
             ))}
           </>
         ) : (
-          <View style={styles.noReviews}><Text style={styles.noReviewsText}>{pv.noReviews}</Text></View>
+          <View style={styles.noReviews}><Text style={[styles.noReviewsText, { color: colors.textTertiary }]}>{pv.noReviews}</Text></View>
         )}
       </View>
     </ScrollView>
@@ -152,7 +154,7 @@ export default function ProviderProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F3F4F6' },
+  container: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 60 },
   errorText: { color: '#6B7280', fontSize: 15, marginBottom: 16, textAlign: 'center', paddingHorizontal: 24 },
   retryBtn: { backgroundColor: '#2563EB', borderRadius: 12, paddingHorizontal: 24, paddingVertical: 12 },

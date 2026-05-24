@@ -14,10 +14,12 @@ import {
 import { useLocalSearchParams, router } from 'expo-router';
 import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function RespondScreen() {
   const { id: taskId, title } = useLocalSearchParams<{ id: string; title: string }>();
   const { t } = useLanguage();
+  const { colors } = useTheme();
   const r = t.respond;
   const [message, setMessage] = useState('');
   const [price, setPrice] = useState('');
@@ -38,25 +40,27 @@ export default function RespondScreen() {
     }
   }
 
+  const inputStyle = [styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }];
+
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         {title ? (
-          <View style={styles.taskBox}>
-            <Text style={styles.taskBoxLabel}>{r.task}</Text>
-            <Text style={styles.taskBoxTitle} numberOfLines={2}>{title}</Text>
+          <View style={[styles.taskBox, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.taskBoxLabel, { color: colors.textTertiary }]}>{r.task}</Text>
+            <Text style={[styles.taskBoxTitle, { color: colors.text }]} numberOfLines={2}>{title}</Text>
           </View>
         ) : null}
 
-        <Text style={styles.label}>{r.offerLabel}</Text>
-        <TextInput style={[styles.input, styles.textareaNoMb]} placeholder={r.offerPh} placeholderTextColor="#9CA3AF" value={message} onChangeText={setMessage} multiline numberOfLines={5} textAlignVertical="top" maxLength={1000} />
+        <Text style={[styles.label, { color: colors.text }]}>{r.offerLabel}</Text>
+        <TextInput style={[...inputStyle, styles.textareaNoMb]} placeholder={r.offerPh} placeholderTextColor={colors.textTertiary} value={message} onChangeText={setMessage} multiline numberOfLines={5} textAlignVertical="top" maxLength={1000} />
         <Text style={styles.charCount}>{message.length}/1000</Text>
 
-        <Text style={styles.label}>{r.priceLabel}</Text>
-        <TextInput style={styles.input} placeholder={r.pricePh} placeholderTextColor="#9CA3AF" value={price} onChangeText={setPrice} keyboardType="numeric" maxLength={10} />
+        <Text style={[styles.label, { color: colors.text }]}>{r.priceLabel}</Text>
+        <TextInput style={inputStyle} placeholder={r.pricePh} placeholderTextColor={colors.textTertiary} value={price} onChangeText={setPrice} keyboardType="numeric" maxLength={10} />
 
-        <Text style={styles.label}>{r.timeLabel}</Text>
-        <TextInput style={styles.input} placeholder={r.timePh} placeholderTextColor="#9CA3AF" value={estimatedTime} onChangeText={setEstimatedTime} maxLength={100} />
+        <Text style={[styles.label, { color: colors.text }]}>{r.timeLabel}</Text>
+        <TextInput style={inputStyle} placeholder={r.timePh} placeholderTextColor={colors.textTertiary} value={estimatedTime} onChangeText={setEstimatedTime} maxLength={100} />
 
         <TouchableOpacity style={[styles.button, loading && styles.buttonDisabled]} onPress={handleSubmit} disabled={loading} accessibilityLabel={r.btn} accessibilityRole="button">
           {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{r.btn}</Text>}
@@ -67,7 +71,7 @@ export default function RespondScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1 },
   scroll: { padding: 20, paddingBottom: 40 },
   taskBox: { backgroundColor: '#F3F4F6', borderRadius: 12, padding: 14, marginBottom: 24 },
   taskBoxLabel: { fontSize: 11, color: '#9CA3AF', fontWeight: '600', marginBottom: 4, textTransform: 'uppercase' },

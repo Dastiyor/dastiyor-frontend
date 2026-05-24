@@ -100,14 +100,14 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="notifications"
-        options={{
-          title: 'Notification',
-          tabBarIcon: icon('notifications', 'notifications-outline'),
-        }}
+        options={{ href: null }}
       />
       <Tabs.Screen
         name="profile"
-        options={{ href: null }}
+        options={{
+          title: t.tabs.profile,
+          tabBarIcon: icon('person', 'person-outline'),
+        }}
       />
     </Tabs>
   );

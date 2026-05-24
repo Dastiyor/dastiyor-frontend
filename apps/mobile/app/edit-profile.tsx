@@ -15,12 +15,14 @@ import { router } from 'expo-router';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface ProfileData { fullName: string; phone: string; bio: string; skills: string; }
 
 export default function EditProfileScreen() {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const { colors } = useTheme();
   const ep = t.editProfile;
   const [form, setForm] = useState<ProfileData>({ fullName: '', phone: '', bio: '', skills: '' });
   const [loading, setLoading] = useState(true);
@@ -60,21 +62,23 @@ export default function EditProfileScreen() {
 
   if (loading) return <ActivityIndicator style={styles.center} size="large" color="#2563EB" />;
 
+  const inputStyle = [styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }];
+
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
-        <Text style={styles.label}>{ep.fullName}</Text>
-        <TextInput style={styles.input} value={form.fullName} onChangeText={set('fullName')} autoComplete="name" maxLength={100} />
+        <Text style={[styles.label, { color: colors.text }]}>{ep.fullName}</Text>
+        <TextInput style={inputStyle} value={form.fullName} onChangeText={set('fullName')} autoComplete="name" maxLength={100} />
 
-        <Text style={styles.label}>{ep.phone}</Text>
-        <TextInput style={styles.input} value={form.phone} onChangeText={set('phone')} keyboardType="phone-pad" autoComplete="tel" placeholder="+992..." placeholderTextColor="#9CA3AF" maxLength={20} />
+        <Text style={[styles.label, { color: colors.text }]}>{ep.phone}</Text>
+        <TextInput style={inputStyle} value={form.phone} onChangeText={set('phone')} keyboardType="phone-pad" autoComplete="tel" placeholder="+992..." placeholderTextColor={colors.textTertiary} maxLength={20} />
 
-        <Text style={styles.label}>{ep.bio}</Text>
-        <TextInput style={[styles.input, styles.textarea]} value={form.bio} onChangeText={set('bio')} multiline textAlignVertical="top" placeholder={ep.bioPh} placeholderTextColor="#9CA3AF" maxLength={500} />
+        <Text style={[styles.label, { color: colors.text }]}>{ep.bio}</Text>
+        <TextInput style={[...inputStyle, styles.textarea]} value={form.bio} onChangeText={set('bio')} multiline textAlignVertical="top" placeholder={ep.bioPh} placeholderTextColor={colors.textTertiary} maxLength={500} />
         <Text style={styles.charCount}>{form.bio.length}/500</Text>
 
-        <Text style={styles.label}>{ep.skills}</Text>
-        <TextInput style={styles.input} value={form.skills} onChangeText={set('skills')} placeholder={ep.skillsPh} placeholderTextColor="#9CA3AF" maxLength={300} />
+        <Text style={[styles.label, { color: colors.text }]}>{ep.skills}</Text>
+        <TextInput style={inputStyle} value={form.skills} onChangeText={set('skills')} placeholder={ep.skillsPh} placeholderTextColor={colors.textTertiary} maxLength={300} />
 
         <TouchableOpacity style={[styles.btn, saving && styles.btnDisabled]} onPress={handleSave} disabled={saving} accessibilityLabel={ep.save} accessibilityRole="button">
           {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>{ep.save}</Text>}
@@ -85,7 +89,7 @@ export default function EditProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1 },
   center: { flex: 1, marginTop: 60 },
   scroll: { padding: 20, paddingBottom: 40 },
   label: { fontSize: 13, fontWeight: '700', color: '#374151', marginBottom: 8 },

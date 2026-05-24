@@ -14,9 +14,11 @@ import { router } from 'expo-router';
 import { AuthBackground } from '@/components/AuthBackground';
 import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function ForgotPasswordScreen() {
   const { t } = useLanguage();
+  const { colors } = useTheme();
   const fp = t.forgotPassword;
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -44,13 +46,13 @@ export default function ForgotPasswordScreen() {
       <AuthBackground />
       <View style={styles.inner}>
         <Text style={styles.logo}>Dastiyor</Text>
-        <Text style={styles.title}>{fp.title}</Text>
-        <Text style={styles.subtitle}>{fp.subtitle}</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{fp.title}</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{fp.subtitle}</Text>
 
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]}
           placeholder={fp.emailPh}
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={colors.textTertiary}
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"

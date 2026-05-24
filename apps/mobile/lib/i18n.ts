@@ -262,6 +262,14 @@ const translations = {
       loadError: 'Failed to load messages',
       sendError: 'Failed to send message',
     },
+    settings: {
+      title: 'Settings',
+      appearance: 'Appearance',
+      language: 'Language',
+      theme: 'Theme',
+      dark: 'Dark',
+      light: 'Light',
+    },
   },
   ru: {
     tabs: {
@@ -518,6 +526,14 @@ const translations = {
       loadError: 'Не удалось загрузить сообщения',
       sendError: 'Не удалось отправить сообщение',
     },
+    settings: {
+      title: 'Настройки',
+      appearance: 'Внешний вид',
+      language: 'Язык',
+      theme: 'Тема',
+      dark: 'Тёмная',
+      light: 'Светлая',
+    },
   },
   tj: {
     tabs: {
@@ -773,6 +789,14 @@ const translations = {
       placeholder: 'Паём...',
       loadError: 'Паёмҳоро бор кардан нашуд',
       sendError: 'Паёмро фиристодан нашуд',
+    },
+    settings: {
+      title: 'Танзимот',
+      appearance: 'Намуди зоҳирӣ',
+      language: 'Забон',
+      theme: 'Мавзӯъ',
+      dark: 'Торик',
+      light: 'Равшан',
     },
   },
 } as const;

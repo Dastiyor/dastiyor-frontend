@@ -14,12 +14,14 @@ import {
 import { useLocalSearchParams, router } from 'expo-router';
 import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const STARS = [1, 2, 3, 4, 5];
 
 export default function ReviewScreen() {
   const { taskId, providerName, taskTitle } = useLocalSearchParams<{ taskId: string; providerName: string; taskTitle: string }>();
   const { t } = useLanguage();
+  const { colors } = useTheme();
   const rv = t.review;
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
@@ -39,20 +41,20 @@ export default function ReviewScreen() {
   }
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         {taskTitle ? (
-          <View style={styles.taskBox}>
-            <Text style={styles.taskBoxLabel}>{rv.task}</Text>
-            <Text style={styles.taskBoxTitle}>{taskTitle}</Text>
+          <View style={[styles.taskBox, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.taskBoxLabel, { color: colors.textTertiary }]}>{rv.task}</Text>
+            <Text style={[styles.taskBoxTitle, { color: colors.text }]}>{taskTitle}</Text>
           </View>
         ) : null}
 
         {providerName ? (
-          <Text style={styles.providerLine}>{rv.provider}<Text style={styles.providerName}>{providerName}</Text></Text>
+          <Text style={[styles.providerLine, { color: colors.textSecondary }]}>{rv.provider}<Text style={[styles.providerName, { color: colors.text }]}>{providerName}</Text></Text>
         ) : null}
 
-        <Text style={styles.label}>{rv.ratingLabel}</Text>
+        <Text style={[styles.label, { color: colors.text }]}>{rv.ratingLabel}</Text>
         <View style={styles.starsRow}>
           {STARS.map((s) => (
             <TouchableOpacity key={s} onPress={() => setRating(s)} style={styles.starBtn}>
@@ -60,10 +62,10 @@ export default function ReviewScreen() {
             </TouchableOpacity>
           ))}
         </View>
-        {rating > 0 ? <Text style={styles.ratingLabel}>{rv.ratings[rating as keyof typeof rv.ratings]}</Text> : null}
+        {rating > 0 ? <Text style={[styles.ratingLabel, { color: colors.text }]}>{rv.ratings[rating as keyof typeof rv.ratings]}</Text> : null}
 
-        <Text style={[styles.label, { marginTop: 24 }]}>{rv.commentLabel}</Text>
-        <TextInput style={[styles.input, styles.textarea]} placeholder={rv.commentPh} placeholderTextColor="#9CA3AF" value={comment} onChangeText={setComment} multiline textAlignVertical="top" maxLength={1000} />
+        <Text style={[styles.label, { marginTop: 24, color: colors.text }]}>{rv.commentLabel}</Text>
+        <TextInput style={[styles.input, styles.textarea, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]} placeholder={rv.commentPh} placeholderTextColor={colors.textTertiary} value={comment} onChangeText={setComment} multiline textAlignVertical="top" maxLength={1000} />
 
         <TouchableOpacity style={[styles.btn, (loading || rating === 0) && styles.btnDisabled]} onPress={handleSubmit} disabled={loading || rating === 0}>
           {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>{rv.btn}</Text>}
@@ -74,7 +76,7 @@ export default function ReviewScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1 },
   scroll: { padding: 20, paddingBottom: 40 },
   taskBox: { backgroundColor: '#F3F4F6', borderRadius: 12, padding: 14, marginBottom: 16 },
   taskBoxLabel: { fontSize: 11, color: '#9CA3AF', fontWeight: '600', marginBottom: 4, textTransform: 'uppercase' },

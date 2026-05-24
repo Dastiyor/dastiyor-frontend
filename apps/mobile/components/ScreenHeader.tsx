@@ -7,10 +7,9 @@ interface Props {
   title: string;
   unreadCount?: number;
   showBack?: boolean;
-  showMenu?: boolean;
 }
 
-export function ScreenHeader({ title, unreadCount = 0, showBack = false, showMenu = true }: Props) {
+export function ScreenHeader({ title, unreadCount = 0, showBack = false }: Props) {
   const { colors } = useTheme();
   const statusBarHeight = Platform.OS === 'ios' ? 44 : (StatusBar.currentHeight ?? 24);
 
@@ -20,10 +19,6 @@ export function ScreenHeader({ title, unreadCount = 0, showBack = false, showMen
         <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} accessibilityRole="button">
           <Ionicons name="chevron-back" size={24} color={colors.accent} />
         </TouchableOpacity>
-      ) : showMenu ? (
-        <TouchableOpacity style={styles.iconBtn} accessibilityRole="button">
-          <Ionicons name="menu" size={26} color={colors.text} />
-        </TouchableOpacity>
       ) : (
         <View style={styles.iconBtn} />
       )}
@@ -31,12 +26,12 @@ export function ScreenHeader({ title, unreadCount = 0, showBack = false, showMen
       <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
 
       <TouchableOpacity
-        style={[styles.avatarBtn, { backgroundColor: colors.accent }]}
-        onPress={() => router.push('/(tabs)/profile' as any)}
-        accessibilityLabel="Profile"
+        style={styles.iconBtn}
+        onPress={() => router.push('/notifications' as any)}
+        accessibilityLabel="Notifications"
         accessibilityRole="button"
       >
-        <Ionicons name="person" size={18} color="#fff" />
+        <Ionicons name={unreadCount > 0 ? 'notifications' : 'notifications-outline'} size={24} color={colors.text} />
         {unreadCount > 0 && <View style={styles.notifDot} />}
       </TouchableOpacity>
     </View>
@@ -54,10 +49,6 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 17, fontWeight: '700', flex: 1, textAlign: 'center' },
   iconBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  avatarBtn: {
-    width: 36, height: 36, borderRadius: 18,
-    alignItems: 'center', justifyContent: 'center',
-  },
   notifDot: {
     position: 'absolute', top: 2, right: 2,
     width: 8, height: 8, borderRadius: 4, backgroundColor: '#EF4444',

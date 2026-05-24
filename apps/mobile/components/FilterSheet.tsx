@@ -9,6 +9,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export interface FilterState {
   category: string;
@@ -105,6 +106,7 @@ const L = {
 
 export function FilterSheet({ visible, filters, onChange, onApply, onClose, locale, categories = [] }: Props) {
   const t = L[locale] ?? L.ru;
+  const { colors } = useTheme();
 
   function set(key: keyof FilterState, value: string) {
     onChange({ ...filters, [key]: value });
@@ -113,46 +115,46 @@ export function FilterSheet({ visible, filters, onChange, onApply, onClose, loca
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={styles.overlay} onPress={onClose} />
-      <View style={styles.sheet}>
-        <View style={styles.handle} />
-        <View style={styles.header}>
-          <Text style={styles.title}>{t.filters}</Text>
+      <View style={[styles.sheet, { backgroundColor: colors.surface }]}>
+        <View style={[styles.handle, { backgroundColor: colors.border }]} />
+        <View style={[styles.header, { borderBottomColor: colors.border }]}>
+          <Text style={[styles.title, { color: colors.text }]}>{t.filters}</Text>
           <TouchableOpacity onPress={onClose}>
-            <Ionicons name="close" size={22} color="#6B7280" />
+            <Ionicons name="close" size={22} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.body}>
 
           {/* Category */}
-          <Text style={styles.label}>{t.category}</Text>
+          <Text style={[styles.label, { color: colors.textTertiary }]}>{t.category}</Text>
           <View style={styles.chips}>
             {[{ label: t.all, value: '' }, ...categories.map((c) => ({ label: c, value: c }))].map((c) => {
               const active = filters.category === c.value;
               return (
                 <TouchableOpacity
                   key={c.value || '__all__'}
-                  style={[styles.chip, active && styles.chipActive]}
+                  style={[styles.chip, { borderColor: colors.border, backgroundColor: colors.surfaceAlt }, active && styles.chipActive]}
                   onPress={() => set('category', c.value)}
                 >
-                  <Text style={[styles.chipText, active && styles.chipTextActive]}>{c.label}</Text>
+                  <Text style={[styles.chipText, { color: colors.textSecondary }, active && styles.chipTextActive]}>{c.label}</Text>
                 </TouchableOpacity>
               );
             })}
           </View>
 
           {/* Urgency */}
-          <Text style={styles.label}>{t.urgency}</Text>
+          <Text style={[styles.label, { color: colors.textTertiary }]}>{t.urgency}</Text>
           <View style={styles.chips}>
             {URGENCY_OPTIONS.map((u) => {
               const active = filters.urgency === u.value;
               return (
                 <TouchableOpacity
                   key={u.value || '__all__'}
-                  style={[styles.chip, active && styles.chipActive]}
+                  style={[styles.chip, { borderColor: colors.border, backgroundColor: colors.surfaceAlt }, active && styles.chipActive]}
                   onPress={() => set('urgency', u.value)}
                 >
-                  <Text style={[styles.chipText, active && styles.chipTextActive]}>
+                  <Text style={[styles.chipText, { color: colors.textSecondary }, active && styles.chipTextActive]}>
                     {u.label[locale] ?? u.label.ru}
                   </Text>
                 </TouchableOpacity>
@@ -161,17 +163,17 @@ export function FilterSheet({ visible, filters, onChange, onApply, onClose, loca
           </View>
 
           {/* Sort */}
-          <Text style={styles.label}>{t.sort}</Text>
+          <Text style={[styles.label, { color: colors.textTertiary }]}>{t.sort}</Text>
           <View style={styles.chips}>
             {SORT_OPTIONS.map((s) => {
               const active = filters.sort === s.value;
               return (
                 <TouchableOpacity
                   key={s.value}
-                  style={[styles.chip, active && styles.chipActive]}
+                  style={[styles.chip, { borderColor: colors.border, backgroundColor: colors.surfaceAlt }, active && styles.chipActive]}
                   onPress={() => set('sort', s.value)}
                 >
-                  <Text style={[styles.chipText, active && styles.chipTextActive]}>
+                  <Text style={[styles.chipText, { color: colors.textSecondary }, active && styles.chipTextActive]}>
                     {s.label[locale] ?? s.label.ru}
                   </Text>
                 </TouchableOpacity>
@@ -180,42 +182,42 @@ export function FilterSheet({ visible, filters, onChange, onApply, onClose, loca
           </View>
 
           {/* City */}
-          <Text style={styles.label}>{t.city}</Text>
-          <View style={styles.inputWrap}>
-            <Ionicons name="location-outline" size={16} color="#9CA3AF" style={styles.inputIcon} />
+          <Text style={[styles.label, { color: colors.textTertiary }]}>{t.city}</Text>
+          <View style={[styles.inputWrap, { borderColor: colors.border, backgroundColor: colors.surfaceAlt }]}>
+            <Ionicons name="location-outline" size={16} color={colors.textTertiary} style={styles.inputIcon} />
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: colors.text }]}
               placeholder={t.cityPlaceholder}
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={colors.textTertiary}
               value={filters.city}
               onChangeText={(v) => set('city', v)}
             />
             {filters.city ? (
               <TouchableOpacity onPress={() => set('city', '')}>
-                <Ionicons name="close-circle" size={16} color="#9CA3AF" />
+                <Ionicons name="close-circle" size={16} color={colors.textTertiary} />
               </TouchableOpacity>
             ) : null}
           </View>
 
           {/* Budget range */}
-          <Text style={styles.label}>{t.budget}</Text>
+          <Text style={[styles.label, { color: colors.textTertiary }]}>{t.budget}</Text>
           <View style={styles.budgetRow}>
-            <View style={[styles.inputWrap, styles.budgetInput]}>
+            <View style={[styles.inputWrap, styles.budgetInput, { borderColor: colors.border, backgroundColor: colors.surfaceAlt }]}>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: colors.text }]}
                 placeholder={t.from}
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={colors.textTertiary}
                 value={filters.minBudget}
                 onChangeText={(v) => set('minBudget', v.replace(/[^0-9]/g, ''))}
                 keyboardType="numeric"
               />
             </View>
-            <View style={styles.budgetDash} />
-            <View style={[styles.inputWrap, styles.budgetInput]}>
+            <View style={[styles.budgetDash, { backgroundColor: colors.border }]} />
+            <View style={[styles.inputWrap, styles.budgetInput, { borderColor: colors.border, backgroundColor: colors.surfaceAlt }]}>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: colors.text }]}
                 placeholder={t.to}
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={colors.textTertiary}
                 value={filters.maxBudget}
                 onChangeText={(v) => set('maxBudget', v.replace(/[^0-9]/g, ''))}
                 keyboardType="numeric"
@@ -225,12 +227,12 @@ export function FilterSheet({ visible, filters, onChange, onApply, onClose, loca
 
         </ScrollView>
 
-        <View style={styles.actions}>
+        <View style={[styles.actions, { borderTopColor: colors.border }]}>
           <TouchableOpacity
-            style={styles.resetBtn}
+            style={[styles.resetBtn, { borderColor: colors.border }]}
             onPress={() => onChange({ ...DEFAULT_FILTERS })}
           >
-            <Text style={styles.resetText}>{t.reset}</Text>
+            <Text style={[styles.resetText, { color: colors.textSecondary }]}>{t.reset}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.applyBtn}
@@ -247,21 +249,20 @@ export function FilterSheet({ visible, filters, onChange, onApply, onClose, loca
 const styles = StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
   sheet: {
-    backgroundColor: '#fff',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     maxHeight: '85%',
   },
   handle: {
     width: 40, height: 4, borderRadius: 2,
-    backgroundColor: '#E5E7EB', alignSelf: 'center', marginTop: 12, marginBottom: 4,
+    alignSelf: 'center', marginTop: 12, marginBottom: 4,
   },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 20, paddingVertical: 14,
-    borderBottomWidth: 1, borderBottomColor: '#F3F4F6',
+    borderBottomWidth: 1,
   },
-  title: { fontSize: 18, fontWeight: '800', color: '#111827' },
+  title: { fontSize: 18, fontWeight: '800' },
   body: { padding: 20, paddingBottom: 8 },
   label: {
     fontSize: 12, fontWeight: '700', color: '#9CA3AF',
@@ -271,32 +272,31 @@ const styles = StyleSheet.create({
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
   chip: {
     paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
-    borderWidth: 1.5, borderColor: '#E5E7EB', backgroundColor: '#fff',
+    borderWidth: 1.5,
   },
   chipActive: { borderColor: '#2563EB', backgroundColor: '#EFF6FF' },
-  chipText: { fontSize: 13, fontWeight: '600', color: '#6B7280' },
+  chipText: { fontSize: 13, fontWeight: '600' },
   chipTextActive: { color: '#2563EB' },
   inputWrap: {
     flexDirection: 'row', alignItems: 'center',
-    borderWidth: 1.5, borderColor: '#E5E7EB', borderRadius: 12,
+    borderWidth: 1.5, borderRadius: 12,
     paddingHorizontal: 12, paddingVertical: 10, marginBottom: 16,
-    backgroundColor: '#FAFAFA',
   },
   inputIcon: { marginRight: 8 },
-  input: { flex: 1, fontSize: 14, color: '#111827', padding: 0 },
+  input: { flex: 1, fontSize: 14, padding: 0 },
   budgetRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   budgetInput: { flex: 1, marginBottom: 16 },
-  budgetDash: { width: 12, height: 2, backgroundColor: '#D1D5DB', marginBottom: 16 },
+  budgetDash: { width: 12, height: 2, marginBottom: 16 },
   actions: {
     flexDirection: 'row', gap: 12,
     padding: 20, paddingBottom: 36,
-    borderTopWidth: 1, borderTopColor: '#F3F4F6',
+    borderTopWidth: 1,
   },
   resetBtn: {
     flex: 1, paddingVertical: 14, borderRadius: 14,
-    borderWidth: 1.5, borderColor: '#E5E7EB', alignItems: 'center',
+    borderWidth: 1.5, alignItems: 'center',
   },
-  resetText: { fontSize: 15, fontWeight: '700', color: '#6B7280' },
+  resetText: { fontSize: 15, fontWeight: '700' },
   applyBtn: {
     flex: 2, paddingVertical: 14, borderRadius: 14,
     backgroundColor: '#2563EB', alignItems: 'center',

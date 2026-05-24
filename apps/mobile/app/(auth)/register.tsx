@@ -20,6 +20,7 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -33,13 +34,12 @@ function passwordStrength(pw: string): string[] {
   return issues;
 }
 
-const EMOJI_CUSTOMER = String.fromCodePoint(0x1F4CB);  // 📋
-const EMOJI_PROVIDER  = String.fromCodePoint(0x1F527);  // 🔧
-const EMOJI_FLAG_TJ   = String.fromCodePoint(0x1F1F9, 0x1F1EF); // 🇹🇯
+const ROLE_ICONS = { customer: 'clipboard-outline', provider: 'construct-outline' } as const;
 
 export default function RegisterScreen() {
   const { register, loginWithGoogle, loginWithApple } = useAuth();
   const { t } = useLanguage();
+  const { colors, isDark } = useTheme();
   const r = t.register;
 
   const [fullName, setFullName] = useState('');
@@ -161,18 +161,18 @@ export default function RegisterScreen() {
         keyboardDismissMode="on-drag"
       >
         <Text style={styles.logo}>Dastiyor</Text>
-        <Text style={styles.subtitle}>{r.subtitle}</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{r.subtitle}</Text>
 
         {/* Role selector */}
-        <Text style={styles.fieldLabel}>{r.iWant}</Text>
+        <Text style={[styles.fieldLabel, { color: colors.text }]}>{r.iWant}</Text>
         <View style={styles.roleRow}>
           {(['customer', 'provider'] as Role[]).map((rv) => (
             <TouchableOpacity
               key={rv}
-              style={[styles.roleBtn, role === rv && styles.roleBtnActive]}
+              style={[styles.roleBtn, { backgroundColor: colors.surface, borderColor: colors.border }, role === rv && styles.roleBtnActive]}
               onPress={() => setRole(rv)}
             >
-              <Text style={styles.roleEmoji}>{rv === 'customer' ? EMOJI_CUSTOMER : EMOJI_PROVIDER}</Text>
+              <Ionicons name={ROLE_ICONS[rv]} size={26} color={role === rv ? '#2563EB' : '#9CA3AF'} style={{ marginBottom: 6 }} />
               <Text style={[styles.roleBtnText, role === rv && styles.roleBtnTextActive]}>
                 {rv === 'customer' ? r.postTask : r.doTask}
               </Text>
@@ -183,19 +183,22 @@ export default function RegisterScreen() {
         {/* OAuth */}
         {googleConfigured && (
           <TouchableOpacity
-            style={styles.oauthBtn}
+            style={[styles.oauthBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={() => promptAsync()}
             disabled={!request || googleLoading}
           >
             {googleLoading
-              ? <ActivityIndicator color="#374151" />
-              : <Text style={styles.oauthBtnText}>{googleBtnLabel}</Text>}
+              ? <ActivityIndicator color={colors.text} />
+              : <Text style={[styles.oauthBtnText, { color: colors.text }]}>{googleBtnLabel}</Text>}
           </TouchableOpacity>
         )}
         {isAppleAvailable && (
           <AppleAuthentication.AppleAuthenticationButton
             buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_UP}
-            buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+            buttonStyle={isDark
+              ? AppleAuthentication.AppleAuthenticationButtonStyle.WHITE
+              : AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
+            }
             cornerRadius={12}
             style={styles.appleBtn}
             onPress={handleAppleRegister}
@@ -203,18 +206,18 @@ export default function RegisterScreen() {
         )}
         {(googleConfigured || isAppleAvailable) && (
           <View style={styles.dividerRow}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>{orLabel}</Text>
-            <View style={styles.dividerLine} />
+            <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
+            <Text style={[styles.dividerText, { color: colors.textTertiary }]}>{orLabel}</Text>
+            <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
           </View>
         )}
 
         {/* Full name */}
-        <Text style={styles.fieldLabel}>{r.fullName}</Text>
+        <Text style={[styles.fieldLabel, { color: colors.text }]}>{r.fullName}</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]}
           placeholder={r.fullNamePh}
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={colors.textTertiary}
           value={fullName}
           onChangeText={setFullName}
           autoComplete="name"
@@ -222,21 +225,20 @@ export default function RegisterScreen() {
         />
 
         {/* Phone with +992 prefix */}
-        <Text style={styles.fieldLabel}>{r.phone}</Text>
-        <View style={styles.phoneRow}>
+        <Text style={[styles.fieldLabel, { color: colors.text }]}>{r.phone}</Text>
+        <View style={[styles.phoneRow, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
           <View style={styles.phonePrefix}>
-            {Platform.OS === 'ios'
-              ? <Text style={styles.phonePrefixText}>{EMOJI_FLAG_TJ} +992</Text>
-              : <>
-                  <Text style={styles.phonePrefixFlag}>TJ</Text>
-                  <Text style={styles.phonePrefixText}>+992</Text>
-                </>
-            }
+            <View style={styles.flagImg}>
+              <View style={{ flex: 1, backgroundColor: '#BE0027' }} />
+              <View style={{ flex: 1, backgroundColor: '#FFFFFF' }} />
+              <View style={{ flex: 1, backgroundColor: '#006B3F' }} />
+            </View>
+            <Text style={styles.phonePrefixText}>+992</Text>
           </View>
           <TextInput
-            style={styles.phoneInput}
+            style={[styles.phoneInput, { color: colors.text }]}
             placeholder={r.phonePh}
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={colors.textTertiary}
             value={phoneLocal}
             onChangeText={handlePhoneChange}
             keyboardType="number-pad"
@@ -246,12 +248,12 @@ export default function RegisterScreen() {
         </View>
 
         {/* Password */}
-        <Text style={styles.fieldLabel}>{r.password}</Text>
-        <View style={styles.passwordRow}>
+        <Text style={[styles.fieldLabel, { color: colors.text }]}>{r.password}</Text>
+        <View style={[styles.passwordRow, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
           <TextInput
-            style={styles.passwordInput}
+            style={[styles.passwordInput, { color: colors.text }]}
             placeholder={r.passwordHint}
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={colors.textTertiary}
             value={password}
             onChangeText={handlePasswordChange}
             secureTextEntry={!showPassword}
@@ -315,7 +317,6 @@ const styles = StyleSheet.create({
     padding: 14, alignItems: 'center', backgroundColor: '#fff',
   },
   roleBtnActive: { borderColor: '#2563EB', backgroundColor: '#EFF6FF' },
-  roleEmoji: { fontSize: 26, marginBottom: 6 },
   roleBtnText: { fontSize: 12, color: '#6B7280', fontWeight: '500', textAlign: 'center' },
   roleBtnTextActive: { color: '#2563EB', fontWeight: '700' },
 
@@ -349,7 +350,7 @@ const styles = StyleSheet.create({
     borderRightWidth: 1, borderRightColor: '#E5E7EB',
     justifyContent: 'center', alignItems: 'center', flexDirection: 'row', gap: 6,
   },
-  phonePrefixFlag: { fontSize: 11, fontWeight: '700', color: '#2563EB', letterSpacing: 0.5 },
+  flagImg: { width: 24, height: 16, borderRadius: 2, overflow: 'hidden' },
   phonePrefixText: { fontSize: 15, fontWeight: '600', color: '#374151' },
   phoneInput: {
     flex: 1, padding: 13, fontSize: 15, color: '#111827',
@@ -364,7 +365,7 @@ const styles = StyleSheet.create({
   },
   passwordInput: {
     flex: 1, padding: 13, fontSize: 15, color: '#111827',
-    backgroundColor: 'transparent',
+    backgroundColor: 'transparent', letterSpacing: 0,
   },
   eyeBtn: { paddingHorizontal: 14 },
   pwOk: { fontSize: 12, color: '#059669', fontWeight: '500', marginBottom: 14 },

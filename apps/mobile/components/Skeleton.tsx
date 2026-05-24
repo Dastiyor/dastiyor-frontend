@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View, ViewStyle } from 'react-native';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface SkeletonProps {
   width?: number | string;
@@ -9,6 +10,7 @@ interface SkeletonProps {
 }
 
 export function Skeleton({ width = '100%', height = 16, borderRadius = 8, style }: SkeletonProps) {
+  const { colors } = useTheme();
   const shimmer = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -25,7 +27,7 @@ export function Skeleton({ width = '100%', height = 16, borderRadius = 8, style 
   return (
     <Animated.View
       style={[
-        styles.bone,
+        { backgroundColor: colors.border },
         { width: width as any, height, borderRadius, opacity },
         style,
       ]}
@@ -34,9 +36,10 @@ export function Skeleton({ width = '100%', height = 16, borderRadius = 8, style 
 }
 
 export function TaskCardSkeleton() {
+  const { colors } = useTheme();
   return (
-    <View style={styles.card}>
-      <View style={styles.iconBox} />
+    <View style={[styles.card, { backgroundColor: colors.surface }]}>
+      <View style={[styles.iconBox, { backgroundColor: colors.surfaceAlt }]} />
       <View style={styles.body}>
         <View style={styles.topRow}>
           <Skeleton width={80} height={10} borderRadius={6} />
@@ -54,8 +57,9 @@ export function TaskCardSkeleton() {
 }
 
 export function FeaturedCardSkeleton() {
+  const { colors } = useTheme();
   return (
-    <View style={styles.featCard}>
+    <View style={[styles.featCard, { backgroundColor: colors.surfaceAlt }]}>
       <View style={styles.featTop}>
         <View style={styles.featIcon} />
         <Skeleton width={60} height={22} borderRadius={12} style={{ opacity: 0.3 } as any} />
@@ -71,12 +75,8 @@ export function FeaturedCardSkeleton() {
 }
 
 const styles = StyleSheet.create({
-  bone: { backgroundColor: '#CBD5E1' },
-
-  /* Task card */
   card: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
     borderRadius: 16,
     padding: 14,
     marginHorizontal: 16,
@@ -84,15 +84,13 @@ const styles = StyleSheet.create({
   },
   iconBox: {
     width: 48, height: 48, borderRadius: 14,
-    backgroundColor: '#E2E8F0', marginRight: 12, flexShrink: 0,
+    marginRight: 12, flexShrink: 0,
   },
   body: { flex: 1, gap: 6 },
   topRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
   footer: { flexDirection: 'row', justifyContent: 'space-between' },
 
-  /* Featured card */
   featCard: {
-    backgroundColor: '#CBD5E1',
     borderRadius: 20,
     padding: 18,
     marginHorizontal: 20,

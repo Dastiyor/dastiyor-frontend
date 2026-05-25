@@ -277,8 +277,8 @@ export default function HomeScreen() {
             {tasks.length === 0 && (
               <EmptyState
                 icon="search-outline"
-                title="Заданий не найдено"
-                subtitle="Попробуйте изменить фильтры или загляните позже"
+                title={t.home.empty}
+                subtitle={t.task.noTasksHint}
               />
             )}
           </>

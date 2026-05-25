@@ -51,14 +51,14 @@ export default function TabLayout() {
         return true;
       });
       return () => sub.remove();
-    }, [])
+    }, [t])
   );
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#2563EB',
+        tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.textTertiary,
         tabBarStyle: {
           borderTopColor: colors.tabBorder,

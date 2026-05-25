@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  View,
   Text,
   TextInput,
   TouchableOpacity,
@@ -22,7 +23,16 @@ export default function ChangePasswordScreen() {
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
   const [confirm, setConfirm] = useState('');
+  const [pwIssues, setPwIssues] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+
+  function passwordStrength(pw: string): string[] {
+    const issues: string[] = [];
+    if (pw.length < 8) issues.push(cp.errLength);
+    if (!/[A-Za-zА-Яа-яЁё]/.test(pw)) issues.push(cp.errNeedLetter ?? 'Добавьте букву');
+    if (!/[0-9]/.test(pw)) issues.push(cp.errNeedDigit ?? 'Добавьте цифру');
+    return issues;
+  }
 
   async function handleSave() {
     if (!current || !next || !confirm) { Alert.alert(t.common.error, cp.errFill); return; }
@@ -46,7 +56,21 @@ export default function ChangePasswordScreen() {
         <TextInput style={[styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]} value={current} onChangeText={setCurrent} secureTextEntry autoComplete="password" placeholder="••••••••" placeholderTextColor={colors.textTertiary} maxLength={128} />
 
         <Text style={[styles.label, { color: colors.text }]}>{cp.new}</Text>
-        <TextInput style={[styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]} value={next} onChangeText={setNext} secureTextEntry autoComplete="new-password" placeholder={cp.newPh} placeholderTextColor={colors.textTertiary} maxLength={128} />
+        <TextInput
+          style={[styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]}
+          value={next}
+          onChangeText={(v) => { setNext(v); setPwIssues(v ? passwordStrength(v) : []); }}
+          secureTextEntry
+          autoComplete="new-password"
+          placeholder={cp.newPh}
+          placeholderTextColor={colors.textTertiary}
+          maxLength={128}
+        />
+        {next.length > 0 && (
+          pwIssues.length === 0
+            ? <Text style={styles.pwOk}>✓ {cp.passwordStrong ?? 'Надёжный пароль'}</Text>
+            : pwIssues.map((msg, i) => <Text key={i} style={styles.pwErr}>• {msg}</Text>)
+        )}
 
         <Text style={[styles.label, { color: colors.text }]}>{cp.confirm}</Text>
         <TextInput style={[styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]} value={confirm} onChangeText={setConfirm} secureTextEntry placeholder={cp.confirmPh} placeholderTextColor={colors.textTertiary} maxLength={128} />
@@ -64,6 +88,8 @@ const styles = StyleSheet.create({
   scroll: { padding: 20, paddingBottom: 40 },
   label: { fontSize: 13, fontWeight: '700', color: '#374151', marginBottom: 8 },
   input: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, padding: 14, fontSize: 15, color: '#111827', backgroundColor: '#F9FAFB', marginBottom: 20, letterSpacing: 0 },
+  pwOk: { fontSize: 12, color: '#059669', fontWeight: '500', marginBottom: 14 },
+  pwErr: { fontSize: 12, color: '#DC2626', marginBottom: 2 },
   btn: { backgroundColor: '#2563EB', borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 8 },
   btnDisabled: { opacity: 0.6 },
   btnText: { color: '#fff', fontSize: 16, fontWeight: '700' },

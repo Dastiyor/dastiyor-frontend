@@ -42,9 +42,11 @@ export default function ChatScreen() {
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
   const listRef = useRef<FlatList>(null);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isAtBottomRef = useRef(true);
   const pollErrorCount = useRef(0);
+  const pollDelayRef = useRef(POLL_INTERVAL_MS);
 
   useEffect(() => { navigation.setOptions({ title: partnerName ?? t.chat.empty }); }, [partnerName]);
 
@@ -55,36 +57,45 @@ export default function ChatScreen() {
       const res = await api.get<{ messages: ChatMessage[] }>(`/api/messages?${params}`);
       setMessages(res.messages);
       pollErrorCount.current = 0;
+      pollDelayRef.current = POLL_INTERVAL_MS;
       if (isInitial) setLoadError(false);
     } catch {
       if (isInitial) {
         setLoadError(true);
-      } else {
-        pollErrorCount.current += 1;
-        if (pollErrorCount.current === 1) {
-          toast.show(t.chat.loadError, 'error');
-        }
-        if (pollErrorCount.current >= 5 && pollRef.current) {
-          clearInterval(pollRef.current);
-          pollRef.current = null;
-        }
+        return;
       }
+      pollErrorCount.current += 1;
+      if (pollErrorCount.current === 1) {
+        toast.show(t.chat.loadError, 'error');
+      }
+      // exponential backoff: 4s → 8s → 16s → 30s cap
+      pollDelayRef.current = Math.min(pollDelayRef.current * 2, 30_000);
+      if (pollErrorCount.current >= 5) return;
     }
+  }
+
+  function schedulePoll() {
+    pollRef.current = setTimeout(async () => {
+      await fetchMessages(false);
+      schedulePoll();
+    }, pollDelayRef.current);
   }
 
   useFocusEffect(
     useCallback(() => {
       pollErrorCount.current = 0;
-      (async () => { setLoading(true); await fetchMessages(true); setLoading(false); })();
-      pollRef.current = setInterval(() => fetchMessages(false), POLL_INTERVAL_MS);
-      return () => { if (pollRef.current) clearInterval(pollRef.current); };
+      pollDelayRef.current = POLL_INTERVAL_MS;
+      (async () => { setLoading(true); await fetchMessages(true); setLoading(false); schedulePoll(); })();
+      return () => { if (pollRef.current) clearTimeout(pollRef.current); };
     }, [partnerId, taskId])
   );
 
   useEffect(() => {
     if (messages.length > 0 && isAtBottomRef.current) {
-      setTimeout(() => listRef.current?.scrollToEnd({ animated: false }), 100);
+      if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
+      scrollTimerRef.current = setTimeout(() => listRef.current?.scrollToEnd({ animated: false }), 100);
     }
+    return () => { if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current); };
   }, [messages.length]);
 
   function handleScroll(e: NativeSyntheticEvent<NativeScrollEvent>) {
@@ -103,7 +114,8 @@ export default function ChatScreen() {
     try {
       await api.post('/api/messages', { receiverId: partnerId, content, taskId: taskId || undefined });
       await fetchMessages(false);
-      setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
+      if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
+      scrollTimerRef.current = setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
     } catch {
       setText(content);
       toast.show(t.chat.sendError, 'error');
@@ -138,7 +150,7 @@ export default function ChatScreen() {
   }
 
   return (
-    <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}>
+    <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}>
       {taskTitle ? <View style={[styles.taskBar, { backgroundColor: colors.iconBg, borderBottomColor: colors.border }]}><Text style={styles.taskBarText} numberOfLines={1}>{taskTitle}</Text></View> : null}
 
       {loading ? (

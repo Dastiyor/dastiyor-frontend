@@ -95,6 +95,8 @@ export interface AppNotification {
   title: string;
   message: string;
   link: string;
+  taskId?: string | null;
+  partnerId?: string | null;
   isRead: boolean;
   createdAt: string;
 }

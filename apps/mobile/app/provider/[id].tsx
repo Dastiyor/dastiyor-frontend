@@ -13,6 +13,7 @@ import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { Avatar } from '@/components/Avatar';
 
 interface Review {
   id: string;
@@ -36,11 +37,6 @@ interface ProviderProfile {
   reviews: Review[];
 }
 
-function Initials({ name }: { name: string }) {
-  const parts = name.trim().split(' ');
-  const ini = parts.length >= 2 ? (parts[0][0] + parts[1][0]).toUpperCase() : name.slice(0, 2).toUpperCase();
-  return <View style={styles.avatar}><Text style={styles.avatarText}>{ini}</Text></View>;
-}
 
 export default function ProviderProfileScreen() {
   const { id, name } = useLocalSearchParams<{ id: string; name?: string }>();
@@ -83,7 +79,9 @@ export default function ProviderProfileScreen() {
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.bg }]} contentContainerStyle={styles.scroll}>
       <View style={[styles.header, { backgroundColor: colors.surface }]}>
-        <Initials name={profile.fullName} />
+        <View style={styles.avatarWrap}>
+          <Avatar name={profile.fullName} size={80} />
+        </View>
         <Text style={[styles.name, { color: colors.text }]}>{profile.fullName}</Text>
         <View style={styles.statsRow}>
           <View style={styles.statBox}>
@@ -161,8 +159,7 @@ const styles = StyleSheet.create({
   retryBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
   scroll: { paddingBottom: 40 },
   header: { alignItems: 'center', backgroundColor: '#fff', paddingTop: 40, paddingBottom: 28, marginBottom: 16 },
-  avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#2563EB', alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
-  avatarText: { fontSize: 28, fontWeight: '800', color: '#fff' },
+  avatarWrap: { marginBottom: 14 },
   name: { fontSize: 22, fontWeight: '800', color: '#111827', marginBottom: 20 },
   statsRow: { flexDirection: 'row', alignItems: 'center' },
   statBox: { alignItems: 'center', paddingHorizontal: 28 },

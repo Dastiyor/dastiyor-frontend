@@ -11,6 +11,7 @@ import {
   Alert,
 } from 'react-native';
 import { Link, router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
@@ -30,6 +31,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const googleConfigured = !!(
     process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID &&
@@ -190,16 +192,25 @@ export default function LoginScreen() {
         />
 
         <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>{L.passLabel}</Text>
-        <TextInput
-          style={[styles.input, { backgroundColor: colors.inputBg, borderColor: password ? colors.inputBorder : colors.border, color: colors.text }]}
-          placeholder={L.passPh}
-          placeholderTextColor={colors.textTertiary}
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          autoComplete="password"
-          maxLength={128}
-        />
+        <View style={[styles.passwordRow, { backgroundColor: colors.inputBg, borderColor: password ? colors.inputBorder : colors.border }]}>
+          <TextInput
+            style={[styles.passwordInput, { color: colors.text }]}
+            placeholder={L.passPh}
+            placeholderTextColor={colors.textTertiary}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+            autoComplete="password"
+            maxLength={128}
+          />
+          <TouchableOpacity
+            style={styles.eyeBtn}
+            onPress={() => setShowPassword(v => !v)}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons name={showPassword ? 'eye-outline' : 'eye-off-outline'} size={20} color={colors.textTertiary} />
+          </TouchableOpacity>
+        </View>
 
         <TouchableOpacity
           style={[styles.button, loading && styles.buttonDisabled]}
@@ -253,6 +264,14 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderRadius: 14,
     padding: 14, fontSize: 16, marginBottom: 16, letterSpacing: 0,
   },
+  passwordRow: {
+    flexDirection: 'row', alignItems: 'center',
+    borderWidth: 1.5, borderRadius: 14, marginBottom: 16,
+  },
+  passwordInput: {
+    flex: 1, fontSize: 16, padding: 14, backgroundColor: 'transparent',
+  },
+  eyeBtn: { paddingHorizontal: 14 },
   button: {
     backgroundColor: '#2563EB', borderRadius: 14, padding: 16,
     alignItems: 'center', marginTop: 4,

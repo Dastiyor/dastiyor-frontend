@@ -30,6 +30,7 @@ export default function ChangeEmailScreen() {
     : null;
 
   const [newEmail, setNewEmail] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
   const [saving, setSaving] = useState(false);
 
   async function handleSave() {
@@ -37,12 +38,14 @@ export default function ChangeEmailScreen() {
     if (!trimmed) { Alert.alert(t.common.error, ce.errFill); return; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) { Alert.alert(t.common.error, ce.errInvalid); return; }
     if (currentEmail && trimmed === currentEmail.toLowerCase()) { Alert.alert(t.common.error, ce.errSame); return; }
+    if (!currentPassword) { Alert.alert(t.common.error, ce.errPassword); return; }
 
     setSaving(true);
     try {
       await api.put('/api/profile', {
         fullName: user?.fullName ?? '',
         email: trimmed,
+        currentPassword,
       });
       await refreshUser();
       Alert.alert(t.common.done, ce.success, [{ text: t.common.ok, onPress: () => router.back() }]);
@@ -65,6 +68,18 @@ export default function ChangeEmailScreen() {
             <Text style={[styles.currentValue, { color: colors.text }]}>{currentEmail}</Text>
           </View>
         ) : null}
+
+        <Text style={[styles.label, { color: colors.text }]}>{ce.passwordLabel}</Text>
+        <TextInput
+          style={inputStyle}
+          value={currentPassword}
+          onChangeText={setCurrentPassword}
+          secureTextEntry
+          autoComplete="password"
+          placeholder={ce.passwordPh}
+          placeholderTextColor={colors.textTertiary}
+          maxLength={128}
+        />
 
         <Text style={[styles.label, { color: colors.text }]}>{ce.newLabel}</Text>
         <TextInput

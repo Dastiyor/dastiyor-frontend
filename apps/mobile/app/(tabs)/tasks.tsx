@@ -255,8 +255,8 @@ export default function TaskBrowseScreen() {
           ListEmptyComponent={
             <EmptyState
               icon="clipboard-outline"
-              title="Заданий не найдено"
-              subtitle="Попробуйте изменить фильтры или поисковый запрос"
+              title={t.home.empty}
+              subtitle={t.task.noTasksFilterHint}
             />
           }
           ListFooterComponent={loadingMore ? <ActivityIndicator color="#2563EB" style={{ margin: 16 }} /> : null}

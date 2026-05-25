@@ -19,8 +19,9 @@ import { LOCALE_NAMES, type Locale } from '@/lib/i18n';
 const LOCALES: Locale[] = ['ru', 'tj', 'en'];
 
 const ROLE_COLORS: Record<string, { color: string; bg: string }> = {
-  CUSTOMER: { color: '#2563EB', bg: 'rgba(37,99,235,0.18)' },
-  PROVIDER: { color: '#2563EB', bg: 'rgba(37,99,235,0.18)' },
+  CUSTOMER: { color: '#2563EB', bg: 'rgba(37,99,235,0.15)' },
+  PROVIDER: { color: '#059669', bg: 'rgba(5,150,105,0.15)' },
+  ADMIN:    { color: '#7C3AED', bg: 'rgba(124,58,237,0.15)' },
 };
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
@@ -98,7 +99,7 @@ export default function ProfileScreen() {
         <Text style={[styles.headerTitle, { color: colors.text }]}>{p.title ?? 'Profile'}</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 24 }]} showsVerticalScrollIndicator={false}>
 
         {/* User info card */}
         <View style={[styles.card, { backgroundColor: colors.surface }]}>
@@ -245,7 +246,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700' },
 
-  scroll: { padding: 16, gap: 12, paddingBottom: 48 },
+  scroll: { padding: 16, gap: 12 },
 
   card: {
     borderRadius: 16,

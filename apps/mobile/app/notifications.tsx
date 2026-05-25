@@ -54,18 +54,19 @@ export default function NotificationsScreen() {
   async function onRefresh() { setRefreshing(true); await load(); setRefreshing(false); }
 
   function handleTap(n: AppNotification) {
-    const taskMatch = n.link.match(/\/tasks\/([^/?]+)/);
-    if (taskMatch?.[1]) { router.push(`/task/${taskMatch[1]}`); return; }
-
-    const msgMatch = n.link.match(/\/conversations\/([^/?]+)/);
-    if (msgMatch?.[1]) {
-      router.push({
-        pathname: '/chat/[partnerId]',
-        params: { partnerId: msgMatch[1] },
-      });
+    if (n.taskId) { router.push(`/task/${n.taskId}`); return; }
+    if (n.partnerId) {
+      router.push({ pathname: '/chat/[partnerId]', params: { partnerId: n.partnerId } });
       return;
     }
-
+    // fallback: parse legacy link field
+    const taskMatch = n.link.match(/\/tasks\/([^/?]+)/);
+    if (taskMatch?.[1]) { router.push(`/task/${taskMatch[1]}`); return; }
+    const msgMatch = n.link.match(/\/conversations\/([^/?]+)/);
+    if (msgMatch?.[1]) {
+      router.push({ pathname: '/chat/[partnerId]', params: { partnerId: msgMatch[1] } });
+      return;
+    }
     toast.show(t.notifications.title, 'info');
   }
 

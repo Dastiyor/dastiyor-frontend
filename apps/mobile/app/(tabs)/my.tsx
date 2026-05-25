@@ -56,7 +56,7 @@ interface MyTask {
   responseCount: number;
 }
 
-interface MyResponseItemItem {
+interface MyResponseItem {
   id: string;
   message: string;
   price: string;
@@ -218,7 +218,7 @@ export default function MyScreen() {
 
       {/* FAB for creating tasks (customers only) */}
       {isCustomer && (
-        <TouchableOpacity style={styles.fab} onPress={() => router.push('/create-task')} accessibilityLabel={t.my.createTask} accessibilityRole="button">
+        <TouchableOpacity style={[styles.fab, { bottom: insets.bottom + 16 }]} onPress={() => router.push('/create-task')} accessibilityLabel={t.my.createTask} accessibilityRole="button">
           <Ionicons name="add" size={28} color="#fff" />
         </TouchableOpacity>
       )}
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   skeletonList: { paddingTop: 12 },
   fab: {
-    position: 'absolute', bottom: 24, right: 20,
+    position: 'absolute', bottom: 0, right: 20,
     width: 56, height: 56, borderRadius: 28,
     backgroundColor: '#2563EB', alignItems: 'center', justifyContent: 'center',
     shadowColor: '#2563EB', shadowOpacity: 0.4, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 8,

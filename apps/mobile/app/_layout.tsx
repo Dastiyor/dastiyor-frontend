@@ -33,6 +33,7 @@ function ThemedStack() {
       <Stack.Screen name="review/[taskId]" options={{ title: 'Оставить отзыв', presentation: 'modal' }} />
       <Stack.Screen name="provider/[id]" options={{ title: 'Профиль' }} />
       <Stack.Screen name="change-password" options={{ title: 'Смена пароля' }} />
+      <Stack.Screen name="change-email" options={{ title: 'Изменить email' }} />
       <Stack.Screen name="edit-profile" options={{ title: 'Редактировать профиль', presentation: 'modal' }} />
     </Stack>
   );

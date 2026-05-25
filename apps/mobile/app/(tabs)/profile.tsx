@@ -162,7 +162,7 @@ export default function ProfileScreen() {
                 <Text style={[styles.infoValue, { color: colors.text }]} numberOfLines={1}>{user.email}</Text>
               </View>
             </View>
-            <TouchableOpacity activeOpacity={0.6} onPress={() => router.push('/edit-profile')}>
+            <TouchableOpacity activeOpacity={0.6} onPress={() => router.push('/change-email')}>
               <View style={styles.linkRow}>
                 <Text style={[styles.linkText, { color: colors.accent }]}>{p.changeEmail}</Text>
                 <Ionicons name="chevron-forward" size={16} color={colors.accent} />
@@ -176,7 +176,7 @@ export default function ProfileScreen() {
               iconBg="rgba(245,158,11,0.12)"
               iconColor="#F59E0B"
               label={p.addEmail}
-              onPress={() => router.push('/edit-profile')}
+              onPress={() => router.push('/change-email')}
             />
           </View>
         )}

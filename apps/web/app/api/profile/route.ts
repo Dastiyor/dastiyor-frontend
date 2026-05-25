@@ -68,10 +68,26 @@ export async function PUT(request: Request) {
         }
 
         const body = await request.json();
-        const { fullName, phone, bio, skills, avatar } = body;
+        const { fullName, phone, bio, skills, avatar, email } = body;
 
         if (!fullName || fullName.trim().length < 2) {
             return NextResponse.json({ error: 'Name must be at least 2 characters' }, { status: 400 });
+        }
+
+        let newEmail: string | undefined;
+        if (email !== undefined) {
+            const trimmed = email.trim().toLowerCase();
+            if (trimmed === '') {
+                return NextResponse.json({ error: 'Enter a valid email address' }, { status: 400 });
+            }
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+                return NextResponse.json({ error: 'Enter a valid email address' }, { status: 400 });
+            }
+            const existing = await prisma.user.findUnique({ where: { email: trimmed }, select: { id: true } });
+            if (existing && existing.id !== payload.id) {
+                return NextResponse.json({ error: 'This email is already in use' }, { status: 409 });
+            }
+            newEmail = trimmed;
         }
 
         const updatedUser = await prisma.user.update({
@@ -81,7 +97,8 @@ export async function PUT(request: Request) {
                 phone: phone?.trim() || null,
                 bio: bio?.trim() || null,
                 skills: skills?.trim() || null,
-                avatar: avatar || null
+                avatar: avatar || null,
+                ...(newEmail !== undefined ? { email: newEmail } : {}),
             },
             select: {
                 id: true,

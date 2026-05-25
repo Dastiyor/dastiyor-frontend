@@ -1,12 +1,8 @@
-import { useRef, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  FlatList,
-  Dimensions,
-  Animated,
   Modal,
   Pressable,
   StatusBar,
@@ -17,96 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { type Locale } from '@/lib/i18n';
 import * as SecureStore from 'expo-secure-store';
-import {
-  Illustration1,
-  Illustration2,
-  Illustration3,
-} from '@/components/OnboardingIllustrations';
-
-const { width, height } = Dimensions.get('window');
-const ILLUS_HEIGHT = Math.round(height * 0.50);
-
-interface Slide {
-  id: string;
-  Illustration: React.ComponentType<{ width: number; height: number }>;
-  title: string;
-  subtitle: string;
-}
-
-const SLIDES: Record<Locale, Slide[]> = {
-  ru: [
-    {
-      id: '1',
-      Illustration: Illustration1,
-      title: 'Найдите исполнителя',
-      subtitle: 'Размещайте задания и получайте отклики от проверенных мастеров Таджикистана.',
-    },
-    {
-      id: '2',
-      Illustration: Illustration2,
-      title: 'Опишите задачу',
-      subtitle: 'Укажите что нужно сделать, бюджет и сроки. Исполнители сами напишут вам.',
-    },
-    {
-      id: '3',
-      Illustration: Illustration3,
-      title: 'Безопасно и надёжно',
-      subtitle: 'Все исполнители проходят проверку. Оставляйте отзывы и выбирайте лучших.',
-    },
-  ],
-  tj: [
-    {
-      id: '1',
-      Illustration: Illustration1,
-      title: 'Иҷрокунандаро ёбед',
-      subtitle: 'Супоришҳо гузоред ва аз мутахассисони санҷидашудаи Тоҷикистон посух гиред.',
-    },
-    {
-      id: '2',
-      Illustration: Illustration2,
-      title: 'Вазифаро тавсиф кунед',
-      subtitle: 'Нишон диҳед чӣ бояд карда шавад, буҷет ва мӯҳлат. Иҷрокунандагон менависанд.',
-    },
-    {
-      id: '3',
-      Illustration: Illustration3,
-      title: 'Бехатар ва боэтимод',
-      subtitle: 'Ҳамаи иҷрокунандагон санҷида мешаванд. Шарҳ гузоред ва беҳтаринро интихоб кунед.',
-    },
-  ],
-  en: [
-    {
-      id: '1',
-      Illustration: Illustration1,
-      title: 'Find Trusted Professionals',
-      subtitle: 'Connect with vetted experts for cleaning, repairs, and more.',
-    },
-    {
-      id: '2',
-      Illustration: Illustration2,
-      title: 'Book in Seconds',
-      subtitle: "Choose a service, pick a time, and confirm. It's that simple.",
-    },
-    {
-      id: '3',
-      Illustration: Illustration3,
-      title: 'Quality Guaranteed',
-      subtitle: 'Your satisfaction is our priority. Secure payments and verified reviews.',
-    },
-  ],
-};
-
-const NEXT_LABELS: Record<Locale, string[]> = {
-  ru: ['Далее', 'Далее', 'Начать'],
-  tj: ['Навбатӣ', 'Навбатӣ', 'Оғоз кардан'],
-  en: ['Next', 'Next', 'Get Started'],
-};
-
-const SKIP_LABELS: Record<Locale, string> = {
-  ru: 'Пропустить',
-  tj: 'Гузаштан',
-  en: 'Skip',
-};
+import { useState } from 'react';
 
 const LANG_OPTIONS: { locale: Locale; label: string; sub: string }[] = [
   { locale: 'ru', label: 'Русский', sub: 'Russian' },
@@ -116,38 +23,58 @@ const LANG_OPTIONS: { locale: Locale; label: string; sub: string }[] = [
 
 const LANG_CODE: Record<Locale, string> = { ru: 'RU', tj: 'TJ', en: 'EN' };
 
-const SELECT_LANG_LABEL: Record<Locale, string> = {
-  ru: 'Выберите язык',
-  tj: 'Забонро интихоб кунед',
-  en: 'Select Language',
+const CONTENT: Record<Locale, {
+  tagline: string;
+  description: string;
+  features: { icon: string; title: string; body: string }[];
+  cta: string;
+  langTitle: string;
+}> = {
+  ru: {
+    tagline: 'Маркетплейс услуг Таджикистана',
+    description: 'Разместите задание — мастера сами напишут вам с ценой и сроками.',
+    features: [
+      { icon: 'search-outline', title: 'Найдите мастера', body: 'Ремонт, уборка, доставка, IT и десятки других категорий.' },
+      { icon: 'chatbubble-ellipses-outline', title: 'Общайтесь напрямую', body: 'Чат с исполнителем без посредников и скрытых комиссий.' },
+      { icon: 'shield-checkmark-outline', title: 'Надёжно', body: 'Реальные отзывы, рейтинги и проверенные профили.' },
+    ],
+    cta: 'Начать',
+    langTitle: 'Выберите язык',
+  },
+  tj: {
+    tagline: 'Бозори хизматрасонии Тоҷикистон',
+    description: 'Супориш гузоред — устоҳо бо нарх ва мӯҳлат худашон менависанд.',
+    features: [
+      { icon: 'search-outline', title: 'Устоеро ёбед', body: 'Таъмир, тозакорӣ, расонидан, IT ва даҳҳо категорияи дигар.' },
+      { icon: 'chatbubble-ellipses-outline', title: 'Мустақим муошират', body: 'Чат бо иҷрокунанда бе миёнарав ва комиссияи пинҳон.' },
+      { icon: 'shield-checkmark-outline', title: 'Боэтимод', body: 'Шарҳҳои воқеӣ, рейтингҳо ва профилҳои санҷидашуда.' },
+    ],
+    cta: 'Оғоз кардан',
+    langTitle: 'Забонро интихоб кунед',
+  },
+  en: {
+    tagline: 'Tajikistan\'s Services Marketplace',
+    description: 'Post a task and let skilled professionals come to you with offers.',
+    features: [
+      { icon: 'search-outline', title: 'Find a Pro', body: 'Repairs, cleaning, delivery, IT, and dozens more categories.' },
+      { icon: 'chatbubble-ellipses-outline', title: 'Chat Directly', body: 'Talk to your provider with no middlemen or hidden fees.' },
+      { icon: 'shield-checkmark-outline', title: 'Trusted & Safe', body: 'Real reviews, ratings, and verified profiles.' },
+    ],
+    cta: 'Get Started',
+    langTitle: 'Select Language',
+  },
 };
 
 export default function OnboardingScreen() {
   const { locale, setLocale } = useLanguage();
-  const [index, setIndex] = useState(0);
   const [langModal, setLangModal] = useState(false);
   const insets = useSafeAreaInsets();
 
-  const flatRef = useRef<FlatList>(null);
-  const scrollX = useRef(new Animated.Value(0)).current;
-
-  const slides = SLIDES[locale] ?? SLIDES.ru;
-  const nextLabels = NEXT_LABELS[locale] ?? NEXT_LABELS.ru;
-  const skipLabel = SKIP_LABELS[locale] ?? SKIP_LABELS.ru;
+  const c = CONTENT[locale] ?? CONTENT.ru;
 
   async function finish() {
     await SecureStore.setItemAsync('onboarding_done', '1').catch(() => {});
     router.replace('/(auth)/register');
-  }
-
-  function next() {
-    if (index < slides.length - 1) {
-      const nextIndex = index + 1;
-      flatRef.current?.scrollToIndex({ index: nextIndex, animated: true });
-      setIndex(nextIndex);
-    } else {
-      finish();
-    }
   }
 
   async function pickLang(loc: Locale) {
@@ -156,104 +83,54 @@ export default function OnboardingScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+    <View style={[styles.container, { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 24 }]}>
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
-      {/* Slide strip (illustration only, full-width) */}
-      <Animated.FlatList
-        ref={flatRef}
-        data={slides}
-        horizontal
-        pagingEnabled
-        scrollEnabled
-        showsHorizontalScrollIndicator={false}
-        keyExtractor={(s) => s.id}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-          { useNativeDriver: false }
-        )}
-        onMomentumScrollEnd={(e) => {
-          const newIndex = Math.round(e.nativeEvent.contentOffset.x / width);
-          setIndex(newIndex);
-        }}
-        style={styles.flatList}
-        renderItem={({ item }) => (
-          <View style={styles.illustrationSlide}>
-            <item.Illustration width={width} height={ILLUS_HEIGHT} />
+      {/* Lang picker top-right */}
+      <View style={styles.topRow}>
+        <TouchableOpacity style={styles.langBtn} onPress={() => setLangModal(true)} activeOpacity={0.7}>
+          <Ionicons name="globe-outline" size={16} color="#4648d4" />
+          <Text style={styles.langBtnText}>{LANG_CODE[locale]}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Hero */}
+      <View style={styles.hero}>
+        <View style={styles.logoCircle}>
+          <Ionicons name="briefcase" size={48} color="#4648d4" />
+        </View>
+        <Text style={styles.appName}>Dastiyor</Text>
+        <Text style={styles.tagline}>{c.tagline}</Text>
+        <Text style={styles.description}>{c.description}</Text>
+      </View>
+
+      {/* Features */}
+      <View style={styles.features}>
+        {c.features.map((f) => (
+          <View key={f.icon} style={styles.featureRow}>
+            <View style={styles.featureIcon}>
+              <Ionicons name={f.icon as any} size={22} color="#4648d4" />
+            </View>
+            <View style={styles.featureText}>
+              <Text style={styles.featureTitle}>{f.title}</Text>
+              <Text style={styles.featureBody}>{f.body}</Text>
+            </View>
           </View>
-        )}
-      />
-
-      {/* Overlay header (lang + skip) sits on top of illustration */}
-      <View style={[styles.header, { top: insets.top + 8 }]}>
-        {index === 0 ? (
-          <TouchableOpacity
-            style={styles.langBtn}
-            onPress={() => setLangModal(true)}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="globe-outline" size={18} color="#464554" />
-            <Text style={styles.langBtnText}>{LANG_CODE[locale]}</Text>
-          </TouchableOpacity>
-        ) : (
-          <View />
-        )}
-        <TouchableOpacity style={styles.skipBtn} onPress={finish} activeOpacity={0.7}>
-          <Text style={styles.skipText}>{skipLabel}</Text>
-        </TouchableOpacity>
+        ))}
       </View>
 
-      {/* Bottom white content */}
-      <View style={[styles.bottom, { paddingBottom: insets.bottom + 24 }]}>
-        {/* Dots */}
-        <View style={styles.dots}>
-          {slides.map((_, i) => {
-            const inputRange = [(i - 1) * width, i * width, (i + 1) * width];
-            const dotWidth = scrollX.interpolate({
-              inputRange,
-              outputRange: [8, 28, 8],
-              extrapolate: 'clamp',
-            });
-            const bg = scrollX.interpolate({
-              inputRange,
-              outputRange: ['#dde0e1', '#4648d4', '#dde0e1'],
-              extrapolate: 'clamp',
-            });
-            return (
-              <Animated.View
-                key={i}
-                style={[styles.dot, { width: dotWidth, backgroundColor: bg }]}
-              />
-            );
-          })}
-        </View>
+      {/* CTA */}
+      <TouchableOpacity style={styles.cta} onPress={finish} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={c.cta}>
+        <Text style={styles.ctaText}>{c.cta}</Text>
+        <Ionicons name="arrow-forward" size={20} color="#ffffff" />
+      </TouchableOpacity>
 
-        {/* Text */}
-        <View style={styles.textGroup}>
-          <Text style={styles.title}>{slides[index]?.title}</Text>
-          <Text style={styles.subtitle}>{slides[index]?.subtitle}</Text>
-        </View>
-
-        {/* Next button */}
-        <TouchableOpacity style={styles.nextBtn} onPress={next} activeOpacity={0.85}>
-          <Text style={styles.nextText}>{nextLabels[index]}</Text>
-          {index < slides.length - 1 && (
-            <Ionicons name="arrow-forward" size={20} color="#ffffff" />
-          )}
-        </TouchableOpacity>
-      </View>
-
-      {/* Language Modal */}
-      <Modal
-        visible={langModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setLangModal(false)}
-      >
+      {/* Language modal */}
+      <Modal visible={langModal} transparent animationType="fade" onRequestClose={() => setLangModal(false)}>
         <Pressable style={styles.modalOverlay} onPress={() => setLangModal(false)}>
           <Pressable style={styles.modalCard} onPress={() => {}}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{SELECT_LANG_LABEL[locale]}</Text>
+              <Text style={styles.modalTitle}>{c.langTitle}</Text>
               <TouchableOpacity onPress={() => setLangModal(false)} hitSlop={8}>
                 <Ionicons name="close" size={22} color="#464554" />
               </TouchableOpacity>
@@ -267,13 +144,9 @@ export default function OnboardingScreen() {
                   onPress={() => pickLang(opt.locale)}
                   activeOpacity={0.7}
                 >
-                  <Text style={[styles.langOptionLabel, active && styles.langOptionLabelActive]}>
-                    {opt.label}
-                  </Text>
+                  <Text style={[styles.langOptionLabel, active && styles.langOptionLabelActive]}>{opt.label}</Text>
                   <Text style={styles.langOptionSub}>{opt.sub}</Text>
-                  {active && (
-                    <Ionicons name="checkmark" size={18} color="#4648d4" style={styles.langCheck} />
-                  )}
+                  {active && <Ionicons name="checkmark" size={18} color="#4648d4" style={styles.langCheck} />}
                 </TouchableOpacity>
               );
             })}
@@ -288,95 +161,88 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#ffffff',
+    paddingHorizontal: 24,
   },
-  header: {
-    position: 'absolute',
-    left: 16,
-    right: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    zIndex: 10,
+
+  topRow: {
+    alignItems: 'flex-end',
+    marginBottom: 8,
   },
   langBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
+    gap: 5,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.85)',
+    borderWidth: 1,
+    borderColor: '#e0e0f0',
   },
-  langBtnText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#464554',
-  },
-  skipBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.85)',
-  },
-  skipText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#464554',
-  },
-  flatList: {
-    height: ILLUS_HEIGHT,
-    flexGrow: 0,
-  },
-  illustrationSlide: {
-    width,
-    height: ILLUS_HEIGHT,
-    overflow: 'hidden',
-  },
-  bottom: {
-    flex: 1,
-    backgroundColor: '#ffffff',
-    paddingHorizontal: 24,
-    paddingTop: 8,
+  langBtnText: { fontSize: 13, fontWeight: '700', color: '#4648d4' },
+
+  hero: {
     alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  dots: {
-    flexDirection: 'row',
-    gap: 6,
-    alignItems: 'center',
-    paddingTop: 4,
-  },
-  dot: {
-    height: 8,
-    borderRadius: 999,
-  },
-  textGroup: {
-    alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 8,
     flex: 1,
     justifyContent: 'center',
+    paddingBottom: 8,
   },
-  title: {
-    fontSize: 26,
-    fontWeight: '700',
+  logoCircle: {
+    width: 96,
+    height: 96,
+    borderRadius: 28,
+    backgroundColor: '#eeeeff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  appName: {
+    fontSize: 34,
+    fontWeight: '800',
     color: '#191c1d',
-    textAlign: 'center',
-    lineHeight: 34,
-    letterSpacing: -0.3,
+    letterSpacing: -0.5,
+    marginBottom: 8,
   },
-  subtitle: {
+  tagline: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#4648d4',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  description: {
     fontSize: 15,
     color: '#5a5a72',
     textAlign: 'center',
-    lineHeight: 23,
+    lineHeight: 22,
     maxWidth: 300,
   },
-  nextBtn: {
+
+  features: {
+    gap: 14,
+    marginBottom: 32,
+  },
+  featureRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 14,
+  },
+  featureIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: '#eeeeff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  featureText: { flex: 1 },
+  featureTitle: { fontSize: 14, fontWeight: '700', color: '#191c1d', marginBottom: 2 },
+  featureBody: { fontSize: 13, color: '#5a5a72', lineHeight: 19 },
+
+  cta: {
     backgroundColor: '#4648d4',
     borderRadius: 14,
     paddingVertical: 16,
-    width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
@@ -387,12 +253,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     elevation: 6,
   },
-  nextText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#ffffff',
-    letterSpacing: 0.1,
-  },
+  ctaText: { fontSize: 16, fontWeight: '700', color: '#ffffff', letterSpacing: 0.1 },
+
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.25)',
@@ -421,11 +283,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#edeeef',
   },
-  modalTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#191c1d',
-  },
+  modalTitle: { fontSize: 16, fontWeight: '700', color: '#191c1d' },
   langOption: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -433,24 +291,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     gap: 4,
   },
-  langOptionActive: {
-    backgroundColor: '#f3f4f5',
-  },
-  langOptionLabel: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#191c1d',
-    flex: 1,
-  },
-  langOptionLabelActive: {
-    color: '#4648d4',
-  },
-  langOptionSub: {
-    fontSize: 13,
-    color: '#767586',
-    marginRight: 4,
-  },
-  langCheck: {
-    marginLeft: 2,
-  },
+  langOptionActive: { backgroundColor: '#f3f4f5' },
+  langOptionLabel: { fontSize: 15, fontWeight: '600', color: '#191c1d', flex: 1 },
+  langOptionLabelActive: { color: '#4648d4' },
+  langOptionSub: { fontSize: 13, color: '#767586', marginRight: 4 },
+  langCheck: { marginLeft: 2 },
 });

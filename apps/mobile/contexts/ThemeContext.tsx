@@ -45,12 +45,12 @@ const DARK: ThemeColors = {
   text: '#FFFFFF',
   textSecondary: '#8E8E93',
   textTertiary: '#636366',
-  accent: '#2563EB',
+  accent: '#4B8EF7',   // #2563EB fails WCAG AA on #000; #4B8EF7 = ~5.2:1
   tabBar: '#1C1C1E',
   tabBorder: '#3A3A3C',
   header: '#000000',
   inputBg: '#2C2C2E',
-  inputBorder: '#2563EB',
+  inputBorder: '#4B8EF7',
   iconBg: '#1A2A4A',
 };
 
@@ -68,11 +68,12 @@ const STORE_KEY = 'app_theme';
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<ThemeMode>('light');
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     SecureStore.getItemAsync(STORE_KEY).then((val) => {
       if (val === 'dark' || val === 'light') setThemeState(val);
-    }).catch(() => {});
+    }).catch(() => {}).finally(() => setReady(true));
   }, []);
 
   function setTheme(mode: ThemeMode) {
@@ -83,6 +84,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   function toggleTheme() {
     setTheme(theme === 'dark' ? 'light' : 'dark');
   }
+
+  if (!ready) return null;
 
   return (
     <ThemeContext.Provider value={{ theme, colors: theme === 'dark' ? DARK : LIGHT, isDark: theme === 'dark', toggleTheme, setTheme }}>

@@ -12,6 +12,8 @@ import {
   Alert,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Haptics from 'expo-haptics';
 import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -20,6 +22,7 @@ export default function RespondScreen() {
   const { id: taskId, title } = useLocalSearchParams<{ id: string; title: string }>();
   const { t } = useLanguage();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const r = t.respond;
   const [message, setMessage] = useState('');
   const [price, setPrice] = useState('');
@@ -28,8 +31,9 @@ export default function RespondScreen() {
 
   async function handleSubmit() {
     if (!message.trim()) { Alert.alert(t.common.error, r.errMsg); return; }
-    if (!price.trim() || isNaN(Number(price))) { Alert.alert(t.common.error, r.errPrice); return; }
+    if (!price.trim() || isNaN(Number(price)) || Number(price) <= 0) { Alert.alert(t.common.error, r.errPrice); return; }
     setLoading(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     try {
       await api.post('/api/responses', { taskId, message: message.trim(), price: Number(price), estimatedTime: estimatedTime.trim() || undefined });
       Alert.alert(t.common.done, r.sent, [{ text: t.common.ok, onPress: () => router.back() }]);
@@ -44,7 +48,7 @@ export default function RespondScreen() {
 
   return (
     <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 40 }]} keyboardShouldPersistTaps="handled">
         {title ? (
           <View style={[styles.taskBox, { backgroundColor: colors.surface }]}>
             <Text style={[styles.taskBoxLabel, { color: colors.textTertiary }]}>{r.task}</Text>
@@ -72,7 +76,7 @@ export default function RespondScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scroll: { padding: 20, paddingBottom: 40 },
+  scroll: { padding: 20 },
   taskBox: { backgroundColor: '#F3F4F6', borderRadius: 12, padding: 14, marginBottom: 24 },
   taskBoxLabel: { fontSize: 11, color: '#9CA3AF', fontWeight: '600', marginBottom: 4, textTransform: 'uppercase' },
   taskBoxTitle: { fontSize: 15, fontWeight: '700', color: '#111827' },

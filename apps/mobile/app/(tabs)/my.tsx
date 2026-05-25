@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -55,7 +56,7 @@ interface MyTask {
   responseCount: number;
 }
 
-interface MyResponse {
+interface MyResponseItemItem {
   id: string;
   message: string;
   price: string;
@@ -70,10 +71,11 @@ export default function MyScreen() {
   const { t, locale } = useLanguage();
   const { colors } = useTheme();
   const toast = useToast();
+  const insets = useSafeAreaInsets();
   const isCustomer = user?.role === 'CUSTOMER';
 
   const [tasks, setTasks] = useState<MyTask[]>([]);
-  const [responses, setResponses] = useState<MyResponse[]>([]);
+  const [responses, setResponses] = useState<MyResponseItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -83,7 +85,7 @@ export default function MyScreen() {
         const res = await api.get<{ tasks: MyTask[] }>('/api/my-tasks');
         setTasks(res.tasks);
       } else {
-        const res = await api.get<{ responses: MyResponse[] }>('/api/my-responses');
+        const res = await api.get<{ responses: MyResponseItem[] }>('/api/my-responses');
         setResponses(res.responses);
       }
     } catch {
@@ -112,6 +114,8 @@ export default function MyScreen() {
       style={[styles.card, { backgroundColor: colors.surface }]}
       onPress={() => router.push(`/task/${item.id}`)}
       activeOpacity={0.75}
+      accessibilityRole="button"
+      accessibilityLabel={`${item.title}, ${item.category}, ${item.budget}`}
     >
       <View style={[styles.cardIconBox, { backgroundColor: colors.iconBg }]}>
         <Ionicons name={CATEGORY_ICONS[item.category] ?? 'briefcase-outline'} size={22} color="#2563EB" />
@@ -136,11 +140,13 @@ export default function MyScreen() {
     </TouchableOpacity>
   ), [t, locale, colors]);
 
-  const renderResponse = useCallback(({ item }: { item: MyResponse }) => (
+  const renderResponse = useCallback(({ item }: { item: MyResponseItem }) => (
     <TouchableOpacity
       style={[styles.card, { backgroundColor: colors.surface }]}
       onPress={() => router.push(`/task/${item.task.id}`)}
       activeOpacity={0.75}
+      accessibilityRole="button"
+      accessibilityLabel={`${item.task.title}, ${item.task.category}, ${item.price} TJS`}
     >
       <View style={[styles.cardIconBox, { backgroundColor: colors.iconBg }]}>
         <Ionicons name={CATEGORY_ICONS[item.task.category] ?? 'briefcase-outline'} size={22} color="#2563EB" />
@@ -178,7 +184,7 @@ export default function MyScreen() {
         <FlatList
           data={tasks}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 24 }]}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#2563EB" />}
           ListEmptyComponent={
             <EmptyState
@@ -195,7 +201,7 @@ export default function MyScreen() {
         <FlatList
           data={responses}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 24 }]}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#2563EB" />}
           ListEmptyComponent={
             <EmptyState
@@ -221,7 +227,7 @@ export default function MyScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F0F4FF' },
+  container: { flex: 1 },
   skeletonList: { paddingTop: 12 },
   fab: {
     position: 'absolute', bottom: 24, right: 20,

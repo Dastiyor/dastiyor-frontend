@@ -11,6 +11,7 @@ import {
   TextInput,
 } from 'react-native';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -41,6 +42,7 @@ export default function TaskBrowseScreen() {
   const { t, locale } = useLanguage();
   const { colors } = useTheme();
   const { config } = useConfig();
+  const insets = useSafeAreaInsets();
   const toast = useToast();
   const params = useLocalSearchParams<{
     category?: string; query?: string; urgency?: string;
@@ -133,6 +135,8 @@ export default function TaskBrowseScreen() {
         style={[styles.card, { backgroundColor: colors.surface }]}
         onPress={() => router.push(`/task/${item.id}`)}
         activeOpacity={0.75}
+        accessibilityRole="button"
+        accessibilityLabel={`${item.title}, ${item.category}, ${item.budget}`}
       >
         <View style={[styles.cardIconBox, { backgroundColor: colors.iconBg }]}>
           <Ionicons name={iconName} size={22} color="#2563EB" />
@@ -160,7 +164,7 @@ export default function TaskBrowseScreen() {
         </View>
       </TouchableOpacity>
     );
-  }, [t, locale]);
+  }, [t, locale, colors]);
 
   const categories = [
     { name: t.categories.all, value: '' },
@@ -244,7 +248,7 @@ export default function TaskBrowseScreen() {
           data={tasks}
           keyExtractor={(item) => item.id}
           renderItem={renderTask}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 24 }]}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#2563EB" />}
           onEndReached={onLoadMore}
           onEndReachedThreshold={0.3}
@@ -300,7 +304,6 @@ const styles = StyleSheet.create({
   },
   catChipActive: { backgroundColor: '#2563EB', borderColor: '#2563EB' },
   catChipText: { fontSize: 13, color: '#374151', fontWeight: '500' },
-  catChipTextActive: { color: '#fff' },
 
   list: { padding: 16, paddingBottom: 24 },
 

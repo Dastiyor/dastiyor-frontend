@@ -15,6 +15,7 @@ import * as SecureStore from 'expo-secure-store';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import * as AppleAuthentication from 'expo-apple-authentication';
+import * as Haptics from 'expo-haptics';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -64,6 +65,7 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       await login(identifier.trim(), password);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.replace('/(tabs)');
     } catch (e) {
       Alert.alert(L.errOauth, (e as Error).message);
@@ -133,7 +135,7 @@ export default function LoginScreen() {
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: colors.header }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.inner}>
         <Text style={[styles.logo, { color: colors.accent }]}>Dastiyor</Text>
@@ -182,7 +184,7 @@ export default function LoginScreen() {
           value={identifier}
           onChangeText={setIdentifier}
           autoCapitalize="none"
-          keyboardType="default"
+          keyboardType="email-address"
           autoComplete="username"
           maxLength={255}
         />

@@ -22,6 +22,12 @@ const translations = {
       empty: 'No tasks found',
       responses: 'resp.',
       loadError: 'Failed to load',
+      welcome: 'Welcome',
+      welcomeName: 'Welcome back, {name}',
+      headline: 'Find the right service',
+      featured: 'Featured Tasks',
+      popular: 'Popular Tasks',
+      seeAll: 'See All',
     },
     categories: {
       all: 'All',
@@ -112,6 +118,7 @@ const translations = {
       errRequired: 'Fill in required fields',
       errPhone: 'Enter 9-digit phone number',
       errRegister: 'Registration error',
+      passwordStrong: 'Strong password',
     },
     createTask: {
       titleLabel: 'Task title *',
@@ -290,6 +297,12 @@ const translations = {
       empty: 'Задания не найдены',
       responses: 'откл.',
       loadError: 'Не удалось загрузить данные',
+      welcome: 'Добро пожаловать',
+      welcomeName: 'Добро пожаловать, {name}',
+      headline: 'Найдите нужного мастера',
+      featured: 'Актуальные задания',
+      popular: 'Популярные задания',
+      seeAll: 'Все',
     },
     categories: {
       all: 'Все',
@@ -380,6 +393,7 @@ const translations = {
       errRequired: 'Заполните обязательные поля',
       errPhone: 'Введите 9-значный номер телефона',
       errRegister: 'Ошибка регистрации',
+      passwordStrong: 'Надёжный пароль',
     },
     createTask: {
       titleLabel: 'Название задания *',
@@ -558,6 +572,12 @@ const translations = {
       empty: 'Супориш ёфт нашуд',
       responses: 'посух.',
       loadError: 'Маълумотро бор кардан нашуд',
+      welcome: 'Хуш омадед',
+      welcomeName: 'Хуш омадед, {name}',
+      headline: 'Устоди лозимиро ёбед',
+      featured: 'Супоришҳои нав',
+      popular: 'Маъмул',
+      seeAll: 'Ҳама',
     },
     categories: {
       all: 'Ҳама',
@@ -648,6 +668,7 @@ const translations = {
       errRequired: 'Майдонҳои ҳатмиро пур кунед',
       errPhone: '9-рақами телефонро ворид кунед',
       errRegister: 'Хатои бақайдгирӣ',
+      passwordStrong: 'Пароли боэтимод',
     },
     createTask: {
       titleLabel: 'Номи супориш *',

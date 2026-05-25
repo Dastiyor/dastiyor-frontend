@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import Constants from 'expo-constants';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -222,6 +223,10 @@ export default function ProfileScreen() {
           />
         </View>
 
+        <Text style={[styles.versionText, { color: colors.textTertiary }]}>
+          v{Constants.expoConfig?.version ?? Constants.manifest?.version ?? '—'}
+        </Text>
+
       </ScrollView>
     </View>
   );
@@ -229,6 +234,7 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  versionText: { textAlign: 'center', fontSize: 12, marginTop: 8, marginBottom: 8 },
 
   headerBar: {
     flexDirection: 'row',
@@ -238,8 +244,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   headerTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700' },
-  headerRightBtn: { width: 40, alignItems: 'flex-end' },
-  avatarSmall: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
 
   scroll: { padding: 16, gap: 12, paddingBottom: 48 },
 

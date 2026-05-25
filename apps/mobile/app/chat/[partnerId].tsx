@@ -15,6 +15,7 @@ import {
 import { useLocalSearchParams, useNavigation, useFocusEffect } from 'expo-router';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Haptics from 'expo-haptics';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -43,6 +44,7 @@ export default function ChatScreen() {
   const listRef = useRef<FlatList>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isAtBottomRef = useRef(true);
+  const pollErrorCount = useRef(0);
 
   useEffect(() => { navigation.setOptions({ title: partnerName ?? t.chat.empty }); }, [partnerName]);
 
@@ -52,18 +54,27 @@ export default function ChatScreen() {
     try {
       const res = await api.get<{ messages: ChatMessage[] }>(`/api/messages?${params}`);
       setMessages(res.messages);
+      pollErrorCount.current = 0;
       if (isInitial) setLoadError(false);
     } catch {
       if (isInitial) {
         setLoadError(true);
       } else {
-        toast.show(t.chat.loadError, 'error');
+        pollErrorCount.current += 1;
+        if (pollErrorCount.current === 1) {
+          toast.show(t.chat.loadError, 'error');
+        }
+        if (pollErrorCount.current >= 5 && pollRef.current) {
+          clearInterval(pollRef.current);
+          pollRef.current = null;
+        }
       }
     }
   }
 
   useFocusEffect(
     useCallback(() => {
+      pollErrorCount.current = 0;
       (async () => { setLoading(true); await fetchMessages(true); setLoading(false); })();
       pollRef.current = setInterval(() => fetchMessages(false), POLL_INTERVAL_MS);
       return () => { if (pollRef.current) clearInterval(pollRef.current); };
@@ -88,6 +99,7 @@ export default function ChatScreen() {
     setSending(true);
     setText('');
     isAtBottomRef.current = true;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     try {
       await api.post('/api/messages', { receiverId: partnerId, content, taskId: taskId || undefined });
       await fetchMessages(false);

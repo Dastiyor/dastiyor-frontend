@@ -13,14 +13,19 @@ export default function RootIndex() {
     if (loading) return;
 
     async function navigate() {
-      const onboardingDone = await SecureStore.getItemAsync('onboarding_done').catch(() => null);
-      SplashScreen.hideAsync().catch(() => {});
-      if (!onboardingDone) {
-        router.replace('/(onboarding)');
-      } else if (user) {
-        router.replace('/(tabs)');
-      } else {
+      try {
+        const onboardingDone = await SecureStore.getItemAsync('onboarding_done').catch(() => null);
+        if (!onboardingDone) {
+          router.replace('/(onboarding)');
+        } else if (user) {
+          router.replace('/(tabs)');
+        } else {
+          router.replace('/(auth)/login');
+        }
+      } catch {
         router.replace('/(auth)/login');
+      } finally {
+        SplashScreen.hideAsync().catch(() => {});
       }
     }
 

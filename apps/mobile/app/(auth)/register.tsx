@@ -17,6 +17,7 @@ import * as SecureStore from 'expo-secure-store';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import * as AppleAuthentication from 'expo-apple-authentication';
+import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -37,7 +38,7 @@ function passwordStrength(pw: string): string[] {
 
 const ROLE_ICONS = { customer: 'clipboard-outline', provider: 'construct-outline' } as const;
 
-const OR_LABEL: Record<Locale, string> = { ru: 'или', tj: 'ё', en: 'or' };
+const OR_LABEL: Record<Locale, string> = { ru: 'или', tj: 'ё инчунин', en: 'or' };
 const GOOGLE_LABEL: Record<Locale, string> = {
   ru: 'Зарегистрироваться с Google',
   tj: 'Бақайдгирӣ бо Google',
@@ -122,6 +123,7 @@ export default function RegisterScreen() {
         role,
       });
       await SecureStore.setItemAsync('onboarding_done', '1');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.replace('/(tabs)');
     } catch (e) {
       Alert.alert(r.errRegister, (e as Error).message);
@@ -163,7 +165,7 @@ export default function RegisterScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <AuthBackground />
       <ScrollView
@@ -286,7 +288,7 @@ export default function RegisterScreen() {
         {/* Password feedback */}
         {password.length > 0 && (
           pwOk
-            ? <Text style={styles.pwOk}>✓ {r.passwordHint}</Text>
+            ? <Text style={styles.pwOk}>✓ {r.passwordStrong ?? 'Надёжный пароль'}</Text>
             : pwIssues.map((msg, i) => (
               <Text key={i} style={styles.pwErr}>• {msg}</Text>
             ))

@@ -1,6 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? 'https://www.dastiyor.com';
+const REQUEST_TIMEOUT_MS = 15_000;
 
 // Callbacks registered by AuthProvider / app shell
 let _onUnauthorized: (() => void) | null = null;
@@ -21,12 +22,20 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   };
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
   let res: Response;
   try {
-    res = await fetch(`${API_BASE}${path}`, { ...options, headers });
-  } catch {
+    res = await fetch(`${API_BASE}${path}`, { ...options, headers, signal: controller.signal });
+  } catch (err: any) {
+    if (err?.name === 'AbortError') {
+      throw new Error('Превышено время ожидания. Проверьте соединение.');
+    }
     _onNetworkError?.();
     throw new Error('Нет подключения к интернету');
+  } finally {
+    clearTimeout(timeoutId);
   }
 
   if (res.status === 401) {

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -23,6 +24,7 @@ export default function TaskDetailScreen() {
   const { user } = useAuth();
   const { t, locale } = useLanguage();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const tk = t.task;
   const [task, setTask] = useState<TaskDetail | null>(null);
   const [responses, setResponses] = useState<TaskResponse[]>([]);
@@ -199,8 +201,8 @@ export default function TaskDetailScreen() {
         </View>
 
         {isOwner && responses.length > 0 ? (
-          <View style={styles.responsesSection}>
-            <Text style={styles.sectionTitle}>{tk.responses} ({responses.length})</Text>
+          <View style={[styles.responsesSection, { borderTopColor: colors.border }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{tk.responses} ({responses.length})</Text>
             {responses.map((r) => {
               const rs = RESPONSE_STATUS[r.status] ?? { label: r.status, color: '#374151', bg: '#F3F4F6' };
               const busy = actionLoading === r.id;
@@ -220,7 +222,7 @@ export default function TaskDetailScreen() {
                     {r.estimatedTime ? (
                       <View style={styles.metaItem}>
                         <Ionicons name="time-outline" size={13} color={colors.textSecondary} />
-                        <Text style={styles.responseTime}>{r.estimatedTime}</Text>
+                        <Text style={[styles.responseTime, { color: colors.textSecondary }]}>{r.estimatedTime}</Text>
                       </View>
                     ) : null}
                   </View>
@@ -245,7 +247,7 @@ export default function TaskDetailScreen() {
         ) : null}
 
         {isOwner && task.status === 'IN_PROGRESS' ? (
-          <View style={styles.lifecycleRow}>
+          <View style={[styles.lifecycleRow, { borderTopColor: colors.border }]}>
             <TouchableOpacity
               style={[styles.cancelTaskBtn, taskActionLoading === 'cancel' && styles.btnBusy]}
               disabled={!!taskActionLoading}
@@ -312,7 +314,7 @@ export default function TaskDetailScreen() {
         {!isOwner && user?.role === 'PROVIDER' && myResponse ? (
           <View style={[styles.myResponseCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.myResponseHeader}>
-              <Text style={styles.myResponseTitle}>{tk.myResponseTitle}</Text>
+              <Text style={[styles.myResponseTitle, { color: colors.text }]}>{tk.myResponseTitle}</Text>
               <View style={[styles.rsBadge, { backgroundColor: RESPONSE_STATUS[myResponse.status]?.bg ?? '#F3F4F6' }]}>
                 <Text style={[styles.rsBadgeText, { color: RESPONSE_STATUS[myResponse.status]?.color ?? '#374151' }]}>
                   {RESPONSE_STATUS[myResponse.status]?.label ?? myResponse.status}
@@ -325,7 +327,7 @@ export default function TaskDetailScreen() {
               {myResponse.estimatedTime ? (
                 <View style={styles.metaItem}>
                   <Ionicons name="time-outline" size={13} color={colors.textSecondary} />
-                  <Text style={styles.responseTime}>{myResponse.estimatedTime}</Text>
+                  <Text style={[styles.responseTime, { color: colors.textSecondary }]}>{myResponse.estimatedTime}</Text>
                 </View>
               ) : null}
             </View>
@@ -334,7 +336,7 @@ export default function TaskDetailScreen() {
       </ScrollView>
 
       {!isOwner && user?.role === 'PROVIDER' && task.status === 'OPEN' && !myResponse ? (
-        <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
+        <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border, paddingBottom: insets.bottom + 16 }]}>
           <TouchableOpacity style={styles.respondBtn} onPress={() => router.push({ pathname: '/respond/[id]', params: { id: task.id, title: task.title } })}>
             <Text style={styles.respondBtnText}>{tk.respond}</Text>
           </TouchableOpacity>
@@ -347,7 +349,7 @@ export default function TaskDetailScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  scroll: { padding: 20, paddingBottom: 110 },
+  scroll: { padding: 20, paddingBottom: 120 },
   badgeRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
   badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
   badgeText: { fontSize: 12, fontWeight: '700' },
@@ -387,7 +389,7 @@ const styles = StyleSheet.create({
   myResponseHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   myResponseTitle: { fontSize: 13, fontWeight: '700', color: '#374151' },
   myResponseMsg: { fontSize: 13, color: '#4B5563', lineHeight: 18, marginBottom: 8 },
-  footer: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#fff', padding: 16, paddingBottom: 32, borderTopWidth: 1, borderTopColor: '#F3F4F6' },
+  footer: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 16, paddingTop: 16, borderTopWidth: 1 },
   respondBtn: { backgroundColor: '#2563EB', borderRadius: 14, padding: 16, alignItems: 'center' },
   respondBtnText: { color: '#fff', fontSize: 17, fontWeight: '700' },
   lifecycleRow: { flexDirection: 'row', gap: 10, marginTop: 20, borderTopWidth: 1, borderTopColor: '#F3F4F6', paddingTop: 20 },

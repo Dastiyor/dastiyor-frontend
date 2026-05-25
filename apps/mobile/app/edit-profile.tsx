@@ -12,6 +12,7 @@ import {
   Alert,
 } from 'react-native';
 import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -24,6 +25,7 @@ export default function EditProfileScreen() {
   const { user, refreshUser } = useAuth();
   const { t } = useLanguage();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const ep = t.editProfile;
   const [form, setForm] = useState<ProfileData>({ fullName: '', phone: '', bio: '', skills: '' });
   const [loading, setLoading] = useState(true);
@@ -68,7 +70,7 @@ export default function EditProfileScreen() {
 
   return (
     <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
+      <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 40 }]} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
         <Text style={[styles.label, { color: colors.text }]}>{ep.fullName}</Text>
         <TextInput style={inputStyle} value={form.fullName} onChangeText={set('fullName')} autoComplete="name" maxLength={100} />
 
@@ -93,7 +95,7 @@ export default function EditProfileScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   center: { flex: 1, marginTop: 60 },
-  scroll: { padding: 20, paddingBottom: 40 },
+  scroll: { padding: 20 },
   label: { fontSize: 13, fontWeight: '700', color: '#374151', marginBottom: 8 },
   input: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, padding: 14, fontSize: 15, color: '#111827', backgroundColor: '#F9FAFB', marginBottom: 20 },
   textarea: { minHeight: 100, lineHeight: 22, marginBottom: 4 },

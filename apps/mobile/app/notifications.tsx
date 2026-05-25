@@ -58,7 +58,13 @@ export default function NotificationsScreen() {
     if (taskMatch?.[1]) { router.push(`/task/${taskMatch[1]}`); return; }
 
     const msgMatch = n.link.match(/\/conversations\/([^/?]+)/);
-    if (msgMatch?.[1]) { router.push('/(tabs)/messages' as any); return; }
+    if (msgMatch?.[1]) {
+      router.push({
+        pathname: '/chat/[partnerId]',
+        params: { partnerId: msgMatch[1] },
+      });
+      return;
+    }
 
     toast.show(t.notifications.title, 'info');
   }
@@ -68,6 +74,8 @@ export default function NotificationsScreen() {
       style={[styles.row, { backgroundColor: !item.isRead ? colors.iconBg : colors.surface }]}
       onPress={() => handleTap(item)}
       activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={item.title}
     >
       <Text style={styles.icon}>{TYPE_ICON[item.type] ?? '🔔'}</Text>
       <View style={styles.body}>

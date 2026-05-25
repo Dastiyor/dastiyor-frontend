@@ -53,7 +53,7 @@ export default function MessagesScreen() {
   const renderConversation = useCallback(({ item }: { item: Conversation }) => {
     const badge = item.partnerRole;
     return (
-      <TouchableOpacity style={[styles.row, { backgroundColor: colors.surface }]} onPress={() => openChat(item)} activeOpacity={0.7}>
+      <TouchableOpacity style={[styles.row, { backgroundColor: colors.surface }]} onPress={() => openChat(item)} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel={item.partnerName}>
         <Avatar name={item.partnerName} avatarUrl={item.partnerAvatar} size={52} />
         <View style={styles.rowBody}>
           <View style={styles.rowTop}>
@@ -75,7 +75,7 @@ export default function MessagesScreen() {
         </View>
       </TouchableOpacity>
     );
-  }, [colors]);
+  }, [t, colors]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
@@ -105,7 +105,7 @@ export default function MessagesScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  center: { flex: 1, marginTop: 60 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   row: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14, gap: 12 },
   rowBody: { flex: 1 },
   rowTop: { flexDirection: 'row', alignItems: 'center', marginBottom: 4, gap: 8 },

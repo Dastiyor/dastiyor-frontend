@@ -9,6 +9,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -42,6 +43,7 @@ export default function HomeScreen() {
   const { t, locale } = useLanguage();
   const { colors } = useTheme();
   const { config } = useConfig();
+  const insets = useSafeAreaInsets();
   const toast = useToast();
   const [tasks, setTasks] = useState<FeedTask[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,6 +54,9 @@ export default function HomeScreen() {
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
 
   const firstName = user?.fullName?.split(' ')[0] ?? '';
+  const welcomeText = firstName
+    ? t.home.welcomeName.replace('{name}', firstName)
+    : t.home.welcome;
 
   async function loadData() {
     const notifPromise: Promise<{ unreadCount: number }> = user
@@ -85,35 +90,6 @@ export default function HomeScreen() {
     ...config.categories.map((c) => ({ name: c, value: c })),
   ];
 
-  const L = {
-    en: {
-      welcome: firstName ? `Welcome back, ${firstName}` : 'Welcome',
-      headline: 'Find the right service',
-      featured: 'Featured Tasks',
-      popular: 'Popular Tasks',
-      seeAll: 'See All',
-      open: 'Open',
-      urgent: 'Urgent',
-    },
-    ru: {
-      welcome: firstName ? `Добро пожаловать, ${firstName}` : 'Добро пожаловать',
-      headline: 'Найдите нужного мастера',
-      featured: 'Актуальные задания',
-      popular: 'Популярные задания',
-      seeAll: 'Все',
-      open: 'Открыть',
-      urgent: 'Срочно',
-    },
-    tj: {
-      welcome: firstName ? `Хуш омадед, ${firstName}` : 'Хуш омадед',
-      headline: 'Устоди лозимиро ёбед',
-      featured: 'Супоришҳои нав',
-      popular: 'Маъмул',
-      seeAll: 'Ҳама',
-      open: 'Кушодан',
-      urgent: 'Фаврӣ',
-    },
-  }[locale];
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
@@ -122,12 +98,12 @@ export default function HomeScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#2563EB" />}
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 32 }]}
       >
         {/* Welcome */}
         <View style={styles.welcomeSection}>
-          <Text style={[styles.welcomeSub, { color: colors.textSecondary }]}>{L.welcome}</Text>
-          <Text style={[styles.welcomeTitle, { color: colors.text }]}>{L.headline}</Text>
+          <Text style={[styles.welcomeSub, { color: colors.textSecondary }]}>{welcomeText}</Text>
+          <Text style={[styles.welcomeTitle, { color: colors.text }]}>{t.home.headline}</Text>
         </View>
 
         {/* Search bar */}
@@ -202,7 +178,7 @@ export default function HomeScreen() {
             {featured.length > 0 && (
               <>
                 <View style={styles.sectionRow}>
-                  <Text style={[styles.sectionTitle, { color: colors.text }]}>{L.featured}</Text>
+                  <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.home.featured}</Text>
                 </View>
 
                 {featured.map((task, i) => {
@@ -221,7 +197,7 @@ export default function HomeScreen() {
                         </View>
                         <View style={styles.featBadge}>
                           <Text style={styles.featBadgeText}>
-                            {task.urgency === 'urgent' ? L.urgent : task.category}
+                            {task.urgency === 'urgent' ? t.urgency.urgent : task.category}
                           </Text>
                         </View>
                       </View>
@@ -250,9 +226,9 @@ export default function HomeScreen() {
             {popular.length > 0 && (
               <>
                 <View style={styles.sectionRow}>
-                  <Text style={[styles.sectionTitle, { color: colors.text }]}>{L.popular}</Text>
+                  <Text style={[styles.sectionTitle, { color: colors.text }]}>{t.home.popular}</Text>
                   <TouchableOpacity onPress={() => router.push('/(tabs)/tasks')}>
-                    <Text style={styles.seeAll}>{L.seeAll}</Text>
+                    <Text style={styles.seeAll}>{t.home.seeAll}</Text>
                   </TouchableOpacity>
                 </View>
 
@@ -340,7 +316,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F0F4FF' },
 
 
-  scroll: { paddingBottom: 32 },
+  scroll: {},
 
   welcomeSection: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 4 },
   welcomeSub: { fontSize: 14, color: '#6B7280', marginBottom: 4 },

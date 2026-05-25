@@ -12,6 +12,8 @@ import {
   Alert,
 } from 'react-native';
 import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Haptics from 'expo-haptics';
 import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -55,6 +57,7 @@ export default function CreateTaskScreen() {
   const { colors } = useTheme();
   const ct = t.createTask;
   const { config } = useConfig();
+  const insets = useSafeAreaInsets();
 
   const URGENCY = [
     { value: 'urgent', label: t.urgency.urgent },
@@ -84,6 +87,7 @@ export default function CreateTaskScreen() {
       return;
     }
     setLoading(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     try {
       await api.post('/api/tasks', {
         title: title.trim(),
@@ -107,7 +111,7 @@ export default function CreateTaskScreen() {
 
   return (
     <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
+      <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 40 }]} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
         <Text style={[styles.label, { color: colors.text }]}>{ct.titleLabel}</Text>
         <TextInput style={inputStyle} placeholder={ct.titlePh} placeholderTextColor={colors.textTertiary} value={title} onChangeText={setTitle} maxLength={120} />
 
@@ -158,10 +162,9 @@ export default function CreateTaskScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scroll: { padding: 20, paddingBottom: 40 },
+  scroll: { padding: 20 },
   label: { fontSize: 13, fontWeight: '700', color: '#374151', marginBottom: 10 },
   input: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, padding: 14, fontSize: 15, color: '#111827', backgroundColor: '#F9FAFB', marginBottom: 20 },
-  textarea: { minHeight: 110, lineHeight: 22 },
   textareaNoMb: { minHeight: 110, lineHeight: 22, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, padding: 14, fontSize: 15, color: '#111827', backgroundColor: '#F9FAFB', marginBottom: 4 },
   charCount: { fontSize: 11, color: '#9CA3AF', textAlign: 'right', marginBottom: 20 },
   segmented: { flexDirection: 'row', borderRadius: 12, borderWidth: 1.5, borderColor: '#E5E7EB', overflow: 'hidden', marginBottom: 14 },

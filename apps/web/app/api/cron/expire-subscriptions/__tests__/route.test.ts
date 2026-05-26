@@ -29,6 +29,12 @@ describe('/api/cron/expire-subscriptions', () => {
         expect(data.error).toBe('Unauthorized');
     });
 
+    beforeEach(() => {
+        // Cleanup queries added in security hardening
+        prismaMock.verificationCode.deleteMany.mockResolvedValue({ count: 0 });
+        prismaMock.passwordReset.deleteMany.mockResolvedValue({ count: 0 });
+    });
+
     it('expires active subscriptions past endDate and returns count', async () => {
         prismaMock.subscription.updateMany.mockResolvedValue({ count: 5 });
 

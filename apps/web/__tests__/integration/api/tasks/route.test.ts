@@ -28,6 +28,7 @@ jest.mock('@/lib/audit', () => ({
 
 jest.mock('@/lib/validation', () => ({
     validateTaskInput: jest.fn().mockReturnValue({ isValid: true }),
+    sanitizeString: jest.fn((s: string) => s),
 }));
 
 describe('/api/tasks Route', () => {

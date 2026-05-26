@@ -6,6 +6,7 @@ import { sendNewMessageNotification } from '@/lib/notifications/email';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 import { sendPushNotification } from '@/lib/web-push';
 import { sanitizeString } from '@/lib/validation';
+import { logAction, getRequestIP } from '@/lib/audit';
 
 // GET - Fetch messages for a conversation (between current user and another user, optionally for a task)
 export async function GET(request: Request) {
@@ -129,6 +130,16 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Cannot message yourself' }, { status: 400 });
         }
 
+        // Validate imageUrl is an https URL if provided (prevents JS URIs or data URIs)
+        if (imageUrl !== undefined && imageUrl !== null) {
+            if (typeof imageUrl !== 'string' || !imageUrl.startsWith('https://')) {
+                return NextResponse.json({ error: 'Invalid image URL' }, { status: 400 });
+            }
+            if (imageUrl.length > 2000) {
+                return NextResponse.json({ error: 'Image URL too long' }, { status: 400 });
+            }
+        }
+
         const sanitizedContent = content ? sanitizeString(content) : '';
 
         // Create the message
@@ -145,6 +156,15 @@ export async function POST(request: Request) {
                     select: { id: true, fullName: true }
                 }
             }
+        });
+
+        logAction({
+            action: 'SEND_MESSAGE',
+            userId: senderId,
+            entity: 'Message',
+            entityId: message.id,
+            details: { receiverId, taskId: taskId || null },
+            ipAddress: getRequestIP(request),
         });
 
         // Send email notification to receiver only if no message was sent in this

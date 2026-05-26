@@ -34,7 +34,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
         }
 
-        // 3. Verify Ownership
+        // 3. Verify Ownership and Task State
         const task = await prisma.task.findUnique({
             where: { id: taskId }
         });
@@ -47,25 +47,44 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Forbidden: You do not own this task' }, { status: 403 });
         }
 
-        // 4. Update Task
-        const updatedTask = await prisma.task.update({
-            where: { id: taskId },
-            data: {
-                status: 'IN_PROGRESS',
-                assignedUserId: providerId
-            }
+        if (task.status !== 'OPEN') {
+            return NextResponse.json({ error: 'Task is not open for acceptance' }, { status: 400 });
+        }
+
+        // 4. Verify the provider submitted a PENDING response to this task
+        const providerResponse = await prisma.response.findFirst({
+            where: { taskId, userId: providerId, status: 'PENDING' },
         });
 
-        // Notify Provider
-        await prisma.notification.create({
-            data: {
-                userId: providerId,
-                type: 'OFFER_ACCEPTED',
-                title: 'Отклик принят!',
-                message: `Вас выбрали исполнителем задания "${task.title}". Свяжитесь с заказчиком.`,
-                link: `/tasks/${taskId}`
-            }
-        });
+        if (!providerResponse) {
+            return NextResponse.json(
+                { error: 'Provider has no pending response for this task' },
+                { status: 400 }
+            );
+        }
+
+        // 5. Atomically update task + accept response + notify — all or nothing
+        await prisma.$transaction([
+            prisma.task.update({
+                where: { id: taskId },
+                data: { status: 'IN_PROGRESS', assignedUserId: providerId },
+            }),
+            prisma.response.update({
+                where: { id: providerResponse.id },
+                data: { status: 'ACCEPTED' },
+            }),
+            prisma.notification.create({
+                data: {
+                    userId: providerId,
+                    type: 'OFFER_ACCEPTED',
+                    title: 'Отклик принят!',
+                    message: `Вас выбрали исполнителем задания "${task.title}". Свяжитесь с заказчиком.`,
+                    link: `/tasks/${taskId}`,
+                },
+            }),
+        ]);
+
+        const updatedTask = await prisma.task.findUnique({ where: { id: taskId } });
 
         // Send email notification to provider (non-blocking)
         const provider = await prisma.user.findUnique({

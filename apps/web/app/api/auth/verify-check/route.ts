@@ -1,6 +1,7 @@
 
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 
 export async function POST(request: Request) {
     try {
@@ -11,6 +12,20 @@ export async function POST(request: Request) {
             return NextResponse.json(
                 { error: 'Phone and code are required' },
                 { status: 400 }
+            );
+        }
+
+        // Rate limit by IP
+        const clientIP = getClientIP(request);
+        const ipLimit = checkRateLimit(clientIP, 'auth');
+        if (!ipLimit.allowed) return rateLimitExceededResponse(ipLimit.resetIn);
+
+        // Rate limit by phone to prevent parallel brute-force across IPs
+        const phoneLimit = checkRateLimit(`otp:${phone}`, 'sms');
+        if (!phoneLimit.allowed) {
+            return NextResponse.json(
+                { error: 'Too many verification attempts. Try again in 15 minutes.' },
+                { status: 429 }
             );
         }
 

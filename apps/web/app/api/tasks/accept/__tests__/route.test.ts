@@ -102,10 +102,15 @@ describe('/api/tasks/accept', () => {
             status: 'IN_PROGRESS',
             assignedUserId: 'provider-1',
         };
+        const mockPendingResponse = { id: 'resp-1', taskId: 'task-1', userId: 'provider-1', status: 'PENDING' };
 
-        (prismaMock.task.findUnique as jest.Mock).mockResolvedValue(mockTask);
-        (prismaMock.task.update as jest.Mock).mockResolvedValue(updatedTask);
-        (prismaMock.notification.create as jest.Mock).mockResolvedValue({});
+        // findUnique called twice: before transaction (for ownership check) and after (for response body)
+        (prismaMock.task.findUnique as jest.Mock)
+            .mockResolvedValueOnce(mockTask)
+            .mockResolvedValueOnce(updatedTask);
+        (prismaMock.response.findFirst as jest.Mock).mockResolvedValue(mockPendingResponse);
+        // $transaction with array — mock to resolve so the route doesn't throw
+        (prismaMock.$transaction as jest.Mock).mockResolvedValue([updatedTask, mockPendingResponse, {}]);
 
         const request = new NextRequest('http://localhost/api/tasks/accept', {
             method: 'POST',
@@ -119,16 +124,9 @@ describe('/api/tasks/accept', () => {
         expect(data.message).toBe('Task accepted');
         expect(data.task.status).toBe('IN_PROGRESS');
         expect(data.task.assignedUserId).toBe('provider-1');
-        expect(prismaMock.task.update).toHaveBeenCalledWith({
-            where: { id: 'task-1' },
-            data: { status: 'IN_PROGRESS', assignedUserId: 'provider-1' },
-        });
-        expect(prismaMock.notification.create).toHaveBeenCalledWith(
+        expect(prismaMock.response.findFirst).toHaveBeenCalledWith(
             expect.objectContaining({
-                data: expect.objectContaining({
-                    userId: 'provider-1',
-                    type: 'OFFER_ACCEPTED',
-                }),
+                where: expect.objectContaining({ taskId: 'task-1', userId: 'provider-1', status: 'PENDING' }),
             })
         );
     });

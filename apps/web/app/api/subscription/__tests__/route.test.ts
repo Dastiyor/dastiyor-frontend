@@ -6,7 +6,10 @@ import { cookies } from 'next/headers';
 
 
 
-jest.mock('@/lib/auth', () => ({ verifyJWT: jest.fn() }));
+jest.mock('@/lib/auth', () => ({
+    verifyJWT: jest.fn(),
+    getBearerToken: jest.fn(() => null), // return null → fall through to cookie
+}));
 jest.mock('next/headers', () => ({ cookies: jest.fn() }));
 jest.mock('@/lib/payments', () => ({
     PLANS: {
@@ -33,11 +36,16 @@ describe('/api/subscription', () => {
         (verifyJWT as jest.Mock).mockResolvedValue(mockPayload);
     });
 
+    const makeGetRequest = () =>
+        new NextRequest('http://localhost/api/subscription', { method: 'GET' });
+    const makeDeleteRequest = () =>
+        new NextRequest('http://localhost/api/subscription', { method: 'DELETE' });
+
     describe('GET', () => {
         it('should return 401 if no token', async () => {
             (cookies as jest.Mock).mockResolvedValue({ get: jest.fn(() => undefined) });
 
-            const response = await GET();
+            const response = await GET(makeGetRequest());
             const data = await response.json();
 
             expect(response.status).toBe(401);
@@ -47,7 +55,7 @@ describe('/api/subscription', () => {
         it('should return null subscription when user has none', async () => {
             (prismaMock.subscription.findUnique as jest.Mock).mockResolvedValue(null);
 
-            const response = await GET();
+            const response = await GET(makeGetRequest());
             const data = await response.json();
 
             expect(response.status).toBe(200);
@@ -65,7 +73,7 @@ describe('/api/subscription', () => {
                 isActive: true,
             });
 
-            const response = await GET();
+            const response = await GET(makeGetRequest());
             const data = await response.json();
 
             expect(response.status).toBe(200);
@@ -85,7 +93,7 @@ describe('/api/subscription', () => {
                 isActive: true,
             });
 
-            const response = await GET();
+            const response = await GET(makeGetRequest());
             const data = await response.json();
 
             expect(response.status).toBe(200);
@@ -201,14 +209,14 @@ describe('/api/subscription', () => {
         it('should return 401 if no token', async () => {
             (cookies as jest.Mock).mockResolvedValue({ get: jest.fn(() => undefined) });
 
-            const response = await DELETE();
+            const response = await DELETE(makeDeleteRequest());
             expect(response.status).toBe(401);
         });
 
         it('should return 404 if no subscription found', async () => {
             (prismaMock.subscription.findUnique as jest.Mock).mockResolvedValue(null);
 
-            const response = await DELETE();
+            const response = await DELETE(makeDeleteRequest());
             const data = await response.json();
 
             expect(response.status).toBe(404);
@@ -222,7 +230,7 @@ describe('/api/subscription', () => {
             });
             (prismaMock.subscription.update as jest.Mock).mockResolvedValue({});
 
-            const response = await DELETE();
+            const response = await DELETE(makeDeleteRequest());
             const data = await response.json();
 
             expect(response.status).toBe(200);

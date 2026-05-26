@@ -75,7 +75,7 @@ export async function POST(request: Request) {
             },
         });
 
-        const token = await signJWT({ id: user.id, email: user.email, role: user.role });
+        const token = await signJWT({ id: user.id, email: user.email, role: user.role, tv: 0 });
 
         const response = NextResponse.json(
             {

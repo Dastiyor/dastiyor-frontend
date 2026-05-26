@@ -24,7 +24,7 @@ export async function upsertOAuthUser({
         : await prisma.user.findUnique({ where: { appleId: providerId } });
 
     if (existing) {
-        const token = await signJWT({ id: existing.id, email: existing.email, role: existing.role });
+        const token = await signJWT({ id: existing.id, email: existing.email, role: existing.role, tv: existing.tokenVersion });
         logAction({
             action: 'LOGIN_OAUTH',
             userId: existing.id,
@@ -44,7 +44,7 @@ export async function upsertOAuthUser({
             where: { id: byEmail.id },
             data: provider === 'google' ? { googleId: providerId } : { appleId: providerId },
         });
-        const token = await signJWT({ id: updated.id, email: updated.email, role: updated.role });
+        const token = await signJWT({ id: updated.id, email: updated.email, role: updated.role, tv: updated.tokenVersion });
         logAction({
             action: 'LOGIN_OAUTH_LINKED',
             userId: updated.id,
@@ -66,7 +66,7 @@ export async function upsertOAuthUser({
         },
     });
 
-    const token = await signJWT({ id: newUser.id, email: newUser.email, role: newUser.role });
+    const token = await signJWT({ id: newUser.id, email: newUser.email, role: newUser.role, tv: 0 });
 
     sendWelcomeEmail(newUser.email!, newUser.fullName, newUser.role)
         .catch(err => console.error('Welcome email error:', err));

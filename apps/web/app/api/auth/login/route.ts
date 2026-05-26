@@ -93,11 +93,12 @@ export async function POST(request: Request) {
             data: { loginAttempts: 0, lockedUntil: null },
         });
 
-        // Generate Token
+        // Generate Token (tv = tokenVersion for revocation support)
         const token = await signJWT({
             id: user.id,
             email: user.email,
-            role: user.role
+            role: user.role,
+            tv: user.tokenVersion,
         });
 
         const response = NextResponse.json(

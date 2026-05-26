@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { sendVerificationCode } from '@/lib/notifications/sms';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
+import { isValidPhone, normalizePhone } from '@/lib/validation';
 import crypto from 'crypto';
 
 export async function POST(request: Request) {
@@ -17,6 +18,15 @@ export async function POST(request: Request) {
             );
         }
 
+        if (!isValidPhone(String(phone))) {
+            return NextResponse.json(
+                { error: 'Invalid phone format. Use +992XXXXXXXXX' },
+                { status: 400 }
+            );
+        }
+
+        const normalizedPhone = normalizePhone(String(phone));
+
         // 1. IP-based rate limiting
         const clientIP = getClientIP(request);
         const ipLimit = checkRateLimit(clientIP, 'auth');
@@ -25,7 +35,7 @@ export async function POST(request: Request) {
         }
 
         // 2. Phone-based SMS rate limiting
-        const phoneLimit = checkRateLimit(phone, 'sms');
+        const phoneLimit = checkRateLimit(normalizedPhone, 'sms');
         if (!phoneLimit.allowed) {
             return NextResponse.json(
                 { error: 'Too many SMS requests. Please try again in 15 minutes.' },
@@ -37,26 +47,17 @@ export async function POST(request: Request) {
         const code = crypto.randomInt(100000, 999999).toString();
         const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-        // Save to DB
-        // Optionally delete existing codes for this phone/type to prevent clutter
+        // Delete existing codes for this phone/type to prevent clutter
         await prisma.verificationCode.deleteMany({
-            where: {
-                phone,
-                type
-            }
+            where: { phone: normalizedPhone, type }
         });
 
         await prisma.verificationCode.create({
-            data: {
-                phone,
-                code,
-                type,
-                expiresAt
-            }
+            data: { phone: normalizedPhone, code, type, expiresAt }
         });
 
         // Send SMS
-        const sent = await sendVerificationCode(phone, code);
+        const sent = await sendVerificationCode(normalizedPhone, code);
 
         if (!sent) {
             return NextResponse.json(

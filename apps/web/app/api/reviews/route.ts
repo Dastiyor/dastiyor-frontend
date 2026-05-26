@@ -15,10 +15,15 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'Missing userId parameter' }, { status: 400 });
         }
 
-        // Get all reviews received by this user
+        const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+        const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
+
+        // Get paginated, non-hidden reviews for this user
         const reviews = await prisma.review.findMany({
-            where: { reviewedId: userId },
+            where: { reviewedId: userId, hidden: false },
             orderBy: { createdAt: 'desc' },
+            take: limit,
+            skip: (page - 1) * limit,
             include: {
                 reviewer: {
                     select: { id: true, fullName: true }
@@ -42,10 +47,18 @@ export async function GET(request: Request) {
             1: reviews.filter(r => r.rating === 1).length,
         };
 
+        const totalCount = await prisma.review.count({ where: { reviewedId: userId, hidden: false } });
+
         return NextResponse.json({
             reviews,
+            pagination: {
+                page,
+                limit,
+                total: totalCount,
+                totalPages: Math.ceil(totalCount / limit),
+            },
             stats: {
-                totalReviews: reviews.length,
+                totalReviews: totalCount,
                 averageRating: parseFloat(averageRating),
                 breakdown
             }

@@ -73,6 +73,15 @@ export async function PUT(request: Request) {
         if (!fullName || fullName.trim().length < 2) {
             return NextResponse.json({ error: 'Name must be at least 2 characters' }, { status: 400 });
         }
+        if (fullName.trim().length > 100) {
+            return NextResponse.json({ error: 'Name must not exceed 100 characters' }, { status: 400 });
+        }
+        if (bio && bio.length > 500) {
+            return NextResponse.json({ error: 'Bio must not exceed 500 characters' }, { status: 400 });
+        }
+        if (skills && skills.length > 300) {
+            return NextResponse.json({ error: 'Skills must not exceed 300 characters' }, { status: 400 });
+        }
 
         let newEmail: string | undefined;
         if (email !== undefined) {

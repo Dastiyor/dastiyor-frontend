@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import { verifyJWT, getBearerToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import { logAction, getRequestIP } from '@/lib/audit';
+import { validatePassword } from '@/lib/validation';
 
 export async function POST(request: Request) {
     try {
@@ -28,11 +29,9 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
-        if (newPassword.length < 8) {
-            return NextResponse.json(
-                { error: 'Password must be at least 8 characters' },
-                { status: 400 }
-            );
+        const pwCheck = validatePassword(newPassword);
+        if (!pwCheck.valid) {
+            return NextResponse.json({ error: pwCheck.error }, { status: 400 });
         }
 
         const user = await prisma.user.findUnique({ where: { id: payload.id as string } });
@@ -50,9 +49,10 @@ export async function POST(request: Request) {
         }
 
         const hashed = await bcrypt.hash(newPassword, 12);
+        // Increment tokenVersion to invalidate all existing sessions (forces re-login on other devices)
         await prisma.user.update({
             where: { id: payload.id as string },
-            data: { password: hashed },
+            data: { password: hashed, tokenVersion: { increment: 1 } },
         });
 
         logAction({

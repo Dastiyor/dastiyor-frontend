@@ -76,20 +76,25 @@ function cleanupExpiredEntries() {
     }
 }
 
-// Helper to get client IP from request
+// Helper to get client IP from request.
+// On Vercel, x-forwarded-for is set by the platform and the first IP is the client.
+// We validate the extracted IP looks like a real IPv4/IPv6 address to prevent
+// trivial header-spoofing attacks (a spoofed IP still bypasses the rate limiter
+// on serverless; migrate to Redis for distributed enforcement).
+const IP_REGEX = /^[\d.:a-fA-F]+$/;
+
 export function getClientIP(request: Request): string {
-    // Check various headers for the real IP
     const forwardedFor = request.headers.get('x-forwarded-for');
     if (forwardedFor) {
-        return forwardedFor.split(',')[0].trim();
+        const candidate = forwardedFor.split(',')[0].trim();
+        if (IP_REGEX.test(candidate)) return candidate;
     }
 
     const realIP = request.headers.get('x-real-ip');
-    if (realIP) {
-        return realIP;
+    if (realIP && IP_REGEX.test(realIP.trim())) {
+        return realIP.trim();
     }
 
-    // Fallback - in production, you'd want to handle this better
     return 'unknown';
 }
 

@@ -93,14 +93,23 @@ export async function createSmartPayOrder(params: SmartPayOrderRequest): Promise
         signature: generateRequestSignature(params.orderId, params.amount),
     };
 
-    const response = await fetch(`${SMARTPAY_API_URL}/v1/payments/create`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${SMARTPAY_SECRET_KEY}`,
-        },
-        body: JSON.stringify(payload),
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15_000);
+
+    let response: Response;
+    try {
+        response = await fetch(`${SMARTPAY_API_URL}/v1/payments/create`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${SMARTPAY_SECRET_KEY}`,
+            },
+            body: JSON.stringify(payload),
+            signal: controller.signal,
+        });
+    } finally {
+        clearTimeout(timeout);
+    }
 
     if (!response.ok) {
         const errorText = await response.text();
@@ -158,12 +167,21 @@ export async function checkPaymentStatus(transactionId: string): Promise<{
         return { status: 'success', paymentMethod: 'dev_simulated' };
     }
 
-    const response = await fetch(`${SMARTPAY_API_URL}/v1/payments/status/${transactionId}`, {
-        headers: {
-            'Authorization': `Bearer ${SMARTPAY_SECRET_KEY}`,
-            'X-Merchant-ID': SMARTPAY_MERCHANT_ID,
-        },
-    });
+    const statusController = new AbortController();
+    const statusTimeout = setTimeout(() => statusController.abort(), 10_000);
+
+    let response: Response;
+    try {
+        response = await fetch(`${SMARTPAY_API_URL}/v1/payments/status/${transactionId}`, {
+            headers: {
+                'Authorization': `Bearer ${SMARTPAY_SECRET_KEY}`,
+                'X-Merchant-ID': SMARTPAY_MERCHANT_ID,
+            },
+            signal: statusController.signal,
+        });
+    } finally {
+        clearTimeout(statusTimeout);
+    }
 
     if (!response.ok) {
         console.error('[SmartPay] Status check failed:', response.status);

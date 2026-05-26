@@ -52,7 +52,7 @@ describe('/api/auth/register Route', () => {
         const response = await POST(request);
         const data = await response.json();
         expect(response.status).toBe(400);
-        expect(data.error).toBe('User already exists');
+        expect(data.error).toBe('Пользователь с таким email уже существует');
     });
 
     it('should create user successfully', async () => {

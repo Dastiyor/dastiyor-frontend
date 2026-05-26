@@ -50,28 +50,25 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Task must be in progress to complete' }, { status: 400 });
         }
 
-        // 4. Update Task
-        const updatedTask = await prisma.task.update({
-            where: { id: taskId },
-            data: {
-                status: 'COMPLETED'
-            }
-        });
+        // 4. Update Task and provider balance atomically
+        const balanceIncrement =
+            task.assignedUserId && task.budgetType === 'fixed' && task.budgetAmount
+                ? Math.round(parseFloat(task.budgetAmount))
+                : 0;
 
-        // Update provider balance if task has fixed budget
-        if (task.assignedUserId && task.budgetType === 'fixed' && task.budgetAmount) {
-            const amount = parseFloat(task.budgetAmount);
-            if (!isNaN(amount) && amount > 0) {
-                await prisma.user.update({
+        const updatedTask = await prisma.$transaction(async (tx) => {
+            const updated = await tx.task.update({
+                where: { id: taskId },
+                data: { status: 'COMPLETED' },
+            });
+            if (task.assignedUserId && balanceIncrement > 0) {
+                await tx.user.update({
                     where: { id: task.assignedUserId },
-                    data: {
-                        balance: {
-                            increment: amount
-                        }
-                    }
+                    data: { balance: { increment: balanceIncrement } },
                 });
             }
-        }
+            return updated;
+        });
 
         // Notify Provider if assigned
         if (task.assignedUserId) {
@@ -80,7 +77,7 @@ export async function POST(request: Request) {
                     userId: task.assignedUserId,
                     type: 'TASK_COMPLETED',
                     title: 'Задание выполнено',
-                    message: `Заказчик подтвердил выполнение задания "${task.title}".${task.budgetType === 'fixed' && task.budgetAmount ? ` Баланс пополнен на ${task.budgetAmount} с.` : ''}`,
+                    message: `Заказчик подтвердил выполнение задания "${task.title}".${balanceIncrement > 0 ? ` Баланс пополнен на ${balanceIncrement} с.` : ''}`,
                     link: `/tasks/${taskId}`
                 }
             });
@@ -92,7 +89,7 @@ export async function POST(request: Request) {
             });
             if (provider?.email) {
                 const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dastiyor.com';
-                const earnings = task.budgetType === 'fixed' && task.budgetAmount ? task.budgetAmount : undefined;
+                const earnings = balanceIncrement > 0 ? String(balanceIncrement) : undefined;
                 sendTaskCompletedNotification(
                     provider.email,
                     task.title,

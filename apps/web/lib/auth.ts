@@ -1,4 +1,5 @@
 import { SignJWT, jwtVerify } from 'jose';
+import { prisma } from '@/lib/prisma';
 
 if (!process.env.JWT_SECRET) {
     throw new Error('JWT_SECRET environment variable is not set');
@@ -22,6 +23,27 @@ export async function verifyJWT(token: string) {
     } catch {
         return null;
     }
+}
+
+/**
+ * Verify JWT AND check tokenVersion against DB to catch invalidated tokens
+ * (after logout, password change, or password reset).
+ * Returns null if token is expired, invalid, or version-mismatched.
+ */
+export async function verifyJWTWithVersion(token: string) {
+    const payload = await verifyJWT(token);
+    if (!payload?.id) return null;
+
+    const userId = payload.id as string;
+    const tokenVersion = (payload.tv as number | undefined) ?? 0;
+
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { tokenVersion: true },
+    });
+
+    if (!user || user.tokenVersion !== tokenVersion) return null;
+    return payload;
 }
 
 export function getBearerToken(request: Request): string | null {

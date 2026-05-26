@@ -59,7 +59,7 @@ describe('/api/notifications', () => {
                 expect.objectContaining({
                     where: { userId: mockUserId },
                     orderBy: { createdAt: 'desc' },
-                    take: 30,
+                    take: 20, // default limit in route
                 })
             );
         });

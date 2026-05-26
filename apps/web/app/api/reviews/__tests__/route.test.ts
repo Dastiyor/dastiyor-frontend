@@ -48,6 +48,7 @@ describe('/api/reviews', () => {
             ];
 
             (prismaMock.review.findMany as jest.Mock).mockResolvedValue(mockReviews);
+            (prismaMock.review.count as jest.Mock).mockResolvedValue(1); // pagination count
 
             const request = new NextRequest('http://localhost/api/reviews?userId=provider-1');
 
@@ -64,6 +65,7 @@ describe('/api/reviews', () => {
 
         it('should return average rating 0 when no reviews', async () => {
             (prismaMock.review.findMany as jest.Mock).mockResolvedValue([]);
+            (prismaMock.review.count as jest.Mock).mockResolvedValue(0);
 
             const request = new NextRequest('http://localhost/api/reviews?userId=provider-1');
 

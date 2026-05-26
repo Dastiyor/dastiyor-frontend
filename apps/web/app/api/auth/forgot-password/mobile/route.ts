@@ -3,6 +3,15 @@ import { prisma } from '@/lib/prisma';
 import { sendPasswordResetCodeEmail } from '@/lib/notifications/email';
 import { logAction, getRequestIP } from '@/lib/audit';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
+import crypto from 'crypto';
+
+// HMAC the OTP code so DB breach doesn't expose valid codes
+function hashOtp(userId: string, code: string): string {
+    return `mobile:${userId}:` + crypto
+        .createHmac('sha256', process.env.JWT_SECRET!)
+        .update(code)
+        .digest('hex');
+}
 
 export async function POST(request: Request) {
     const clientIP = getClientIP(request);
@@ -33,7 +42,7 @@ export async function POST(request: Request) {
         });
 
         await prisma.passwordReset.create({
-            data: { token: `mobile:${user.id}:${code}`, expiresAt, userId: user.id },
+            data: { token: hashOtp(user.id, code), expiresAt, userId: user.id },
         });
 
         logAction({

@@ -140,7 +140,7 @@ describe('/api/webhooks/smartpay', () => {
             await POST(makeRequest(validCallbackBody));
 
             const updateCall = prismaMock.subscription.update.mock.calls[0][0];
-            const newEndDate: Date = updateCall.data.endDate;
+            const newEndDate = updateCall.data.endDate as Date;
             // Should extend from futureEnd + 7 days (basic plan), not from now + 7 days
             const expectedMinEnd = new Date(futureEnd.getTime() + 6 * 24 * 60 * 60 * 1000);
             expect(newEndDate.getTime()).toBeGreaterThanOrEqual(expectedMinEnd.getTime());
@@ -163,7 +163,7 @@ describe('/api/webhooks/smartpay', () => {
 
             const updateCall = prismaMock.subscription.update.mock.calls[0][0];
             // Expired sub: extends from now, not from pastEnd
-            const newEndDate: Date = updateCall.data.endDate;
+            const newEndDate = updateCall.data.endDate as Date;
             const expectedMax = new Date(Date.now() + 8 * 24 * 60 * 60 * 1000);
             expect(newEndDate.getTime()).toBeLessThanOrEqual(expectedMax.getTime());
             expect(updateCall.data.isActive).toBe(true);

@@ -1,9 +1,17 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { validatePassword } from '@/lib/validation';
 import { logAction, getRequestIP } from '@/lib/audit';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
+
+function hashOtp(userId: string, code: string): string {
+    return `mobile:${userId}:` + crypto
+        .createHmac('sha256', process.env.JWT_SECRET!)
+        .update(code)
+        .digest('hex');
+}
 
 export async function POST(request: Request) {
     const clientIP = getClientIP(request);
@@ -28,7 +36,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Invalid or expired code.' }, { status: 400 });
         }
 
-        const tokenValue = `mobile:${user.id}:${code}`;
+        const tokenValue = hashOtp(user.id, code);
         const resetToken = await prisma.passwordReset.findFirst({
             where: {
                 token: tokenValue,
@@ -44,8 +52,12 @@ export async function POST(request: Request) {
 
         const hashedPassword = await bcrypt.hash(password, 12);
 
+        // Increment tokenVersion to invalidate all existing sessions after password reset
         await prisma.$transaction([
-            prisma.user.update({ where: { id: user.id }, data: { password: hashedPassword } }),
+            prisma.user.update({
+                where: { id: user.id },
+                data: { password: hashedPassword, tokenVersion: { increment: 1 } },
+            }),
             prisma.passwordReset.update({ where: { id: resetToken.id }, data: { used: true } }),
         ]);
 

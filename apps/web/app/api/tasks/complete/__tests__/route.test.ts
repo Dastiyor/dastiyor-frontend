@@ -109,13 +109,15 @@ describe('/api/tasks/complete', () => {
             budgetType: 'fixed',
             budgetAmount: '500',
         };
+        const completedTask = { ...mockTask, status: 'COMPLETED' };
 
         (prismaMock.task.findUnique as jest.Mock).mockResolvedValue(mockTask);
-        (prismaMock.task.update as jest.Mock).mockResolvedValue({
-            ...mockTask,
-            status: 'COMPLETED',
+        // $transaction callback — call the callback with prismaMock so inner updates are tracked
+        (prismaMock.$transaction as jest.Mock).mockImplementation(async (fn: (tx: typeof prismaMock) => Promise<unknown>) => {
+            (prismaMock.task.update as jest.Mock).mockResolvedValue(completedTask);
+            (prismaMock.user.update as jest.Mock).mockResolvedValue({});
+            return fn(prismaMock);
         });
-        (prismaMock.user.update as jest.Mock).mockResolvedValue({});
         (prismaMock.notification.create as jest.Mock).mockResolvedValue({});
 
         const request = new NextRequest('http://localhost/api/tasks/complete', {
@@ -129,10 +131,6 @@ describe('/api/tasks/complete', () => {
         expect(response.status).toBe(200);
         expect(data.message).toBe('Task completed');
         expect(data.task.status).toBe('COMPLETED');
-        expect(prismaMock.task.update).toHaveBeenCalledWith({
-            where: { id: 'task-1' },
-            data: { status: 'COMPLETED' },
-        });
         expect(prismaMock.notification.create).toHaveBeenCalled();
     });
 
@@ -148,8 +146,11 @@ describe('/api/tasks/complete', () => {
         };
 
         (prismaMock.task.findUnique as jest.Mock).mockResolvedValue(mockTask);
-        (prismaMock.task.update as jest.Mock).mockResolvedValue({});
-        (prismaMock.user.update as jest.Mock).mockResolvedValue({});
+        (prismaMock.$transaction as jest.Mock).mockImplementation(async (fn: (tx: typeof prismaMock) => Promise<unknown>) => {
+            (prismaMock.task.update as jest.Mock).mockResolvedValue({ ...mockTask, status: 'COMPLETED' });
+            (prismaMock.user.update as jest.Mock).mockResolvedValue({});
+            return fn(prismaMock);
+        });
         (prismaMock.notification.create as jest.Mock).mockResolvedValue({});
 
         const request = new NextRequest('http://localhost/api/tasks/complete', {
@@ -159,9 +160,11 @@ describe('/api/tasks/complete', () => {
 
         await POST(request);
 
-        expect(prismaMock.user.update).toHaveBeenCalledWith({
-            where: { id: 'provider-1' },
-            data: { balance: { increment: 500 } },
-        });
+        expect(prismaMock.user.update).toHaveBeenCalledWith(
+            expect.objectContaining({
+                where: { id: 'provider-1' },
+                data: { balance: { increment: 500 } },
+            })
+        );
     });
 });

@@ -119,6 +119,9 @@ const translations = {
       errPhone: 'Enter 9-digit phone number',
       errRegister: 'Registration error',
       passwordStrong: 'Strong password',
+      errLength: 'Min. 8 characters',
+      errNeedLetter: 'Add a letter',
+      errNeedDigit: 'Add a number',
     },
     createTask: {
       titleLabel: 'Task title *',
@@ -414,6 +417,9 @@ const translations = {
       errPhone: 'Введите 9-значный номер телефона',
       errRegister: 'Ошибка регистрации',
       passwordStrong: 'Надёжный пароль',
+      errLength: 'Мин. 8 символов',
+      errNeedLetter: 'Добавьте букву',
+      errNeedDigit: 'Добавьте цифру',
     },
     createTask: {
       titleLabel: 'Название задания *',
@@ -709,6 +715,9 @@ const translations = {
       errPhone: '9-рақами телефонро ворид кунед',
       errRegister: 'Хатои бақайдгирӣ',
       passwordStrong: 'Пароли боэтимод',
+      errLength: 'Ҳадди ақал 8 аломат',
+      errNeedLetter: 'Ҳарф илова кунед',
+      errNeedDigit: 'Рақам илова кунед',
     },
     createTask: {
       titleLabel: 'Номи супориш *',

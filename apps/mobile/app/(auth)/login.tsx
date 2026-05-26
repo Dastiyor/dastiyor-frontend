@@ -31,6 +31,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const googleConfigured = !!(
@@ -57,7 +58,8 @@ export default function LoginScreen() {
           .finally(() => setGoogleLoading(false));
       }
     }
-  }, [response]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [response, loginWithGoogle, locale]);
 
   async function handleLogin() {
     if (!identifier.trim() || !password) {
@@ -77,6 +79,8 @@ export default function LoginScreen() {
   }
 
   async function handleAppleLogin() {
+    if (appleLoading) return;
+    setAppleLoading(true);
     try {
       const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [
@@ -97,6 +101,8 @@ export default function LoginScreen() {
       if (e.code !== 'ERR_REQUEST_CANCELED') {
         Alert.alert(L.errOauth, (e as Error).message);
       }
+    } finally {
+      setAppleLoading(false);
     }
   }
 
@@ -151,7 +157,7 @@ export default function LoginScreen() {
               : AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
             }
             cornerRadius={14}
-            style={styles.appleBtn}
+            style={[styles.appleBtn, appleLoading && { opacity: 0.6 }]}
             onPress={handleAppleLogin}
           />
         )}

@@ -63,11 +63,11 @@ export default function ProviderProfileScreen() {
 
   useEffect(() => { loadProfile(); }, [id]);
 
-  if (loading) return <ActivityIndicator style={styles.center} size="large" color="#2563EB" />;
+  if (loading) return <ActivityIndicator style={styles.center} size="large" color={colors.accent} />;
 
   if (error || !profile) return (
     <View style={styles.center}>
-      <Text style={styles.errorText}>{error ?? pv.notFound}</Text>
+      <Text style={[styles.errorText, { color: colors.textSecondary }]}>{error ?? pv.notFound}</Text>
       {error ? (
         <TouchableOpacity style={styles.retryBtn} onPress={loadProfile}>
           <Text style={styles.retryBtnText}>{t.common.errorRetry}</Text>
@@ -109,9 +109,9 @@ export default function ProviderProfileScreen() {
         <View style={[styles.card, { backgroundColor: colors.surface }]}>
           <Text style={[styles.cardTitle, { color: colors.text }]}>{pv.skills}</Text>
           <View style={styles.skillsRow}>
-            {profile.skills.split(',').map((s, i) => (
-              <View key={i} style={[styles.skillBadge, { backgroundColor: colors.iconBg }]}>
-                <Text style={styles.skillText}>{s.trim()}</Text>
+            {profile.skills.split(',').map((s) => (
+              <View key={s.trim()} style={[styles.skillBadge, { backgroundColor: colors.iconBg }]}>
+                <Text style={[styles.skillText, { color: colors.accent }]}>{s.trim()}</Text>
               </View>
             ))}
           </View>
@@ -154,11 +154,11 @@ export default function ProviderProfileScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 60 },
-  errorText: { color: '#6B7280', fontSize: 15, marginBottom: 16, textAlign: 'center', paddingHorizontal: 24 },
+  errorText: { fontSize: 15, marginBottom: 16, textAlign: 'center', paddingHorizontal: 24 },
   retryBtn: { backgroundColor: '#2563EB', borderRadius: 12, paddingHorizontal: 24, paddingVertical: 12 },
   retryBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
   scroll: { paddingBottom: 40 },
-  header: { alignItems: 'center', backgroundColor: '#fff', paddingTop: 40, paddingBottom: 28, marginBottom: 16 },
+  header: { alignItems: 'center', paddingTop: 40, paddingBottom: 28, marginBottom: 16 },
   avatarWrap: { marginBottom: 14 },
   name: { fontSize: 22, fontWeight: '800', color: '#111827', marginBottom: 20 },
   statsRow: { flexDirection: 'row', alignItems: 'center' },
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
   cardText: { fontSize: 15, color: '#374151', lineHeight: 22 },
   skillsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   skillBadge: { backgroundColor: '#EFF6FF', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
-  skillText: { fontSize: 13, color: '#2563EB', fontWeight: '600' },
+  skillText: { fontSize: 13, fontWeight: '600' },
   chatBtn: { marginHorizontal: 16, backgroundColor: '#2563EB', borderRadius: 14, padding: 15, alignItems: 'center', marginBottom: 16 },
   chatBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
   reviewsSection: { marginHorizontal: 16 },

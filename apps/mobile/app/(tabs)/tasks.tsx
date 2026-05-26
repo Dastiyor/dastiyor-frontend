@@ -229,7 +229,10 @@ export default function TaskBrowseScreen() {
       <FilterSheet
         visible={filterVisible}
         filters={filters}
-        onChange={setFilters}
+        onChange={(f) => {
+          setFilters(f);
+          if (!hasActiveFilters(f)) setQuery('');
+        }}
         onClose={() => setFilterVisible(false)}
         locale={locale}
         categories={config.categories}

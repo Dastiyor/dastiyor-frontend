@@ -141,7 +141,7 @@ export default function TaskDetailScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 104 }]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -349,7 +349,7 @@ export default function TaskDetailScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  scroll: { padding: 20, paddingBottom: 120 },
+  scroll: { padding: 20 },
   badgeRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
   badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
   badgeText: { fontSize: 12, fontWeight: '700' },

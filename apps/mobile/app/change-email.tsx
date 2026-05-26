@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Text,
   TextInput,
@@ -18,6 +18,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 
+interface ProfileSnapshot {
+  fullName: string;
+  phone: string | null;
+  bio: string | null;
+  skills: string | null;
+  avatar: string | null;
+}
+
 export default function ChangeEmailScreen() {
   const { user, refreshUser } = useAuth();
   const { t } = useLanguage();
@@ -32,6 +40,23 @@ export default function ChangeEmailScreen() {
   const [newEmail, setNewEmail] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
   const [saving, setSaving] = useState(false);
+  const [profileSnapshot, setProfileSnapshot] = useState<ProfileSnapshot | null>(null);
+
+  useEffect(() => {
+    api.get<{ user: ProfileSnapshot & { email: string } }>('/api/profile')
+      .then((res) => setProfileSnapshot({
+        fullName: res.user.fullName,
+        phone: res.user.phone ?? null,
+        bio: res.user.bio ?? null,
+        skills: res.user.skills ?? null,
+        avatar: null,
+      }))
+      .catch(() => {
+        if (user) {
+          setProfileSnapshot({ fullName: user.fullName, phone: user.phone ?? null, bio: null, skills: null, avatar: null });
+        }
+      });
+  }, []);
 
   async function handleSave() {
     const trimmed = newEmail.trim().toLowerCase();
@@ -40,12 +65,17 @@ export default function ChangeEmailScreen() {
     if (currentEmail && trimmed === currentEmail.toLowerCase()) { Alert.alert(t.common.error, ce.errSame); return; }
     if (!currentPassword) { Alert.alert(t.common.error, ce.errPassword); return; }
 
+    const snap = profileSnapshot;
+    if (!snap) { Alert.alert(t.common.error, t.common.errorRetry); return; }
+
     setSaving(true);
     try {
       await api.put('/api/profile', {
-        fullName: user?.fullName ?? '',
+        fullName: snap.fullName,
+        phone: snap.phone ?? undefined,
+        bio: snap.bio ?? undefined,
+        skills: snap.skills ?? undefined,
         email: trimmed,
-        currentPassword,
       });
       await refreshUser();
       Alert.alert(t.common.done, ce.success, [{ text: t.common.ok, onPress: () => router.back() }]);

@@ -15,6 +15,7 @@ import { router } from 'expo-router';
 import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { passwordStrength } from '@/lib/validation';
 
 export default function ChangePasswordScreen() {
   const { t } = useLanguage();
@@ -25,14 +26,6 @@ export default function ChangePasswordScreen() {
   const [confirm, setConfirm] = useState('');
   const [pwIssues, setPwIssues] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
-
-  function passwordStrength(pw: string): string[] {
-    const issues: string[] = [];
-    if (pw.length < 8) issues.push(cp.errLength);
-    if (!/[A-Za-zА-Яа-яЁё]/.test(pw)) issues.push(cp.errNeedLetter ?? 'Добавьте букву');
-    if (!/[0-9]/.test(pw)) issues.push(cp.errNeedDigit ?? 'Добавьте цифру');
-    return issues;
-  }
 
   async function handleSave() {
     if (!current || !next || !confirm) { Alert.alert(t.common.error, cp.errFill); return; }
@@ -50,7 +43,7 @@ export default function ChangePasswordScreen() {
   }
 
   return (
-    <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <Text style={[styles.label, { color: colors.text }]}>{cp.current}</Text>
         <TextInput style={[styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]} value={current} onChangeText={setCurrent} secureTextEntry autoComplete="password" placeholder="••••••••" placeholderTextColor={colors.textTertiary} maxLength={128} />
@@ -59,7 +52,7 @@ export default function ChangePasswordScreen() {
         <TextInput
           style={[styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]}
           value={next}
-          onChangeText={(v) => { setNext(v); setPwIssues(v ? passwordStrength(v) : []); }}
+          onChangeText={(v) => { setNext(v); setPwIssues(v ? passwordStrength(v, cp) : []); }}
           secureTextEntry
           autoComplete="new-password"
           placeholder={cp.newPh}

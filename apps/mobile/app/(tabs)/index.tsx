@@ -74,7 +74,8 @@ export default function HomeScreen() {
     useCallback(() => {
       setLoading(true);
       loadData().catch(() => toast.show(t.home.loadError, 'error')).finally(() => setLoading(false));
-    }, [user])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user?.id])
   );
 
   async function onRefresh() {

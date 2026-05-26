@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -9,16 +10,19 @@ interface Props {
 
 export function Avatar({ name, size = 56, avatarUrl }: Props) {
   const { colors } = useTheme();
+  const [imgError, setImgError] = useState(false);
+
   const parts = name.trim().split(' ');
   const ini = parts.length >= 2
     ? (parts[0][0] + parts[1][0]).toUpperCase()
     : name.slice(0, 2).toUpperCase();
 
-  if (avatarUrl) {
+  if (avatarUrl && !imgError) {
     return (
       <Image
         source={{ uri: avatarUrl }}
         style={[styles.base, { width: size, height: size, borderRadius: size / 2 }]}
+        onError={() => setImgError(true)}
       />
     );
   }

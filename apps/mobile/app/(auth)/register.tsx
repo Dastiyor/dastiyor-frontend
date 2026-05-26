@@ -22,19 +22,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { passwordStrength } from '@/lib/validation';
 import type { Locale } from '@/lib/i18n';
 
 WebBrowser.maybeCompleteAuthSession();
 
 type Role = 'customer' | 'provider';
-
-function passwordStrength(pw: string): string[] {
-  const issues: string[] = [];
-  if (pw.length < 8) issues.push('Мин. 8 символов');
-  if (!/[A-Za-zА-Яа-яЁё]/.test(pw)) issues.push('Добавьте букву');
-  if (!/[0-9]/.test(pw)) issues.push('Добавьте цифру');
-  return issues;
-}
 
 const ROLE_ICONS = { customer: 'clipboard-outline', provider: 'construct-outline' } as const;
 
@@ -59,6 +52,7 @@ export default function RegisterScreen() {
   const [role, setRole] = useState<Role>('customer');
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
 
   const googleConfigured = !!(
     process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID &&
@@ -87,7 +81,8 @@ export default function RegisterScreen() {
           .finally(() => setGoogleLoading(false));
       }
     }
-  }, [response]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [response, loginWithGoogle, role, locale]);
 
   function handlePhoneChange(text: string) {
     const digits = text.replace(/\D/g, '').slice(0, 9);
@@ -96,7 +91,7 @@ export default function RegisterScreen() {
 
   function handlePasswordChange(text: string) {
     setPassword(text);
-    if (text) setPwIssues(passwordStrength(text));
+    if (text) setPwIssues(passwordStrength(text, r));
     else setPwIssues([]);
   }
 
@@ -109,7 +104,7 @@ export default function RegisterScreen() {
       Alert.alert(t.common.error, r.errPhone);
       return;
     }
-    const issues = passwordStrength(password);
+    const issues = passwordStrength(password, r);
     if (issues.length > 0) {
       Alert.alert(t.common.error, issues.join(', '));
       return;
@@ -133,6 +128,8 @@ export default function RegisterScreen() {
   }
 
   async function handleAppleRegister() {
+    if (appleLoading) return;
+    setAppleLoading(true);
     try {
       const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [
@@ -153,6 +150,8 @@ export default function RegisterScreen() {
       if (e.code !== 'ERR_REQUEST_CANCELED') {
         Alert.alert(r.errRegister, (e as Error).message);
       }
+    } finally {
+      setAppleLoading(false);
     }
   }
 
@@ -213,7 +212,7 @@ export default function RegisterScreen() {
               : AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
             }
             cornerRadius={12}
-            style={styles.appleBtn}
+            style={[styles.appleBtn, appleLoading && { opacity: 0.6 }]}
             onPress={handleAppleRegister}
           />
         )}

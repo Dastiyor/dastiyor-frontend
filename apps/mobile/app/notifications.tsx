@@ -39,7 +39,7 @@ export default function NotificationsScreen() {
     try {
       const res = await api.get<{ notifications: AppNotification[] }>('/api/notifications');
       setNotifications(res.notifications);
-      api.put('/api/notifications', {}).catch(() => {});
+      api.put('/api/notifications', {}).catch(() => { /* mark-read is best-effort */ });
     } catch {
       toast.show(t.notifications.loadError, 'error');
     }
@@ -60,9 +60,9 @@ export default function NotificationsScreen() {
       return;
     }
     // fallback: parse legacy link field
-    const taskMatch = n.link.match(/\/tasks\/([^/?]+)/);
+    const taskMatch = n.link?.match(/\/tasks\/([^/?]+)/);
     if (taskMatch?.[1]) { router.push(`/task/${taskMatch[1]}`); return; }
-    const msgMatch = n.link.match(/\/conversations\/([^/?]+)/);
+    const msgMatch = n.link?.match(/\/conversations\/([^/?]+)/);
     if (msgMatch?.[1]) {
       router.push({ pathname: '/chat/[partnerId]', params: { partnerId: msgMatch[1] } });
       return;

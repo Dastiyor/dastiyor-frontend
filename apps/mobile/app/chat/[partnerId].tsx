@@ -77,7 +77,7 @@ export default function ChatScreen() {
   function schedulePoll() {
     pollRef.current = setTimeout(async () => {
       await fetchMessages(false);
-      schedulePoll();
+      if (pollErrorCount.current < 5) schedulePoll();
     }, pollDelayRef.current);
   }
 

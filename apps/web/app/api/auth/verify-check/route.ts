@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
+import { normalizePhone } from '@/lib/validation';
 
 export async function POST(request: Request) {
     try {
@@ -15,13 +16,15 @@ export async function POST(request: Request) {
             );
         }
 
+        const normalizedPhone = normalizePhone(String(phone));
+
         // Rate limit by IP
         const clientIP = getClientIP(request);
-        const ipLimit = checkRateLimit(clientIP, 'auth');
+        const ipLimit = await checkRateLimit(clientIP, 'auth');
         if (!ipLimit.allowed) return rateLimitExceededResponse(ipLimit.resetIn);
 
-        // Rate limit by phone to prevent parallel brute-force across IPs
-        const phoneLimit = checkRateLimit(`otp:${phone}`, 'sms');
+        // Rate limit by normalized phone to prevent parallel brute-force across IPs
+        const phoneLimit = await checkRateLimit(`otp:${normalizedPhone}`, 'sms');
         if (!phoneLimit.allowed) {
             return NextResponse.json(
                 { error: 'Too many verification attempts. Try again in 15 minutes.' },
@@ -29,15 +32,14 @@ export async function POST(request: Request) {
             );
         }
 
-        // Find valid code
+        // Find valid, unused code — mark used atomically before acting on it
         const validCode = await prisma.verificationCode.findFirst({
             where: {
-                phone,
+                phone: normalizedPhone,
                 code,
                 type,
-                expiresAt: {
-                    gt: new Date()
-                }
+                used: false,
+                expiresAt: { gt: new Date() }
             }
         });
 
@@ -48,11 +50,15 @@ export async function POST(request: Request) {
             );
         }
 
+        // Mark used before any further action to prevent replay
+        await prisma.verificationCode.update({
+            where: { id: validCode.id },
+            data: { used: true },
+        });
+
         // Mark phone as verified if user exists
-        // Note: For registration, the user might not exist yet, so we just return success
-        // and let the client proceed to registration with the verified phone.
         const user = await prisma.user.findFirst({
-            where: { phone }
+            where: { phone: normalizedPhone }
         });
 
         if (user) {

@@ -1,28 +1,16 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyJWT, getBearerToken } from '@/lib/auth';
-import { cookies } from 'next/headers';
 import { sendNewMessageNotification } from '@/lib/notifications/email';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 import { sendPushNotification } from '@/lib/web-push';
 import { sanitizeString } from '@/lib/validation';
 import { logAction, getRequestIP } from '@/lib/audit';
+import { requireAuth } from '@/lib/require-auth';
 
 // GET - Fetch messages for a conversation (between current user and another user, optionally for a task)
 export async function GET(request: Request) {
     try {
-        const bearerToken = getBearerToken(request);
-        let token: string | undefined = bearerToken ?? undefined;
-        if (!token) {
-            const cookieStore = await cookies();
-            token = cookieStore.get('token')?.value;
-        }
-
-        if (!token) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        const payload = await verifyJWT(token);
+        const payload = await requireAuth(request);
         if (!payload || !payload.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
@@ -85,18 +73,7 @@ export async function GET(request: Request) {
 // POST - Send a new message
 export async function POST(request: Request) {
     try {
-        const bearerToken = getBearerToken(request);
-        let token: string | undefined = bearerToken ?? undefined;
-        if (!token) {
-            const cookieStore = await cookies();
-            token = cookieStore.get('token')?.value;
-        }
-
-        if (!token) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        const payload = await verifyJWT(token);
+        const payload = await requireAuth(request);
         if (!payload || !payload.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
@@ -105,7 +82,7 @@ export async function POST(request: Request) {
 
         // Apply rate limiting (e.g. 20 messages per minute via 'upload' or a new 'messages' type in rate-limit, fallback to 'api')
         const clientIP = getClientIP(request);
-        const rateLimitCheck = checkRateLimit(clientIP, 'api');
+        const rateLimitCheck = await checkRateLimit(clientIP, 'api');
         if (!rateLimitCheck.allowed) {
             return rateLimitExceededResponse(rateLimitCheck.resetIn);
         }

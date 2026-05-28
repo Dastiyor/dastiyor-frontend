@@ -1,17 +1,22 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyJWT, getBearerToken } from '@/lib/auth';
-import { cookies } from 'next/headers';
 import { logger } from '@/lib/logger';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 import { validateTaskInput, sanitizeString } from '@/lib/validation';
 import { logAction, getRequestIP } from '@/lib/audit';
+import { requireAuth } from '@/lib/require-auth';
 
 const TASKS_PER_PAGE = 20;
 
 /** GET - Public paginated task list for feed / lazy loading */
 export async function GET(request: Request) {
     try {
+        const clientIP = getClientIP(request);
+        const rateLimit = await checkRateLimit(clientIP, 'api');
+        if (!rateLimit.allowed) {
+            return rateLimitExceededResponse(rateLimit.resetIn);
+        }
+
         const { searchParams } = new URL(request.url);
         const category = searchParams.get('category');
         const query = searchParams.get('query');
@@ -108,29 +113,14 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
     try {
         // 1. Authenticate Request
-        const bearerToken = getBearerToken(request);
-        let token: string | undefined = bearerToken ?? undefined;
-        if (!token) {
-            const cookieStore = await cookies();
-            token = cookieStore.get('token')?.value;
-        }
-        logger.debug('API /tasks request', { hasToken: !!token });
-
-        if (!token) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        const payload = await verifyJWT(token);
+        const payload = await requireAuth(request);
         if (!payload || !payload.id) {
-            return NextResponse.json(
-                { error: 'Unauthorized: Invalid token' },
-                { status: 401 }
-            );
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
         // Apply Rate Limiting
         const clientIP = getClientIP(request);
-        const rateLimitCheck = checkRateLimit(clientIP, 'api');
+        const rateLimitCheck = await checkRateLimit(clientIP, 'api');
         if (!rateLimitCheck.allowed) {
             return rateLimitExceededResponse(rateLimitCheck.resetIn);
         }

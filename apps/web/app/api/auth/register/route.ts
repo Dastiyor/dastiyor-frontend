@@ -10,7 +10,7 @@ import { logAction, getRequestIP } from '@/lib/audit';
 export async function POST(request: Request) {
     try {
         const clientIP = getClientIP(request);
-        const rateLimit = checkRateLimit(clientIP, 'auth');
+        const rateLimit = await checkRateLimit(clientIP, 'auth');
         if (!rateLimit.allowed) {
             return rateLimitExceededResponse(rateLimit.resetIn);
         }

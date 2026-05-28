@@ -128,6 +128,7 @@ model Response {
   userId    String
   user      User     @relation(fields: [userId], references: [id])
 
+  @@unique([taskId, userId])
   @@index([taskId])
   @@index([userId])
 }
@@ -143,6 +144,8 @@ model Subscription {
   // Relationships
   userId    String   @unique
   user      User     @relation(fields: [userId], references: [id])
+
+  @@index([endDate])
 }
 
 // Message Model (Chat)
@@ -188,9 +191,10 @@ model PasswordReset {
 // Verification Code Model (OTP)
 model VerificationCode {
   id        String   @id @default(cuid())
-  phone     String   // The phone number being verified
-  code      String   // The OTP code
+  phone     String
+  code      String
   type      String   // 'REGISTRATION', 'RESET_PASSWORD', 'LOGIN'
+  used      Boolean  @default(false)
   expiresAt DateTime
   createdAt DateTime @default(now())
 

@@ -1,19 +1,12 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyJWT } from '@/lib/auth';
 import { cookies } from 'next/headers';
+import { requireAuth } from '@/lib/require-auth';
 
 // POST - Add/Remove favorite
 export async function POST(request: Request) {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get('token')?.value;
-
-        if (!token) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        const payload = await verifyJWT(token);
+        const payload = await requireAuth(request);
         if (!payload || !payload.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
@@ -63,16 +56,9 @@ export async function POST(request: Request) {
 // GET - Check if task is favorited
 export async function GET(request: Request) {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get('token')?.value;
-
-        if (!token) {
-            return NextResponse.json({ isFavorite: false });
-        }
-
-        const payload = await verifyJWT(token);
+        const payload = await requireAuth(request);
         if (!payload || !payload.id) {
-            return NextResponse.json({ isFavorite: false });
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
         const { searchParams } = new URL(request.url);

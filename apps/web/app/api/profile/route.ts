@@ -1,23 +1,13 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyJWT, getBearerToken } from '@/lib/auth';
-import { cookies } from 'next/headers';
 import { logAction, getRequestIP } from '@/lib/audit';
+import { requireAuth } from '@/lib/require-auth';
+import { sanitizeString } from '@/lib/validation';
 
 // GET - Get current user profile
 export async function GET(request: Request) {
     try {
-        const bearerToken = getBearerToken(request);
-        let token: string | undefined = bearerToken ?? undefined;
-        if (!token) {
-            const cookieStore = await cookies();
-            token = cookieStore.get('token')?.value;
-        }
-        if (!token) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        const payload = await verifyJWT(token);
+        const payload = await requireAuth(request);
         if (!payload || !payload.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
@@ -52,17 +42,7 @@ export async function GET(request: Request) {
 // PUT - Update user profile
 export async function PUT(request: Request) {
     try {
-        const bearerToken = getBearerToken(request);
-        let token: string | undefined = bearerToken ?? undefined;
-        if (!token) {
-            const cookieStore = await cookies();
-            token = cookieStore.get('token')?.value;
-        }
-        if (!token) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        const payload = await verifyJWT(token);
+        const payload = await requireAuth(request);
         if (!payload || !payload.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
@@ -99,14 +79,23 @@ export async function PUT(request: Request) {
             newEmail = trimmed;
         }
 
+        // Validate avatar is a safe https URL from Vercel Blob or known CDN
+        let safeAvatar: string | null = null;
+        if (avatar) {
+            if (typeof avatar !== 'string' || !avatar.startsWith('https://')) {
+                return NextResponse.json({ error: 'Invalid avatar URL' }, { status: 400 });
+            }
+            safeAvatar = avatar;
+        }
+
         const updatedUser = await prisma.user.update({
             where: { id: payload.id as string },
             data: {
-                fullName: fullName.trim(),
+                fullName: sanitizeString(fullName.trim()),
                 phone: phone?.trim() || null,
-                bio: bio?.trim() || null,
-                skills: skills?.trim() || null,
-                avatar: avatar || null,
+                bio: bio ? sanitizeString(bio.trim()) : null,
+                skills: skills ? sanitizeString(skills.trim()) : null,
+                avatar: safeAvatar,
                 ...(newEmail !== undefined ? { email: newEmail } : {}),
             },
             select: {

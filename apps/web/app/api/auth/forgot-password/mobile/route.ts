@@ -15,7 +15,7 @@ function hashOtp(userId: string, code: string): string {
 
 export async function POST(request: Request) {
     const clientIP = getClientIP(request);
-    const rateLimit = checkRateLimit(clientIP, 'auth');
+    const rateLimit = await checkRateLimit(clientIP, 'auth');
     if (!rateLimit.allowed) return rateLimitExceededResponse(rateLimit.resetIn);
 
     try {

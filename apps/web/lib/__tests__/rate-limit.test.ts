@@ -17,48 +17,48 @@ describe('Rate Limit', () => {
     });
 
     describe('checkRateLimit', () => {
-        it('should allow first request', () => {
-            const result = checkRateLimit('unique-ip-1', 'auth');
+        it('should allow first request', async () => {
+            const result = await checkRateLimit('unique-ip-1', 'auth');
             expect(result.allowed).toBe(true);
             expect(result.remaining).toBeLessThanOrEqual(RATE_LIMITS.auth.requests);
             expect(result.resetIn).toBeGreaterThan(0);
         });
 
-        it('should allow requests within limit', () => {
+        it('should allow requests within limit', async () => {
             const key = 'key-within-limit';
             for (let i = 0; i < RATE_LIMITS.auth.requests - 1; i++) {
-                const result = checkRateLimit(key, 'auth');
+                const result = await checkRateLimit(key, 'auth');
                 expect(result.allowed).toBe(true);
             }
         });
 
-        it('should deny when limit exceeded for auth', () => {
+        it('should deny when limit exceeded for auth', async () => {
             const key = 'key-auth-exceed-' + Date.now();
             for (let i = 0; i < RATE_LIMITS.auth.requests; i++) {
-                checkRateLimit(key, 'auth');
+                await checkRateLimit(key, 'auth');
             }
-            const result = checkRateLimit(key, 'auth');
+            const result = await checkRateLimit(key, 'auth');
             expect(result.allowed).toBe(false);
             expect(result.remaining).toBe(0);
             expect(result.resetIn).toBeGreaterThan(0);
         });
 
-        it('should use different keys per identifier', () => {
-            const r1 = checkRateLimit('ip-a', 'api');
-            const r2 = checkRateLimit('ip-b', 'api');
+        it('should use different keys per identifier', async () => {
+            const r1 = await checkRateLimit('ip-a', 'api');
+            const r2 = await checkRateLimit('ip-b', 'api');
             expect(r1.allowed).toBe(true);
             expect(r2.allowed).toBe(true);
         });
 
-        it('should use different keys per type', () => {
+        it('should use different keys per type', async () => {
             const key = 'same-ip-' + Date.now();
-            checkRateLimit(key, 'auth');
-            const apiResult = checkRateLimit(key, 'api');
+            await checkRateLimit(key, 'auth');
+            const apiResult = await checkRateLimit(key, 'api');
             expect(apiResult.allowed).toBe(true);
         });
 
-        it('should default to api type when not specified', () => {
-            const result = checkRateLimit('default-key', 'api');
+        it('should default to api type when not specified', async () => {
+            const result = await checkRateLimit('default-key', 'api');
             expect(result.allowed).toBe(true);
             expect(result.resetIn).toBe(RATE_LIMITS.api.windowMs);
         });
@@ -103,7 +103,7 @@ describe('Rate Limit', () => {
             const data = await response.json();
             expect(data.error).toContain('Too many requests');
             expect(data.code).toBe('RATE_LIMIT_EXCEEDED');
-            expect(data.retryAfter).toBe(2); // 2000ms -> 2 seconds
+            expect(data.retryAfter).toBe(2);
         });
 
         it('should set Retry-After header', () => {

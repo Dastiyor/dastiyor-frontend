@@ -1,7 +1,4 @@
-/**
- * Logging utility
- * Replaces console.log with proper logging levels
- */
+import * as Sentry from '@sentry/nextjs';
 
 type LogLevel = 'info' | 'warn' | 'error' | 'debug';
 
@@ -9,60 +6,47 @@ interface LogEntry {
     level: LogLevel;
     message: string;
     timestamp: string;
-    data?: any;
+    data?: unknown;
 }
 
 class Logger {
     private isDevelopment = process.env.NODE_ENV === 'development';
+    private sentryEnabled = !!process.env.SENTRY_DSN;
 
-    private formatMessage(level: LogLevel, message: string, data?: any): LogEntry {
-        return {
-            level,
-            message,
-            timestamp: new Date().toISOString(),
-            ...(data && { data })
-        };
+    private formatMessage(level: LogLevel, message: string, data?: unknown): LogEntry {
+        return { level, message, timestamp: new Date().toISOString(), ...(data !== undefined && { data }) };
     }
 
-    private log(level: LogLevel, message: string, data?: any) {
+    private log(level: LogLevel, message: string, data?: unknown) {
         const entry = this.formatMessage(level, message, data);
 
         if (this.isDevelopment) {
-            // In development, use console with colors
             const colors: Record<LogLevel, string> = {
-                info: '\x1b[36m', // Cyan
-                warn: '\x1b[33m', // Yellow
-                error: '\x1b[31m', // Red
-                debug: '\x1b[90m' // Gray
+                info: '\x1b[36m', warn: '\x1b[33m', error: '\x1b[31m', debug: '\x1b[90m',
             };
-            const reset = '\x1b[0m';
-            console.log(`${colors[level]}[${level.toUpperCase()}]${reset} ${entry.timestamp} - ${message}`, data || '');
+            console.log(`${colors[level]}[${level.toUpperCase()}]\x1b[0m ${entry.timestamp} - ${message}`, data ?? '');
         } else {
-            // In production, you would send to logging service
-            // Example: Sentry, LogRocket, CloudWatch, etc.
-            if (level === 'error') {
-                // Only log errors in production
+            // In production: always emit errors; emit warn/info as structured JSON
+            if (level === 'error' || level === 'warn') {
                 console.error(JSON.stringify(entry));
             }
         }
-    }
 
-    info(message: string, data?: any) {
-        this.log('info', message, data);
-    }
-
-    warn(message: string, data?: any) {
-        this.log('warn', message, data);
-    }
-
-    error(message: string, data?: any) {
-        this.log('error', message, data);
-    }
-
-    debug(message: string, data?: any) {
-        if (this.isDevelopment) {
-            this.log('debug', message, data);
+        // Sentry: capture errors and warnings when DSN is configured
+        if (this.sentryEnabled && (level === 'error' || level === 'warn')) {
+            const err = data instanceof Error ? data : new Error(message);
+            Sentry.captureException(err, {
+                level: level === 'error' ? 'error' : 'warning',
+                extra: { message, data: data instanceof Error ? undefined : data },
+            });
         }
+    }
+
+    info(message: string, data?: unknown) { this.log('info', message, data); }
+    warn(message: string, data?: unknown) { this.log('warn', message, data); }
+    error(message: string, data?: unknown) { this.log('error', message, data); }
+    debug(message: string, data?: unknown) {
+        if (this.isDevelopment) this.log('debug', message, data);
     }
 }
 

@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server';
 import { put } from '@vercel/blob';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
-import { verifyJWT } from '@/lib/auth';
-import { cookies } from 'next/headers';
+import { requireAuth } from '@/lib/require-auth';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 const TYPE_TO_EXT: Record<string, string> = {
@@ -16,14 +15,7 @@ const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
 export async function POST(request: Request) {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get('token')?.value;
-
-        if (!token) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        const payload = await verifyJWT(token);
+        const payload = await requireAuth(request);
         if (!payload || !payload.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }

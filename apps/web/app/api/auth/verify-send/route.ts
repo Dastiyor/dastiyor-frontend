@@ -29,13 +29,13 @@ export async function POST(request: Request) {
 
         // 1. IP-based rate limiting
         const clientIP = getClientIP(request);
-        const ipLimit = checkRateLimit(clientIP, 'auth');
+        const ipLimit = await checkRateLimit(clientIP, 'auth');
         if (!ipLimit.allowed) {
             return rateLimitExceededResponse(ipLimit.resetIn);
         }
 
         // 2. Phone-based SMS rate limiting
-        const phoneLimit = checkRateLimit(normalizedPhone, 'sms');
+        const phoneLimit = await checkRateLimit(normalizedPhone, 'sms');
         if (!phoneLimit.allowed) {
             return NextResponse.json(
                 { error: 'Too many SMS requests. Please try again in 15 minutes.' },

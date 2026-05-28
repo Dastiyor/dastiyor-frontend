@@ -1,28 +1,14 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyJWT, getBearerToken } from '@/lib/auth';
-import { cookies } from 'next/headers';
 import { PLANS, isValidPlan, createSmartPayOrder, generateOrderId } from '@/lib/payments';
+import { requireAuth } from '@/lib/require-auth';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-
-async function getToken(request: Request): Promise<string | undefined> {
-    const bearerToken = getBearerToken(request);
-    if (bearerToken) return bearerToken;
-    const cookieStore = await cookies();
-    return cookieStore.get('token')?.value;
-}
 
 // GET - Get current subscription
 export async function GET(request: Request) {
     try {
-        const token = await getToken(request);
-
-        if (!token) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        const payload = await verifyJWT(token);
+        const payload = await requireAuth(request);
         if (!payload || !payload.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
@@ -56,13 +42,7 @@ export async function GET(request: Request) {
 // POST - Initiate subscription payment via SmartPay
 export async function POST(request: Request) {
     try {
-        const token = await getToken(request);
-
-        if (!token) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        const payload = await verifyJWT(token);
+        const payload = await requireAuth(request);
         if (!payload || !payload.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
@@ -144,13 +124,7 @@ export async function POST(request: Request) {
 // DELETE - Cancel subscription
 export async function DELETE(request: Request) {
     try {
-        const token = await getToken(request);
-
-        if (!token) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
-
-        const payload = await verifyJWT(token);
+        const payload = await requireAuth(request);
         if (!payload || !payload.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }

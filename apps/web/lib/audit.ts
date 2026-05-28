@@ -57,10 +57,15 @@ export function logAction(params: AuditLogParams): void {
 /**
  * Extract client IP from request (works with Vercel/proxied setups).
  */
+const IP_REGEX = /^[\d.:a-fA-F]+$/;
+
 export function getRequestIP(request: Request): string {
-    return (
-        request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-        request.headers.get('x-real-ip') ||
-        'unknown'
-    );
+    const fwd = request.headers.get('x-forwarded-for');
+    if (fwd) {
+        const candidate = fwd.split(',')[0].trim();
+        if (IP_REGEX.test(candidate)) return candidate;
+    }
+    const realIP = request.headers.get('x-real-ip');
+    if (realIP && IP_REGEX.test(realIP.trim())) return realIP.trim();
+    return 'unknown';
 }

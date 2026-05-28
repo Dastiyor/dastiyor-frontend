@@ -1,43 +1,25 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyJWT, getBearerToken } from '@/lib/auth';
-import { cookies } from 'next/headers';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 import { logAction, getRequestIP } from '@/lib/audit';
 import { sendTaskResponseNotification } from '@/lib/notifications/email';
 import { sendPushNotification } from '@/lib/web-push';
+import { requireAuth } from '@/lib/require-auth';
 
 export async function POST(request: Request) {
     try {
         // Rate limiting
         const clientIP = getClientIP(request);
-        const rateLimit = checkRateLimit(clientIP, 'responses');
+        const rateLimit = await checkRateLimit(clientIP, 'responses');
 
         if (!rateLimit.allowed) {
             return rateLimitExceededResponse(rateLimit.resetIn);
         }
 
         // 1. Authenticate Request
-        const bearerToken = getBearerToken(request);
-        let token: string | undefined = bearerToken ?? undefined;
-        if (!token) {
-            const cookieStore = await cookies();
-            token = cookieStore.get('token')?.value;
-        }
-
-        if (!token) {
-            return NextResponse.json(
-                { error: 'Unauthorized' },
-                { status: 401 }
-            );
-        }
-
-        const payload = await verifyJWT(token);
+        const payload = await requireAuth(request);
         if (!payload || !payload.id) {
-            return NextResponse.json(
-                { error: 'Unauthorized: Invalid token' },
-                { status: 401 }
-            );
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
         // 2. Load User
@@ -58,26 +40,21 @@ export async function POST(request: Request) {
             );
         }
 
-        // TODO: Re-enable subscription gate when payment gateway is ready
-        // const hasActiveSubscription = user.subscription &&
-        //     user.subscription.isActive &&
-        //     new Date(user.subscription.endDate) > new Date();
-        // if (!hasActiveSubscription) {
-        //     return NextResponse.json(
-        //         { error: 'Active subscription required to respond', code: 'SUBSCRIPTION_REQUIRED' },
-        //         { status: 403 }
-        //     );
-        // }
-
-        // TODO: Re-enable response limits when payment gateway is ready
-        // const planLimits: Record<string, { limit: number, period: 'daily' | 'monthly' }> = {
-        //     'basic': { limit: 15, period: 'daily' },
-        //     'standard': { limit: 50, period: 'monthly' },
-        //     'premium': { limit: Infinity, period: 'monthly' }
-        // };
-        // const userPlan = user.subscription!.plan.toLowerCase();
-        // const planConfig = planLimits[userPlan] || { limit: 15, period: 'daily' };
-        // if (planConfig.limit !== Infinity) { ... }
+        // Subscription gate — active when SUBSCRIPTION_GATE_ENABLED=true
+        if (process.env.SUBSCRIPTION_GATE_ENABLED === 'true') {
+            const subscription = await prisma.subscription.findUnique({
+                where: { userId: payload.id as string },
+                select: { isActive: true, endDate: true, plan: true },
+            });
+            const hasActiveSub =
+                subscription?.isActive && new Date(subscription.endDate) > new Date();
+            if (!hasActiveSub) {
+                return NextResponse.json(
+                    { error: 'Active subscription required to respond', code: 'SUBSCRIPTION_REQUIRED' },
+                    { status: 403 }
+                );
+            }
+        }
 
         // 4. Parse Body
         const body = await request.json();
@@ -93,13 +70,33 @@ export async function POST(request: Request) {
         // Fetch the task and its owner for notification
         const task = await prisma.task.findUnique({
             where: { id: taskId },
-            select: { userId: true, title: true, user: { select: { email: true } } }
+            select: { userId: true, title: true, status: true, user: { select: { email: true } } }
         });
 
         if (!task) {
             return NextResponse.json(
                 { error: 'Task not found' },
                 { status: 404 }
+            );
+        }
+
+        // Only allow responses on open tasks
+        if (task.status !== 'OPEN') {
+            return NextResponse.json(
+                { error: 'This task is no longer accepting responses' },
+                { status: 409 }
+            );
+        }
+
+        // Prevent duplicate responses from same provider
+        const existingResponse = await prisma.response.findFirst({
+            where: { taskId, userId: payload.id as string },
+            select: { id: true },
+        });
+        if (existingResponse) {
+            return NextResponse.json(
+                { error: 'You have already submitted a response for this task' },
+                { status: 409 }
             );
         }
 

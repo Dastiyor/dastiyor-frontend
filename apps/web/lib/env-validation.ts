@@ -4,12 +4,12 @@
  */
 
 interface EnvConfig {
-    DATABASE_URL: string;
+    POSTGRES_PRISMA_URL: string;
     JWT_SECRET: string;
     NODE_ENV: 'development' | 'production' | 'test';
 }
 
-const requiredEnvVars: (keyof EnvConfig)[] = ['DATABASE_URL', 'JWT_SECRET', 'NODE_ENV'];
+const requiredEnvVars: (keyof EnvConfig)[] = ['POSTGRES_PRISMA_URL', 'JWT_SECRET', 'NODE_ENV'];
 
 export function validateEnv(): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
@@ -31,11 +31,11 @@ export function validateEnv(): { isValid: boolean; errors: string[] } {
         }
     }
 
-    // Validate DATABASE_URL format
-    if (process.env.DATABASE_URL) {
-        const dbUrl = process.env.DATABASE_URL;
-        if (!dbUrl.startsWith('file:') && !dbUrl.startsWith('postgresql://') && !dbUrl.startsWith('mysql://')) {
-            errors.push('DATABASE_URL must start with file:, postgresql://, or mysql://');
+    // Validate POSTGRES_PRISMA_URL format
+    if (process.env.POSTGRES_PRISMA_URL) {
+        const dbUrl = process.env.POSTGRES_PRISMA_URL;
+        if (!dbUrl.startsWith('postgresql://') && !dbUrl.startsWith('postgres://')) {
+            errors.push('POSTGRES_PRISMA_URL must start with postgresql:// or postgres://');
         }
     }
 

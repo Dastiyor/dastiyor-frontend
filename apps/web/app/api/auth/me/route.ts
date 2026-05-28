@@ -1,23 +1,10 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { verifyJWT, getBearerToken } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { requireAuth } from '@/lib/require-auth';
 
 export async function GET(request: Request) {
-    const bearerToken = getBearerToken(request);
-    let token: string | undefined = bearerToken ?? undefined;
-
-    if (!token) {
-        const cookieStore = await cookies();
-        token = cookieStore.get('token')?.value;
-    }
-
-    if (!token) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const payload = await verifyJWT(token);
-    if (!payload?.id) {
+    const payload = await requireAuth(request);
+    if (!payload || !payload.id) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

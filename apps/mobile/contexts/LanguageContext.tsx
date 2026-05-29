@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import * as SecureStore from 'expo-secure-store';
+import * as storage from '@/lib/storage';
 import { type Locale, type Translations, getTranslations } from '@/lib/i18n';
 
 interface LanguageState {
@@ -16,14 +16,14 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>('ru');
 
   useEffect(() => {
-    SecureStore.getItemAsync(STORAGE_KEY)
+    storage.getItem(STORAGE_KEY)
       .then((val) => { if (val === 'ru' || val === 'tj' || val === 'en') setLocaleState(val); })
       .catch(() => {});
   }, []);
 
   async function setLocale(next: Locale) {
     setLocaleState(next);
-    await SecureStore.setItemAsync(STORAGE_KEY, next);
+    await storage.setItem(STORAGE_KEY, next);
   }
 
   return (

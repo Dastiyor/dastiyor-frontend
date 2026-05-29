@@ -1,4 +1,4 @@
-import * as SecureStore from 'expo-secure-store';
+import * as storage from '@/lib/storage';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? 'https://www.dastiyor.com';
 const REQUEST_TIMEOUT_MS = 15_000;
@@ -13,7 +13,7 @@ export function setOnNetworkError(cb: () => void) { _onNetworkError = cb; }
 export function setOnNetworkRecovered(cb: () => void) { _onNetworkRecovered = cb; }
 
 async function getToken(): Promise<string | null> {
-  return SecureStore.getItemAsync('auth_token');
+  return storage.getItem('auth_token');
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {

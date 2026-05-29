@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import * as SecureStore from 'expo-secure-store';
+import * as storage from '@/lib/storage';
 
 export type ThemeMode = 'light' | 'dark';
 
@@ -70,14 +70,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<ThemeMode>('light');
 
   useEffect(() => {
-    SecureStore.getItemAsync(STORE_KEY).then((val) => {
+    storage.getItem(STORE_KEY).then((val) => {
       if (val === 'dark' || val === 'light') setThemeState(val);
     }).catch(() => {});
   }, []);
 
   function setTheme(mode: ThemeMode) {
     setThemeState(mode);
-    SecureStore.setItemAsync(STORE_KEY, mode).catch(() => {});
+    storage.setItem(STORE_KEY, mode).catch(() => {});
   }
 
   function toggleTheme() {

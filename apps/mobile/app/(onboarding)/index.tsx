@@ -12,7 +12,7 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { type Locale } from '@/lib/i18n';
-import * as SecureStore from 'expo-secure-store';
+import * as storage from '@/lib/storage';
 import { useState } from 'react';
 
 const LANG_OPTIONS: { locale: Locale; label: string; sub: string }[] = [
@@ -73,7 +73,7 @@ export default function OnboardingScreen() {
   const c = CONTENT[locale] ?? CONTENT.ru;
 
   async function finish() {
-    await SecureStore.setItemAsync('onboarding_done', '1').catch(() => {});
+    await storage.setItem('onboarding_done', '1').catch(() => {});
     router.replace('/(auth)/register');
   }
 

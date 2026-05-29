@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
+import * as storage from '@/lib/storage';
 import * as SplashScreen from 'expo-splash-screen';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
@@ -14,7 +14,7 @@ export default function RootIndex() {
 
     async function navigate() {
       try {
-        const onboardingDone = await SecureStore.getItemAsync('onboarding_done').catch(() => null);
+        const onboardingDone = await storage.getItem('onboarding_done').catch(() => null);
         if (!onboardingDone) {
           router.replace('/(onboarding)');
         } else if (user) {

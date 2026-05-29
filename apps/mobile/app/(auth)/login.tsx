@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { Link, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import * as SecureStore from 'expo-secure-store';
+import * as storage from '@/lib/storage';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import * as AppleAuthentication from 'expo-apple-authentication';
@@ -69,7 +69,7 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       await login(identifier.trim(), password);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       router.replace('/(tabs)');
     } catch (e) {
       Alert.alert(L.errOauth, (e as Error).message);
@@ -107,7 +107,7 @@ export default function LoginScreen() {
   }
 
   async function resetOnboarding() {
-    await SecureStore.deleteItemAsync('onboarding_done');
+    await storage.deleteItem('onboarding_done');
     router.replace('/(onboarding)');
   }
 

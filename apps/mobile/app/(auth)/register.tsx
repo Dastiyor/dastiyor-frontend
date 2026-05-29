@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { Link, router } from 'expo-router';
 import { AuthBackground } from '@/components/AuthBackground';
-import * as SecureStore from 'expo-secure-store';
+import * as storage from '@/lib/storage';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import * as AppleAuthentication from 'expo-apple-authentication';
@@ -74,7 +74,7 @@ export default function RegisterScreen() {
         setGoogleLoading(true);
         loginWithGoogle(accessToken, role)
           .then(async () => {
-            await SecureStore.setItemAsync('onboarding_done', '1');
+            await storage.setItem('onboarding_done', '1');
             router.replace('/(tabs)');
           })
           .catch((e) => Alert.alert(r.errRegister, (e as Error).message))
@@ -117,8 +117,8 @@ export default function RegisterScreen() {
         password,
         role,
       });
-      await SecureStore.setItemAsync('onboarding_done', '1');
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      await storage.setItem('onboarding_done', '1');
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       router.replace('/(tabs)');
     } catch (e) {
       Alert.alert(r.errRegister, (e as Error).message);
@@ -144,7 +144,7 @@ export default function RegisterScreen() {
       const fullNameStr = [credential.fullName?.givenName, credential.fullName?.familyName]
         .filter(Boolean).join(' ') || undefined;
       await loginWithApple(credential.identityToken, credential.email ?? undefined, fullNameStr, role);
-      await SecureStore.setItemAsync('onboarding_done', '1');
+      await storage.setItem('onboarding_done', '1');
       router.replace('/(tabs)');
     } catch (e: any) {
       if (e.code !== 'ERR_REQUEST_CANCELED') {

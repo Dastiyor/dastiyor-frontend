@@ -1,10 +1,10 @@
 import { GET } from '../route';
 import { prismaMock } from '../../../../../../__tests__/mocks/prisma';
-import { verifyJWT } from '@/lib/auth';
+import { verifyJWTWithVersion } from '@/lib/auth';
 import { cookies } from 'next/headers';
 
 jest.mock('@/lib/auth', () => ({
-    verifyJWT: jest.fn(),
+    verifyJWTWithVersion: jest.fn(),
     getBearerToken: jest.fn(() => null),
 }));
 
@@ -42,7 +42,7 @@ describe('/api/tasks/[id]/responses', () => {
         (cookies as jest.Mock).mockResolvedValue({
             get: jest.fn(() => ({ value: 'valid-token' })),
         });
-        (verifyJWT as jest.Mock).mockResolvedValue({ id: mockCustomerId });
+        (verifyJWTWithVersion as jest.Mock).mockResolvedValue({ id: mockCustomerId });
     });
 
     it('returns 401 when no token', async () => {

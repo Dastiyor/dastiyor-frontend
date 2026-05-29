@@ -19,7 +19,8 @@
       "package": "com.dastiyor.app",
       "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#2563EB"
       }
     },
     "plugins": ["expo-router", "expo-secure-store", "expo-splash-screen"],

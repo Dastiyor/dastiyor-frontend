@@ -68,12 +68,11 @@ const STORE_KEY = 'app_theme';
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<ThemeMode>('light');
-  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     SecureStore.getItemAsync(STORE_KEY).then((val) => {
       if (val === 'dark' || val === 'light') setThemeState(val);
-    }).catch(() => {}).finally(() => setReady(true));
+    }).catch(() => {});
   }, []);
 
   function setTheme(mode: ThemeMode) {
@@ -84,8 +83,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   function toggleTheme() {
     setTheme(theme === 'dark' ? 'light' : 'dark');
   }
-
-  if (!ready) return null;
 
   return (
     <ThemeContext.Provider value={{ theme, colors: theme === 'dark' ? DARK : LIGHT, isDark: theme === 'dark', toggleTheme, setTheme }}>

@@ -1,11 +1,12 @@
 import { GET, PUT } from '../route';
 import { prismaMock } from '../../../../__tests__/mocks/prisma';
-import { verifyJWT } from '@/lib/auth';
+import { verifyJWTWithVersion } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
+import bcrypt from 'bcryptjs';
 
 jest.mock('@/lib/auth', () => ({
-    verifyJWT: jest.fn(),
+    verifyJWTWithVersion: jest.fn(),
     getBearerToken: jest.fn(() => null),
 }));
 
@@ -31,7 +32,7 @@ describe('/api/profile', () => {
         (cookies as jest.Mock).mockResolvedValue({
             get: jest.fn(() => ({ value: 'valid-token' })),
         });
-        (verifyJWT as jest.Mock).mockResolvedValue({ id: 'user-1' });
+        (verifyJWTWithVersion as jest.Mock).mockResolvedValue({ id: 'user-1' });
     });
 
     describe('GET', () => {
@@ -169,6 +170,100 @@ describe('/api/profile', () => {
 
             expect(response.status).toBe(500);
             expect(data.error).toBe('Internal Server Error');
+        });
+
+        describe('email change', () => {
+            const hashedPassword = bcrypt.hashSync('correct-password', 10);
+            const userWithPassword = { ...mockUser, password: hashedPassword };
+
+            it('returns 400 when email change attempted without currentPassword', async () => {
+                const response = await PUT(makeRequest({ fullName: 'Ali', email: 'new@test.com' }));
+                const data = await response.json();
+
+                expect(response.status).toBe(400);
+                expect(data.error).toBe('Enter your current password to confirm email change');
+            });
+
+            it('returns 400 when currentPassword is wrong', async () => {
+                prismaMock.user.findUnique
+                    .mockResolvedValueOnce(userWithPassword as any);
+
+                const response = await PUT(makeRequest({
+                    fullName: 'Ali',
+                    email: 'new@test.com',
+                    currentPassword: 'wrong-password',
+                }));
+                const data = await response.json();
+
+                expect(response.status).toBe(400);
+                expect(data.error).toBe('Current password is incorrect');
+            });
+
+            it('returns 400 when account has no password (social sign-in)', async () => {
+                prismaMock.user.findUnique
+                    .mockResolvedValueOnce({ ...mockUser, password: null } as any);
+
+                const response = await PUT(makeRequest({
+                    fullName: 'Ali',
+                    email: 'new@test.com',
+                    currentPassword: 'anything',
+                }));
+                const data = await response.json();
+
+                expect(response.status).toBe(400);
+                expect(data.error).toBe('This account uses social sign-in and cannot change email this way');
+            });
+
+            it('returns 409 when email already taken by another user', async () => {
+                prismaMock.user.findUnique
+                    .mockResolvedValueOnce(userWithPassword as any)  // password check
+                    .mockResolvedValueOnce({ id: 'other-user' } as any); // email uniqueness
+
+                const response = await PUT(makeRequest({
+                    fullName: 'Ali',
+                    email: 'taken@test.com',
+                    currentPassword: 'correct-password',
+                }));
+                const data = await response.json();
+
+                expect(response.status).toBe(409);
+                expect(data.error).toBe('This email is already in use');
+            });
+
+            it('updates email when currentPassword is correct', async () => {
+                prismaMock.user.findUnique
+                    .mockResolvedValueOnce(userWithPassword as any)  // password check
+                    .mockResolvedValueOnce(null);                     // email uniqueness
+                const updatedUser = { ...mockUser, email: 'new@test.com' };
+                prismaMock.user.update.mockResolvedValue(updatedUser as any);
+
+                const response = await PUT(makeRequest({
+                    fullName: 'Ali Karimov',
+                    email: 'new@test.com',
+                    currentPassword: 'correct-password',
+                }));
+                const data = await response.json();
+
+                expect(response.status).toBe(200);
+                expect(data.user.email).toBe('new@test.com');
+                expect(prismaMock.user.update).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        data: expect.objectContaining({ email: 'new@test.com' }),
+                    })
+                );
+            });
+
+            it('does not require currentPassword for non-email profile updates', async () => {
+                prismaMock.user.update.mockResolvedValue(mockUser as any);
+
+                const response = await PUT(makeRequest({
+                    fullName: 'Ali Karimov',
+                    bio: 'Updated bio',
+                }));
+
+                expect(response.status).toBe(200);
+                expect(prismaMock.user.findUnique).not.toHaveBeenCalled();
+            });
         });
     });
 });

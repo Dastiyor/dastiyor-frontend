@@ -115,7 +115,7 @@ describe('AuthContext', () => {
 
       await act(async () => {
         await authRef!.register({
-          email: 'new@test.com',
+          phone: '+992901234567',
           password: 'pass123',
           fullName: 'New User',
           role: 'customer',

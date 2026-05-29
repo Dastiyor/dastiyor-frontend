@@ -67,7 +67,7 @@ describe('ErrorBoundary', () => {
   });
 
   it('does not show error message when error has no message', () => {
-    function NoMessageThrow() {
+    function NoMessageThrow(): React.ReactElement {
       const err = new Error();
       err.message = '';
       throw err;
@@ -83,6 +83,6 @@ describe('ErrorBoundary', () => {
   });
 });
 
-function getByText_safe(queryByText: (text: string) => ReturnType<typeof queryByText>, text: string) {
+function getByText_safe(queryByText: (text: string) => React.ReactElement | null, text: string) {
   return queryByText(text);
 }

@@ -18,7 +18,7 @@ import { useState } from 'react';
 const LANG_OPTIONS: { locale: Locale; label: string; sub: string }[] = [
   { locale: 'ru', label: 'Русский', sub: 'Russian' },
   { locale: 'tj', label: 'Тоҷикӣ', sub: 'Tajik' },
-  ...(__DEV__ ? [{ locale: 'en' as Locale, label: 'English', sub: 'English' }] : []),
+  { locale: 'en', label: 'English', sub: 'English' },
 ];
 
 const LANG_CODE: Record<Locale, string> = { ru: 'RU', tj: 'TJ', en: 'EN' };

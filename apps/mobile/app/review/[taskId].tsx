@@ -57,7 +57,14 @@ export default function ReviewScreen() {
         <Text style={[styles.label, { color: colors.text }]}>{rv.ratingLabel}</Text>
         <View style={styles.starsRow}>
           {STARS.map((s) => (
-            <TouchableOpacity key={s} onPress={() => setRating(s)} style={styles.starBtn}>
+            <TouchableOpacity
+              key={s}
+              onPress={() => setRating(s)}
+              style={styles.starBtn}
+              accessibilityRole="button"
+              accessibilityLabel={`${s} ${s === 1 ? 'star' : 'stars'}`}
+              accessibilityState={{ selected: s <= rating }}
+            >
               <Text style={[styles.star, s <= rating && styles.starActive]}>★</Text>
             </TouchableOpacity>
           ))}

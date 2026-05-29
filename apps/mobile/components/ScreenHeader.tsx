@@ -7,10 +7,11 @@ import { useTheme } from '@/contexts/ThemeContext';
 interface Props {
   title: string;
   unreadCount?: number;
+  onNotificationsOpen?: () => void;
   showBack?: boolean;
 }
 
-export function ScreenHeader({ title, unreadCount = 0, showBack = false }: Props) {
+export function ScreenHeader({ title, unreadCount = 0, onNotificationsOpen, showBack = false }: Props) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const statusBarHeight = insets.top;
@@ -32,7 +33,10 @@ export function ScreenHeader({ title, unreadCount = 0, showBack = false }: Props
       ) : (
         <TouchableOpacity
           style={styles.iconBtn}
-          onPress={() => router.push('/notifications' as any)}
+          onPress={() => {
+            onNotificationsOpen?.();
+            router.push('/notifications' as any);
+          }}
           accessibilityLabel="Notifications"
           accessibilityRole="button"
         >

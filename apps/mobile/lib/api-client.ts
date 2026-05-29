@@ -6,9 +6,11 @@ const REQUEST_TIMEOUT_MS = 15_000;
 // Callbacks registered by AuthProvider / app shell
 let _onUnauthorized: (() => void) | null = null;
 let _onNetworkError: (() => void) | null = null;
+let _onNetworkRecovered: (() => void) | null = null;
 
 export function setOnUnauthorized(cb: () => void) { _onUnauthorized = cb; }
 export function setOnNetworkError(cb: () => void) { _onNetworkError = cb; }
+export function setOnNetworkRecovered(cb: () => void) { _onNetworkRecovered = cb; }
 
 async function getToken(): Promise<string | null> {
   return SecureStore.getItemAsync('auth_token');
@@ -28,6 +30,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   let res: Response;
   try {
     res = await fetch(`${API_BASE}${path}`, { ...options, headers, signal: controller.signal });
+    _onNetworkRecovered?.();
   } catch (err: any) {
     if (err?.name === 'AbortError') {
       throw new Error('Превышено время ожидания. Проверьте соединение.');

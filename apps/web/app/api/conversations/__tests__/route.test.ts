@@ -1,11 +1,11 @@
 import { GET } from '../route';
 import { prismaMock } from '../../../../__tests__/mocks/prisma';
-import { verifyJWT } from '@/lib/auth';
+import { verifyJWTWithVersion } from '@/lib/auth';
 import { cookies } from 'next/headers';
 
 const req = () => new Request('http://localhost/api/conversations');
 
-jest.mock('@/lib/auth', () => ({ verifyJWT: jest.fn(), getBearerToken: jest.fn(() => null) }));
+jest.mock('@/lib/auth', () => ({ verifyJWTWithVersion: jest.fn(), getBearerToken: jest.fn(() => null) }));
 jest.mock('next/headers', () => ({ cookies: jest.fn() }));
 
 describe('/api/conversations', () => {
@@ -17,7 +17,7 @@ describe('/api/conversations', () => {
         (cookies as jest.Mock).mockResolvedValue({
             get: jest.fn(() => ({ value: 'token' })),
         });
-        (verifyJWT as jest.Mock).mockResolvedValue(mockPayload);
+        (verifyJWTWithVersion as jest.Mock).mockResolvedValue(mockPayload);
     });
 
     it('should return 401 if no token', async () => {

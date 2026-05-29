@@ -82,7 +82,7 @@ export default function RegisterScreen() {
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [response, loginWithGoogle, role, locale]);
+  }, [response, role]);
 
   function handlePhoneChange(text: string) {
     const digits = text.replace(/\D/g, '').slice(0, 9);

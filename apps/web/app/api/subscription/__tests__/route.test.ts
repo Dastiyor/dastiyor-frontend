@@ -1,13 +1,13 @@
 import { GET, POST, DELETE } from '../route';
 import { prismaMock } from '../../../../__tests__/mocks/prisma';
-import { verifyJWT } from '@/lib/auth';
+import { verifyJWTWithVersion } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
 
 
 
 jest.mock('@/lib/auth', () => ({
-    verifyJWT: jest.fn(),
+    verifyJWTWithVersion: jest.fn(),
     getBearerToken: jest.fn(() => null), // return null → fall through to cookie
 }));
 jest.mock('next/headers', () => ({ cookies: jest.fn() }));
@@ -33,7 +33,7 @@ describe('/api/subscription', () => {
         (cookies as jest.Mock).mockResolvedValue({
             get: jest.fn(() => ({ value: 'token' })),
         });
-        (verifyJWT as jest.Mock).mockResolvedValue(mockPayload);
+        (verifyJWTWithVersion as jest.Mock).mockResolvedValue(mockPayload);
     });
 
     const makeGetRequest = () =>

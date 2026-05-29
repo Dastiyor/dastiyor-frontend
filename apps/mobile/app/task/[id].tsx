@@ -300,8 +300,12 @@ export default function TaskDetailScreen() {
 
         {isOwner && task.status === 'COMPLETED' && !task.hasReview ? (
           <TouchableOpacity style={styles.reviewBtn} onPress={() => {
-            const accepted = responses.find(r => r.status === 'ACCEPTED');
-            router.push({ pathname: '/review/[taskId]', params: { taskId: task.id, taskTitle: task.title, providerName: accepted?.provider.fullName ?? '' } });
+            const accepted = responses.find((r) => r.status === 'ACCEPTED');
+            if (!accepted) {
+              Alert.alert(t.common.error, tk.noResponses);
+              return;
+            }
+            router.push({ pathname: '/review/[taskId]', params: { taskId: task.id, taskTitle: task.title, providerName: accepted.provider.fullName } });
           }}>
             <Text style={styles.reviewBtnText}>{tk.leaveReview}</Text>
           </TouchableOpacity>

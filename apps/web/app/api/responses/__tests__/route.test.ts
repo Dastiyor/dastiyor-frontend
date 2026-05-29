@@ -1,6 +1,6 @@
 import { POST } from '../route';
 import { prismaMock } from '../../../../__tests__/mocks/prisma';
-import { verifyJWT } from '@/lib/auth';
+import { verifyJWTWithVersion } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
 
@@ -8,7 +8,7 @@ import { cookies } from 'next/headers';
 
 
 jest.mock('@/lib/auth', () => ({
-    verifyJWT: jest.fn(),
+    verifyJWTWithVersion: jest.fn(),
     getBearerToken: jest.fn(() => null),
 }));
 
@@ -33,13 +33,13 @@ describe('/api/responses', () => {
             get: jest.fn(() => ({ value: mockToken })),
             getAll: jest.fn(() => []),
         });
-        (verifyJWT as jest.Mock).mockResolvedValue(mockPayload);
+        (verifyJWTWithVersion as jest.Mock).mockResolvedValue(mockPayload);
         (prismaMock.user.findUnique as jest.Mock).mockResolvedValue({
             id: mockUserId,
             role: 'PROVIDER',
             subscription: { isActive: true, endDate: new Date(Date.now() + 86400000), plan: 'standard' },
         });
-        (prismaMock.task.findUnique as jest.Mock).mockResolvedValue({ userId: 'owner-1', title: 'Test Task' });
+        (prismaMock.task.findUnique as jest.Mock).mockResolvedValue({ userId: 'owner-1', title: 'Test Task', status: 'OPEN', user: { email: null } });
         (prismaMock.response.count as jest.Mock).mockResolvedValue(0);
         (prismaMock.notification.create as jest.Mock).mockResolvedValue({});
     });
@@ -95,6 +95,7 @@ describe('/api/responses', () => {
                 createdAt: new Date(),
             };
 
+            (prismaMock.response.findFirst as jest.Mock).mockResolvedValue(null);
             (prismaMock.response.create as jest.Mock).mockResolvedValue(mockResponse);
 
             const request = new NextRequest('http://localhost/api/responses', {
@@ -210,6 +211,7 @@ describe('/api/responses', () => {
         });
 
         it('should create notification for task owner when response is submitted', async () => {
+            (prismaMock.response.findFirst as jest.Mock).mockResolvedValue(null);
             (prismaMock.response.create as jest.Mock).mockResolvedValue({
                 id: 'resp-1',
                 taskId: 'task-1',

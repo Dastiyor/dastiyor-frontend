@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
@@ -45,6 +46,8 @@ const badge = StyleSheet.create({
   text: { fontSize: 11, fontWeight: '700' },
 });
 
+interface Pagination { hasMore: boolean; page: number }
+
 interface MyTask {
   id: string;
   title: string;
@@ -78,15 +81,31 @@ export default function MyScreen() {
   const [responses, setResponses] = useState<MyResponseItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const page = useRef(1);
 
-  async function load() {
+  async function load(reset = false) {
+    const p = reset ? 1 : page.current;
     try {
       if (isCustomer) {
-        const res = await api.get<{ tasks: MyTask[] }>('/api/my-tasks');
-        setTasks(res.tasks);
+        const res = await api.get<{ tasks: MyTask[]; pagination: Pagination }>(`/api/my-tasks?page=${p}&limit=20`);
+        if (reset) {
+          setTasks(res.tasks);
+        } else {
+          setTasks((prev) => [...prev, ...res.tasks]);
+        }
+        page.current = p + 1;
+        setHasMore(res.pagination.hasMore);
       } else {
-        const res = await api.get<{ responses: MyResponseItem[] }>('/api/my-responses');
-        setResponses(res.responses);
+        const res = await api.get<{ responses: MyResponseItem[]; pagination: Pagination }>(`/api/my-responses?page=${p}&limit=20`);
+        if (reset) {
+          setResponses(res.responses);
+        } else {
+          setResponses((prev) => [...prev, ...res.responses]);
+        }
+        page.current = p + 1;
+        setHasMore(res.pagination.hasMore);
       }
     } catch {
       toast.show(t.my.loadError, 'error');
@@ -95,18 +114,29 @@ export default function MyScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      page.current = 1;
+      setHasMore(true);
       (async () => {
         setLoading(true);
-        await load();
+        await load(true);
         setLoading(false);
       })();
     }, [isCustomer])
   );
 
   async function onRefresh() {
+    page.current = 1;
+    setHasMore(true);
     setRefreshing(true);
-    await load();
+    await load(true);
     setRefreshing(false);
+  }
+
+  async function onLoadMore() {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    await load(false);
+    setLoadingMore(false);
   }
 
   const renderTask = useCallback(({ item }: { item: MyTask }) => (
@@ -186,6 +216,8 @@ export default function MyScreen() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 24 }]}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#2563EB" />}
+          onEndReached={onLoadMore}
+          onEndReachedThreshold={0.3}
           ListEmptyComponent={
             <EmptyState
               icon="clipboard-outline"
@@ -195,6 +227,7 @@ export default function MyScreen() {
               onAction={() => router.push('/create-task')}
             />
           }
+          ListFooterComponent={loadingMore ? <ActivityIndicator color="#2563EB" style={{ margin: 16 }} /> : null}
           renderItem={renderTask}
         />
       ) : (
@@ -203,6 +236,8 @@ export default function MyScreen() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 24 }]}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#2563EB" />}
+          onEndReached={onLoadMore}
+          onEndReachedThreshold={0.3}
           ListEmptyComponent={
             <EmptyState
               icon="hand-left-outline"
@@ -212,6 +247,7 @@ export default function MyScreen() {
               onAction={() => router.push('/(tabs)/tasks')}
             />
           }
+          ListFooterComponent={loadingMore ? <ActivityIndicator color="#2563EB" style={{ margin: 16 }} /> : null}
           renderItem={renderResponse}
         />
       )}

@@ -1,10 +1,11 @@
+import React from 'react';
 import '@testing-library/jest-native/extend-expect';
 
-// Mock expo-secure-store
+// Mock expo-secure-store — always return Promises (real API is async)
 jest.mock('expo-secure-store', () => ({
-  getItemAsync: jest.fn(),
-  setItemAsync: jest.fn(),
-  deleteItemAsync: jest.fn(),
+  getItemAsync: jest.fn().mockResolvedValue(null),
+  setItemAsync: jest.fn().mockResolvedValue(undefined),
+  deleteItemAsync: jest.fn().mockResolvedValue(undefined),
 }));
 
 // Mock expo-router
@@ -39,7 +40,19 @@ jest.mock('@/lib/api-client', () => ({
   },
   setOnUnauthorized: jest.fn(),
   setOnNetworkError: jest.fn(),
+  setOnNetworkRecovered: jest.fn(),
 }));
+
+// Mock safe-area-context to avoid native module dependency in unit tests
+jest.mock('react-native-safe-area-context', () => {
+  const insets = { top: 0, right: 0, bottom: 0, left: 0 };
+  return {
+    SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
+    SafeAreaView: ({ children }: { children: React.ReactNode }) => children,
+    useSafeAreaInsets: () => insets,
+    useSafeAreaFrame: () => ({ x: 0, y: 0, width: 390, height: 844 }),
+  };
+});
 
 // Suppress expected console errors in tests
 const originalConsoleError = console.error;

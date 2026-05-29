@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { setOnNetworkError } from '@/lib/api-client';
+import { setOnNetworkError, setOnNetworkRecovered } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 export function OfflineBanner() {
@@ -16,7 +16,15 @@ export function OfflineBanner() {
     setOnNetworkError(() => {
       setOffline(true);
       if (timer.current) clearTimeout(timer.current);
-      timer.current = setTimeout(() => setOffline(false), 4000);
+      // Auto-dismiss after 6s as fallback if recovery callback never fires
+      timer.current = setTimeout(() => setOffline(false), 6000);
+    });
+    setOnNetworkRecovered(() => {
+      setOffline(false);
+      if (timer.current) {
+        clearTimeout(timer.current);
+        timer.current = null;
+      }
     });
     return () => { if (timer.current) clearTimeout(timer.current); };
   }, []);

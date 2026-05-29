@@ -1,12 +1,12 @@
 import { GET, POST } from '../route';
 import { prismaMock } from '../../../../../__tests__/mocks/prisma';
-import { verifyJWT } from '@/lib/auth';
+import { verifyJWTWithVersion } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
 
 
 
-jest.mock('@/lib/auth', () => ({ verifyJWT: jest.fn() }));
+jest.mock('@/lib/auth', () => ({ verifyJWTWithVersion: jest.fn(), getBearerToken: jest.fn(() => null) }));
 jest.mock('next/headers', () => ({ cookies: jest.fn() }));
 
 describe('/api/tasks/favorite', () => {
@@ -18,11 +18,11 @@ describe('/api/tasks/favorite', () => {
         (cookies as jest.Mock).mockResolvedValue({
             get: jest.fn(() => ({ value: 'token' })),
         });
-        (verifyJWT as jest.Mock).mockResolvedValue(mockPayload);
+        (verifyJWTWithVersion as jest.Mock).mockResolvedValue(mockPayload);
     });
 
     describe('GET', () => {
-        it('should return isFavorite false when no token', async () => {
+        it('should return 401 when no token', async () => {
             (cookies as jest.Mock).mockResolvedValue({ get: jest.fn(() => undefined) });
 
             const request = new NextRequest('http://localhost/api/tasks/favorite?taskId=task-1');
@@ -30,8 +30,8 @@ describe('/api/tasks/favorite', () => {
             const response = await GET(request);
             const data = await response.json();
 
-            expect(response.status).toBe(200);
-            expect(data.isFavorite).toBe(false);
+            expect(response.status).toBe(401);
+            expect(data.error).toBe('Unauthorized');
         });
 
         it('should return 400 if taskId is missing', async () => {

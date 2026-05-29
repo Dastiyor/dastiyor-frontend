@@ -94,7 +94,7 @@ export default function HomeScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
-      <ScreenHeader title={t.tabs.home} unreadCount={unreadCount} />
+      <ScreenHeader title={t.tabs.home} unreadCount={unreadCount} onNotificationsOpen={() => setUnreadCount(0)} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}

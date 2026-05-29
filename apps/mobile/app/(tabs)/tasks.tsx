@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -166,10 +166,10 @@ export default function TaskBrowseScreen() {
     );
   }, [t, locale, colors]);
 
-  const categories = [
+  const categories = useMemo(() => [
     { name: t.categories.all, value: '' },
     ...config.categories.map((c) => ({ name: c, value: c })),
-  ];
+  ], [t.categories.all, config.categories]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
@@ -216,6 +216,9 @@ export default function TaskBrowseScreen() {
                 key={cat.value === '' ? '__all__' : cat.value}
                 style={[styles.catChip, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }, isActive && styles.catChipActive]}
                 onPress={() => setFilters((prev) => ({ ...prev, category: cat.value }))}
+                accessibilityRole="button"
+                accessibilityLabel={cat.name}
+                accessibilityState={{ selected: isActive }}
               >
                 <Text style={[styles.catChipText, { color: isActive ? '#fff' : colors.text }]}>
                   {cat.name}
@@ -229,10 +232,7 @@ export default function TaskBrowseScreen() {
       <FilterSheet
         visible={filterVisible}
         filters={filters}
-        onChange={(f) => {
-          setFilters(f);
-          if (!hasActiveFilters(f)) setQuery('');
-        }}
+        onChange={setFilters}
         onClose={() => setFilterVisible(false)}
         locale={locale}
         categories={config.categories}
@@ -255,6 +255,10 @@ export default function TaskBrowseScreen() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#2563EB" />}
           onEndReached={onLoadMore}
           onEndReachedThreshold={0.3}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+          removeClippedSubviews
           ListEmptyComponent={
             <EmptyState
               icon="clipboard-outline"

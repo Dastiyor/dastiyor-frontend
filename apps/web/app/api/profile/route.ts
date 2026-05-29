@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import bcrypt from 'bcryptjs';
 import { logAction, getRequestIP } from '@/lib/audit';
 import { requireAuth } from '@/lib/require-auth';
 import { sanitizeString } from '@/lib/validation';
@@ -48,7 +49,7 @@ export async function PUT(request: Request) {
         }
 
         const body = await request.json();
-        const { fullName, phone, bio, skills, avatar, email } = body;
+        const { fullName, phone, bio, skills, avatar, email, currentPassword } = body;
 
         if (!fullName || fullName.trim().length < 2) {
             return NextResponse.json({ error: 'Name must be at least 2 characters' }, { status: 400 });
@@ -72,6 +73,23 @@ export async function PUT(request: Request) {
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
                 return NextResponse.json({ error: 'Enter a valid email address' }, { status: 400 });
             }
+
+            // Email change requires password confirmation to prevent account takeover
+            if (!currentPassword) {
+                return NextResponse.json({ error: 'Enter your current password to confirm email change' }, { status: 400 });
+            }
+            const userForPwCheck = await prisma.user.findUnique({
+                where: { id: payload.id as string },
+                select: { password: true },
+            });
+            if (!userForPwCheck?.password) {
+                return NextResponse.json({ error: 'This account uses social sign-in and cannot change email this way' }, { status: 400 });
+            }
+            const pwValid = await bcrypt.compare(currentPassword, userForPwCheck.password);
+            if (!pwValid) {
+                return NextResponse.json({ error: 'Current password is incorrect' }, { status: 400 });
+            }
+
             const existing = await prisma.user.findUnique({ where: { email: trimmed }, select: { id: true } });
             if (existing && existing.id !== payload.id) {
                 return NextResponse.json({ error: 'This email is already in use' }, { status: 409 });

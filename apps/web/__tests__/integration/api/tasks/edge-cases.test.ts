@@ -1,6 +1,6 @@
 import { POST } from '@/app/api/tasks/route';
 import { prismaMock } from '../../../mocks/prisma';
-import { verifyJWT } from '@/lib/auth';
+import { verifyJWTWithVersion } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import { getClientIP, checkRateLimit } from '@/lib/rate-limit';
 
@@ -9,7 +9,7 @@ jest.mock('next/headers', () => ({
 }));
 
 jest.mock('@/lib/auth', () => ({
-    verifyJWT: jest.fn(),
+    verifyJWTWithVersion: jest.fn(),
     getBearerToken: jest.fn(() => null),
 }));
 
@@ -40,7 +40,7 @@ describe('Tasks API Edge Cases & Error Handling', () => {
         (cookies as jest.Mock).mockResolvedValue({
             get: jest.fn().mockReturnValue({ value: 'valid-token' }),
         });
-        (verifyJWT as jest.Mock).mockResolvedValue({ id: 'user-1' });
+        (verifyJWTWithVersion as jest.Mock).mockResolvedValue({ id: 'user-1' });
 
         const request = new Request('http://localhost/api/tasks', { method: 'POST', body: JSON.stringify({}) });
         const response = await POST(request);
@@ -56,7 +56,7 @@ describe('Tasks API Edge Cases & Error Handling', () => {
         (cookies as jest.Mock).mockResolvedValue({
             get: jest.fn().mockReturnValue({ value: 'valid-token' }),
         });
-        (verifyJWT as jest.Mock).mockResolvedValue({ id: 'user-1' });
+        (verifyJWTWithVersion as jest.Mock).mockResolvedValue({ id: 'user-1' });
 
         const payload = {
             title: 'Sho', // Too short
@@ -91,7 +91,7 @@ describe('Tasks API Edge Cases & Error Handling', () => {
         (cookies as jest.Mock).mockResolvedValue({
             get: jest.fn().mockReturnValue({ value: 'valid-token' }),
         });
-        (verifyJWT as jest.Mock).mockResolvedValue({ id: 'user-1' });
+        (verifyJWTWithVersion as jest.Mock).mockResolvedValue({ id: 'user-1' });
 
         const validPayload = {
             title: 'Valid Task Title Name',
@@ -125,14 +125,14 @@ describe('Tasks API Edge Cases & Error Handling', () => {
         });
 
         // JWT library returns null on failure
-        (verifyJWT as jest.Mock).mockResolvedValue(null);
+        (verifyJWTWithVersion as jest.Mock).mockResolvedValue(null);
 
         const request = new Request('http://localhost/api/tasks', { method: 'POST', body: JSON.stringify({}) });
         const response = await POST(request);
 
         expect(response.status).toBe(401);
         const data = await response.json();
-        expect(data.error).toBe('Unauthorized: Invalid token');
+        expect(data.error).toBe('Unauthorized');
     });
 
 });

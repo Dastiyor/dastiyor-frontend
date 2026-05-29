@@ -1,12 +1,12 @@
 import { POST } from '../route';
 import { prismaMock } from '../../../../../__tests__/mocks/prisma';
-import { verifyJWT } from '@/lib/auth';
+import { verifyJWTWithVersion } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
 import bcrypt from 'bcryptjs';
 
 jest.mock('@/lib/auth', () => ({
-    verifyJWT: jest.fn(),
+    verifyJWTWithVersion: jest.fn(),
     getBearerToken: jest.fn(() => null),
 }));
 
@@ -28,7 +28,7 @@ describe('/api/auth/change-password', () => {
         (cookies as jest.Mock).mockResolvedValue({
             get: jest.fn(() => ({ value: 'valid-token' })),
         });
-        (verifyJWT as jest.Mock).mockResolvedValue({ id: mockUserId });
+        (verifyJWTWithVersion as jest.Mock).mockResolvedValue({ id: mockUserId });
     });
 
     it('returns 401 when no token provided', async () => {

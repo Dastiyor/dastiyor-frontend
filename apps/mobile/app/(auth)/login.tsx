@@ -59,7 +59,7 @@ export default function LoginScreen() {
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [response, loginWithGoogle, locale]);
+  }, [response]);
 
   async function handleLogin() {
     if (!identifier.trim() || !password) {

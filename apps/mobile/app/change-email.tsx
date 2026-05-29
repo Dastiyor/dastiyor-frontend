@@ -76,6 +76,7 @@ export default function ChangeEmailScreen() {
         bio: snap.bio ?? undefined,
         skills: snap.skills ?? undefined,
         email: trimmed,
+        currentPassword,
       });
       await refreshUser();
       Alert.alert(t.common.done, ce.success, [{ text: t.common.ok, onPress: () => router.back() }]);

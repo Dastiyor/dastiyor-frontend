@@ -41,7 +41,7 @@ interface ProviderProfile {
 export default function ProviderProfileScreen() {
   const { id, name } = useLocalSearchParams<{ id: string; name?: string }>();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const { colors } = useTheme();
   const pv = t.provider;
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
@@ -139,7 +139,7 @@ export default function ProviderProfileScreen() {
                 </View>
                 <Text style={[styles.reviewTask, { color: colors.textSecondary }]} numberOfLines={1}>{r.task.title}</Text>
                 {r.comment ? <Text style={[styles.reviewComment, { color: colors.textSecondary }]}>{r.comment}</Text> : null}
-                <Text style={[styles.reviewDate, { color: colors.textTertiary }]}>{new Date(r.createdAt).toLocaleDateString('ru-RU')}</Text>
+                <Text style={[styles.reviewDate, { color: colors.textTertiary }]}>{new Date(r.createdAt).toLocaleDateString(locale)}</Text>
               </View>
             ))}
           </>

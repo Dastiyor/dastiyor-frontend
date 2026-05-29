@@ -1,6 +1,6 @@
 import { GET, POST } from '@/app/api/tasks/route';
 import { prismaMock } from '../../../mocks/prisma';
-import { verifyJWT } from '@/lib/auth';
+import { verifyJWTWithVersion } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import { getClientIP, checkRateLimit } from '@/lib/rate-limit';
 
@@ -9,7 +9,7 @@ jest.mock('next/headers', () => ({
 }));
 
 jest.mock('@/lib/auth', () => ({
-    verifyJWT: jest.fn(),
+    verifyJWTWithVersion: jest.fn(),
     getBearerToken: jest.fn(() => null),
 }));
 
@@ -88,7 +88,7 @@ describe('/api/tasks Route', () => {
             (cookies as jest.Mock).mockResolvedValue({
                 get: jest.fn().mockReturnValue({ value: 'valid-token' }),
             });
-            (verifyJWT as jest.Mock).mockResolvedValue({ id: 'user-id' });
+            (verifyJWTWithVersion as jest.Mock).mockResolvedValue({ id: 'user-id' });
 
             const payload = {
                 title: 'Clean my house',

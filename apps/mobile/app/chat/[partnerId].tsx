@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  AppState,
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from 'react-native';
@@ -47,6 +48,7 @@ export default function ChatScreen() {
   const isAtBottomRef = useRef(true);
   const pollErrorCount = useRef(0);
   const pollDelayRef = useRef(POLL_INTERVAL_MS);
+  const appStateRef = useRef(AppState.currentState);
 
   useEffect(() => { navigation.setOptions({ title: partnerName ?? t.chat.empty }); }, [partnerName]);
 
@@ -76,7 +78,9 @@ export default function ChatScreen() {
 
   function schedulePoll() {
     pollRef.current = setTimeout(async () => {
-      await fetchMessages(false);
+      if (appStateRef.current === 'active') {
+        await fetchMessages(false);
+      }
       if (pollErrorCount.current < 5) schedulePoll();
     }, pollDelayRef.current);
   }
@@ -86,7 +90,15 @@ export default function ChatScreen() {
       pollErrorCount.current = 0;
       pollDelayRef.current = POLL_INTERVAL_MS;
       (async () => { setLoading(true); await fetchMessages(true); setLoading(false); schedulePoll(); })();
-      return () => { if (pollRef.current) clearTimeout(pollRef.current); };
+
+      const sub = AppState.addEventListener('change', (next) => {
+        appStateRef.current = next;
+      });
+
+      return () => {
+        if (pollRef.current) clearTimeout(pollRef.current);
+        sub.remove();
+      };
     }, [partnerId, taskId])
   );
 
@@ -149,8 +161,11 @@ export default function ChatScreen() {
     );
   }
 
+  // Stack header height = status bar + 44pt nav bar on iOS
+  const iosOffset = insets.top + 44;
+
   return (
-    <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}>
+    <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? iosOffset : 0}>
       {taskTitle ? <View style={[styles.taskBar, { backgroundColor: colors.iconBg, borderBottomColor: colors.border }]}><Text style={styles.taskBarText} numberOfLines={1}>{taskTitle}</Text></View> : null}
 
       {loading ? (

@@ -119,6 +119,11 @@ export async function POST(request: Request) {
 
         const sanitizedContent = content ? sanitizeString(content) : '';
 
+        // Reject if sanitizer stripped content to empty (e.g. whitespace-only input)
+        if (!sanitizedContent && !imageUrl) {
+            return NextResponse.json({ error: 'Message must have content or image' }, { status: 400 });
+        }
+
         // Create the message
         const message = await prisma.message.create({
             data: {

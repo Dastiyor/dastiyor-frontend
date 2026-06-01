@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ScrollView,
   RefreshControl,
+  AppState,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -77,6 +78,23 @@ export default function HomeScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user?.id])
   );
+
+  // Poll notification count every 15s so bell badge stays current without navigation
+  const notifIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  useEffect(() => {
+    if (!user) return;
+    const poll = () => {
+      api.get<{ unreadCount: number }>('/api/notifications')
+        .then((r) => setUnreadCount(r.unreadCount ?? 0))
+        .catch(() => {});
+    };
+    notifIntervalRef.current = setInterval(poll, 15_000);
+    const appSub = AppState.addEventListener('change', (s) => { if (s === 'active') poll(); });
+    return () => {
+      if (notifIntervalRef.current) clearInterval(notifIntervalRef.current);
+      appSub.remove();
+    };
+  }, [user]);
 
   async function onRefresh() {
     setRefreshing(true);

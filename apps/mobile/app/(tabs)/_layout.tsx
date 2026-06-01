@@ -1,5 +1,5 @@
-import { useState, useCallback, useRef } from 'react';
-import { BackHandler, ToastAndroid, Platform } from 'react-native';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { BackHandler, ToastAndroid, Platform, AppState } from 'react-native';
 import { Tabs, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,6 +7,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { api } from '@/lib/api-client';
 import { BACK_PRESS_TIMEOUT_MS } from '@/lib/constants';
+
+const BADGE_POLL_MS = 15_000;
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -23,19 +25,27 @@ export default function TabLayout() {
   const isCustomer = user?.role === 'CUSTOMER';
   const [unreadMessages, setUnreadMessages] = useState(0);
   const backPressedOnce = useRef(false);
-  const lastFetchRef = useRef(0);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  useFocusEffect(
-    useCallback(() => {
-      if (!user) return;
-      const now = Date.now();
-      if (now - lastFetchRef.current < 30_000) return;
-      lastFetchRef.current = now;
-      api.get<{ conversations: { unreadCount: number }[] }>('/api/conversations')
-        .then((r) => setUnreadMessages(r.conversations.reduce((s, c) => s + c.unreadCount, 0)))
-        .catch(() => {});
-    }, [user])
-  );
+  function fetchBadge() {
+    if (!user) return;
+    api.get<{ conversations: { unreadCount: number }[] }>('/api/conversations')
+      .then((r) => setUnreadMessages(r.conversations.reduce((s, c) => s + c.unreadCount, 0)))
+      .catch(() => {});
+  }
+
+  useEffect(() => {
+    if (!user) return;
+    fetchBadge();
+    intervalRef.current = setInterval(fetchBadge, BADGE_POLL_MS);
+    const appSub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') fetchBadge();
+    });
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      appSub.remove();
+    };
+  }, [user]);
 
   useFocusEffect(
     useCallback(() => {

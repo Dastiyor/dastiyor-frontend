@@ -21,6 +21,7 @@ import { FilterSheet, DEFAULT_FILTERS, hasActiveFilters } from '@/components/Fil
 import { TaskCardSkeleton, FeaturedCardSkeleton } from '@/components/Skeleton';
 import { EmptyState } from '@/components/EmptyState';
 import { useToast } from '@/contexts/ToastContext';
+import { useNotifPrefs } from '@/contexts/NotifPrefsContext';
 import type { FilterState } from '@/components/FilterSheet';
 import type { FeedTask } from '@dastiyor/types';
 import { useConfig } from '@/lib/useConfig';
@@ -46,10 +47,12 @@ export default function HomeScreen() {
   const { config } = useConfig();
   const insets = useSafeAreaInsets();
   const toast = useToast();
+  const { popupsEnabled } = useNotifPrefs();
   const [tasks, setTasks] = useState<FeedTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const prevNotifCountRef = useRef<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterVisible, setFilterVisible] = useState(false);
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
@@ -79,22 +82,39 @@ export default function HomeScreen() {
     }, [user?.id])
   );
 
-  // Poll notification count every 15s so bell badge stays current without navigation
+  // Poll notification count every 15s — show banner if count increased
   const notifIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   useEffect(() => {
     if (!user) return;
     const poll = () => {
-      api.get<{ unreadCount: number }>('/api/notifications')
-        .then((r) => setUnreadCount(r.unreadCount ?? 0))
+      api.get<{ unreadCount: number; notifications: { title: string; body?: string; type: string }[] }>('/api/notifications?limit=1')
+        .then((r) => {
+          const count = r.unreadCount ?? 0;
+          setUnreadCount(count);
+
+          if (prevNotifCountRef.current !== null && count > prevNotifCountRef.current && popupsEnabled) {
+            const latest = r.notifications?.[0];
+            if (latest) {
+              toast.showBanner(
+                latest.title ?? 'Уведомление',
+                latest.body ?? '',
+                'notifications',
+                () => router.push('/notifications' as any),
+              );
+            }
+          }
+          prevNotifCountRef.current = count;
+        })
         .catch(() => {});
     };
+    poll();
     notifIntervalRef.current = setInterval(poll, 15_000);
     const appSub = AppState.addEventListener('change', (s) => { if (s === 'active') poll(); });
     return () => {
       if (notifIntervalRef.current) clearInterval(notifIntervalRef.current);
       appSub.remove();
     };
-  }, [user]);
+  }, [user, popupsEnabled]);
 
   async function onRefresh() {
     setRefreshing(true);

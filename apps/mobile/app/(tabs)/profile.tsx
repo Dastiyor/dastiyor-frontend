@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  Switch,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -13,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useNotifPrefs } from '@/contexts/NotifPrefsContext';
 import { Avatar } from '@/components/Avatar';
 import { LOCALE_NAMES, type Locale } from '@/lib/i18n';
 
@@ -74,6 +76,7 @@ export default function ProfileScreen() {
   const { user, logout } = useAuth();
   const { locale, setLocale, t } = useLanguage();
   const { colors, isDark, toggleTheme } = useTheme();
+  const { popupsEnabled, togglePopups } = useNotifPrefs();
   const insets = useSafeAreaInsets();
   const p = t.profile;
   const statusBarHeight = insets.top;
@@ -204,13 +207,27 @@ export default function ProfileScreen() {
           </View>
           {/* Theme */}
           <TouchableOpacity onPress={toggleTheme} activeOpacity={0.6}>
-            <View style={[styles.rowItem, { borderBottomColor: 'transparent' }]}>
+            <View style={[styles.rowItem, { borderBottomColor: colors.border }]}>
               <Ionicons name={isDark ? 'moon-outline' : 'sunny-outline'} size={22} color="#10B981" style={styles.rowIcon} />
               <Text style={[styles.rowLabel, { color: colors.text }]}>{t.settings?.theme ?? 'Theme'}</Text>
               <Text style={[styles.themeValue, { color: colors.textSecondary }]}>{isDark ? (t.settings?.dark ?? 'Dark') : (t.settings?.light ?? 'Light')}</Text>
               <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
             </View>
           </TouchableOpacity>
+          {/* In-app notification popups */}
+          <View style={[styles.rowItem, { borderBottomColor: 'transparent' }]}>
+            <Ionicons name="notifications-outline" size={22} color="#F59E0B" style={styles.rowIcon} />
+            <View style={styles.rowBody}>
+              <Text style={[styles.rowLabel, { color: colors.text }]}>{t.settings?.notifPopups ?? 'Всплывающие уведомления'}</Text>
+              <Text style={[styles.rowSublabel, { color: colors.textSecondary }]}>{t.settings?.notifPopupsHint ?? 'Показывать баннер при новых сообщениях'}</Text>
+            </View>
+            <Switch
+              value={popupsEnabled}
+              onValueChange={togglePopups}
+              trackColor={{ false: colors.border, true: '#2563EB' }}
+              thumbColor="#fff"
+            />
+          </View>
         </View>
 
         {/* Logout */}

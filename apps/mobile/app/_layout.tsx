@@ -5,6 +5,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
+import { NotifPrefsProvider } from '@/contexts/NotifPrefsContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { OfflineBanner } from '@/components/OfflineBanner';
 
@@ -45,11 +46,13 @@ export default function RootLayout() {
     <LanguageProvider>
       <ErrorBoundary>
         <ToastProvider>
+        <NotifPrefsProvider>
         <AuthProvider>
           <ThemedStack />
           <StatusBar style="auto" />
           <OfflineBanner />
         </AuthProvider>
+        </NotifPrefsProvider>
         </ToastProvider>
       </ErrorBoundary>
     </LanguageProvider>

@@ -1,16 +1,19 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { BackHandler, ToastAndroid, Platform, AppState } from 'react-native';
-import { Tabs, useFocusEffect } from 'expo-router';
+import { Tabs, useFocusEffect, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useToast } from '@/contexts/ToastContext';
+import { useNotifPrefs } from '@/contexts/NotifPrefsContext';
 import { api } from '@/lib/api-client';
 import { BACK_PRESS_TIMEOUT_MS } from '@/lib/constants';
 
 const BADGE_POLL_MS = 15_000;
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
+type Conversation = { partnerId: string; partnerName: string; taskId?: string; unreadCount: number; lastMessage: string };
 
 function icon(active: IoniconName, inactive: IoniconName) {
   return ({ focused, color, size }: { focused: boolean; color: string; size: number }) => (
@@ -22,15 +25,47 @@ export default function TabLayout() {
   const { user } = useAuth();
   const { t } = useLanguage();
   const { colors } = useTheme();
+  const { showBanner } = useToast();
+  const { popupsEnabled } = useNotifPrefs();
   const isCustomer = user?.role === 'CUSTOMER';
   const [unreadMessages, setUnreadMessages] = useState(0);
   const backPressedOnce = useRef(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const prevCountRef = useRef<number | null>(null);
+  const prevConvsRef = useRef<Conversation[]>([]);
 
   function fetchBadge() {
     if (!user) return;
-    api.get<{ conversations: { unreadCount: number }[] }>('/api/conversations')
-      .then((r) => setUnreadMessages(r.conversations.reduce((s, c) => s + c.unreadCount, 0)))
+    api.get<{ conversations: Conversation[] }>('/api/conversations')
+      .then((r) => {
+        const convs = r.conversations ?? [];
+        const total = convs.reduce((s: number, c: Conversation) => s + c.unreadCount, 0);
+        setUnreadMessages(total);
+
+        // Show banner when new message arrives (count increased) and not on messages tab
+        if (prevCountRef.current !== null && total > prevCountRef.current && popupsEnabled) {
+          // Find conversation with newly increased unread count
+          const newConv = convs.find((c) => {
+            const prev = prevConvsRef.current.find((p) => p.partnerId === c.partnerId);
+            return c.unreadCount > (prev?.unreadCount ?? 0);
+          }) ?? convs.find((c) => c.unreadCount > 0);
+
+          if (newConv) {
+            showBanner(
+              newConv.partnerName,
+              newConv.lastMessage,
+              'chatbubble',
+              () => router.push({
+                pathname: '/chat/[partnerId]',
+                params: { partnerId: newConv.partnerId, partnerName: newConv.partnerName, taskId: newConv.taskId ?? '' },
+              }),
+            );
+          }
+        }
+
+        prevCountRef.current = total;
+        prevConvsRef.current = convs;
+      })
       .catch(() => {});
   }
 
@@ -45,7 +80,7 @@ export default function TabLayout() {
       if (intervalRef.current) clearInterval(intervalRef.current);
       appSub.remove();
     };
-  }, [user]);
+  }, [user, popupsEnabled]);
 
   useFocusEffect(
     useCallback(() => {

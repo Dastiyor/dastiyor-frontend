@@ -303,6 +303,8 @@ const translations = {
       theme: 'Theme',
       dark: 'Dark',
       light: 'Light',
+      notifPopups: 'In-app notifications',
+      notifPopupsHint: 'Show banner for new messages & alerts',
     },
   },
   ru: {
@@ -601,6 +603,8 @@ const translations = {
       theme: 'Тема',
       dark: 'Тёмная',
       light: 'Светлая',
+      notifPopups: 'Всплывающие уведомления',
+      notifPopupsHint: 'Показывать баннер при новых сообщениях',
     },
   },
   tj: {
@@ -899,6 +903,8 @@ const translations = {
       theme: 'Мавзӯъ',
       dark: 'Торик',
       light: 'Равшан',
+      notifPopups: 'Огоҳиҳои дохилӣ',
+      notifPopupsHint: 'Нишон додани баннер барои паёмҳои нав',
     },
   },
 } as const;

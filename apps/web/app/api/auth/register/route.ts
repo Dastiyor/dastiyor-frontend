@@ -71,7 +71,7 @@ export async function POST(request: Request) {
                 password: hashedPassword,
                 fullName,
                 phone: normalizedPhone,
-                role: role === 'provider' ? 'PROVIDER' : 'CUSTOMER',
+                role: String(role ?? '').toLowerCase() === 'provider' ? 'PROVIDER' : 'CUSTOMER',
             },
         });
 

@@ -151,15 +151,27 @@ export async function POST(request: Request) {
         }
 
         // 3. Create Task
-        const amountNum = amount != null && amount !== '' ? parseInt(String(amount), 10) : null;
+        // Normalise budget fields: accept {budget:'fixed', amount:200} or legacy {budget:200}
+        let resolvedBudgetType: string;
+        let resolvedAmount = amount;
+        const budgetLower = typeof budget === 'string' ? budget.toLowerCase() : null;
+        if (budgetLower === 'fixed' || budgetLower === 'negotiable') {
+            resolvedBudgetType = budgetLower;
+        } else if (typeof budget === 'number' || (typeof budget === 'string' && !isNaN(Number(budget)))) {
+            resolvedBudgetType = 'fixed';
+            resolvedAmount = resolvedAmount ?? budget;
+        } else {
+            resolvedBudgetType = 'negotiable';
+        }
+        const amountNum = resolvedAmount != null && resolvedAmount !== '' ? parseInt(String(resolvedAmount), 10) : null;
         const task = await prisma.task.create({
             data: {
                 title: sanitizeString(title),
                 description: sanitizeString(description),
                 category,
                 subcategory: subcategory ? sanitizeString(subcategory) : null,
-                budgetType: String(budget),
-                budgetAmount: amount ? String(amount) : null,
+                budgetType: resolvedBudgetType,
+                budgetAmount: resolvedAmount ? String(resolvedAmount) : null,
                 budgetAmountNum: amountNum != null && !isNaN(amountNum) ? amountNum : null,
                 city: sanitizeString(city),
                 address: address ? sanitizeString(address) : undefined,

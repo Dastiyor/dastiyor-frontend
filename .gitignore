@@ -69,3 +69,6 @@ public/uploads/
 
 # claude
 .claude
+
+# graphify knowledge graph (generated, rebuild from source)
+graphify-out/

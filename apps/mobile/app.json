@@ -5,25 +5,41 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "dastiyor",
-    "platforms": ["ios", "android"],
+    "icon": "./assets/icon.png",
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "splash": {
+      "image": "./assets/splash.png",
       "backgroundColor": "#2563EB",
       "resizeMode": "contain"
     },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.dastiyor.app",
-      "buildNumber": "1"
+      "buildNumber": "1",
+      "usesAppleSignIn": true,
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.dastiyor.app",
       "versionCode": 1,
+      "permissions": [],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#2563EB"
       }
     },
-    "plugins": ["expo-router", "expo-secure-store", "expo-splash-screen"],
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-splash-screen",
+      "expo-font",
+      "expo-apple-authentication"
+    ],
     "extra": {
       "privacyPolicyUrl": "https://dastiyor.com/privacy",
       "termsOfServiceUrl": "https://dastiyor.com/terms"

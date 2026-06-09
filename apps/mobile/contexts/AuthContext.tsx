@@ -20,6 +20,7 @@ interface AuthState {
   loginWithGoogle: (accessToken: string, role?: string) => Promise<void>;
   loginWithApple: (identityToken: string, email?: string, fullName?: string, role?: string) => Promise<void>;
   logout: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
 
@@ -103,8 +104,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.replace('/(auth)/login');
   }
 
+  async function deleteAccount() {
+    // Throws on failure so the caller can surface the error and keep the
+    // user signed in; only clears local session once the server confirms.
+    await api.del('/api/account');
+    await storage.deleteItem('auth_token');
+    setUser(null);
+    router.replace('/(auth)/login');
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, loginWithGoogle, loginWithApple, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, login, register, loginWithGoogle, loginWithApple, logout, deleteAccount, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

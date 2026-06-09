@@ -22,6 +22,7 @@ export type AuditAction =
     | 'LEAVE_REVIEW'
     | 'UPDATE_PROFILE'
     | 'CHANGE_PASSWORD'
+    | 'DELETE_ACCOUNT'
     | 'UPLOAD_FILE';
 
 interface AuditLogParams {

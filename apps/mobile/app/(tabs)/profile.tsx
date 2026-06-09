@@ -73,7 +73,7 @@ function RowItem({
 }
 
 export default function ProfileScreen() {
-  const { user, logout } = useAuth();
+  const { user, logout, deleteAccount } = useAuth();
   const { locale, setLocale, t } = useLanguage();
   const { colors, isDark, toggleTheme } = useTheme();
   const { popupsEnabled, togglePopups } = useNotifPrefs();
@@ -85,6 +85,23 @@ export default function ProfileScreen() {
     Alert.alert(p.logoutTitle, p.logoutMessage, [
       { text: p.logoutCancel, style: 'cancel' },
       { text: p.logoutTitle, style: 'destructive', onPress: logout },
+    ]);
+  }
+
+  function handleDeleteAccount() {
+    Alert.alert(p.deleteAccountTitle, p.deleteAccountMessage, [
+      { text: p.logoutCancel, style: 'cancel' },
+      {
+        text: p.deleteAccountConfirm,
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteAccount();
+          } catch {
+            Alert.alert(p.deleteAccountTitle, p.deleteAccountError);
+          }
+        },
+      },
     ]);
   }
 
@@ -237,6 +254,17 @@ export default function ProfileScreen() {
             iconBg="rgba(239,68,68,0.1)"
             label={p.logout}
             onPress={handleLogout}
+            danger
+          />
+        </View>
+
+        {/* Delete account */}
+        <View style={[styles.card, { backgroundColor: colors.surface }]}>
+          <RowItem
+            icon="trash-outline"
+            iconBg="rgba(239,68,68,0.1)"
+            label={p.deleteAccount}
+            onPress={handleDeleteAccount}
             danger
           />
         </View>

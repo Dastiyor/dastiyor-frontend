@@ -24,6 +24,9 @@
       "prisma",
       "sharp",
       "unrs-resolver"
-    ]
+    ],
+    "patchedDependencies": {
+      "expo-constants@18.0.13": "patches/expo-constants@18.0.13.patch"
+    }
   }
 }

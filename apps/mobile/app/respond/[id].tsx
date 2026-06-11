@@ -15,6 +15,7 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { api } from '@/lib/api-client';
+import { track, AnalyticsEvent } from '@/lib/analytics';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -36,6 +37,7 @@ export default function RespondScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     try {
       await api.post('/api/responses', { taskId, message: message.trim(), price: Number(price), estimatedTime: estimatedTime.trim() || undefined });
+      track(AnalyticsEvent.ResponseSubmitted, { taskId: String(taskId), price: Number(price) });
       Alert.alert(t.common.done, r.sent, [{ text: t.common.ok, onPress: () => router.back() }]);
     } catch (e) {
       Alert.alert(t.common.error, (e as Error).message);

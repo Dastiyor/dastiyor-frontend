@@ -9,9 +9,12 @@ import { NotifPrefsProvider } from '@/contexts/NotifPrefsContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { initErrorReporting } from '@/lib/errorReporting';
+import { initAnalytics, track, AnalyticsEvent } from '@/lib/analytics';
 
 SplashScreen.preventAutoHideAsync();
 initErrorReporting();
+initAnalytics();
+track(AnalyticsEvent.AppOpen);
 
 function ThemedStack() {
   const { colors, isDark } = useTheme();

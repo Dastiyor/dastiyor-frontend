@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { api, setOnUnauthorized } from '@/lib/api-client';
 import { registerForPushNotifications, unregisterPushNotifications } from '@/lib/push';
 import { setUser as setErrorUser } from '@/lib/errorReporting';
+import { track, identify, reset as resetAnalytics, AnalyticsEvent } from '@/lib/analytics';
 import type { ApiUser } from '@dastiyor/types';
 
 const PUSH_TOKEN_KEY = 'expo_push_token';
@@ -71,6 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const me = await api.get<ApiUser>('/api/auth/me');
           setUser(me);
           setErrorUser({ id: me.id, role: me.role });
+          identify(me.id, { role: me.role });
           syncPushRegistration();
         }
       } catch {
@@ -81,23 +83,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })();
   }, []);
 
-  // Persist token, set user, attach error-reporting identity, register push.
-  function onAuthenticated(res: { token: string; user: ApiUser }) {
+  // Persist token, set user, attach error-reporting identity, register push,
+  // and emit the funnel event (sign_up vs login, with auth method).
+  function onAuthenticated(
+    res: { token: string; user: ApiUser },
+    event: string,
+    method: string,
+  ) {
     setUser(res.user);
     setErrorUser({ id: res.user.id, role: res.user.role });
+    identify(res.user.id, { role: res.user.role });
+    track(event, { method, role: res.user.role });
     syncPushRegistration();
   }
 
   async function login(identifier: string, password: string) {
     const res = await api.post<{ token: string; user: ApiUser }>('/api/auth/login', { identifier, password });
     await storage.setItem('auth_token', res.token);
-    onAuthenticated(res);
+    onAuthenticated(res, AnalyticsEvent.LoginCompleted, 'password');
   }
 
   async function register(data: RegisterData) {
     const res = await api.post<{ token: string; user: ApiUser }>('/api/auth/register', data);
     await storage.setItem('auth_token', res.token);
-    onAuthenticated(res);
+    onAuthenticated(res, AnalyticsEvent.SignUpCompleted, 'password');
   }
 
   async function loginWithGoogle(accessToken: string, role = 'customer') {
@@ -106,7 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       role,
     });
     await storage.setItem('auth_token', res.token);
-    onAuthenticated(res);
+    onAuthenticated(res, AnalyticsEvent.LoginCompleted, 'google');
   }
 
   async function loginWithApple(
@@ -122,7 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       role,
     });
     await storage.setItem('auth_token', res.token);
-    onAuthenticated(res);
+    onAuthenticated(res, AnalyticsEvent.LoginCompleted, 'apple');
   }
 
   async function refreshUser() {
@@ -137,6 +146,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await storage.deleteItem('auth_token');
     setUser(null);
     setErrorUser(null);
+    track(AnalyticsEvent.Logout);
+    resetAnalytics();
     router.replace('/(auth)/login');
   }
 
@@ -148,6 +159,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await storage.deleteItem('auth_token');
     setUser(null);
     setErrorUser(null);
+    track(AnalyticsEvent.Logout);
+    resetAnalytics();
     router.replace('/(auth)/login');
   }
 

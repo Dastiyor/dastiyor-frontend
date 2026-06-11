@@ -18,6 +18,7 @@ import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useConfig } from '@/lib/useConfig';
+import { track, AnalyticsEvent } from '@/lib/analytics';
 
 function ChipGroup<T extends string>({
   options, value, onChange, getLabel, getValue,
@@ -99,6 +100,7 @@ export default function CreateTaskScreen() {
         urgency,
         address: address.trim() || undefined,
       });
+      track(AnalyticsEvent.TaskCreateCompleted, { category, city, budgetType });
       Alert.alert(t.common.done, ct.published, [{ text: t.common.ok, onPress: () => router.back() }]);
     } catch (e) {
       Alert.alert(t.common.error, (e as Error).message);

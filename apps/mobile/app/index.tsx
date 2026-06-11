@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import * as storage from '@/lib/storage';
 import * as SplashScreen from 'expo-splash-screen';
-import { Ionicons } from '@expo/vector-icons';
+import { LogoMark, LogoWordmark } from '@/components/Logo';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function RootIndex() {
@@ -35,9 +35,9 @@ export default function RootIndex() {
   return (
     <View style={styles.container}>
       <View style={styles.logoBox}>
-        <Ionicons name="layers" size={52} color="#4648d4" />
+        <LogoMark size={64} color="#4648d4" />
       </View>
-      <Text style={styles.logo}>Dastiyor</Text>
+      <LogoWordmark size={32} color="#ffffff" />
     </View>
   );
 }
@@ -62,11 +62,5 @@ const styles = StyleSheet.create({
     shadowRadius: 24,
     shadowOffset: { width: 0, height: 8 },
     elevation: 12,
-  },
-  logo: {
-    fontSize: 40,
-    fontWeight: '700',
-    color: '#ffffff',
-    letterSpacing: -0.5,
   },
 });

@@ -10,6 +10,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { LogoMark } from '@/components/Logo';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { type Locale } from '@/lib/i18n';
 import * as storage from '@/lib/storage';
@@ -97,7 +98,7 @@ export default function OnboardingScreen() {
       {/* Hero */}
       <View style={styles.hero}>
         <View style={styles.logoCircle}>
-          <Ionicons name="briefcase" size={48} color="#4648d4" />
+          <LogoMark size={56} />
         </View>
         <Text style={styles.appName}>Dastiyor</Text>
         <Text style={styles.tagline}>{c.tagline}</Text>

@@ -15,6 +15,7 @@ import { AuthBackground } from '@/components/AuthBackground';
 import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { LogoWordmark } from '@/components/Logo';
 
 export default function ForgotPasswordScreen() {
   const { t } = useLanguage();
@@ -45,7 +46,7 @@ export default function ForgotPasswordScreen() {
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <AuthBackground />
       <View style={styles.inner}>
-        <Text style={styles.logo}>Dastiyor</Text>
+        <LogoWordmark size={30} style={{ marginBottom: 8 }} />
         <Text style={[styles.title, { color: colors.text }]}>{fp.title}</Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{fp.subtitle}</Text>
 
@@ -80,7 +81,6 @@ export default function ForgotPasswordScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   inner: { flex: 1, justifyContent: 'center', padding: 24 },
-  logo: { fontSize: 36, fontWeight: '800', color: '#2563EB', marginBottom: 8, textAlign: 'center' },
   title: { fontSize: 22, fontWeight: '800', color: '#111827', textAlign: 'center', marginBottom: 8 },
   subtitle: { fontSize: 14, color: '#6B7280', textAlign: 'center', marginBottom: 28, lineHeight: 20 },
   input: {

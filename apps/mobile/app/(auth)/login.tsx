@@ -20,6 +20,7 @@ import * as Haptics from 'expo-haptics';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { LogoWordmark } from '@/components/Logo';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -146,7 +147,7 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.inner}>
-        <Text style={[styles.logo, { color: colors.accent }]}>Dastiyor</Text>
+        <LogoWordmark size={30} color={colors.accent} style={{ marginBottom: 8 }} />
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{L.subtitle}</Text>
 
         {isAppleAvailable && (
@@ -253,7 +254,6 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   inner: { flex: 1, justifyContent: 'center', padding: 24 },
-  logo: { fontSize: 36, fontWeight: '800', marginBottom: 8, textAlign: 'center' },
   subtitle: { fontSize: 16, textAlign: 'center', marginBottom: 28 },
   oauthBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',

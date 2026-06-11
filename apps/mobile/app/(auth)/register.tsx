@@ -22,6 +22,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { LogoWordmark } from '@/components/Logo';
 import { passwordStrength } from '@/lib/validation';
 import type { Locale } from '@/lib/i18n';
 
@@ -172,7 +173,7 @@ export default function RegisterScreen() {
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
       >
-        <Text style={styles.logo}>Dastiyor</Text>
+        <LogoWordmark size={30} style={{ marginBottom: 6 }} />
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{r.subtitle}</Text>
 
         {/* Role selector */}
@@ -317,7 +318,6 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   inner: { flexGrow: 1, justifyContent: 'center', padding: 24, paddingTop: 40 },
 
-  logo: { fontSize: 36, fontWeight: '800', color: '#2563EB', marginBottom: 6, textAlign: 'center' },
   subtitle: { fontSize: 15, color: '#6B7280', textAlign: 'center', marginBottom: 24 },
 
   fieldLabel: { fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 6 },

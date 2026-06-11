@@ -12,6 +12,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthBackground } from '@/components/AuthBackground';
 import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -21,6 +22,7 @@ import { LogoWordmark } from '@/components/Logo';
 export default function ResetPasswordScreen() {
   const { t } = useLanguage();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const rp = t.resetPassword;
   const { email } = useLocalSearchParams<{ email: string }>();
   const [code, setCode] = useState('');
@@ -61,7 +63,7 @@ export default function ResetPasswordScreen() {
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <AuthBackground />
-      <ScrollView contentContainerStyle={styles.inner} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={[styles.inner, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]} keyboardShouldPersistTaps="handled">
         <LogoWordmark size={30} style={{ marginBottom: 8 }} />
         <Text style={[styles.title, { color: colors.text }]}>{rp.title}</Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{rp.subtitle}</Text>
@@ -115,7 +117,7 @@ export default function ResetPasswordScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  inner: { flexGrow: 1, justifyContent: 'center', padding: 24 },
+  inner: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, width: '100%', maxWidth: 520, alignSelf: 'center' },
   title: { fontSize: 22, fontWeight: '800', color: '#111827', textAlign: 'center', marginBottom: 8 },
   subtitle: { fontSize: 14, color: '#6B7280', textAlign: 'center', marginBottom: 28, lineHeight: 20 },
   input: {

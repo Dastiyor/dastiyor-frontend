@@ -9,8 +9,10 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  ScrollView,
 } from 'react-native';
 import { Link, router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as storage from '@/lib/storage';
 import * as WebBrowser from 'expo-web-browser';
@@ -28,6 +30,7 @@ export default function LoginScreen() {
   const { login, loginWithGoogle, loginWithApple } = useAuth();
   const { locale, t } = useLanguage();
   const { colors, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -146,7 +149,11 @@ export default function LoginScreen() {
       style={[styles.container, { backgroundColor: colors.header }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={styles.inner}>
+      <ScrollView
+        contentContainerStyle={[styles.inner, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <LogoWordmark size={30} color={colors.accent} style={{ marginBottom: 8 }} />
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{L.subtitle}</Text>
 
@@ -246,14 +253,14 @@ export default function LoginScreen() {
             <Text style={styles.devBtnText}>DEV: Reset onboarding</Text>
           </TouchableOpacity>
         )}
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  inner: { flex: 1, justifyContent: 'center', padding: 24 },
+  inner: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, width: '100%', maxWidth: 520, alignSelf: 'center' },
   subtitle: { fontSize: 16, textAlign: 'center', marginBottom: 28 },
   oauthBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',

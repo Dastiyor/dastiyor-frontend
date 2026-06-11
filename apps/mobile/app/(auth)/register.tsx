@@ -12,6 +12,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Link, router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthBackground } from '@/components/AuthBackground';
 import * as storage from '@/lib/storage';
 import * as WebBrowser from 'expo-web-browser';
@@ -43,6 +44,7 @@ export default function RegisterScreen() {
   const { register, loginWithGoogle, loginWithApple } = useAuth();
   const { t, locale } = useLanguage();
   const { colors, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
   const r = t.register;
 
   const [fullName, setFullName] = useState('');
@@ -169,7 +171,7 @@ export default function RegisterScreen() {
     >
       <AuthBackground />
       <ScrollView
-        contentContainerStyle={styles.inner}
+        contentContainerStyle={[styles.inner, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
       >
@@ -316,7 +318,7 @@ export default function RegisterScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  inner: { flexGrow: 1, justifyContent: 'center', padding: 24, paddingTop: 40 },
+  inner: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, width: '100%', maxWidth: 520, alignSelf: 'center' },
 
   subtitle: { fontSize: 15, color: '#6B7280', textAlign: 'center', marginBottom: 24 },
 

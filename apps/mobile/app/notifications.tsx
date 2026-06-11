@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -30,6 +31,7 @@ const TYPE_ICON: Record<string, string> = {
 export default function NotificationsScreen() {
   const { t, locale } = useLanguage();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const toast = useToast();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -99,6 +101,7 @@ export default function NotificationsScreen() {
         <FlatList
           data={notifications}
           keyExtractor={(n) => n.id}
+          contentContainerStyle={notifications.length === 0 ? styles.emptyList : { paddingBottom: insets.bottom + 16 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
           ListEmptyComponent={
             <EmptyState icon="notifications-outline" title={t.notifications.empty} />
@@ -114,6 +117,7 @@ export default function NotificationsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   center: { flex: 1, marginTop: 60 },
+  emptyList: { flexGrow: 1 },
   row: { flexDirection: 'row', alignItems: 'flex-start', padding: 16 },
   icon: { fontSize: 24, marginRight: 12, marginTop: 2 },
   body: { flex: 1 },

@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
@@ -47,6 +48,7 @@ function ThemedStack() {
 
 export default function RootLayout() {
   return (
+    <SafeAreaProvider initialMetrics={initialWindowMetrics}>
     <ThemeProvider>
     <LanguageProvider>
       <ErrorBoundary>
@@ -62,5 +64,6 @@ export default function RootLayout() {
       </ErrorBoundary>
     </LanguageProvider>
     </ThemeProvider>
+    </SafeAreaProvider>
   );
 }

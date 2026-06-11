@@ -9,8 +9,10 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  ScrollView,
 } from 'react-native';
 import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthBackground } from '@/components/AuthBackground';
 import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -20,6 +22,7 @@ import { LogoWordmark } from '@/components/Logo';
 export default function ForgotPasswordScreen() {
   const { t } = useLanguage();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const fp = t.forgotPassword;
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -45,7 +48,11 @@ export default function ForgotPasswordScreen() {
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <AuthBackground />
-      <View style={styles.inner}>
+      <ScrollView
+        contentContainerStyle={[styles.inner, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <LogoWordmark size={30} style={{ marginBottom: 8 }} />
         <Text style={[styles.title, { color: colors.text }]}>{fp.title}</Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{fp.subtitle}</Text>
@@ -73,14 +80,14 @@ export default function ForgotPasswordScreen() {
         <TouchableOpacity style={styles.backLink} onPress={() => router.back()}>
           <Text style={styles.backLinkText}>{fp.backToLogin}</Text>
         </TouchableOpacity>
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  inner: { flex: 1, justifyContent: 'center', padding: 24 },
+  inner: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, width: '100%', maxWidth: 520, alignSelf: 'center' },
   title: { fontSize: 22, fontWeight: '800', color: '#111827', textAlign: 'center', marginBottom: 8 },
   subtitle: { fontSize: 14, color: '#6B7280', textAlign: 'center', marginBottom: 28, lineHeight: 20 },
   input: {

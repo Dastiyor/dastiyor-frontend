@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, router, useNavigation } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -43,6 +44,7 @@ export default function ProviderProfileScreen() {
   const { user } = useAuth();
   const { t, locale } = useLanguage();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const pv = t.provider;
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const [profile, setProfile] = useState<ProviderProfile | null>(null);
@@ -77,7 +79,7 @@ export default function ProviderProfileScreen() {
   );
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.bg }]} contentContainerStyle={styles.scroll}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.bg }]} contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 40 }]}>
       <View style={[styles.header, { backgroundColor: colors.surface }]}>
         <View style={styles.avatarWrap}>
           <Avatar name={profile.fullName} size={80} />

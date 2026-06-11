@@ -43,8 +43,8 @@ export function LogoWordmark({
   return (
     <View style={[styles.row, style]} accessibilityRole="image" accessibilityLabel="Dastiyor">
       <Text style={[styles.word, letter]}>DASTIY</Text>
-      <View style={{ marginHorizontal: size * 0.06, transform: [{ translateY: size * 0.02 }] }}>
-        <LogoMark size={size * 0.8} color={markColor ?? color} />
+      <View style={{ marginHorizontal: size * 0.05, transform: [{ translateY: -size * 0.01 }] }}>
+        <LogoMark size={size * 0.95} color={markColor ?? color} />
       </View>
       <Text style={[styles.word, letter]}>R</Text>
     </View>

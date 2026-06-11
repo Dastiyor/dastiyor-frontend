@@ -38,7 +38,14 @@
       "expo-secure-store",
       "expo-splash-screen",
       "expo-font",
-      "expo-apple-authentication"
+      "expo-apple-authentication",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/adaptive-icon.png",
+          "color": "#2563EB"
+        }
+      ]
     ],
     "extra": {
       "privacyPolicyUrl": "https://dastiyor.com/privacy",

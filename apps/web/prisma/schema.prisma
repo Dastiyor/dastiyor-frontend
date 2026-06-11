@@ -57,6 +57,9 @@ model User {
   // Push subscriptions
   pushSubscriptions PushSubscription[]
 
+  // Native (Expo) device push tokens
+  deviceTokens     DeviceToken[]
+
   // Payments
   payments         Payment[]
 
@@ -305,6 +308,21 @@ model PushSubscription {
   p256dh    String   // Public key
   auth      String   // Auth secret
   createdAt DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// Native push tokens for the Expo (iOS/Android) app.
+// Kept separate from web PushSubscription (VAPID) — different transport.
+model DeviceToken {
+  id        String   @id @default(cuid())
+  token     String   @unique // Expo push token, e.g. ExponentPushToken[xxx]
+  platform  String?  // 'ios' | 'android'
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)

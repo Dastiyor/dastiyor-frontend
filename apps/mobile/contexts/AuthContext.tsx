@@ -2,7 +2,32 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import * as storage from '@/lib/storage';
 import { router } from 'expo-router';
 import { api, setOnUnauthorized } from '@/lib/api-client';
+import { registerForPushNotifications, unregisterPushNotifications } from '@/lib/push';
+import { setUser as setErrorUser } from '@/lib/errorReporting';
 import type { ApiUser } from '@dastiyor/types';
+
+const PUSH_TOKEN_KEY = 'expo_push_token';
+
+// Register this device for push and persist the token so we can unregister on
+// logout. Fully non-blocking — push must never gate auth.
+async function syncPushRegistration() {
+  try {
+    const token = await registerForPushNotifications();
+    if (token) await storage.setItem(PUSH_TOKEN_KEY, token);
+  } catch {
+    /* ignore */
+  }
+}
+
+async function clearPushRegistration() {
+  try {
+    const token = await storage.getItem(PUSH_TOKEN_KEY);
+    await unregisterPushNotifications(token);
+    await storage.deleteItem(PUSH_TOKEN_KEY);
+  } catch {
+    /* ignore */
+  }
+}
 
 interface RegisterData {
   phone: string;
@@ -45,6 +70,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (token) {
           const me = await api.get<ApiUser>('/api/auth/me');
           setUser(me);
+          setErrorUser({ id: me.id, role: me.role });
+          syncPushRegistration();
         }
       } catch {
         await storage.deleteItem('auth_token');
@@ -54,16 +81,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })();
   }, []);
 
+  // Persist token, set user, attach error-reporting identity, register push.
+  function onAuthenticated(res: { token: string; user: ApiUser }) {
+    setUser(res.user);
+    setErrorUser({ id: res.user.id, role: res.user.role });
+    syncPushRegistration();
+  }
+
   async function login(identifier: string, password: string) {
     const res = await api.post<{ token: string; user: ApiUser }>('/api/auth/login', { identifier, password });
     await storage.setItem('auth_token', res.token);
-    setUser(res.user);
+    onAuthenticated(res);
   }
 
   async function register(data: RegisterData) {
     const res = await api.post<{ token: string; user: ApiUser }>('/api/auth/register', data);
     await storage.setItem('auth_token', res.token);
-    setUser(res.user);
+    onAuthenticated(res);
   }
 
   async function loginWithGoogle(accessToken: string, role = 'customer') {
@@ -72,7 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       role,
     });
     await storage.setItem('auth_token', res.token);
-    setUser(res.user);
+    onAuthenticated(res);
   }
 
   async function loginWithApple(
@@ -88,7 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       role,
     });
     await storage.setItem('auth_token', res.token);
-    setUser(res.user);
+    onAuthenticated(res);
   }
 
   async function refreshUser() {
@@ -99,8 +133,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function logout() {
+    await clearPushRegistration();
     await storage.deleteItem('auth_token');
     setUser(null);
+    setErrorUser(null);
     router.replace('/(auth)/login');
   }
 
@@ -108,8 +144,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Throws on failure so the caller can surface the error and keep the
     // user signed in; only clears local session once the server confirms.
     await api.del('/api/account');
+    await clearPushRegistration();
     await storage.deleteItem('auth_token');
     setUser(null);
+    setErrorUser(null);
     router.replace('/(auth)/login');
   }
 

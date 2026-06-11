@@ -8,8 +8,10 @@ import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
 import { NotifPrefsProvider } from '@/contexts/NotifPrefsContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { OfflineBanner } from '@/components/OfflineBanner';
+import { initErrorReporting } from '@/lib/errorReporting';
 
 SplashScreen.preventAutoHideAsync();
+initErrorReporting();
 
 function ThemedStack() {
   const { colors, isDark } = useTheme();

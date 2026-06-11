@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { captureException } from '@/lib/errorReporting';
 
 interface Props extends React.PropsWithChildren {
   title?: string;
@@ -17,6 +18,10 @@ class ErrorBoundaryClass extends React.Component<Props, State> {
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    captureException(error, { componentStack: info.componentStack, source: 'ErrorBoundary' });
   }
 
   render() {

@@ -24,6 +24,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { LogoWordmark } from '@/components/Logo';
+import { openPrivacyPolicy, openTermsOfService } from '@/lib/legal';
 import { passwordStrength } from '@/lib/validation';
 import type { Locale } from '@/lib/i18n';
 
@@ -56,6 +57,7 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
+  const [legalAccepted, setLegalAccepted] = useState(false);
 
   const googleConfigured = !!(
     process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID &&
@@ -110,6 +112,10 @@ export default function RegisterScreen() {
     const issues = passwordStrength(password, r);
     if (issues.length > 0) {
       Alert.alert(t.common.error, issues.join(', '));
+      return;
+    }
+    if (!legalAccepted) {
+      Alert.alert(t.common.error, t.legal.consentRequired);
       return;
     }
     setLoading(true);
@@ -297,6 +303,25 @@ export default function RegisterScreen() {
         )}
 
         <TouchableOpacity
+          style={styles.legalRow}
+          onPress={() => setLegalAccepted((v) => !v)}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: legalAccepted }}
+        >
+          <Ionicons name={legalAccepted ? 'checkbox' : 'square-outline'} size={22} color={legalAccepted ? colors.accent : colors.textTertiary} />
+          <Text style={[styles.legalText, { color: colors.textSecondary }]}>
+            {t.legal.consent}{' '}
+            <Text style={{ color: colors.accent }} onPress={(e) => { e.stopPropagation?.(); openTermsOfService().catch(() => {}); }}>
+              {t.legal.terms}
+            </Text>
+            {' / '}
+            <Text style={{ color: colors.accent }} onPress={(e) => { e.stopPropagation?.(); openPrivacyPolicy().catch(() => {}); }}>
+              {t.legal.privacy}
+            </Text>
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
           style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleRegister}
           disabled={loading}
@@ -395,4 +420,6 @@ const styles = StyleSheet.create({
 
   link: { textAlign: 'center', marginTop: 20, color: '#6B7280', fontSize: 14 },
   linkBold: { color: '#2563EB', fontWeight: '600' },
+  legalRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 16, marginTop: 4 },
+  legalText: { flex: 1, fontSize: 13, lineHeight: 18 },
 });

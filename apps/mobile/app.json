@@ -20,6 +20,9 @@
       "bundleIdentifier": "com.dastiyor.app",
       "buildNumber": "1",
       "usesAppleSignIn": true,
+      "infoPlist": {
+        "NSUserNotificationsUsageDescription": "Dastiyor sends notifications about new messages, task updates, and responses to your offers."
+      },
       "config": {
         "usesNonExemptEncryption": false
       }

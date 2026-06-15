@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Props {
   title: string;
@@ -13,20 +14,28 @@ interface Props {
 
 export function ScreenHeader({ title, unreadCount = 0, onNotificationsOpen, showBack = false }: Props) {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const insets = useSafeAreaInsets();
   const statusBarHeight = insets.top;
+  const backLabel = t.navigation.back;
+  const notifLabel = t.navigation.notifications;
 
   return (
     <View style={[styles.header, { paddingTop: statusBarHeight + 8, backgroundColor: colors.header, borderBottomColor: colors.border }]}>
       {showBack ? (
-        <TouchableOpacity style={styles.iconBtn} onPress={() => router.back()} accessibilityRole="button">
+        <TouchableOpacity
+          style={styles.iconBtn}
+          onPress={() => router.back()}
+          accessibilityRole="button"
+          accessibilityLabel={backLabel}
+        >
           <Ionicons name="chevron-back" size={24} color={colors.accent} />
         </TouchableOpacity>
       ) : (
         <View style={styles.iconBtn} />
       )}
 
-      <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+      <Text style={[styles.title, { color: colors.text }]} accessibilityRole="header">{title}</Text>
 
       {showBack ? (
         <View style={styles.iconBtn} />
@@ -37,7 +46,7 @@ export function ScreenHeader({ title, unreadCount = 0, onNotificationsOpen, show
             onNotificationsOpen?.();
             router.push('/notifications' as any);
           }}
-          accessibilityLabel="Notifications"
+          accessibilityLabel={notifLabel}
           accessibilityRole="button"
         >
           <Ionicons name={unreadCount > 0 ? 'notifications' : 'notifications-outline'} size={24} color={colors.text} />

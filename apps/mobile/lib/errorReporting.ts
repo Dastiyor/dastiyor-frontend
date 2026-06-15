@@ -23,12 +23,16 @@ export interface Reporter {
 const consoleReporter: Reporter = {
   captureException(error, context) {
     const err = error instanceof Error ? error : new Error(String(error));
-    // eslint-disable-next-line no-console
-    console.error('[errorReporting] exception:', err.message, context ?? '');
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.error('[errorReporting] exception:', err.message, context ?? '');
+    }
   },
   captureMessage(message, level = 'info') {
-    // eslint-disable-next-line no-console
-    console.log(`[errorReporting] ${level}:`, message);
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.log(`[errorReporting] ${level}:`, message);
+    }
   },
   setUser() {
     /* no-op for console reporter */

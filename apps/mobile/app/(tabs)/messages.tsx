@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -22,6 +23,7 @@ export default function MessagesScreen() {
   const { t } = useLanguage();
   const { colors } = useTheme();
   const toast = useToast();
+  const insets = useSafeAreaInsets();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -51,16 +53,17 @@ export default function MessagesScreen() {
   }
 
   const renderConversation = useCallback(({ item }: { item: Conversation }) => {
-    const badge = item.partnerRole;
+    const roleKey = item.partnerRole as keyof typeof t.profile.roles | undefined;
+    const roleLabel = roleKey ? (t.profile.roles[roleKey] ?? item.partnerRole) : null;
     return (
       <TouchableOpacity style={[styles.row, { backgroundColor: colors.surface }]} onPress={() => openChat(item)} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel={item.partnerName}>
         <Avatar name={item.partnerName} avatarUrl={item.partnerAvatar} size={52} />
         <View style={styles.rowBody}>
           <View style={styles.rowTop}>
             <Text style={[styles.partnerName, { color: colors.text }]} numberOfLines={1}>{item.partnerName}</Text>
-            {badge ? (
+            {roleLabel ? (
               <View style={[styles.roleBadge, { backgroundColor: colors.iconBg }]}>
-                <Text style={[styles.roleBadgeText, { color: colors.accent }]}>{badge}</Text>
+                <Text style={[styles.roleBadgeText, { color: colors.accent }]}>{roleLabel}</Text>
               </View>
             ) : null}
           </View>
@@ -86,6 +89,7 @@ export default function MessagesScreen() {
         <FlatList
           data={conversations}
           keyExtractor={(c) => c.id}
+          contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#2563EB" />}
           ListEmptyComponent={
             <EmptyState icon="chatbubbles-outline" title={t.messages.empty} subtitle={t.messages.hint} />

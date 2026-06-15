@@ -27,6 +27,7 @@ import type { FeedTask } from '@dastiyor/types';
 import { useConfig } from '@/lib/useConfig';
 import { useTheme } from '@/contexts/ThemeContext';
 import { CATEGORY_ICONS } from '@/lib/categoryIcons';
+import { NOTIF_POLL_MS } from '@/lib/constants';
 
 const CARD_COLORS = ['#2563EB', '#1E293B', '#7C3AED', '#0F766E'];
 
@@ -96,7 +97,7 @@ export default function HomeScreen() {
             const latest = r.notifications?.[0];
             if (latest) {
               toast.showBanner(
-                latest.title ?? 'Уведомление',
+                latest.title ?? t.notifications.title,
                 latest.body ?? '',
                 'notifications',
                 () => router.push('/notifications' as any),
@@ -108,7 +109,7 @@ export default function HomeScreen() {
         .catch(() => {});
     };
     poll();
-    notifIntervalRef.current = setInterval(poll, 15_000);
+    notifIntervalRef.current = setInterval(poll, NOTIF_POLL_MS);
     const appSub = AppState.addEventListener('change', (s) => { if (s === 'active') poll(); });
     return () => {
       if (notifIntervalRef.current) clearInterval(notifIntervalRef.current);

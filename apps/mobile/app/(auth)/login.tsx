@@ -28,9 +28,10 @@ WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
   const { login, loginWithGoogle, loginWithApple } = useAuth();
-  const { locale, t } = useLanguage();
+  const { t } = useLanguage();
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
+  const L = t.login;
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -115,33 +116,6 @@ export default function LoginScreen() {
     router.replace('/(onboarding)');
   }
 
-  const L = {
-    ru: {
-      subtitle: 'Войдите в аккаунт', identifierPh: 'Email', passPh: 'Пароль', btn: 'Войти',
-      reg: 'Нет аккаунта?', regLink: 'Зарегистрироваться', orDivider: 'или',
-      googleBtn: 'Продолжить с Google', appleBtn: 'Войти через Apple',
-      errTitle: 'Ошибка', errOauth: 'Ошибка входа',
-      errRequired: 'Введите телефон или email и пароль',
-      emailLabel: 'Email', passLabel: 'Пароль',
-    },
-    tj: {
-      subtitle: 'Ба ҳисоб ворид шавед', identifierPh: 'Email', passPh: 'Парол', btn: 'Воридшавӣ',
-      reg: 'Ҳисоб надоред?', regLink: 'Бақайдгирӣ', orDivider: 'ё',
-      googleBtn: 'Тавассути Google', appleBtn: 'Тавассути Apple',
-      errTitle: 'Хато', errOauth: 'Хатои воридшавӣ',
-      errRequired: 'Телефон ё email ва паролро ворид кунед',
-      emailLabel: 'Email', passLabel: 'Парол',
-    },
-    en: {
-      subtitle: 'Sign in to your account', identifierPh: 'Email', passPh: 'Password', btn: 'Sign in',
-      reg: "Don't have an account?", regLink: 'Register', orDivider: 'or',
-      googleBtn: 'Continue with Google', appleBtn: 'Sign in with Apple',
-      errTitle: 'Error', errOauth: 'Login error',
-      errRequired: 'Enter phone or email and password',
-      emailLabel: 'Email', passLabel: 'Password',
-    },
-  }[locale];
-
   const isAppleAvailable = Platform.OS === 'ios';
 
   return (
@@ -200,7 +174,7 @@ export default function LoginScreen() {
           value={identifier}
           onChangeText={setIdentifier}
           autoCapitalize="none"
-          keyboardType="email-address"
+          keyboardType="default"
           autoComplete="username"
           maxLength={255}
         />

@@ -145,7 +145,7 @@ export default function ChatScreen() {
     const marginBottom = isLastInGroup ? 12 : 3;
 
     return (
-      <>
+      <View key={item.id}>
         {showDate ? (
           <Text style={styles.dateSep}>
             {new Date(item.createdAt).toLocaleDateString(locale, { day: 'numeric', month: 'long' })}
@@ -157,7 +157,7 @@ export default function ChatScreen() {
             <Text style={[styles.bubbleTime, own ? styles.bubbleTimeOwn : styles.bubbleTimeOther]}>{formatTime(item.createdAt, locale)}</Text>
           </View>
         </View>
-      </>
+      </View>
     );
   }
 
@@ -201,7 +201,7 @@ export default function ChatScreen() {
           maxLength={2000}
           returnKeyType="default"
         />
-        <TouchableOpacity style={[styles.sendBtn, (!text.trim() || sending) && styles.sendBtnDisabled]} onPress={sendMessage} disabled={!text.trim() || sending}>
+        <TouchableOpacity style={[styles.sendBtn, (!text.trim() || sending) && styles.sendBtnDisabled]} onPress={sendMessage} disabled={!text.trim() || sending} accessibilityRole="button" accessibilityLabel={t.chat.placeholder}>
           {sending ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.sendIcon}>↑</Text>}
         </TouchableOpacity>
       </View>

@@ -8,17 +8,17 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useNotifPrefs } from '@/contexts/NotifPrefsContext';
 import { api } from '@/lib/api-client';
-import { BACK_PRESS_TIMEOUT_MS } from '@/lib/constants';
-
-const BADGE_POLL_MS = 15_000;
+import { BACK_PRESS_TIMEOUT_MS, BADGE_POLL_MS } from '@/lib/constants';
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
 type Conversation = { partnerId: string; partnerName: string; taskId?: string; unreadCount: number; lastMessage: string };
 
-function icon(active: IoniconName, inactive: IoniconName) {
-  return ({ focused, color, size }: { focused: boolean; color: string; size: number }) => (
-    <Ionicons name={focused ? active : inactive} size={size} color={color} />
-  );
+function TabIcon(active: IoniconName, inactive: IoniconName) {
+  function Icon({ focused, color, size }: { focused: boolean; color: string; size: number }) {
+    return <Ionicons name={focused ? active : inactive} size={size} color={color} />;
+  }
+  Icon.displayName = 'TabIcon';
+  return Icon;
 }
 
 export default function TabLayout() {
@@ -121,28 +121,28 @@ export default function TabLayout() {
         name="index"
         options={{
           title: t.tabs.home,
-          tabBarIcon: icon('home', 'home-outline'),
+          tabBarIcon: TabIcon('home', 'home-outline'),
         }}
       />
       <Tabs.Screen
         name="tasks"
         options={{
           title: t.tabs.tasks,
-          tabBarIcon: icon('search', 'search-outline'),
+          tabBarIcon: TabIcon('search', 'search-outline'),
         }}
       />
       <Tabs.Screen
         name="my"
         options={{
           title: isCustomer ? t.tabs.myTasks : t.tabs.responses,
-          tabBarIcon: icon('clipboard', 'clipboard-outline'),
+          tabBarIcon: TabIcon('clipboard', 'clipboard-outline'),
         }}
       />
       <Tabs.Screen
         name="messages"
         options={{
           title: t.tabs.messages,
-          tabBarIcon: icon('chatbubbles', 'chatbubbles-outline'),
+          tabBarIcon: TabIcon('chatbubbles', 'chatbubbles-outline'),
           tabBarBadge: unreadMessages > 0 ? unreadMessages : undefined,
           tabBarBadgeStyle: { backgroundColor: '#EF4444', fontSize: 10 },
         }}
@@ -151,7 +151,7 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: t.tabs.profile,
-          tabBarIcon: icon('person', 'person-outline'),
+          tabBarIcon: TabIcon('person', 'person-outline'),
         }}
       />
     </Tabs>

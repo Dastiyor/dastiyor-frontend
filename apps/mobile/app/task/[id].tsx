@@ -30,6 +30,7 @@ export default function TaskDetailScreen() {
   const [responses, setResponses] = useState<TaskResponse[]>([]);
   const [myResponse, setMyResponse] = useState<MyResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [taskActionLoading, setTaskActionLoading] = useState<string | null>(null);
@@ -72,18 +73,31 @@ export default function TaskDetailScreen() {
     useCallback(() => {
       (async () => {
         setLoading(true);
+        setLoadError(false);
         try {
           const data = await loadTask();
           if (data) await loadResponses(data);
         } catch (e) {
-          Alert.alert(t.common.error, (e as Error).message);
-          router.back();
+          setLoadError(true);
         } finally {
           setLoading(false);
         }
       })();
     }, [id, user?.id])
   );
+
+  async function retryLoad() {
+    setLoading(true);
+    setLoadError(false);
+    try {
+      const data = await loadTask();
+      if (data) await loadResponses(data);
+    } catch {
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   async function handleAccept(response: TaskResponse) {
     Alert.alert(
@@ -133,7 +147,19 @@ export default function TaskDetailScreen() {
   }
 
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#2563EB" /></View>;
-  if (!task) return null;
+  if (loadError || !task) {
+    return (
+      <View style={[styles.center, { backgroundColor: colors.bg, flex: 1 }]}>
+        <Text style={[styles.noResponsesText, { color: colors.textSecondary }]}>{t.common.errorTitle}</Text>
+        <TouchableOpacity style={styles.respondBtn} onPress={retryLoad}>
+          <Text style={styles.respondBtnText}>{t.common.errorRetry}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={{ marginTop: 16 }} onPress={() => router.back()}>
+          <Text style={{ color: colors.accent }}>{t.navigation.back}</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   const urgency = URGENCY_LABEL[task.urgency] ?? { label: task.urgency, color: '#6B7280' };
   const isOwner = user?.id === task.customer?.id;

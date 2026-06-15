@@ -17,27 +17,37 @@ import * as Haptics from 'expo-haptics';
 import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useConfig } from '@/lib/useConfig';
+import type { ThemeColors } from '@/contexts/ThemeContext';
 import { track, AnalyticsEvent } from '@/lib/analytics';
+import { useConfig } from '@/lib/useConfig';
 
 function ChipGroup<T extends string>({
-  options, value, onChange, getLabel, getValue,
+  options, value, onChange, getLabel, getValue, colors,
 }: {
   options: T[] | { value: T; label: string }[];
   value: T;
   onChange: (v: T) => void;
   getLabel?: (o: T | { value: T; label: string }) => string;
   getValue?: (o: T | { value: T; label: string }) => T;
+  colors: ThemeColors;
 }) {
   return (
     <View style={chip.wrap}>
-      {(options as any[]).map((opt) => {
+      {(options as (T | { value: T; label: string })[]).map((opt) => {
         const v = getValue ? getValue(opt) : (opt as T);
         const l = getLabel ? getLabel(opt) : String(opt);
         const active = value === v;
         return (
-          <TouchableOpacity key={v} style={[chip.btn, active && chip.active]} onPress={() => onChange(v)}>
-            <Text style={[chip.text, active && chip.activeText]}>{l}</Text>
+          <TouchableOpacity
+            key={String(v)}
+            style={[
+              chip.btn,
+              { borderColor: colors.border, backgroundColor: colors.surfaceAlt },
+              active && { borderColor: colors.accent, backgroundColor: colors.iconBg },
+            ]}
+            onPress={() => onChange(v)}
+          >
+            <Text style={[chip.text, { color: colors.textSecondary }, active && { color: colors.accent, fontWeight: '700' }]}>{l}</Text>
           </TouchableOpacity>
         );
       })}
@@ -47,10 +57,8 @@ function ChipGroup<T extends string>({
 
 const chip = StyleSheet.create({
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 },
-  btn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1.5, borderColor: '#E5E7EB', backgroundColor: '#F9FAFB' },
-  active: { borderColor: '#2563EB', backgroundColor: '#EFF6FF' },
-  text: { fontSize: 13, color: '#374151', fontWeight: '500' },
-  activeText: { color: '#2563EB', fontWeight: '700' },
+  btn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1.5 },
+  text: { fontSize: 13, fontWeight: '500' },
 });
 
 export default function CreateTaskScreen() {
@@ -122,10 +130,10 @@ export default function CreateTaskScreen() {
         <Text style={styles.charCount}>{description.length}/1000</Text>
 
         <Text style={[styles.label, { color: colors.text }]}>{ct.categoryLabel}</Text>
-        <ChipGroup options={config.categories} value={category} onChange={setCategory} />
+        <ChipGroup options={config.categories} value={category} onChange={setCategory} colors={colors} />
 
         <Text style={[styles.label, { color: colors.text }]}>{ct.cityLabel}</Text>
-        <ChipGroup options={config.cities} value={city} onChange={setCity} />
+        <ChipGroup options={config.cities} value={city} onChange={setCity} colors={colors} />
 
         <Text style={[styles.label, { color: colors.text }]}>{ct.budgetLabel}</Text>
         <View style={[styles.segmented, { borderColor: colors.border }]}>
@@ -148,7 +156,8 @@ export default function CreateTaskScreen() {
           value={urgency}
           onChange={setUrgency}
           getLabel={(o) => (o as { label: string }).label}
-          getValue={(o) => (o as { value: string }).value as any}
+          getValue={(o) => (o as { value: string }).value as typeof urgency}
+          colors={colors}
         />
 
         <Text style={[styles.label, { color: colors.text }]}>{ct.addressLabel}</Text>

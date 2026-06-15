@@ -6,6 +6,7 @@ import {
   ScrollView,
   Alert,
   Switch,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -16,6 +17,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useNotifPrefs } from '@/contexts/NotifPrefsContext';
 import { Avatar } from '@/components/Avatar';
+import { openPrivacyPolicy, openTermsOfService } from '@/lib/legal';
 import { LOCALE_NAMES, type Locale } from '@/lib/i18n';
 
 const LOCALES: Locale[] = ['ru', 'tj', 'en'];
@@ -73,7 +75,7 @@ function RowItem({
 }
 
 export default function ProfileScreen() {
-  const { user, logout, deleteAccount } = useAuth();
+  const { user, loading, logout, deleteAccount } = useAuth();
   const { locale, setLocale, t } = useLanguage();
   const { colors, isDark, toggleTheme } = useTheme();
   const { popupsEnabled, togglePopups } = useNotifPrefs();
@@ -105,6 +107,14 @@ export default function ProfileScreen() {
     ]);
   }
 
+  if (loading) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.bg, justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.accent} />
+      </View>
+    );
+  }
+
   if (!user) return null;
 
   const roleColors = ROLE_COLORS[user.role] ?? { color: '#374151', bg: 'rgba(243,244,246,0.9)' };
@@ -124,7 +134,7 @@ export default function ProfileScreen() {
         {/* User info card */}
         <View style={[styles.card, { backgroundColor: colors.surface }]}>
           <View style={styles.userRow}>
-            <Avatar name={user.fullName} size={56} />
+            <Avatar name={user.fullName} size={56} avatarUrl={user.avatar} />
             <View style={styles.userInfo}>
               <Text style={[styles.userName, { color: colors.text }]}>{user.fullName}</Text>
               <Text style={[styles.userHandle, { color: colors.textSecondary }]}>{username}</Text>
@@ -245,6 +255,20 @@ export default function ProfileScreen() {
               thumbColor="#fff"
             />
           </View>
+        </View>
+
+        {/* Legal */}
+        <View style={[styles.card, { backgroundColor: colors.surface }]}>
+          <RowItem
+            icon="document-text-outline"
+            label={t.legal.privacy}
+            onPress={() => { openPrivacyPolicy().catch(() => {}); }}
+          />
+          <RowItem
+            icon="shield-checkmark-outline"
+            label={t.legal.terms}
+            onPress={() => { openTermsOfService().catch(() => {}); }}
+          />
         </View>
 
         {/* Logout */}

@@ -6,19 +6,21 @@ jest.mock('expo-secure-store', () => ({
   getItemAsync: jest.fn(),
   setItemAsync: jest.fn(),
   deleteItemAsync: jest.fn(),
+  isAvailableAsync: jest.fn().mockResolvedValue(true),
 }));
 
 // Unmock api-client so we test the real code
 jest.unmock('@/lib/api-client');
 
 import * as SecureStore from 'expo-secure-store';
-import { api, setOnUnauthorized, setOnNetworkError } from '../api-client';
+import { api, setOnUnauthorized, setOnNetworkError, sanitizeApiError } from '../api-client';
 
-const mockFetch = (status: number, body: object) => {
+const mockFetch = (status: number, body: object | string) => {
+  const text = typeof body === 'string' ? body : JSON.stringify(body);
   (global.fetch as jest.Mock) = jest.fn().mockResolvedValue({
     status,
     ok: status >= 200 && status < 300,
-    json: () => Promise.resolve(body),
+    text: () => Promise.resolve(text),
   } as unknown as Response);
 };
 
@@ -26,9 +28,22 @@ describe('api-client', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (SecureStore.getItemAsync as jest.Mock).mockResolvedValue(null);
-    // Reset callbacks
     setOnUnauthorized(() => {});
     setOnNetworkError(() => {});
+  });
+
+  describe('sanitizeApiError', () => {
+    it('returns generic message for 500+', () => {
+      expect(sanitizeApiError(500, 'Prisma error')).toContain('сервера');
+    });
+
+    it('strips internal error details', () => {
+      expect(sanitizeApiError(400, 'stack trace at foo')).toBe('Ошибка запроса');
+    });
+
+    it('passes through safe client errors', () => {
+      expect(sanitizeApiError(400, 'Invalid credentials')).toBe('Invalid credentials');
+    });
   });
 
   describe('api.get', () => {
@@ -85,7 +100,13 @@ describe('api-client', () => {
     it('throws generic error when API error field missing', async () => {
       mockFetch(500, {});
 
-      await expect(api.get('/api/tasks')).rejects.toThrow('Ошибка запроса');
+      await expect(api.get('/api/tasks')).rejects.toThrow('сервера');
+    });
+
+    it('handles non-JSON error bodies gracefully', async () => {
+      mockFetch(502, '<html>Bad Gateway</html>');
+
+      await expect(api.get('/api/tasks')).rejects.toThrow('сервера');
     });
   });
 

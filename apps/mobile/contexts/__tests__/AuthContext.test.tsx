@@ -138,6 +138,7 @@ describe('AuthContext', () => {
 
       await act(async () => { await authRef!.logout(); });
 
+      expect(mockApi.post).toHaveBeenCalledWith('/api/auth/logout');
       expect(SecureStore.deleteItemAsync).toHaveBeenCalledWith('auth_token');
       expect(getByTestId('user').props.children).toBe('null');
       expect(mockRouter.replace).toHaveBeenCalledWith('/(auth)/login');

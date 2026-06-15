@@ -16,6 +16,14 @@ export async function DELETE(request: Request) {
         const userId = payload.id as string;
 
         await prisma.$transaction(async (tx) => {
+            const userRecord = await tx.user.findUnique({
+                where: { id: userId },
+                select: { phone: true },
+            });
+            if (userRecord?.phone) {
+                await tx.verificationCode.deleteMany({ where: { phone: userRecord.phone } });
+            }
+
             // Tasks owned by this user — their child rows must go first.
             const ownedTasks = await tx.task.findMany({
                 where: { userId },
@@ -62,6 +70,7 @@ export async function DELETE(request: Request) {
             await tx.payment.deleteMany({ where: { userId } });
             await tx.subscription.deleteMany({ where: { userId } });
             await tx.pushSubscription.deleteMany({ where: { userId } });
+            await tx.deviceToken.deleteMany({ where: { userId } });
 
             // Audit logs: keep the trail but drop the personal link.
             await tx.actionLog.updateMany({

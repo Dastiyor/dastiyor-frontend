@@ -12,8 +12,29 @@ export function setOnUnauthorized(cb: () => void) { _onUnauthorized = cb; }
 export function setOnNetworkError(cb: () => void) { _onNetworkError = cb; }
 export function setOnNetworkRecovered(cb: () => void) { _onNetworkRecovered = cb; }
 
+/** Sanitize server error text before showing in UI (OWASP API3). */
+export function sanitizeApiError(status: number, serverError?: string): string {
+  if (status >= 500) return 'Ошибка сервера. Попробуйте позже.';
+  if (!serverError || typeof serverError !== 'string') return 'Ошибка запроса';
+  if (serverError.length > 200) return 'Ошибка запроса';
+  if (/stack|prisma|sql|internal|exception|traceback|at\s+\w+/i.test(serverError)) {
+    return 'Ошибка запроса';
+  }
+  return serverError;
+}
+
 async function getToken(): Promise<string | null> {
   return storage.getItem('auth_token');
+}
+
+async function parseResponseBody(res: Response): Promise<{ error?: string; [key: string]: unknown }> {
+  const text = await res.text();
+  if (!text) return {};
+  try {
+    return JSON.parse(text) as { error?: string; [key: string]: unknown };
+  } catch {
+    return {};
+  }
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -31,8 +52,8 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   try {
     res = await fetch(`${API_BASE}${path}`, { ...options, headers, signal: controller.signal });
     _onNetworkRecovered?.();
-  } catch (err: any) {
-    if (err?.name === 'AbortError') {
+  } catch (err: unknown) {
+    if ((err as { name?: string })?.name === 'AbortError') {
       throw new Error('Превышено время ожидания. Проверьте соединение.');
     }
     _onNetworkError?.();
@@ -46,10 +67,11 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     throw new Error('Сессия истекла. Войдите снова.');
   }
 
-  const data = await res.json();
+  const data = await parseResponseBody(res);
 
   if (!res.ok) {
-    throw new Error((data as { error?: string }).error ?? 'Ошибка запроса');
+    const serverError = typeof data.error === 'string' ? data.error : undefined;
+    throw new Error(sanitizeApiError(res.status, serverError));
   }
 
   return data as T;

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { useTheme } from '@/contexts/ThemeContext';
+import { isSafeAvatarUrl } from '@/lib/avatar-url';
 
 interface Props {
   name: string;
@@ -17,18 +18,24 @@ export function Avatar({ name, size = 56, avatarUrl }: Props) {
     ? (parts[0][0] + parts[1][0]).toUpperCase()
     : name.slice(0, 2).toUpperCase();
 
-  if (avatarUrl && !imgError) {
+  const safeUrl = isSafeAvatarUrl(avatarUrl) ? avatarUrl! : null;
+
+  if (safeUrl && !imgError) {
     return (
       <Image
-        source={{ uri: avatarUrl }}
+        source={{ uri: safeUrl }}
         style={[styles.base, { width: size, height: size, borderRadius: size / 2 }]}
         onError={() => setImgError(true)}
+        accessibilityIgnoresInvertColors
       />
     );
   }
 
   return (
-    <View style={[styles.base, { width: size, height: size, borderRadius: size / 2, backgroundColor: colors.accent }]}>
+    <View
+      style={[styles.base, { width: size, height: size, borderRadius: size / 2, backgroundColor: colors.accent }]}
+      accessibilityLabel={name}
+    >
       <Text style={[styles.text, { fontSize: size * 0.36 }]}>{ini}</Text>
     </View>
   );

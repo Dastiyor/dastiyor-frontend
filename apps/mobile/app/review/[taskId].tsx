@@ -12,6 +12,7 @@ import {
   Alert,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -22,6 +23,7 @@ export default function ReviewScreen() {
   const { taskId, providerName, taskTitle } = useLocalSearchParams<{ taskId: string; providerName: string; taskTitle: string }>();
   const { t } = useLanguage();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const rv = t.review;
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
@@ -42,7 +44,7 @@ export default function ReviewScreen() {
 
   return (
     <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 40 }]} keyboardShouldPersistTaps="handled">
         {taskTitle ? (
           <View style={[styles.taskBox, { backgroundColor: colors.surface }]}>
             <Text style={[styles.taskBoxLabel, { color: colors.textTertiary }]}>{rv.task}</Text>
@@ -62,7 +64,7 @@ export default function ReviewScreen() {
               onPress={() => setRating(s)}
               style={styles.starBtn}
               accessibilityRole="button"
-              accessibilityLabel={`${s} ${s === 1 ? 'star' : 'stars'}`}
+              accessibilityLabel={rv.ratings[s as keyof typeof rv.ratings]}
               accessibilityState={{ selected: s <= rating }}
             >
               <Text style={[styles.star, s <= rating && styles.starActive]}>★</Text>

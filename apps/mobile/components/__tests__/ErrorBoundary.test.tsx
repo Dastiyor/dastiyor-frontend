@@ -27,13 +27,13 @@ describe('ErrorBoundary', () => {
   });
 
   it('shows error UI when child throws', () => {
-    const { getByText } = render(
+    const { getByText, queryByText } = render(
       <ErrorBoundary>
         <ThrowingChild shouldThrow={true} />
       </ErrorBoundary>
     );
     expect(getByText('Что-то пошло не так')).toBeTruthy();
-    expect(getByText('Test crash message')).toBeTruthy();
+    expect(queryByText('Test crash message')).toBeNull();
   });
 
   it('shows retry button when error occurs', () => {

@@ -40,7 +40,12 @@ export default function RespondScreen() {
       track(AnalyticsEvent.ResponseSubmitted, { taskId: String(taskId), price: Number(price) });
       Alert.alert(t.common.done, r.sent, [{ text: t.common.ok, onPress: () => router.back() }]);
     } catch (e) {
-      Alert.alert(t.common.error, (e as Error).message);
+      const msg = (e as Error).message;
+      if (msg.includes('subscription') || msg.includes('SUBSCRIPTION') || msg.includes('подписк')) {
+        Alert.alert(t.subscription.required, t.subscription.message);
+      } else {
+        Alert.alert(t.common.error, msg);
+      }
     } finally {
       setLoading(false);
     }

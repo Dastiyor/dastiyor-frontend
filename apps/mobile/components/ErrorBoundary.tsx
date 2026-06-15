@@ -1,23 +1,27 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { captureException } from '@/lib/errorReporting';
 
 interface Props extends React.PropsWithChildren {
   title?: string;
+  subtitle?: string;
   retryText?: string;
 }
 
 interface State {
   hasError: boolean;
-  error: Error | null;
 }
 
-class ErrorBoundaryClass extends React.Component<Props, State> {
-  state: State = { hasError: false, error: null };
+class ErrorBoundaryClass extends React.Component<
+  Props & { bg: string; text: string; textSecondary: string; accent: string },
+  State
+> {
+  state: State = { hasError: false };
 
-  static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+  static getDerivedStateFromError(): State {
+    return { hasError: true };
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
@@ -27,17 +31,19 @@ class ErrorBoundaryClass extends React.Component<Props, State> {
   render() {
     if (this.state.hasError) {
       const title = this.props.title ?? 'Что-то пошло не так';
+      const subtitle = this.props.subtitle ?? '';
       const retryText = this.props.retryText ?? 'Попробовать снова';
+      const { bg, text, textSecondary, accent } = this.props;
       return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: bg }]}>
           <Text style={styles.emoji}>⚠️</Text>
-          <Text style={styles.title}>{title}</Text>
-          {this.state.error?.message ? (
-            <Text style={styles.message}>{this.state.error.message}</Text>
-          ) : null}
+          <Text style={[styles.title, { color: text }]}>{title}</Text>
+          {subtitle ? <Text style={[styles.message, { color: textSecondary }]}>{subtitle}</Text> : null}
           <TouchableOpacity
-            style={styles.btn}
-            onPress={() => this.setState({ hasError: false, error: null })}
+            style={[styles.btn, { backgroundColor: accent }]}
+            onPress={() => this.setState({ hasError: false })}
+            accessibilityRole="button"
+            accessibilityLabel={retryText}
           >
             <Text style={styles.btnText}>{retryText}</Text>
           </TouchableOpacity>
@@ -50,8 +56,17 @@ class ErrorBoundaryClass extends React.Component<Props, State> {
 
 export function ErrorBoundary({ children }: React.PropsWithChildren) {
   const { t } = useLanguage();
+  const { colors } = useTheme();
   return (
-    <ErrorBoundaryClass title={t.common.errorTitle} retryText={t.common.errorRetry}>
+    <ErrorBoundaryClass
+      title={t.common.errorTitle}
+      subtitle={t.common.errorSubtitle}
+      retryText={t.common.errorRetry}
+      bg={colors.bg}
+      text={colors.text}
+      textSecondary={colors.textSecondary}
+      accent={colors.accent}
+    >
       {children}
     </ErrorBoundaryClass>
   );
@@ -65,11 +80,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 32,
-    backgroundColor: '#fff',
   },
   emoji: { fontSize: 48, marginBottom: 16 },
-  title: { fontSize: 18, fontWeight: '700', color: '#111827', marginBottom: 8, textAlign: 'center' },
-  message: { fontSize: 14, color: '#6B7280', textAlign: 'center', marginBottom: 24, lineHeight: 20 },
-  btn: { backgroundColor: '#2563EB', borderRadius: 12, paddingHorizontal: 28, paddingVertical: 14 },
+  title: { fontSize: 18, fontWeight: '700', marginBottom: 8, textAlign: 'center' },
+  message: { fontSize: 14, textAlign: 'center', marginBottom: 24, lineHeight: 20 },
+  btn: { borderRadius: 12, paddingHorizontal: 28, paddingVertical: 14 },
   btnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
 });

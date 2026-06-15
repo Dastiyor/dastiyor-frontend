@@ -142,6 +142,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function logout() {
+    try {
+      await api.post('/api/auth/logout');
+    } catch {
+      /* proceed with local cleanup even if server unreachable */
+    }
     await clearPushRegistration();
     await storage.deleteItem('auth_token');
     setUser(null);

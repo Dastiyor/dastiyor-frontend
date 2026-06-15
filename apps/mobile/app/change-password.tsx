@@ -12,6 +12,7 @@ import {
   Alert,
 } from 'react-native';
 import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -20,6 +21,7 @@ import { passwordStrength } from '@/lib/validation';
 export default function ChangePasswordScreen() {
   const { t } = useLanguage();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const cp = t.changePassword;
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
@@ -30,6 +32,8 @@ export default function ChangePasswordScreen() {
   async function handleSave() {
     if (!current || !next || !confirm) { Alert.alert(t.common.error, cp.errFill); return; }
     if (next.length < 8) { Alert.alert(t.common.error, cp.errLength); return; }
+    const issues = passwordStrength(next, cp);
+    if (issues.length > 0) { Alert.alert(t.common.error, issues.join(', ')); return; }
     if (next !== confirm) { Alert.alert(t.common.error, cp.errMatch); return; }
     setSaving(true);
     try {
@@ -44,7 +48,7 @@ export default function ChangePasswordScreen() {
 
   return (
     <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 40 }]} keyboardShouldPersistTaps="handled">
         <Text style={[styles.label, { color: colors.text }]}>{cp.current}</Text>
         <TextInput style={[styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]} value={current} onChangeText={setCurrent} secureTextEntry autoComplete="password" placeholder="••••••••" placeholderTextColor={colors.textTertiary} maxLength={128} />
 

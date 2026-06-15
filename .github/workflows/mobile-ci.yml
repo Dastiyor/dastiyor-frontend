@@ -26,4 +26,6 @@ jobs:
           node-version: '20'
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @dastiyor/mobile exec tsc --noEmit
+      - run: pnpm --filter @dastiyor/mobile lint
       - run: pnpm --filter @dastiyor/mobile test

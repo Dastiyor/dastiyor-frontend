@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -83,6 +83,11 @@ export default function CreateTaskScreen() {
   const [urgency, setUrgency] = useState('normal');
   const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Funnel: mark that the user opened the create-task flow.
+  useEffect(() => {
+    track(AnalyticsEvent.TaskCreateStarted);
+  }, []);
 
   async function handleCreate() {
     if (!title.trim()) { Alert.alert(t.common.error, ct.errRequired); return; }

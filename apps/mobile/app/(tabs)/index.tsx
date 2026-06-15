@@ -108,11 +108,30 @@ export default function HomeScreen() {
         })
         .catch(() => {});
     };
-    poll();
-    notifIntervalRef.current = setInterval(poll, NOTIF_POLL_MS);
-    const appSub = AppState.addEventListener('change', (s) => { if (s === 'active') poll(); });
-    return () => {
+    const startPolling = () => {
       if (notifIntervalRef.current) clearInterval(notifIntervalRef.current);
+      notifIntervalRef.current = setInterval(poll, NOTIF_POLL_MS);
+    };
+    const stopPolling = () => {
+      if (notifIntervalRef.current) {
+        clearInterval(notifIntervalRef.current);
+        notifIntervalRef.current = null;
+      }
+    };
+
+    poll();
+    startPolling();
+    // Pause polling while backgrounded; resume + refresh on foreground.
+    const appSub = AppState.addEventListener('change', (s) => {
+      if (s === 'active') {
+        poll();
+        startPolling();
+      } else {
+        stopPolling();
+      }
+    });
+    return () => {
+      stopPolling();
       appSub.remove();
     };
   }, [user, popupsEnabled]);
@@ -163,15 +182,25 @@ export default function HomeScreen() {
             }}
           />
           {searchQuery.length > 0 ? (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
+            <TouchableOpacity
+              onPress={() => setSearchQuery('')}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              accessibilityRole="button"
+              accessibilityLabel={t.common.cancel}
+            >
               <Ionicons name="close-circle" size={18} color={colors.textTertiary} />
             </TouchableOpacity>
           ) : (
-            <TouchableOpacity onPress={() => setFilterVisible(true)}>
+            <TouchableOpacity
+              onPress={() => setFilterVisible(true)}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              accessibilityRole="button"
+              accessibilityLabel={t.tabs.tasks}
+            >
               <Ionicons
                 name="options-outline"
                 size={18}
-                color={hasActiveFilters(filters) ? '#2563EB' : colors.textSecondary}
+                color={hasActiveFilters(filters) ? colors.accent : colors.textSecondary}
               />
             </TouchableOpacity>
           )}

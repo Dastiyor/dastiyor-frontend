@@ -40,8 +40,13 @@ export default function RespondScreen() {
       track(AnalyticsEvent.ResponseSubmitted, { taskId: String(taskId), price: Number(price) });
       Alert.alert(t.common.done, r.sent, [{ text: t.common.ok, onPress: () => router.back() }]);
     } catch (e) {
-      const msg = (e as Error).message;
-      if (msg.includes('subscription') || msg.includes('SUBSCRIPTION') || msg.includes('подписк')) {
+      const err = e as { code?: string; message: string };
+      const msg = err.message ?? '';
+      // Prefer the typed error code; fall back to legacy string matching.
+      if (
+        err.code === 'SUBSCRIPTION_REQUIRED' ||
+        msg.includes('subscription') || msg.includes('SUBSCRIPTION') || msg.includes('подписк')
+      ) {
         Alert.alert(t.subscription.required, t.subscription.message);
       } else {
         Alert.alert(t.common.error, msg);

@@ -71,13 +71,32 @@ export default function TabLayout() {
 
   useEffect(() => {
     if (!user) return;
+
+    const startPolling = () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      intervalRef.current = setInterval(fetchBadge, BADGE_POLL_MS);
+    };
+    const stopPolling = () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+
     fetchBadge();
-    intervalRef.current = setInterval(fetchBadge, BADGE_POLL_MS);
+    startPolling();
+
+    // Pause polling while backgrounded; resume + refresh on foreground.
     const appSub = AppState.addEventListener('change', (state) => {
-      if (state === 'active') fetchBadge();
+      if (state === 'active') {
+        fetchBadge();
+        startPolling();
+      } else {
+        stopPolling();
+      }
     });
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      stopPolling();
       appSub.remove();
     };
   }, [user, popupsEnabled]);

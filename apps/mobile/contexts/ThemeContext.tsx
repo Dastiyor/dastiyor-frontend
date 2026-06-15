@@ -26,8 +26,8 @@ const LIGHT: ThemeColors = {
   surfaceAlt: '#F9FAFB',
   border: '#E5E7EB',
   text: '#111827',
-  textSecondary: '#6B7280',
-  textTertiary: '#9CA3AF',
+  textSecondary: '#4B5563', // ~6.7:1 on light bg (was #6B7280, kept distinct from tertiary)
+  textTertiary: '#6B7280',  // ~4.6:1 on white — meets WCAG AA (was #9CA3AF ≈ 2.6:1)
   accent: '#2563EB',
   tabBar: '#FFFFFF',
   tabBorder: '#F3F4F6',
@@ -43,8 +43,8 @@ const DARK: ThemeColors = {
   surfaceAlt: '#2C2C2E',
   border: '#3A3A3C',
   text: '#FFFFFF',
-  textSecondary: '#8E8E93',
-  textTertiary: '#636366',
+  textSecondary: '#AEAEB2', // ~9:1 on #000 (was #8E8E93)
+  textTertiary: '#8E8E93',  // ~6.4:1 on #000 — meets WCAG AA (was #636366 ≈ 3:1)
   accent: '#4B8EF7',   // #2563EB fails WCAG AA on #000; #4B8EF7 = ~5.2:1
   tabBar: '#1C1C1E',
   tabBorder: '#3A3A3C',

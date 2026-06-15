@@ -65,6 +65,9 @@ export default function TaskBrowseScreen() {
     sort: params.sort ?? 'newest',
   });
   const page = useRef(1);
+  // Monotonic token: each reset (filter/search change, refresh) bumps it so a
+  // load-more or stale reset still in flight is ignored when it resolves.
+  const loadToken = useRef(0);
 
   useEffect(() => {
     setFilters((prev) => ({
@@ -85,6 +88,7 @@ export default function TaskBrowseScreen() {
   }, [query]);
 
   async function fetchTasks(reset = false) {
+    const token = reset ? ++loadToken.current : loadToken.current;
     const p = reset ? 1 : page.current;
     const ps = new URLSearchParams({ page: String(p), limit: '20' });
     if (filters.category) ps.set('category', filters.category);
@@ -95,6 +99,9 @@ export default function TaskBrowseScreen() {
     if (filters.maxBudget) ps.set('maxBudget', filters.maxBudget);
     if (filters.sort && filters.sort !== 'newest') ps.set('sort', filters.sort);
     const res = await api.get<TasksResponse>(`/api/tasks?${ps}`);
+    // A newer reset superseded this request — drop its result to avoid
+    // appending stale pages or clobbering fresh filter results.
+    if (token !== loadToken.current) return;
     if (reset) {
       setTasks(res.tasks);
       page.current = 2;
@@ -187,15 +194,26 @@ export default function TaskBrowseScreen() {
             returnKeyType="search"
           />
           {query.length > 0 && (
-            <TouchableOpacity onPress={() => setQuery('')}>
+            <TouchableOpacity
+              onPress={() => setQuery('')}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              accessibilityRole="button"
+              accessibilityLabel={t.common.cancel}
+            >
               <Ionicons name="close-circle" size={18} color={colors.textTertiary} />
             </TouchableOpacity>
           )}
-          <TouchableOpacity onPress={() => setFilterVisible(true)} style={styles.filterBtn}>
+          <TouchableOpacity
+            onPress={() => setFilterVisible(true)}
+            style={styles.filterBtn}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            accessibilityRole="button"
+            accessibilityLabel={t.tabs.tasks}
+          >
             <Ionicons
               name="options-outline"
               size={18}
-              color={hasActiveFilters(filters) ? '#2563EB' : colors.textSecondary}
+              color={hasActiveFilters(filters) ? colors.accent : colors.textSecondary}
             />
             {hasActiveFilters(filters) && <View style={styles.filterDot} />}
           </TouchableOpacity>

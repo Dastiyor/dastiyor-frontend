@@ -14,6 +14,7 @@ import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { formatDate } from '@/lib/intl';
 import { Avatar } from '@/components/Avatar';
 
 interface Review {
@@ -141,7 +142,7 @@ export default function ProviderProfileScreen() {
                 </View>
                 <Text style={[styles.reviewTask, { color: colors.textSecondary }]} numberOfLines={1}>{r.task.title}</Text>
                 {r.comment ? <Text style={[styles.reviewComment, { color: colors.textSecondary }]}>{r.comment}</Text> : null}
-                <Text style={[styles.reviewDate, { color: colors.textTertiary }]}>{new Date(r.createdAt).toLocaleDateString(locale)}</Text>
+                <Text style={[styles.reviewDate, { color: colors.textTertiary }]}>{formatDate(r.createdAt, locale)}</Text>
               </View>
             ))}
           </>

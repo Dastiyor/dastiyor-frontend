@@ -23,11 +23,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useToast } from '@/contexts/ToastContext';
 import { POLL_INTERVAL_MS } from '@/lib/constants';
+import { formatTime, formatDate } from '@/lib/intl';
 import type { ChatMessage } from '@dastiyor/types';
-
-function formatTime(iso: string, locale: string): string {
-  return new Date(iso).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
-}
 
 export default function ChatScreen() {
   const { partnerId, partnerName, taskId, taskTitle } = useLocalSearchParams<{ partnerId: string; partnerName: string; taskId?: string; taskTitle?: string }>();
@@ -148,7 +145,7 @@ export default function ChatScreen() {
       <View key={item.id}>
         {showDate ? (
           <Text style={styles.dateSep}>
-            {new Date(item.createdAt).toLocaleDateString(locale, { day: 'numeric', month: 'long' })}
+            {formatDate(item.createdAt, locale, { day: 'numeric', month: 'long' })}
           </Text>
         ) : null}
         <View style={[styles.msgRow, own ? styles.msgRowOwn : styles.msgRowOther, { marginBottom }]}>

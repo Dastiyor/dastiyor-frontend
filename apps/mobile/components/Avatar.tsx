@@ -13,10 +13,15 @@ export function Avatar({ name, size = 56, avatarUrl }: Props) {
   const { colors } = useTheme();
   const [imgError, setImgError] = useState(false);
 
-  const parts = name.trim().split(' ');
-  const ini = parts.length >= 2
-    ? (parts[0][0] + parts[1][0]).toUpperCase()
-    : name.slice(0, 2).toUpperCase();
+  // Split on any whitespace run and drop empties so names with double spaces,
+  // tabs, or trailing spaces never produce an `undefined[0]` crash.
+  const safeName = (name ?? '').trim();
+  const parts = safeName.split(/\s+/).filter(Boolean);
+  const ini = (
+    parts.length >= 2
+      ? parts[0][0] + parts[1][0]
+      : safeName.slice(0, 2)
+  ).toUpperCase() || '?';
 
   const safeUrl = isSafeAvatarUrl(avatarUrl) ? avatarUrl! : null;
 

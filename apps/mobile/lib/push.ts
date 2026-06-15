@@ -42,14 +42,20 @@ export async function getExpoPushToken(): Promise<string | null> {
     }
     if (status !== 'granted') return null;
 
-    const projectId =
-      // EAS injects this at build time.
-      (await loadModule('expo-constants'))?.default?.expoConfig?.extra?.eas
-        ?.projectId;
+    // EAS injects the project id at build time. Read from every location it can
+    // surface so a valid linked project always resolves: app config `extra.eas`
+    // (what `eas init` writes) and the runtime `easConfig`.
+    const Constants = (await loadModule('expo-constants'))?.default;
+    const projectId: string | undefined =
+      Constants?.expoConfig?.extra?.eas?.projectId ??
+      Constants?.easConfig?.projectId ??
+      Constants?.manifest2?.extra?.eas?.projectId;
 
-    const tokenResult = await Notifications.getExpoPushTokenAsync(
-      projectId ? { projectId } : undefined,
-    );
+    // Without a project id, getExpoPushTokenAsync throws on standalone builds.
+    // Skip cleanly rather than surfacing a crash — push degrades to disabled.
+    if (!projectId) return null;
+
+    const tokenResult = await Notifications.getExpoPushTokenAsync({ projectId });
     return tokenResult?.data ?? null;
   } catch {
     return null;

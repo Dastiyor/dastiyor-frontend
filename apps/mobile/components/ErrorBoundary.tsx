@@ -15,7 +15,7 @@ interface State {
 }
 
 class ErrorBoundaryClass extends React.Component<
-  Props & { bg: string; text: string; textSecondary: string; accent: string },
+  Props & { bg?: string; text?: string; textSecondary?: string; accent?: string },
   State
 > {
   state: State = { hasError: false };
@@ -33,7 +33,12 @@ class ErrorBoundaryClass extends React.Component<
       const title = this.props.title ?? 'Что-то пошло не так';
       const subtitle = this.props.subtitle ?? '';
       const retryText = this.props.retryText ?? 'Попробовать снова';
-      const { bg, text, textSecondary, accent } = this.props;
+      const {
+        bg = '#FFFFFF',
+        text = '#111827',
+        textSecondary = '#6B7280',
+        accent = '#2563EB',
+      } = this.props;
       return (
         <View style={[styles.container, { backgroundColor: bg }]}>
           <Text style={styles.emoji}>⚠️</Text>

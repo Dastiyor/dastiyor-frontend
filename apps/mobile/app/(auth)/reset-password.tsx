@@ -18,6 +18,7 @@ import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { LogoWordmark } from '@/components/Logo';
+import { passwordStrength } from '@/lib/validation';
 
 export default function ResetPasswordScreen() {
   const { t } = useLanguage();
@@ -35,8 +36,9 @@ export default function ResetPasswordScreen() {
       Alert.alert(t.common.error, rp.errFill);
       return;
     }
-    if (password.length < 8) {
-      Alert.alert(t.common.error, rp.errLength);
+    const issues = passwordStrength(password, rp);
+    if (issues.length > 0) {
+      Alert.alert(t.common.error, issues.join(', '));
       return;
     }
     if (password !== confirm) {

@@ -3,6 +3,22 @@ import * as storage from '@/lib/storage';
 const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? 'https://www.dastiyor.com';
 const REQUEST_TIMEOUT_MS = 15_000;
 
+/**
+ * Error thrown for non-2xx API responses. Keeps `.message` (sanitized, safe to
+ * display) for backward compatibility while exposing a machine-readable `code`
+ * and HTTP `status` so callers can branch without brittle string matching.
+ */
+export class ApiError extends Error {
+  status: number;
+  code?: string;
+  constructor(message: string, status: number, code?: string) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.code = code;
+  }
+}
+
 // Callbacks registered by AuthProvider / app shell
 let _onUnauthorized: (() => void) | null = null;
 let _onNetworkError: (() => void) | null = null;
@@ -71,7 +87,8 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
   if (!res.ok) {
     const serverError = typeof data.error === 'string' ? data.error : undefined;
-    throw new Error(sanitizeApiError(res.status, serverError));
+    const code = typeof data.code === 'string' ? data.code : undefined;
+    throw new ApiError(sanitizeApiError(res.status, serverError), res.status, code);
   }
 
   return data as T;
@@ -79,8 +96,11 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
 export const api = {
   get: <T>(path: string) => request<T>(path),
-  post: <T>(path: string, body: unknown) =>
-    request<T>(path, { method: 'POST', body: JSON.stringify(body) }),
+  post: <T>(path: string, body?: unknown) =>
+    request<T>(path, {
+      method: 'POST',
+      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    }),
   put: <T>(path: string, body: unknown) =>
     request<T>(path, { method: 'PUT', body: JSON.stringify(body) }),
   del: <T>(path: string, body?: unknown) =>

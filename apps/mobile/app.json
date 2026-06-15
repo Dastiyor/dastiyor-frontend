@@ -2,6 +2,7 @@
   "expo": {
     "name": "Dastiyor",
     "slug": "dastiyor",
+    "owner": "balwinder98",
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "dastiyor",
@@ -51,6 +52,9 @@
       ]
     ],
     "extra": {
+      "eas": {
+        "projectId": "f9fc73fa-401e-44a2-87ce-58aa4e7b5498"
+      },
       "privacyPolicyUrl": "https://dastiyor.com/privacy",
       "termsOfServiceUrl": "https://dastiyor.com/terms"
     },

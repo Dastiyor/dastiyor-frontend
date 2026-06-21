@@ -3,6 +3,14 @@
  * Validates required environment variables on startup
  */
 
+const KNOWN_WEAK_SECRETS = new Set([
+    'your-super-secret-jwt-key-change-this-in-production',
+    'development-secret-key',
+    'secret',
+    'jwt-secret',
+    'changeme',
+]);
+
 interface EnvConfig {
     POSTGRES_PRISMA_URL: string;
     JWT_SECRET: string;
@@ -23,11 +31,11 @@ export function validateEnv(): { isValid: boolean; errors: string[] } {
 
     // Validate JWT_SECRET strength
     if (process.env.JWT_SECRET) {
-        if (process.env.JWT_SECRET.length < 32) {
-            errors.push('JWT_SECRET must be at least 32 characters long');
+        if (process.env.JWT_SECRET.length < 64) {
+            errors.push('JWT_SECRET must be at least 64 characters long');
         }
-        if (process.env.NODE_ENV === 'production' && process.env.JWT_SECRET === 'your-super-secret-jwt-key-change-this-in-production') {
-            errors.push('JWT_SECRET must be changed from default value in production');
+        if (KNOWN_WEAK_SECRETS.has(process.env.JWT_SECRET)) {
+            errors.push('JWT_SECRET must be changed from the default/example value');
         }
     }
 

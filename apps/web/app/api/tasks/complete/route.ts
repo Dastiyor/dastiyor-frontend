@@ -40,9 +40,10 @@ export async function POST(request: Request) {
         }
 
         // 4. Update Task and provider balance atomically
+        // Use budgetAmountNum (integer DB column) — avoids float parsing inaccuracy
         const balanceIncrement =
-            task.assignedUserId && task.budgetType === 'fixed' && task.budgetAmount
-                ? Math.round(parseFloat(task.budgetAmount))
+            task.assignedUserId && task.budgetType === 'fixed' && task.budgetAmountNum != null
+                ? task.budgetAmountNum
                 : 0;
 
         const updatedTask = await prisma.$transaction(async (tx) => {

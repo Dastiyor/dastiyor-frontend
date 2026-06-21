@@ -17,36 +17,33 @@ export async function GET(request: Request) {
         const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
         const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
 
-        // Get paginated, non-hidden reviews for this user
-        const reviews = await prisma.review.findMany({
-            where: { reviewedId: userId, hidden: false },
-            orderBy: { createdAt: 'desc' },
-            take: limit,
-            skip: (page - 1) * limit,
-            include: {
-                reviewer: {
-                    select: { id: true, fullName: true }
+        // Fetch page of reviews + aggregate stats in parallel — aggregate covers ALL reviews, not just this page
+        const reviewFilter = { reviewedId: userId, hidden: false };
+        const [reviews, stats, breakdown5, breakdown4, breakdown3, breakdown2, breakdown1] = await Promise.all([
+            prisma.review.findMany({
+                where: reviewFilter,
+                orderBy: { createdAt: 'desc' },
+                take: limit,
+                skip: (page - 1) * limit,
+                include: {
+                    reviewer: { select: { id: true, fullName: true } },
+                    task: { select: { id: true, title: true, category: true } },
                 },
-                task: {
-                    select: { id: true, title: true, category: true }
-                }
-            }
-        });
+            }),
+            prisma.review.aggregate({
+                where: reviewFilter,
+                _avg: { rating: true },
+                _count: { rating: true },
+            }),
+            prisma.review.count({ where: { ...reviewFilter, rating: 5 } }),
+            prisma.review.count({ where: { ...reviewFilter, rating: 4 } }),
+            prisma.review.count({ where: { ...reviewFilter, rating: 3 } }),
+            prisma.review.count({ where: { ...reviewFilter, rating: 2 } }),
+            prisma.review.count({ where: { ...reviewFilter, rating: 1 } }),
+        ]);
 
-        // Calculate average rating
-        const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);
-        const averageRating = reviews.length > 0 ? (totalRating / reviews.length).toFixed(1) : '0';
-
-        // Rating breakdown
-        const breakdown = {
-            5: reviews.filter(r => r.rating === 5).length,
-            4: reviews.filter(r => r.rating === 4).length,
-            3: reviews.filter(r => r.rating === 3).length,
-            2: reviews.filter(r => r.rating === 2).length,
-            1: reviews.filter(r => r.rating === 1).length,
-        };
-
-        const totalCount = await prisma.review.count({ where: { reviewedId: userId, hidden: false } });
+        const totalCount = stats._count.rating;
+        const averageRating = parseFloat((stats._avg.rating ?? 0).toFixed(1));
 
         return NextResponse.json({
             reviews,
@@ -58,9 +55,9 @@ export async function GET(request: Request) {
             },
             stats: {
                 totalReviews: totalCount,
-                averageRating: parseFloat(averageRating),
-                breakdown
-            }
+                averageRating,
+                breakdown: { 5: breakdown5, 4: breakdown4, 3: breakdown3, 2: breakdown2, 1: breakdown1 },
+            },
         });
 
     } catch (error) {

@@ -29,6 +29,8 @@ describe('/api/responses', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        // Disable subscription gate in tests — gate behaviour is tested in separate integration tests
+        process.env.SUBSCRIPTION_GATE_ENABLED = 'false';
         (cookies as jest.Mock).mockResolvedValue({
             get: jest.fn(() => ({ value: mockToken })),
             getAll: jest.fn(() => []),
@@ -37,11 +39,20 @@ describe('/api/responses', () => {
         (prismaMock.user.findUnique as jest.Mock).mockResolvedValue({
             id: mockUserId,
             role: 'PROVIDER',
-            subscription: { isActive: true, endDate: new Date(Date.now() + 86400000), plan: 'standard' },
+        });
+        (prismaMock.subscription.findUnique as jest.Mock).mockResolvedValue({
+            isActive: true,
+            endDate: new Date(Date.now() + 86400000),
+            plan: 'standard',
         });
         (prismaMock.task.findUnique as jest.Mock).mockResolvedValue({ userId: 'owner-1', title: 'Test Task', status: 'OPEN', user: { email: null } });
         (prismaMock.response.count as jest.Mock).mockResolvedValue(0);
+        (prismaMock.response.findFirst as jest.Mock).mockResolvedValue(null);
         (prismaMock.notification.create as jest.Mock).mockResolvedValue({});
+    });
+
+    afterEach(() => {
+        delete process.env.SUBSCRIPTION_GATE_ENABLED;
     });
 
     // GET responses lives at /api/tasks/[id]/responses — tested in tasks/[id]/responses/__tests__/route.test.ts
@@ -216,7 +227,7 @@ describe('/api/responses', () => {
                 id: 'resp-1',
                 taskId: 'task-1',
                 userId: mockUserId,
-                message: 'Offer',
+                message: 'I can help with this task',
                 price: '500',
                 status: 'PENDING',
             });
@@ -225,7 +236,7 @@ describe('/api/responses', () => {
                 method: 'POST',
                 body: JSON.stringify({
                     taskId: 'task-1',
-                    message: 'Offer',
+                    message: 'I can help with this task',
                     price: '500',
                 }),
             });

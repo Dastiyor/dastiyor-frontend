@@ -128,10 +128,16 @@ describe('Validation Utilities', () => {
 
     describe('detectSpam', () => {
         it('should detect spam patterns', () => {
-            // Need 2+ patterns to be detected as spam
-            expect(detectSpam('FREE PRIZE CLICK HERE https://spam.com')).toBe(true);
-            // Repeated characters (11+ same chars) + URL = 2 patterns
-            expect(detectSpam('aaaaaaaaaaaaaaaaaaaa https://spam.com')).toBe(true);
+            // English spam keywords trigger detection (URLs are not flagged to allow legitimate task descriptions)
+            expect(detectSpam('FREE PRIZE CLICK HERE')).toBe(true);
+            // Repeated characters + spam words = spam
+            expect(detectSpam('aaaaaaaaaaaaaaaaaaaaaa FREE PRIZE')).toBe(true);
+        });
+
+        it('should not flag URLs in normal text as spam', () => {
+            // URLs alone should not trigger spam — task descriptions legitimately reference sites
+            expect(detectSpam('Нужен сайт похожий на https://example.com')).toBe(false);
+            expect(detectSpam('aaaaaaaaaaaaaaaaaaaa https://spam.com')).toBe(false);
         });
 
         it('should not flag normal text as spam', () => {

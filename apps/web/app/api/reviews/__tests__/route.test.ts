@@ -48,7 +48,16 @@ describe('/api/reviews', () => {
             ];
 
             (prismaMock.review.findMany as jest.Mock).mockResolvedValue(mockReviews);
-            (prismaMock.review.count as jest.Mock).mockResolvedValue(1); // pagination count
+            // aggregate now computes accurate stats across all reviews (not just page sample)
+            (prismaMock.review.aggregate as jest.Mock).mockResolvedValue({
+                _avg: { rating: 5 },
+                _count: { rating: 1 },
+            });
+            // Per-rating breakdown counts
+            (prismaMock.review.count as jest.Mock).mockResolvedValue(0);
+            (prismaMock.review.count as jest.Mock)
+                .mockResolvedValueOnce(1) // rating=5 breakdown
+                .mockResolvedValue(0);   // all others
 
             const request = new NextRequest('http://localhost/api/reviews?userId=provider-1');
 
@@ -65,6 +74,10 @@ describe('/api/reviews', () => {
 
         it('should return average rating 0 when no reviews', async () => {
             (prismaMock.review.findMany as jest.Mock).mockResolvedValue([]);
+            (prismaMock.review.aggregate as jest.Mock).mockResolvedValue({
+                _avg: { rating: null },
+                _count: { rating: 0 },
+            });
             (prismaMock.review.count as jest.Mock).mockResolvedValue(0);
 
             const request = new NextRequest('http://localhost/api/reviews?userId=provider-1');

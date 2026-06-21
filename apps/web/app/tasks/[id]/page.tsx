@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
 import { prisma } from '@/lib/prisma';
 import TaskInfo from '@/components/tasks/TaskInfo';
 import TaskSidebar from '@/components/tasks/TaskSidebar';
@@ -27,10 +28,42 @@ function getCategoryLabel(category: string): string {
 }
 
 type Props = {
-    params: {
-        id: string;
-    };
+    params: Promise<{ id: string }>;
 };
+
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://dastiyor.com';
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+    const { id } = await params;
+    // Preview tasks don't have DB records
+    if (/^preview-\d$/.test(id)) return {};
+
+    const task = await prisma.task.findUnique({
+        where: { id },
+        select: { title: true, description: true, category: true, city: true },
+    });
+
+    if (!task) return {};
+
+    const desc = task.description?.slice(0, 160) ?? '';
+    const title = `${task.title} — Дастиёр`;
+
+    return {
+        title,
+        description: desc,
+        openGraph: {
+            title,
+            description: desc,
+            url: `${BASE_URL}/tasks/${id}`,
+            images: [{ url: `${BASE_URL}/opengraph-image.png`, width: 1200, height: 630 }],
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title,
+            description: desc,
+        },
+    };
+}
 
 export default async function TaskDetailsPage({ params }: Props) {
     const { id } = await params;

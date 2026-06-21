@@ -48,7 +48,8 @@ export async function GET(
             customer: task.user,
             hasReview: !!task.review,
         });
-    } catch {
+    } catch (error) {
+        console.error('Get Task Error:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

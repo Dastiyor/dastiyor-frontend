@@ -81,7 +81,9 @@ function LoginContent() {
     const searchParams = useSearchParams();
     const { t } = useTranslation();
 
-    const redirect = searchParams.get('redirect') || '';
+    const rawRedirect = searchParams.get('redirect') || '';
+    // Validate redirect to prevent open redirect attacks — only allow same-origin paths
+    const redirect = rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') && !rawRedirect.includes('://') ? rawRedirect : '';
     const oauthError = searchParams.get('error');
     const titleKey = redirect === '/create-task' ? 'auth.loginToPostTask' : 'auth.welcomeBack';
     const subtitleKey = redirect === '/create-task' ? 'auth.loginToPostTaskSubtitle' : 'auth.loginSubtitle';
@@ -134,8 +136,8 @@ function LoginContent() {
             } else {
                 window.location.href = '/';
             }
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Login failed');
         } finally {
             setIsLoading(false);
         }

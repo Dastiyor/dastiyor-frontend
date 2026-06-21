@@ -34,7 +34,13 @@ export default async function CustomerLayout({
         where: { id: payload.id as string }
     });
 
-    if (!user || user.role !== 'CUSTOMER') {
+    // Token version check — catches invalidated tokens after logout/password change
+    const tokenVersion = (payload.tv as number | undefined) ?? 0;
+    if (!user || user.tokenVersion !== tokenVersion) {
+        redirect('/login');
+    }
+
+    if (user.role !== 'CUSTOMER') {
         // If provider tries to access, redirect to provider dashboard
         if (user?.role === 'PROVIDER') {
             redirect('/provider');

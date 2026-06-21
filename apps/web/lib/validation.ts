@@ -73,7 +73,7 @@ export function validatePassword(password: string): { valid: boolean; error?: st
     if (password.length > 70) {
         return { valid: false, error: 'Password must not exceed 70 characters' };
     }
-    const { isStrong, feedback } = checkPasswordStrength(password);
+    const { isStrong } = checkPasswordStrength(password);
     if (!isStrong) {
         return { valid: false, error: 'Use at least one uppercase letter, one lowercase letter, and one number' };
     }
@@ -103,10 +103,14 @@ export function validateTaskInput(data: {
 
     if (!data.title || data.title.trim().length < 5) {
         errors.push('Заголовок должен содержать минимум 5 символов');
+    } else if (data.title.trim().length > 200) {
+        errors.push('Заголовок не должен превышать 200 символов');
     }
 
     if (!data.description || data.description.trim().length < 20) {
         errors.push('Описание должно содержать минимум 20 символов');
+    } else if (data.description.trim().length > 5000) {
+        errors.push('Описание не должно превышать 5000 символов');
     }
 
     if (!data.category) {
@@ -121,6 +125,8 @@ export function validateTaskInput(data: {
         const budget = parseFloat(data.budgetAmount);
         if (isNaN(budget) || budget < 0) {
             errors.push('Бюджет должен быть положительным числом');
+        } else if (budget > 10_000_000) {
+            errors.push('Бюджет не может превышать 10,000,000');
         }
     }
 
@@ -159,13 +165,12 @@ export function validateResponseInput(data: {
 // Check for spam patterns
 export function detectSpam(text: string): boolean {
     const spamPatterns = [
-        /(.)\1{10,}/i, // Repeated characters
-        /https?:\/\/[^\s]+/gi, // URLs (might be spam)
-        /(free|win|prize|lottery|click here)/i, // Common spam words
-        /\+\d{10,}/g, // Phone numbers in text (could be spam)
+        /(.)\1{10,}/i,             // Excessive repeated characters (10+)
+        /(free|win|prize|lottery)/i, // High-value bait keywords
+        /click here/i,             // Classic call-to-action spam phrase
+        // Note: URLs are intentionally NOT included — task descriptions legitimately reference sites
     ];
 
-    // Check if too many matches
     let matches = 0;
     for (const pattern of spamPatterns) {
         if (pattern.test(text)) {
@@ -173,7 +178,7 @@ export function detectSpam(text: string): boolean {
         }
     }
 
-    // If 2+ spam patterns match, likely spam
+    // Require 2+ distinct pattern matches to reduce false positives
     return matches >= 2;
 }
 

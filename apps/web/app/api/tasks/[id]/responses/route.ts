@@ -41,7 +41,8 @@ export async function GET(
                 provider: r.user,
             })),
         });
-    } catch {
+    } catch (error) {
+        console.error('Get Task Responses Error:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

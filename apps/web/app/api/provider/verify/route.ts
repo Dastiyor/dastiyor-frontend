@@ -26,10 +26,26 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Document URLs required' }, { status: 400 });
         }
 
+        // Allow only valid HTTPS URLs to prevent storage of arbitrary/malicious content
+        const validUrls = (documentUrls as unknown[]).filter((url): url is string => {
+            if (typeof url !== 'string') return false;
+            try {
+                const parsed = new URL(url);
+                return parsed.protocol === 'https:';
+            } catch { return false; }
+        });
+
+        if (validUrls.length === 0) {
+            return NextResponse.json(
+                { error: 'At least one valid HTTPS document URL is required' },
+                { status: 400 }
+            );
+        }
+
         await prisma.user.update({
             where: { id: user.id },
             data: {
-                verificationDocuments: JSON.stringify(documentUrls),
+                verificationDocuments: JSON.stringify(validUrls),
                 isVerified: false // Admin needs to approve
             }
         });

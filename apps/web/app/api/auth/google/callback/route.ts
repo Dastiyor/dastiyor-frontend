@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { upsertOAuthUser, oauthCookieOptions } from '@/lib/oauth';
 import { getClientIP } from '@/lib/rate-limit';
+import { cookies } from 'next/headers';
 
 export async function GET(request: Request) {
     const url = new URL(request.url);
@@ -19,7 +20,20 @@ export async function GET(request: Request) {
             try {
                 const parsed = JSON.parse(Buffer.from(state, 'base64url').toString());
                 role = parsed.role || 'customer';
-            } catch { /* ignore malformed state */ }
+
+                // CSRF check: verify nonce matches the cookie set during initiation
+                const cookieStore = await cookies();
+                const storedNonce = cookieStore.get('oauth_state_nonce')?.value;
+                if (!storedNonce || !parsed.nonce || storedNonce !== parsed.nonce) {
+                    console.error('Google OAuth: state nonce mismatch — possible CSRF');
+                    return NextResponse.redirect(`${appUrl}/login?error=oauth_failed`);
+                }
+            } catch {
+                return NextResponse.redirect(`${appUrl}/login?error=oauth_failed`);
+            }
+        } else {
+            // No state at all — reject to prevent CSRF
+            return NextResponse.redirect(`${appUrl}/login?error=oauth_failed`);
         }
 
         const redirectUri = `${appUrl}/api/auth/google/callback`;
@@ -58,6 +72,8 @@ export async function GET(request: Request) {
         const dashboard = user.role === 'PROVIDER' ? '/provider' : '/customer';
         const response = NextResponse.redirect(`${appUrl}${dashboard}`);
         response.cookies.set('token', token, oauthCookieOptions());
+        // Clear the CSRF nonce cookie
+        response.cookies.set('oauth_state_nonce', '', { maxAge: 0, path: '/' });
         return response;
 
     } catch (err) {

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import type { Prisma } from '@prisma/client';
 import { logger } from '@/lib/logger';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 import { validateTaskInput, sanitizeString } from '@/lib/validation';
@@ -29,7 +30,7 @@ export async function GET(request: Request) {
         const limit = Math.max(1, Math.min(parseInt(searchParams.get('limit') || String(TASKS_PER_PAGE), 10), 50));
         const skip = (page - 1) * limit;
 
-        const where: any = { status: 'OPEN' };
+        const where: Prisma.TaskWhereInput = { status: 'OPEN' };
         if (category) where.category = category;
         if (city) where.city = { contains: city, mode: 'insensitive' };
         if (urgency) {
@@ -44,8 +45,7 @@ export async function GET(request: Request) {
             ];
         }
         if (minBudget || maxBudget) {
-            where.AND = where.AND || [];
-            where.AND.push({
+            const budgetFilter: Prisma.TaskWhereInput = {
                 OR: [
                     { budgetType: 'negotiable' },
                     {
@@ -56,10 +56,12 @@ export async function GET(request: Request) {
                         },
                     },
                 ],
-            });
+            };
+            const existing = Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : [];
+            where.AND = [...existing, budgetFilter] as Prisma.TaskWhereInput[];
         }
 
-        let orderBy: any = { createdAt: 'desc' };
+        let orderBy: Prisma.TaskOrderByWithRelationInput | Prisma.TaskOrderByWithRelationInput[] = { createdAt: 'desc' };
         if (sort === 'budget-high') orderBy = [{ budgetAmountNum: { sort: 'desc', nulls: 'last' } }, { createdAt: 'desc' }];
         else if (sort === 'budget-low') orderBy = [{ budgetAmountNum: { sort: 'asc', nulls: 'last' } }, { createdAt: 'desc' }];
 
@@ -80,7 +82,7 @@ export async function GET(request: Request) {
         ]);
 
         // TODO: Re-enable premium-first sorting when payment gateway is ready
-        const tasks = tasksForPage.map((task: any) => ({
+        const tasks = tasksForPage.map((task) => ({
             id: task.id,
             title: task.title,
             category: task.category,

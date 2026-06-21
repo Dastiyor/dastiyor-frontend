@@ -12,7 +12,11 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const secret = searchParams.get('secret');
 
-    const expectedSecret = process.env.SEED_SECRET || 'seed-demo';
+    const expectedSecret = process.env.SEED_SECRET;
+    if (!expectedSecret) {
+        // Seed endpoint disabled when SEED_SECRET is not configured
+        return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    }
     if (secret !== expectedSecret) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -146,8 +150,8 @@ export async function GET(request: Request) {
 
         return NextResponse.json({ message: 'Database seeded successfully' });
 
-    } catch (error: any) {
+    } catch (error) {
         console.error('Seed error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

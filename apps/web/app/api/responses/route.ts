@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 import { logAction, getRequestIP } from '@/lib/audit';
+import { validateResponseInput } from '@/lib/validation';
 import { sendTaskResponseNotification } from '@/lib/notifications/email';
 import { sendPushNotification } from '@/lib/web-push';
 import { requireAuth } from '@/lib/require-auth';
@@ -40,8 +41,8 @@ export async function POST(request: Request) {
             );
         }
 
-        // Subscription gate — active when SUBSCRIPTION_GATE_ENABLED=true
-        if (process.env.SUBSCRIPTION_GATE_ENABLED === 'true') {
+        // Subscription gate — disabled only when SUBSCRIPTION_GATE_ENABLED=false
+        if (process.env.SUBSCRIPTION_GATE_ENABLED !== 'false') {
             const subscription = await prisma.subscription.findUnique({
                 where: { userId: payload.id as string },
                 select: { isActive: true, endDate: true, plan: true },
@@ -65,6 +66,15 @@ export async function POST(request: Request) {
                 { error: 'Missing required fields' },
                 { status: 400 }
             );
+        }
+
+        // Server-side validation: minimum message length and price sanity check
+        const inputValidation = validateResponseInput({
+            message: String(message),
+            price: String(price),
+        });
+        if (!inputValidation.isValid) {
+            return NextResponse.json({ error: inputValidation.errors[0] }, { status: 400 });
         }
 
         // Fetch the task and its owner for notification

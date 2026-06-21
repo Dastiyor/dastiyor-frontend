@@ -24,8 +24,14 @@ export async function GET(
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
 
-        const [completedCount, reviews] = await Promise.all([
+        const [completedCount, reviewStats, reviews] = await Promise.all([
             prisma.task.count({ where: { assignedUserId: id, status: 'COMPLETED' } }),
+            // Aggregate over ALL reviews for accurate average — not just the page sample
+            prisma.review.aggregate({
+                where: { reviewedId: id },
+                _avg: { rating: true },
+                _count: { rating: true },
+            }),
             prisma.review.findMany({
                 where: { reviewedId: id },
                 select: {
@@ -41,17 +47,12 @@ export async function GET(
             }),
         ]);
 
-        const avgRating =
-            reviews.length > 0
-                ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
-                : 0;
-
         return NextResponse.json({
             user: {
                 ...user,
                 completedCount,
-                avgRating: parseFloat(avgRating.toFixed(1)),
-                reviewCount: reviews.length,
+                avgRating: parseFloat((reviewStats._avg.rating ?? 0).toFixed(1)),
+                reviewCount: reviewStats._count.rating,
                 reviews,
             },
         });

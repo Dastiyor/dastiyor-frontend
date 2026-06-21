@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 
-export function proxy(request: NextRequest) {
+export default function middleware(request: NextRequest) {
     const nonce = Buffer.from(uuidv4().replace(/-/g, '')).toString('base64');
     const correlationId = uuidv4();
 

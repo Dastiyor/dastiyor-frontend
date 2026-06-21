@@ -143,6 +143,7 @@ describe('/api/tasks/complete', () => {
             assignedUserId: 'provider-1',
             budgetType: 'fixed',
             budgetAmount: '500',
+            budgetAmountNum: 500, // integer column used for accurate balance increment
         };
 
         (prismaMock.task.findUnique as jest.Mock).mockResolvedValue(mockTask);

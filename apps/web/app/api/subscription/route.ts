@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { PLANS, isValidPlan, createSmartPayOrder, generateOrderId } from '@/lib/payments';
 import { requireAuth } from '@/lib/require-auth';
+import { SUBSCRIPTIONS_ENABLED } from '@/lib/features';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
@@ -42,6 +43,11 @@ export async function GET(request: Request) {
 // POST - Initiate subscription payment via SmartPay
 export async function POST(request: Request) {
     try {
+        // Subscriptions are temporarily hidden — see lib/features.ts
+        if (!SUBSCRIPTIONS_ENABLED) {
+            return NextResponse.json({ error: 'Subscriptions are not available' }, { status: 404 });
+        }
+
         const payload = await requireAuth(request);
         if (!payload || !payload.id) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

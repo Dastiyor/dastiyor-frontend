@@ -5,6 +5,7 @@ import TasksFeed from '@/components/tasks/TasksFeed';
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { getServerTranslation } from '@/lib/i18n/server';
+import { SUBSCRIPTIONS_ENABLED } from '@/lib/features';
 
 type Props = {
     searchParams: {
@@ -92,8 +93,10 @@ export default async function TasksPage({ searchParams }: Props) {
                 {/* Find Work Header */}
                 <div style={{
                     display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'flex-end',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    textAlign: 'center',
+                    gap: '20px',
                     marginBottom: '32px'
                 }}>
                     <div>
@@ -106,6 +109,7 @@ export default async function TasksPage({ searchParams }: Props) {
                         <div style={{
                             display: 'flex',
                             alignItems: 'center',
+                            justifyContent: 'center',
                             gap: '8px',
                             color: 'var(--text-light)',
                             fontSize: '1rem',
@@ -116,25 +120,27 @@ export default async function TasksPage({ searchParams }: Props) {
                         </div>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                        <Link href="/contractor-plans" style={{
-                            backgroundColor: 'rgba(37, 99, 235, 0.1)',
-                            color: 'var(--primary)',
-                            padding: '8px 16px',
-                            borderRadius: '8px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            fontWeight: '700',
-                            fontSize: '0.85rem',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.5px',
-                            textDecoration: 'none',
-                            border: '1px solid rgba(37, 99, 235, 0.2)',
-                            transition: 'background-color 0.2s'
-                        }}>
-                            <span style={{ fontSize: '1rem' }}>✓</span> PRO MEMBER
-                        </Link>
+                    <div style={{ display: 'flex', gap: '16px', alignItems: 'center', justifyContent: 'center' }}>
+                        {SUBSCRIPTIONS_ENABLED && (
+                            <Link href="/contractor-plans" style={{
+                                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                                color: 'var(--primary)',
+                                padding: '8px 16px',
+                                borderRadius: '8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                fontWeight: '700',
+                                fontSize: '0.85rem',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px',
+                                textDecoration: 'none',
+                                border: '1px solid rgba(37, 99, 235, 0.2)',
+                                transition: 'background-color 0.2s'
+                            }}>
+                                <span style={{ fontSize: '1rem' }}>✓</span> PRO MEMBER
+                            </Link>
+                        )}
                         <TaskSortSelect defaultValue={sort || 'newest'} />
                     </div>
                 </div>
@@ -176,13 +182,15 @@ export default async function TasksPage({ searchParams }: Props) {
                         </Suspense>
                     </aside>
 
-                    {/* Feed – lazy loaded via API */}
+                    {/* Feed – lazy loaded via API. Cards centered within the column. */}
                     <main>
-                        <Suspense fallback={
-                            <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--text-light)' }}>{t('common.loading')}</div>
-                        }>
-                            <TasksFeed />
-                        </Suspense>
+                        <div style={{ maxWidth: '760px', margin: '0 auto' }}>
+                            <Suspense fallback={
+                                <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--text-light)' }}>{t('common.loading')}</div>
+                            }>
+                                <TasksFeed />
+                            </Suspense>
+                        </div>
                     </main>
                 </div>
             </div>

@@ -134,6 +134,12 @@ export default function CreateTaskPage() {
 
             if (!res.ok) {
                 const errorData = await res.json();
+                // OAuth registrants must verify a phone before posting
+                if (errorData.code === 'PHONE_VERIFICATION_REQUIRED') {
+                    toast.warning(errorData.error);
+                    router.push('/verify-phone?redirect=/create-task');
+                    return;
+                }
                 throw new Error(errorData.error || t('createTask.createFailed'));
             }
 

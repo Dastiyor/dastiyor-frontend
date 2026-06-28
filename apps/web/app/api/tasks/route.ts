@@ -6,6 +6,7 @@ import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/ra
 import { validateTaskInput, sanitizeString } from '@/lib/validation';
 import { logAction, getRequestIP } from '@/lib/audit';
 import { requireAuth } from '@/lib/require-auth';
+import { needsPhoneVerification, PHONE_VERIFICATION_REQUIRED } from '@/lib/phone-gate';
 
 const TASKS_PER_PAGE = 20;
 
@@ -125,6 +126,21 @@ export async function POST(request: Request) {
         const rateLimitCheck = await checkRateLimit(clientIP, 'api');
         if (!rateLimitCheck.allowed) {
             return rateLimitExceededResponse(rateLimitCheck.resetIn);
+        }
+
+        // OAuth registrants must verify a phone number before posting tasks
+        const author = await prisma.user.findUnique({
+            where: { id: payload.id as string },
+            select: { password: true, googleId: true, appleId: true, phoneVerified: true },
+        });
+        if (!author) {
+            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        }
+        if (needsPhoneVerification(author)) {
+            return NextResponse.json(
+                { error: 'Подтвердите номер телефона, чтобы публиковать задания', code: PHONE_VERIFICATION_REQUIRED },
+                { status: 403 }
+            );
         }
 
         // 2. Parse Body

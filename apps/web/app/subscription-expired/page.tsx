@@ -1,8 +1,13 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { Clock, CreditCard, Sparkles, ArrowRight } from 'lucide-react';
 import { getServerTranslation } from '@/lib/i18n/server';
+import { SUBSCRIPTIONS_ENABLED } from '@/lib/features';
 
 export default async function SubscriptionExpiredPage() {
+    // Subscriptions are temporarily hidden — see lib/features.ts
+    if (!SUBSCRIPTIONS_ENABLED) redirect('/');
+
     const { t } = await getServerTranslation();
     return (
         <div style={{

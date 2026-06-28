@@ -197,7 +197,20 @@
     "continueWithApple": "Тавассути Apple идома диҳед",
     "orDivider": "ё",
     "oauthCancelled": "Воридшавӣ бекор шуд",
-    "oauthFailed": "Хатои OAuth. Дубора кӯшиш кунед."
+    "oauthFailed": "Хатои OAuth. Дубора кӯшиш кунед.",
+    "oauthUnavailable": "Воридшавӣ тавассути Google ва Apple муваққатан дастрас нест. Лутфан тавассути email ё телефон ворид шавед.",
+    "verifyPhoneTitle": "Рақами телефонро тасдиқ кунед",
+    "verifyPhoneSubtitle": "Барои нашр ва ҷавоб додан ба вазифаҳо рақами телефонатонро тасдиқ кунед.",
+    "verifyPhoneNumberLabel": "Рақами телефон",
+    "verifyPhoneSendCode": "Фиристодани рамз",
+    "verifyPhoneSending": "Фиристода истодааст…",
+    "verifyPhoneCodeLabel": "Рамз аз SMS",
+    "verifyPhoneCodePlaceholder": "Рамзи 6-рақама",
+    "verifyPhoneVerify": "Тасдиқ кардан",
+    "verifyPhoneVerifying": "Тафтиш…",
+    "verifyPhoneCodeSent": "Рамз ба рақами {phone} фиристода шуд",
+    "verifyPhoneSuccess": "Рақам тасдиқ шуд!",
+    "verifyPhoneChangeNumber": "Тағйири рақам"
   },
   "customer": {
     "dashboard": "Панели фармоишгар",
@@ -210,7 +223,19 @@
     "totalSpent": "Сарфшуда",
     "noTasks": "Шумо ҳанӯз вазифа надоред",
     "createFirstTask": "Вазифаи аввалинро созед",
-    "createFirstTaskDesc": "Вазифаи аввалини худро созед, то ёрдамчӣ ёбед."
+    "createFirstTaskDesc": "Вазифаи аввалини худро созед, то ёрдамчӣ ёбед.",
+    "unreadMessages": "Паёмҳои нохонда",
+    "createNewTask": "Вазифаи нав эҷод кардан",
+    "recentTasks": "Вазифаҳои охирин",
+    "viewAll": "Ҳамаро дидан",
+    "colTitle": "Номи вазифа",
+    "colStatus": "Ҳолат",
+    "colDate": "Сана",
+    "colResponses": "Ҷавобҳо",
+    "colAction": "Амал",
+    "noTasksFoundCta": "Вазифае нест. Барои оғоз вазифа эҷод кунед!",
+    "offersCount": "{count} ҷавоб",
+    "manage": "Идора кардан"
   },
   "provider": {
     "dashboard": "Панели иҷрокунанда",
@@ -323,6 +348,9 @@
   "tasks": {
     "findTitle": "Ёфтани вазифаҳо",
     "viewDetails": "Муфассал",
+    "sortRecent": "Аввал навтаринҳо",
+    "sortBudgetHigh": "Аввал нархи баланд",
+    "sortBudgetLow": "Аввал нархи паст",
     "loadMore": "Бештар бор кардан",
     "noTasksTitle": "Вазифае нест",
     "noTasksDesc": "Дар ин категория вазифае нест. Фильтри дигар интихоб кунед.",

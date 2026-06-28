@@ -116,7 +116,13 @@ export default function CreateTaskScreen() {
       track(AnalyticsEvent.TaskCreateCompleted, { category, city, budgetType });
       Alert.alert(t.common.done, ct.published, [{ text: t.common.ok, onPress: () => router.back() }]);
     } catch (e) {
-      Alert.alert(t.common.error, (e as Error).message);
+      const err = e as { code?: string; message: string };
+      const msg = err.message ?? '';
+      if (err.code === 'PHONE_VERIFICATION_REQUIRED' || msg.includes('PHONE_VERIFICATION')) {
+        Alert.alert(t.phoneVerify.required, t.phoneVerify.message);
+      } else {
+        Alert.alert(t.common.error, msg);
+      }
     } finally {
       setLoading(false);
     }

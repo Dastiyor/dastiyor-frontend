@@ -4,6 +4,7 @@ import Link from 'next/link';
 import ReviewList from '@/components/reviews/ReviewList';
 import { CheckCircle, MessageSquare, Star, Calendar, Award, TrendingUp } from 'lucide-react';
 import { getServerTranslation } from '@/lib/i18n/server';
+import { SUBSCRIPTIONS_ENABLED } from '@/lib/features';
 
 type Props = {
     params: { id: string };
@@ -76,8 +77,9 @@ export default async function ProviderProfilePage({ params }: Props) {
     // Calculate success rate
     const successRate = totalAssigned > 0 ? Math.round((completedTasks / totalAssigned) * 100) : 0;
 
-    // Check if premium
-    const isPremium = user.subscription?.isActive &&
+    // Check if premium — subscriptions are temporarily hidden (see lib/features.ts)
+    const isPremium = SUBSCRIPTIONS_ENABLED &&
+        user.subscription?.isActive &&
         new Date(user.subscription.endDate) > new Date() &&
         user.subscription.plan.toLowerCase() === 'premium';
 

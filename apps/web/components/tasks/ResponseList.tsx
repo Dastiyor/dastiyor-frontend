@@ -54,6 +54,12 @@ export default function ResponseList({ taskId, responses, currentUserId, current
             if (res.ok) {
                 toast.success(t('tasks.responseSent'));
                 setTimeout(() => window.location.reload(), 1000);
+            } else if (json.code === 'PHONE_VERIFICATION_REQUIRED') {
+                // OAuth registrants must verify a phone before responding
+                toast.warning(json.error);
+                setTimeout(() => {
+                    window.location.href = '/verify-phone?redirect=' + encodeURIComponent(window.location.pathname);
+                }, 800);
             } else {
                 toast.error(json.error || t('tasks.responseError'));
             }

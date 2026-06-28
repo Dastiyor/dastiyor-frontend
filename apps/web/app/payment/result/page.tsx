@@ -1,9 +1,10 @@
 'use client';
 
 import { Suspense, useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslation } from '@/lib/i18n';
+import { SUBSCRIPTIONS_ENABLED } from '@/lib/features';
 
 type PaymentStatus = 'loading' | 'success' | 'failed' | 'pending';
 
@@ -223,6 +224,9 @@ function PaymentResultContent() {
 }
 
 export default function PaymentResultPage() {
+    // Subscriptions are temporarily hidden — see lib/features.ts
+    if (!SUBSCRIPTIONS_ENABLED) redirect('/');
+
     return (
         <Suspense fallback={
             <div style={{

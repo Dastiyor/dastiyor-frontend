@@ -3,8 +3,10 @@ import { verifyJWT } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { PlusCircle, Clock, CheckCircle, MessageSquare } from 'lucide-react';
+import { getServerTranslation } from '@/lib/i18n/server';
 
 export default async function CustomerDashboardPage() {
+    const { t } = await getServerTranslation();
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 
@@ -37,10 +39,17 @@ export default async function CustomerDashboardPage() {
 
     const accentColor = 'var(--primary)';
 
+    const statusLabel: Record<string, string> = {
+        OPEN: t('tasks.open'),
+        IN_PROGRESS: t('tasks.inProgress'),
+        COMPLETED: t('tasks.completed'),
+        CANCELLED: t('tasks.cancelled'),
+    };
+
     return (
         <div>
             <h1 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#1E293B', marginBottom: '24px' }}>
-                Dashboard
+                {t('customer.dashboard')}
             </h1>
 
             {/* Stats Cards */}
@@ -51,7 +60,7 @@ export default async function CustomerDashboardPage() {
                     </div>
                     <div>
                         <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#1E293B' }}>{activeTasks}</div>
-                        <div style={{ color: '#64748B', fontSize: '0.9rem' }}>Active Tasks</div>
+                        <div style={{ color: '#64748B', fontSize: '0.9rem' }}>{t('customer.activeTasks')}</div>
                     </div>
                 </div>
 
@@ -61,7 +70,7 @@ export default async function CustomerDashboardPage() {
                     </div>
                     <div>
                         <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#1E293B' }}>{completedTasks}</div>
-                        <div style={{ color: '#64748B', fontSize: '0.9rem' }}>Completed Tasks</div>
+                        <div style={{ color: '#64748B', fontSize: '0.9rem' }}>{t('customer.completedTasks')}</div>
                     </div>
                 </div>
 
@@ -71,7 +80,7 @@ export default async function CustomerDashboardPage() {
                     </div>
                     <div>
                         <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#1E293B' }}>{unreadMessages}</div>
-                        <div style={{ color: '#64748B', fontSize: '0.9rem' }}>Unread Messages</div>
+                        <div style={{ color: '#64748B', fontSize: '0.9rem' }}>{t('customer.unreadMessages')}</div>
                     </div>
                 </div>
             </div>
@@ -95,32 +104,32 @@ export default async function CustomerDashboardPage() {
                 transition: 'all 0.2s'
             }}>
                 <PlusCircle size={24} color={accentColor} />
-                <span style={{ color: accentColor }}>Create New Task</span>
+                <span style={{ color: accentColor }}>{t('customer.createNewTask')}</span>
             </Link>
 
             {/* Recent tasks */}
             <div style={{ backgroundColor: 'white', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '24px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                    <h2 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1E293B' }}>Recent Tasks</h2>
-                    <Link href="/customer/my-tasks" style={{ color: accentColor, textDecoration: 'none', fontWeight: '600', fontSize: '0.9rem' }}>View All</Link>
+                    <h2 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1E293B' }}>{t('customer.recentTasks')}</h2>
+                    <Link href="/customer/my-tasks" style={{ color: accentColor, textDecoration: 'none', fontWeight: '600', fontSize: '0.9rem' }}>{t('customer.viewAll')}</Link>
                 </div>
 
                 <div style={{ overflowX: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
                             <tr style={{ borderBottom: '1px solid #E2E8F0', textAlign: 'left' }}>
-                                <th style={{ padding: '12px 0', fontSize: '0.85rem', color: '#64748B', fontWeight: '600' }}>Task Title</th>
-                                <th style={{ padding: '12px 0', fontSize: '0.85rem', color: '#64748B', fontWeight: '600' }}>Status</th>
-                                <th style={{ padding: '12px 0', fontSize: '0.85rem', color: '#64748B', fontWeight: '600' }}>Date</th>
-                                <th style={{ padding: '12px 0', fontSize: '0.85rem', color: '#64748B', fontWeight: '600' }}>Responses</th>
-                                <th style={{ padding: '12px 0', fontSize: '0.85rem', color: '#64748B', fontWeight: '600' }}>Action</th>
+                                <th style={{ padding: '12px 0', fontSize: '0.85rem', color: '#64748B', fontWeight: '600' }}>{t('customer.colTitle')}</th>
+                                <th style={{ padding: '12px 0', fontSize: '0.85rem', color: '#64748B', fontWeight: '600' }}>{t('customer.colStatus')}</th>
+                                <th style={{ padding: '12px 0', fontSize: '0.85rem', color: '#64748B', fontWeight: '600' }}>{t('customer.colDate')}</th>
+                                <th style={{ padding: '12px 0', fontSize: '0.85rem', color: '#64748B', fontWeight: '600' }}>{t('customer.colResponses')}</th>
+                                <th style={{ padding: '12px 0', fontSize: '0.85rem', color: '#64748B', fontWeight: '600' }}>{t('customer.colAction')}</th>
                             </tr>
                         </thead>
                         <tbody>
                             {recentTasks.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} style={{ padding: '32px 0', textAlign: 'center', color: '#94A3B8' }}>
-                                        No tasks found. Create one to get started!
+                                        {t('customer.noTasksFoundCta')}
                                     </td>
                                 </tr>
                             ) : (
@@ -138,14 +147,14 @@ export default async function CustomerDashboardPage() {
                                                 backgroundColor: task.status === 'OPEN' ? '#DBEAFE' : task.status === 'IN_PROGRESS' ? '#FEF3C7' : '#D1FAE5',
                                                 color: task.status === 'OPEN' ? '#1D4ED8' : task.status === 'IN_PROGRESS' ? '#D97706' : '#059669'
                                             }}>
-                                                {task.status}
+                                                {statusLabel[task.status] || task.status}
                                             </span>
                                         </td>
                                         <td style={{ padding: '14px 0', color: '#64748B', fontSize: '0.9rem' }}>
                                             {new Date(task.createdAt).toLocaleDateString()}
                                         </td>
                                         <td style={{ padding: '14px 0', color: '#64748B', fontSize: '0.9rem' }}>
-                                            {task._count.responses} offers
+                                            {t('customer.offersCount', { count: task._count.responses })}
                                         </td>
                                         <td style={{ padding: '14px 0' }}>
                                             <Link href={`/customer/tasks/${task.id}`} style={{
@@ -157,7 +166,7 @@ export default async function CustomerDashboardPage() {
                                                 fontSize: '0.8rem',
                                                 fontWeight: '600'
                                             }}>
-                                                Manage
+                                                {t('customer.manage')}
                                             </Link>
                                         </td>
                                     </tr>

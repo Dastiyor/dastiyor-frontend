@@ -4,8 +4,12 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { DollarSign, Calendar, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { getServerTranslation } from '@/lib/i18n/server';
+import { SUBSCRIPTIONS_ENABLED } from '@/lib/features';
 
 export default async function PaymentHistoryPage() {
+    // Subscriptions are temporarily hidden — see lib/features.ts
+    if (!SUBSCRIPTIONS_ENABLED) redirect('/provider');
+
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 

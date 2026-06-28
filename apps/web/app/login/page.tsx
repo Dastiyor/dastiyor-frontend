@@ -157,7 +157,11 @@ function LoginContent() {
                     marginBottom: '20px',
                     fontSize: '0.9rem'
                 }}>
-                    {error || (oauthError === 'oauth_cancelled' ? t('auth.oauthCancelled') : t('auth.oauthFailed'))}
+                    {error || (oauthError === 'oauth_cancelled'
+                        ? t('auth.oauthCancelled')
+                        : oauthError === 'oauth_unavailable'
+                            ? t('auth.oauthUnavailable')
+                            : t('auth.oauthFailed'))}
                 </div>
             )}
 

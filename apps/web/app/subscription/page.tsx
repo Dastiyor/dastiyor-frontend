@@ -5,8 +5,12 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import SubscriptionPlans from '@/components/subscription/SubscriptionPlans';
 import { getServerTranslation } from '@/lib/i18n/server';
+import { SUBSCRIPTIONS_ENABLED } from '@/lib/features';
 
 export default async function SubscriptionPage() {
+    // Subscriptions are temporarily hidden — see lib/features.ts
+    if (!SUBSCRIPTIONS_ENABLED) redirect('/');
+
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 

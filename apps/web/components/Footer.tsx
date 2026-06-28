@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useTranslation } from '@/lib/i18n';
+import { SUBSCRIPTIONS_ENABLED } from '@/lib/features';
 
 export default function Footer() {
     const { t } = useTranslation();
@@ -68,7 +69,9 @@ export default function Footer() {
                         </h4>
                         <ul style={{ display: 'flex', flexDirection: 'column', gap: '16px', listStyle: 'none', padding: 0 }}>
                             <li><Link href="/register?type=provider" style={{ color: '#4B5563', textDecoration: 'none', fontSize: '0.95rem' }}>{t('footer.becomeProvider')}</Link></li>
-                            <li><Link href="/contractor-plans" style={{ color: '#4B5563', textDecoration: 'none', fontSize: '0.95rem' }}>{t('footer.plans')}</Link></li>
+                            {SUBSCRIPTIONS_ENABLED && (
+                                <li><Link href="/contractor-plans" style={{ color: '#4B5563', textDecoration: 'none', fontSize: '0.95rem' }}>{t('footer.plans')}</Link></li>
+                            )}
                             <li><Link href="/mobile-app" style={{ color: '#4B5563', textDecoration: 'none', fontSize: '0.95rem' }}>{t('footer.mobileApp')}</Link></li>
                         </ul>
                     </div>

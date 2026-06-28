@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getServerTranslation } from '@/lib/i18n/server';
+import { SUBSCRIPTIONS_ENABLED } from '@/lib/features';
 
 export default async function ProfilePage() {
     const cookieStore = await cookies();
@@ -101,7 +102,7 @@ export default async function ProfilePage() {
                                 }}>
                                     {user.role === 'PROVIDER' ? t('profile.roleProvider') : t('profile.roleCustomer')}
                                 </span>
-                                {isSubscribed && subscription && (
+                                {SUBSCRIPTIONS_ENABLED && isSubscribed && subscription && (
                                     <span style={{
                                         backgroundColor: '#fef3c7',
                                         color: '#b45309',
@@ -188,9 +189,11 @@ export default async function ProfilePage() {
                                 <Link href="/provider/completed-tasks" className="btn btn-outline" style={{ justifyContent: 'flex-start', textAlign: 'left' }}>
                                     ✅ {t('profile.completedTasks')}
                                 </Link>
-                                <Link href="/provider/payment-history" className="btn btn-outline" style={{ justifyContent: 'flex-start', textAlign: 'left' }}>
-                                    💳 {t('profile.paymentHistory')}
-                                </Link>
+                                {SUBSCRIPTIONS_ENABLED && (
+                                    <Link href="/provider/payment-history" className="btn btn-outline" style={{ justifyContent: 'flex-start', textAlign: 'left' }}>
+                                        💳 {t('profile.paymentHistory')}
+                                    </Link>
+                                )}
                             </div>
                         </div>
                     )}

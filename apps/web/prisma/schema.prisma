@@ -17,6 +17,7 @@ model User {
   googleId  String?  @unique
   appleId   String?  @unique
   phone     String?
+  phoneVerified Boolean @default(false) // OAuth registrants must verify a phone before posting/accepting tasks
   bio       String?  // Provider bio/description
   skills    String?  // Comma-separated skills
   avatar    String?  // Profile image URL

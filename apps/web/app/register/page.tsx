@@ -102,7 +102,7 @@ function RegisterContent() {
         const password = String(formData.get('password') || '');
         const { isStrong, feedback } = checkPasswordStrength(password);
         if (!isStrong || password.length < 8) {
-            setPasswordFeedback(feedback.length ? feedback : ['Password must be at least 8 characters']);
+            setPasswordFeedback(feedback.length ? feedback : ['Пароль должен содержать минимум 8 символов']);
             setIsLoading(false);
             return;
         }

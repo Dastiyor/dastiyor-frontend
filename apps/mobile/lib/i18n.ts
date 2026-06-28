@@ -359,6 +359,10 @@ const translations = {
       required: 'Subscription required',
       message: 'An active provider subscription is required to respond. Visit dastiyor.com to subscribe.',
     },
+    phoneVerify: {
+      required: 'Phone verification required',
+      message: 'Verify your phone number to post and respond to tasks. Open dastiyor.com to verify.',
+    },
   },
   ru: {
     tabs: {
@@ -712,6 +716,10 @@ const translations = {
       required: 'Требуется подписка',
       message: 'Для откликов на задания нужна активная подписка. Оформите на dastiyor.com.',
     },
+    phoneVerify: {
+      required: 'Требуется подтверждение телефона',
+      message: 'Подтвердите номер телефона, чтобы публиковать и откликаться на задания. Откройте dastiyor.com для подтверждения.',
+    },
   },
   tj: {
     tabs: {
@@ -1064,6 +1072,10 @@ const translations = {
     subscription: {
       required: 'Обуна лозим аст',
       message: 'Барои посух додан ба супоришҳо обунаи фаъол лозим аст. Дар dastiyor.com обуна кунед.',
+    },
+    phoneVerify: {
+      required: 'Тасдиқи телефон лозим аст',
+      message: 'Барои нашр ва ҷавоб додан ба вазифаҳо рақами телефонро тасдиқ кунед. Барои тасдиқ dastiyor.com-ро кушоед.',
     },
   },
 } as const;

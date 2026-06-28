@@ -6,6 +6,7 @@ import { validateResponseInput } from '@/lib/validation';
 import { sendTaskResponseNotification } from '@/lib/notifications/email';
 import { sendPushNotification } from '@/lib/web-push';
 import { requireAuth } from '@/lib/require-auth';
+import { needsPhoneVerification, PHONE_VERIFICATION_REQUIRED } from '@/lib/phone-gate';
 
 export async function POST(request: Request) {
     try {
@@ -37,6 +38,14 @@ export async function POST(request: Request) {
         if (user.role !== 'PROVIDER') {
             return NextResponse.json(
                 { error: 'Only providers can respond to tasks', code: 'PROVIDER_REQUIRED' },
+                { status: 403 }
+            );
+        }
+
+        // OAuth registrants must verify a phone number before responding to tasks
+        if (needsPhoneVerification(user)) {
+            return NextResponse.json(
+                { error: 'Подтвердите номер телефона, чтобы откликаться на задания', code: PHONE_VERIFICATION_REQUIRED },
                 { status: 403 }
             );
         }

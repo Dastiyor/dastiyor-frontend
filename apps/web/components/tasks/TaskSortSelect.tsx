@@ -1,6 +1,10 @@
 'use client';
 
+import { useTranslation } from '@/lib/i18n';
+
 export default function TaskSortSelect({ defaultValue }: { defaultValue?: string }) {
+    const { t } = useTranslation();
+
     const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const url = new URL(window.location.href);
         url.searchParams.set('sort', e.target.value);
@@ -8,9 +12,9 @@ export default function TaskSortSelect({ defaultValue }: { defaultValue?: string
     };
 
     const labels: Record<string, string> = {
-        newest: 'Recent',
-        'budget-high': 'High Budget',
-        'budget-low': 'Low Budget',
+        newest: t('tasks.sortRecent'),
+        'budget-high': t('tasks.sortBudgetHigh'),
+        'budget-low': t('tasks.sortBudgetLow'),
     };
 
     return (

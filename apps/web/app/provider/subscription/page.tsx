@@ -4,8 +4,12 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Check, Crown, Zap, Star } from 'lucide-react';
+import { SUBSCRIPTIONS_ENABLED } from '@/lib/features';
 
 export default async function SubscriptionPage() {
+    // Subscriptions are temporarily hidden — see lib/features.ts
+    if (!SUBSCRIPTIONS_ENABLED) redirect('/provider');
+
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 

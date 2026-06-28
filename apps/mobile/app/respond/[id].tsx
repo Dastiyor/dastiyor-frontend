@@ -43,7 +43,9 @@ export default function RespondScreen() {
       const err = e as { code?: string; message: string };
       const msg = err.message ?? '';
       // Prefer the typed error code; fall back to legacy string matching.
-      if (
+      if (err.code === 'PHONE_VERIFICATION_REQUIRED' || msg.includes('PHONE_VERIFICATION')) {
+        Alert.alert(t.phoneVerify.required, t.phoneVerify.message);
+      } else if (
         err.code === 'SUBSCRIPTION_REQUIRED' ||
         msg.includes('subscription') || msg.includes('SUBSCRIPTION') || msg.includes('подписк')
       ) {

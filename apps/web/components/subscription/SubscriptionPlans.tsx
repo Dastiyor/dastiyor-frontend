@@ -6,11 +6,11 @@ import { useState } from 'react';
 
 type Plan = {
     id: string;
-    name: string;
+    nameKey: string;
     price: number;
-    period: string;
-    description: string;
-    features: string[];
+    periodKey: string;
+    descriptionKey: string;
+    featuresKeys: string[];
     color: string;
     popular?: boolean;
 };
@@ -18,51 +18,51 @@ type Plan = {
 const plans: Plan[] = [
     {
         id: 'basic',
-        name: 'Базовый',
+        nameKey: 'subscription.planBasicName',
         price: 99,
-        period: 'мес',
-        description: 'Отлично для начала',
+        periodKey: 'subscription.monthAbbr',
+        descriptionKey: 'subscription.planBasicDesc',
         color: 'var(--primary)',
-        features: [
-            '15 откликов в месяц',
-            'Улучшенная видимость',
-            'Базовый значок',
-            'Стандартный приоритет',
-            'Email поддержка'
+        featuresKeys: [
+            'subscription.featureResponses15',
+            'subscription.featureVisibilityImproved',
+            'subscription.featureBadgeBasic',
+            'subscription.featurePriorityStandard',
+            'subscription.featureSupportEmail'
         ]
     },
     {
         id: 'standard',
-        name: 'Стандарт',
+        nameKey: 'subscription.planStandardName',
         price: 199,
-        period: 'мес',
-        description: 'Идеально для роста',
+        periodKey: 'subscription.monthAbbr',
+        descriptionKey: 'subscription.planStandardDesc',
         color: 'var(--accent)',
         popular: true,
-        features: [
-            '50 откликов в месяц',
-            'Приоритетная видимость',
-            'Проверенный значок',
-            'Высокий приоритет',
-            'Базовая аналитика',
-            'Приоритетная поддержка'
+        featuresKeys: [
+            'subscription.featureResponses50',
+            'subscription.featureVisibilityPriority',
+            'subscription.featureBadgeVerified',
+            'subscription.featurePriorityHigh',
+            'subscription.featureAnalyticsBasic',
+            'subscription.featureSupportPriority'
         ]
     },
     {
         id: 'premium',
-        name: 'Премиум',
+        nameKey: 'subscription.planPremiumName',
         price: 399,
-        period: 'мес',
-        description: 'Для профессионалов',
+        periodKey: 'subscription.monthAbbr',
+        descriptionKey: 'subscription.planPremiumDesc',
         color: '#9333ea',
-        features: [
-            'Безлимитные отклики',
-            'В топе исполнителей',
-            'Премиум значок',
-            'Высший приоритет',
-            'Полная аналитика',
-            'Персональный менеджер',
-            '24/7 поддержка по телефону'
+        featuresKeys: [
+            'subscription.featureResponsesUnlimited',
+            'subscription.featureVisibilityTop',
+            'subscription.featureBadgePremium',
+            'subscription.featurePriorityHighest',
+            'subscription.featureAnalyticsFull',
+            'subscription.featureManagerPersonal',
+            'subscription.featureSupport247Phone'
         ]
     }
 ];
@@ -144,10 +144,10 @@ export default function SubscriptionPlans({ currentPlan }: Props) {
                             color: plan.color,
                             marginBottom: '8px'
                         }}>
-                            {plan.name}
+                            {t(plan.nameKey)}
                         </h3>
                         <p style={{ color: 'var(--text-light)', fontSize: '0.95rem' }}>
-                            {plan.description}
+                            {t(plan.descriptionKey)}
                         </p>
                     </div>
 
@@ -157,21 +157,21 @@ export default function SubscriptionPlans({ currentPlan }: Props) {
                         </span>
                         <span style={{ fontSize: '1.2rem', color: 'var(--text-light)' }}> с.</span>
                         <div style={{ color: 'var(--text-light)', fontSize: '0.9rem' }}>
-                            {t('subscription.perMonth')}
+                            {t(plan.periodKey)}
                         </div>
                     </div>
 
                     <ul style={{ listStyle: 'none', padding: 0, marginBottom: '32px' }}>
-                        {plan.features.map((feature, idx) => (
+                        {plan.featuresKeys.map((featureKey, idx) => (
                             <li key={idx} style={{
                                 display: 'flex',
                                 alignItems: 'flex-start',
                                 gap: '12px',
                                 padding: '10px 0',
-                                borderBottom: idx < plan.features.length - 1 ? '1px solid #f3f4f6' : 'none'
+                                borderBottom: idx < plan.featuresKeys.length - 1 ? '1px solid #f3f4f6' : 'none'
                             }}>
                                 <span style={{ color: '#22c55e', fontSize: '1.1rem' }}>✓</span>
-                                <span style={{ fontSize: '0.95rem', color: 'var(--text)' }}>{feature}</span>
+                                <span style={{ fontSize: '0.95rem', color: 'var(--text)' }}>{t(featureKey)}</span>
                             </li>
                         ))}
                     </ul>

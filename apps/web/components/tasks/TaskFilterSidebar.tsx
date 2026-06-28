@@ -5,38 +5,32 @@ import { useState, useCallback, useTransition } from 'react';
 import { useTranslation } from '@/lib/i18n';
 
 const CATEGORIES = [
-    { name: 'Все задания', value: '', icon: LayoutGrid },
-    { name: 'Ремонт', value: 'Ремонт', icon: Wrench },
-    { name: 'Уборка', value: 'Уборка', icon: SprayCan },
-    { name: 'Доставка', value: 'Доставка', icon: Truck },
-    { name: 'Сантехника', value: 'Сантехника', icon: Droplets },
-    { name: 'Электрик', value: 'Электрик', icon: Zap },
-    { name: 'Обучение', value: 'Обучение', icon: BookOpen },
-    { name: 'Красота', value: 'Красота', icon: Sparkles },
-    { name: 'IT и Веб', value: 'IT и Веб', icon: Monitor },
-    { name: 'Компьютерная помощь', value: 'Компьютерная помощь', icon: Laptop },
-    { name: 'Ремонт техники', value: 'Ремонт техники', icon: Cpu },
-    { name: 'Фото и видео', value: 'Фото и видео', icon: Camera },
-    { name: 'Дизайн', value: 'Дизайн', icon: Palette },
-    { name: 'Мероприятия', value: 'Мероприятия', icon: PartyPopper },
-    { name: 'Юридические услуги', value: 'Юридические услуги', icon: Scale },
-    { name: 'Виртуальный помощник', value: 'Виртуальный помощник', icon: Bot },
+    { nameKey: 'categories.allTasks', value: '', icon: LayoutGrid },
+    { nameKey: 'categories.repair', value: 'Ремонт', icon: Wrench },
+    { nameKey: 'categories.cleaning', value: 'Уборка', icon: SprayCan },
+    { nameKey: 'categories.delivery', value: 'Доставка', icon: Truck },
+    { nameKey: 'categories.plumbing', value: 'Сантехника', icon: Droplets },
+    { nameKey: 'categories.electrician', value: 'Электрик', icon: Zap },
+    { nameKey: 'categories.education', value: 'Обучение', icon: BookOpen },
+    { nameKey: 'categories.beauty', value: 'Красота', icon: Sparkles },
+    { nameKey: 'categories.itWeb', value: 'IT и Веб', icon: Monitor },
+    { nameKey: 'categories.computerHelp', value: 'Компьютерная помощь', icon: Laptop },
+    { nameKey: 'categories.applianceRepair', value: 'Ремонт техники', icon: Cpu },
+    { nameKey: 'categories.photoVideo', value: 'Фото и видео', icon: Camera },
+    { nameKey: 'categories.design', value: 'Дизайн', icon: Palette },
+    { nameKey: 'categories.events', value: 'Мероприятия', icon: PartyPopper },
+    { nameKey: 'categories.legal', value: 'Юридические услуги', icon: Scale },
+    { nameKey: 'categories.virtualAssistant', value: 'Виртуальный помощник', icon: Bot },
 ];
 
 const CITIES = [
-    'Душанбе',
-    'Худжанд',
-    'Бохтар',
-    'Кӯлоб',
-    'Истаравшан',
-    'Турсунзода',
-    'Онлайн',
-];
-
-const URGENCY_OPTIONS = [
-    { label: 'Срочно', value: 'urgent', icon: Zap },
-    { label: 'Обычная', value: 'normal', icon: Clock },
-    { label: 'Гибкий график', value: 'low', icon: Calendar },
+    'cities.dushanbe',
+    'cities.khujand',
+    'cities.bokhtar',
+    'cities.kulob',
+    'cities.istravshan',
+    'cities.tursunzoda',
+    'cities.online',
 ];
 
 interface TaskFilterSidebarProps {
@@ -185,7 +179,7 @@ export default function TaskFilterSidebar({ categoryCounts = [], totalOpenTasks 
                             >
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                     <Icon size={18} style={{ color: isActive ? 'var(--primary)' : 'var(--text-light)' }} />
-                                    <span style={{ fontWeight: isActive ? '700' : '500', fontSize: '0.95rem' }}>{cat.name}</span>
+                                    <span style={{ fontWeight: isActive ? '700' : '500', fontSize: '0.95rem' }}>{t(cat.nameKey)}</span>
                                 </div>
                                 <span style={{
                                     fontSize: '0.8rem',
@@ -229,7 +223,7 @@ export default function TaskFilterSidebar({ categoryCounts = [], totalOpenTasks 
                     >
                         <option value="">{t('filters.allCities')}</option>
                         {CITIES.map(c => (
-                            <option key={c} value={c}>{c}</option>
+                            <option key={c} value={c}>{t(c)}</option>
                         ))}
                     </select>
                     <div style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
@@ -393,10 +387,11 @@ export default function TaskFilterSidebar({ categoryCounts = [], totalOpenTasks 
                 <h4 style={{ fontSize: '1rem', fontWeight: '700', color: 'var(--text)', marginBottom: '16px' }}>{t('tasks.urgency')}</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     {[
-                        { label: t('filters.soonAsPossible'), value: 'urgent' },
-                        { label: t('filters.withinWeek'), value: 'normal' },
-                        { label: t('filters.flexibleSchedule'), value: 'low' }
+                        { labelKey: 'urgency.urgent', value: 'urgent', icon: Zap },
+                        { labelKey: 'urgency.normal', value: 'normal', icon: Clock },
+                        { labelKey: 'urgency.low', value: 'low', icon: Calendar }
                     ].map((opt) => {
+                        const Icon = opt.icon;
                         const isChecked = currentUrgency.includes(opt.value);
                         return (
                             <label
@@ -430,7 +425,7 @@ export default function TaskFilterSidebar({ categoryCounts = [], totalOpenTasks 
                                         style={{ display: 'none' }}
                                     />
                                 </div>
-                                {opt.label}
+                                {t(opt.labelKey)}
                             </label>
                         );
                     })}

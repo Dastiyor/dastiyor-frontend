@@ -1,11 +1,13 @@
-import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getServerTranslation } from '@/lib/i18n/server';
 
-export const metadata: Metadata = {
-    title: 'Мобильное приложение | Dastiyor',
-    description: 'Мобильное приложение Dastiyor — скоро в App Store и Google Play.',
-};
+export async function generateMetadata() {
+    const { t } = await getServerTranslation();
+    return {
+        title: `${t('systemPages.mobileAppTitle')} | Dastiyor`,
+        description: t('systemPages.mobileAppDesc'),
+    };
+}
 
 export default async function MobileAppPage() {
     const { t } = await getServerTranslation();

@@ -87,7 +87,7 @@ export default async function Header() {
                                     color: '#6B7280',
                                     textDecoration: 'none',
                                     border: '1px solid #E5E7EB'
-                                }} title="Избранное">
+                                }}>
                                     <Heart size={20} />
                                 </Link>
                             )}

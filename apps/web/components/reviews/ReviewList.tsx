@@ -25,6 +25,16 @@ type Props = {
     };
 };
 
+function getReviewPlural(count: number, t: (key: string) => string): string {
+    if (count % 10 === 1 && count % 100 !== 11) {
+        return t('reviews.review');
+    }
+    if (count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 10 || count % 100 >= 20)) {
+        return t('reviews.reviewsFew');
+    }
+    return t('reviews.reviewsMany');
+}
+
 export default async function ReviewList({ reviews, stats }: Props) {
     const { t } = await getServerTranslation();
     const renderStars = (rating: number) => {
@@ -57,7 +67,7 @@ export default async function ReviewList({ reviews, stats }: Props) {
                         {renderStars(Math.round(stats.averageRating))}
                     </div>
                     <div style={{ color: 'var(--text-light)' }}>
-                        {stats.totalReviews} {stats.totalReviews % 10 === 1 && stats.totalReviews % 100 !== 11 ? 'отзыв' : (stats.totalReviews % 10 >= 2 && stats.totalReviews % 10 <= 4 && (stats.totalReviews % 100 < 10 || stats.totalReviews % 100 >= 20) ? 'отзыва' : 'отзывов')}
+                        {stats.totalReviews} {getReviewPlural(stats.totalReviews, t)}
                     </div>
                 </div>
 

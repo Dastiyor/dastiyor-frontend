@@ -1,19 +1,18 @@
 'use client';
 
-import { useTranslation, LOCALE_NAMES } from '@/lib/i18n';
+import { useTranslation } from '@/lib/i18n';
 import type { Locale } from '@/lib/i18n';
 
 export default function LanguageSwitcher() {
-    const { locale, setLocale } = useTranslation();
+    const { t, locale, setLocale } = useTranslation();
 
     const nextLocale: Locale = locale === 'ru' ? 'tj' : 'ru';
-    const nextLabel = locale === 'ru' ? 'Тоҷикӣ' : 'Русский';
+    const nextLabel = t(`languageSwitcher.${nextLocale}`);
     const nextFlag = locale === 'ru' ? '🇹🇯' : '🇷🇺';
 
     return (
         <button
             onClick={() => setLocale(nextLocale)}
-            title={`Переключить язык на ${nextLabel}`}
             style={{
                 display: 'inline-flex',
                 alignItems: 'center',

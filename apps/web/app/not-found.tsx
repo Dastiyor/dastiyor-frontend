@@ -1,10 +1,12 @@
-import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getServerTranslation } from '@/lib/i18n/server';
 
-export const metadata: Metadata = {
-    title: 'Страница не найдена | Dastiyor',
-};
+export async function generateMetadata() {
+    const { t } = await getServerTranslation();
+    return {
+        title: `${t('systemPages.notFoundTitle')} | Dastiyor`,
+    };
+}
 
 export default async function NotFound() {
     const { t } = await getServerTranslation();

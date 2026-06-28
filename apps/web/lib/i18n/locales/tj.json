@@ -45,7 +45,8 @@
     "becomeProvider": "Иҷрокунанда шудан",
     "templates": "Қолабҳо",
     "createTask": "Сохтани вазифа",
-    "openMenu": "Кушодани меню"
+    "openMenu": "Кушодани меню",
+    "favorites": "Интихобшудаҳо"
   },
   "footer": {
     "tagline": "Оянда барои хизматрасонии маҳаллӣ. Ба иҷрокунандагон кӯмак мерасонем ва ҷомеаҳоро муттаҳид мекунем.",
@@ -424,7 +425,31 @@
     "errorTryAgain": "Хато рух дод. Дубора кӯшиш кунед.",
     "basicDesc": "Барои оғоз аъло аст",
     "standardDesc": "Барои рушд мувофиқ аст",
-    "premiumDesc": "Барои касбиҳо"
+    "premiumDesc": "Барои касбиҳо",
+    "planBasicName": "Асосӣ",
+    "planStandardName": "Стандарт",
+    "planPremiumName": "Премиум",
+    "planBasicDesc": "Барои оғоз аъло аст",
+    "planStandardDesc": "Барои рушд мувофиқ аст",
+    "planPremiumDesc": "Барои касбиҳо",
+    "featureResponses15": "15 ҷавоб дар моҳ",
+    "featureVisibilityImproved": "Дидашавии беҳтаршуда",
+    "featureBadgeBasic": "Нишонаи асосӣ",
+    "featurePriorityStandard": "Афзалияти стандарт",
+    "featureSupportEmail": "Дастгирии Email",
+    "featureResponses50": "50 ҷавоб дар моҳ",
+    "featureVisibilityPriority": "Дидашавии афзалиятнок",
+    "featureBadgeVerified": "Нишонаи тасдиқшуда",
+    "featurePriorityHigh": "Афзалияти баланд",
+    "featureAnalyticsBasic": "Аналитиқаи асосӣ",
+    "featureSupportPriority": "Дастгирии афзалиятнок",
+    "featureResponsesUnlimited": "Ҷавобҳои беҳудуд",
+    "featureVisibilityTop": "Дар сиркашавии иҷрокунандагон",
+    "featureBadgePremium": "Нишонаи премиум",
+    "featurePriorityHighest": "Афзалияти аъло",
+    "featureAnalyticsFull": "Аналитиқаи пурра",
+    "featureManagerPersonal": "Мураббии шахсӣ",
+    "featureSupport247Phone": "Дастгирии 24/7 бо телефон"
   },
   "reviews": {
     "title": "Баҳоҳо",
@@ -449,7 +474,10 @@
     "submitReview": "Фиристодани баҳо",
     "selectRating": "Лутфан баҳо интихоб кунед",
     "submitSuccess": "Баҳо бомуваффақият фиристода шуд!",
-    "genericError": "Хато рух дод"
+    "genericError": "Хато рух дод",
+    "review": "баҳо",
+    "reviewsFew": "баҳо",
+    "reviewsMany": "баҳоҳо"
   },
   "chat": {
     "title": "Чат",
@@ -694,14 +722,70 @@
   },
   "contractorPlans": {
     "title": "Нақшаҳо барои иҷрокунандагон",
-    "subtitle": "Барои рушди тиҷорати худ беҳтарин нақшаро интихоб кунед.",
+    "subtitle": "Беҳтарин нақшро барои рушди тиҷорати шумо интихоб кунед.",
     "basicPlanName": "Асосӣ",
     "free": "Ройгон",
     "currentPlan": "Нақшаи ҷорӣ",
     "upgradePlan": "Беҳтар кардани нақш",
-    "loginToSubscribe": "Барои расмӣ кардан ворид шавед",
+    "loginToSubscribe": "Ворид шавид барои оформкунӣ",
     "register": "Бақайдгирӣ",
-    "perMonth": "/моҳ"
+    "perMonth": "/моҳ",
+    "featureResponses5": "5 ҷавоб дар моҳ",
+    "featureProfileBasic": "Профили асосӣ",
+    "featureSupportPriorityNo": "Бедидаи дастгирии афзалиятнок",
+    "featureResponsesUnlimited": "Ҷавобҳои бемаҳдуд",
+    "featureBadgeVerification": "Нишонаи тасдиқ",
+    "featureSupportPriorityYes": "Дастгирии афзалиятнок"
+  },
+  "categories": {
+    "allTasks": "Ҳамаи вазифаҳо",
+    "repair": "Таъмир",
+    "cleaning": "Тозакунӣ",
+    "delivery": "Таҳвил",
+    "plumbing": "Сантехника",
+    "electrician": "Барқ",
+    "education": "Таълим",
+    "beauty": "Зебоӣ",
+    "itWeb": "IT ва Веб",
+    "computerHelp": "Кӯмаки компютерӣ",
+    "applianceRepair": "Таъмири техника",
+    "photoVideo": "Акс ва видео",
+    "design": "Дизайн",
+    "events": "Чорабиниҳо",
+    "legal": "Хизматҳои ҳуқуқӣ",
+    "virtualAssistant": "Ёрдамчии виртуалӣ"
+  },
+  "cities": {
+    "dushanbe": "Душанбе",
+    "khujand": "Хуҷанд",
+    "bokhtar": "Бочтар",
+    "kulob": "Кӯлоб",
+    "istravshan": "Истаравшан",
+    "tursunzoda": "Турсунзода",
+    "online": "Онлайн"
+  },
+  "urgency": {
+    "urgent": "Фаврӣ",
+    "normal": "Одӣ",
+    "low": "Чандир"
+  },
+  "metadata": {
+    "siteName": "Dastiyor — Бозори хизматрасонии Тоҷикистон",
+    "siteDescription": "Мутахассисонро барои ҳар гуна вазифа ёбед. Беҳтарин бозори хизматрасонии Тоҷикистон.",
+    "ogTitle": "Dastiyor — Бозори хизматрасонии Тоҷикистон",
+    "ogDescription": "Мутахассисонро барои ҳар гуна вазифа дар Тоҷикистон ёбед.",
+    "ogSiteName": "Dastiyor",
+    "ogImageAlt": "Dastiyor"
+  },
+  "notFound": {
+    "title": "Саҳифа ёфт нашуд",
+    "text": "Бубахшед! Саҳифае, ки шумо меҷӯед, вуҷуд надорад ё кӯчонида шудааст.",
+    "goHome": "Ба саҳифаи асосӣ",
+    "browseTasks": "Ёфтани вазифаҳо",
+    "lookingFor": "Чизе меҷӯед?",
+    "findTasks": "Ёфтани вазифаҳо",
+    "postTask": "Сохтани вазифа",
+    "howItWorks": "Чӣ тавр кор мекунад"
   },
   "subscriptionPage": {
     "title": "Нақшаҳои тарифӣ",
@@ -746,5 +830,9 @@
     "responses": "Ҷавобҳо",
     "reviews": "Баҳоҳо",
     "onPlatformSince": "Дар платформа аз"
+  },
+  "languageSwitcher": {
+    "ru": "Русский",
+    "tj": "Тоҷикӣ"
   }
 }

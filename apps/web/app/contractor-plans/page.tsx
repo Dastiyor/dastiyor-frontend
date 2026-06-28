@@ -41,9 +41,9 @@ export default async function ContractorPlansPage() {
                     <h3 className="heading-md">{t('contractorPlans.basicPlanName')}</h3>
                     <div style={{ fontSize: '3rem', fontWeight: '800', marginBottom: '24px' }}>{t('contractorPlans.free')}</div>
                     <ul style={{ textAlign: 'left', marginBottom: '32px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        <li>✅ 5 откликов в месяц</li>
-                        <li>✅ Базовый профиль</li>
-                        <li>❌ Приоритетная поддержка</li>
+                        <li>✅ {t('contractorPlans.featureResponses5')}</li>
+                        <li>✅ {t('contractorPlans.featureProfileBasic')}</li>
+                        <li>❌ {t('contractorPlans.featureSupportPriorityNo')}</li>
                     </ul>
                     {isLoggedIn && !isPro ? (
                         <button className="btn btn-outline" style={{ width: '100%' }} disabled>{t('contractorPlans.currentPlan')}</button>
@@ -61,9 +61,9 @@ export default async function ContractorPlansPage() {
                     <h3 className="heading-md" style={{ color: 'white' }}>Pro</h3>
                     <div style={{ fontSize: '3rem', fontWeight: '800', marginBottom: '24px' }}>349 <span style={{ fontSize: '1.25rem', fontWeight: '600' }}>TJS</span><span style={{ fontSize: '1rem', fontWeight: 'normal' }}>{t('contractorPlans.perMonth')}</span></div>
                     <ul style={{ textAlign: 'left', marginBottom: '32px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        <li>✅ Неограниченные отклики</li>
-                        <li>✅ Значок верификации</li>
-                        <li>✅ Приоритетная поддержка</li>
+                        <li>✅ {t('contractorPlans.featureResponsesUnlimited')}</li>
+                        <li>✅ {t('contractorPlans.featureBadgeVerification')}</li>
+                        <li>✅ {t('contractorPlans.featureSupportPriorityYes')}</li>
                     </ul>
                     {isLoggedIn && isPro ? (
                         <button className="btn" style={{ width: '100%', backgroundColor: 'white', color: 'var(--primary)' }} disabled>{t('contractorPlans.currentPlan')}</button>

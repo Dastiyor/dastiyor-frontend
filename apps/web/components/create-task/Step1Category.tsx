@@ -8,21 +8,21 @@ type StepProps = {
 };
 
 const CATEGORIES = [
-    { id: 'Ремонт', label: 'Ремонт', icon: '🔨' },
-    { id: 'Уборка', label: 'Уборка', icon: '🧹' },
-    { id: 'Доставка', label: 'Доставка', icon: '📦' },
-    { id: 'Сантехника', label: 'Сантехника', icon: '🔧' },
-    { id: 'Электрик', label: 'Электрик', icon: '⚡' },
-    { id: 'Обучение', label: 'Репетиторы и обучение', icon: '📚' },
-    { id: 'Красота', label: 'Красота', icon: '💅' },
-    { id: 'IT и Веб', label: 'IT и Веб', icon: '💻' },
-    { id: 'Компьютерная помощь', label: 'Компьютерная помощь', icon: '🖥️' },
-    { id: 'Ремонт техники', label: 'Ремонт техники', icon: '📱' },
-    { id: 'Фото и видео', label: 'Фото и видео', icon: '📷' },
-    { id: 'Дизайн', label: 'Дизайн', icon: '🎨' },
-    { id: 'Мероприятия', label: 'Мероприятия', icon: '🎉' },
-    { id: 'Юридические услуги', label: 'Юридические услуги', icon: '⚖️' },
-    { id: 'Виртуальный помощник', label: 'Виртуальный помощник', icon: '🤖' },
+    { id: 'Ремонт', labelKey: 'categories.repair', icon: '🔨' },
+    { id: 'Уборка', labelKey: 'categories.cleaning', icon: '🧹' },
+    { id: 'Доставка', labelKey: 'categories.delivery', icon: '📦' },
+    { id: 'Сантехника', labelKey: 'categories.plumbing', icon: '🔧' },
+    { id: 'Электрик', labelKey: 'categories.electrician', icon: '⚡' },
+    { id: 'Обучение', labelKey: 'categories.education', icon: '📚' },
+    { id: 'Красота', labelKey: 'categories.beauty', icon: '💅' },
+    { id: 'IT и Веб', labelKey: 'categories.itWeb', icon: '💻' },
+    { id: 'Компьютерная помощь', labelKey: 'categories.computerHelp', icon: '🖥️' },
+    { id: 'Ремонт техники', labelKey: 'categories.applianceRepair', icon: '📱' },
+    { id: 'Фото и видео', labelKey: 'categories.photoVideo', icon: '📷' },
+    { id: 'Дизайн', labelKey: 'categories.design', icon: '🎨' },
+    { id: 'Мероприятия', labelKey: 'categories.events', icon: '🎉' },
+    { id: 'Юридические услуги', labelKey: 'categories.legal', icon: '⚖️' },
+    { id: 'Виртуальный помощник', labelKey: 'categories.virtualAssistant', icon: '🤖' },
 ];
 
 export default function Step1Category({ onNext, data }: StepProps) {
@@ -57,7 +57,7 @@ export default function Step1Category({ onNext, data }: StepProps) {
                     >
                         <span style={{ fontSize: '2rem' }}>{cat.icon}</span>
                         <span style={{ fontWeight: '500', color: data.category === cat.id ? 'var(--primary)' : 'var(--text)' }}>
-                            {cat.label}
+                            {t(cat.labelKey)}
                         </span>
                     </button>
                 ))}

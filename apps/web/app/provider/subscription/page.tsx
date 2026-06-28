@@ -173,7 +173,7 @@ export default async function SubscriptionPage() {
 
                         <div style={{ marginBottom: '20px' }}>
                             <span style={{ fontSize: '2rem', fontWeight: '700', color: '#1E293B' }}>{plan.price}</span>
-                            <span style={{ color: '#64748B', fontSize: '0.9rem' }}> с./мес</span>
+                            <span style={{ color: '#64748B', fontSize: '0.9rem' }}> TJS/mo</span>
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>

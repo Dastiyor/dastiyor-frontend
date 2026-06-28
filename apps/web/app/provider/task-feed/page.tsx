@@ -179,7 +179,7 @@ export default async function TaskFeedPage({
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                                 <DollarSign size={16} color="#16A34A" />
                                                 <span style={{ fontWeight: '600', color: '#16A34A', fontSize: '1rem' }}>
-                                                    {task.budgetType === 'fixed' ? `${task.budgetAmount} с.` : t('common.negotiable')}
+                                                    {task.budgetType === 'fixed' ? `${task.budgetAmount} TJS` : t('common.negotiable')}
                                                 </span>
                                             </div>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -251,21 +251,21 @@ export default async function TaskFeedPage({
                                 style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.9rem', backgroundColor: 'white' }}
                             >
                                 <option value="">{t('filters.allCategories')}</option>
-                                <option value="Ремонт">Ремонт</option>
-                                <option value="Уборка">Уборка</option>
-                                <option value="Доставка">Доставка</option>
-                                <option value="Сантехника">Сантехника</option>
-                                <option value="Электрик">Электрик</option>
-                                <option value="Обучение">Обучение</option>
-                                <option value="Красота">Красота</option>
-                                <option value="IT и Веб">IT и Веб</option>
-                                <option value="Компьютерная помощь">Компьютерная помощь</option>
-                                <option value="Ремонт техники">Ремонт техники</option>
-                                <option value="Фото и видео">Фото и видео</option>
-                                <option value="Дизайн">Дизайн</option>
-                                <option value="Мероприятия">Мероприятия</option>
-                                <option value="Юридические услуги">Юридические услуги</option>
-                                <option value="Виртуальный помощник">Виртуальный помощник</option>
+                                <option value="Ремонт">{t('categories.repair')}</option>
+                                <option value="Уборка">{t('categories.cleaning')}</option>
+                                <option value="Доставка">{t('categories.delivery')}</option>
+                                <option value="Сантехника">{t('categories.plumbing')}</option>
+                                <option value="Электрик">{t('categories.electrician')}</option>
+                                <option value="Обучение">{t('categories.education')}</option>
+                                <option value="Красота">{t('categories.beauty')}</option>
+                                <option value="IT и Веб">{t('categories.itWeb')}</option>
+                                <option value="Компьютерная помощь">{t('categories.computerHelp')}</option>
+                                <option value="Ремонт техники">{t('categories.applianceRepair')}</option>
+                                <option value="Фото и видео">{t('categories.photoVideo')}</option>
+                                <option value="Дизайн">{t('categories.design')}</option>
+                                <option value="Мероприятия">{t('categories.events')}</option>
+                                <option value="Юридические услуги">{t('categories.legal')}</option>
+                                <option value="Виртуальный помощник">{t('categories.virtualAssistant')}</option>
                             </select>
                         </div>
 

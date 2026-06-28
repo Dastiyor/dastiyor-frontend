@@ -32,15 +32,6 @@ WebBrowser.maybeCompleteAuthSession();
 
 type Role = 'customer' | 'provider';
 
-const ROLE_ICONS = { customer: 'clipboard-outline', provider: 'construct-outline' } as const;
-
-const OR_LABEL: Record<Locale, string> = { ru: 'или', tj: 'ё инчунин', en: 'or' };
-const GOOGLE_LABEL: Record<Locale, string> = {
-  ru: 'Зарегистрироваться с Google',
-  tj: 'Бақайдгирӣ бо Google',
-  en: 'Sign up with Google',
-};
-
 export default function RegisterScreen() {
   const { register, loginWithGoogle, loginWithApple } = useAuth();
   const { t, locale } = useLanguage();
@@ -165,8 +156,8 @@ export default function RegisterScreen() {
   }
 
   const isAppleAvailable = Platform.OS === 'ios';
-  const orLabel = OR_LABEL[locale];
-  const googleBtnLabel = GOOGLE_LABEL[locale];
+  const orLabel = t.login.or;
+  const googleBtnLabel = t.login.googleBtn;
 
   const pwOk = password.length > 0 && pwIssues.length === 0;
 

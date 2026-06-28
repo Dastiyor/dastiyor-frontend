@@ -8,6 +8,42 @@ export const LOCALE_NAMES: Record<Locale, string> = {
 
 const translations = {
   en: {
+    onboarding: {
+      tagline: 'Service Marketplace of Tajikistan',
+      description: 'Post a task — specialists will contact you with price and terms.',
+      features: [
+        { title: 'Find a specialist', body: 'Repair, cleaning, delivery, IT and dozens of other categories.' },
+        { title: 'Communicate directly', body: 'Chat with the executor without intermediaries and hidden fees.' },
+        { title: 'Reliable', body: 'Real reviews, ratings and verified profiles.' }
+      ],
+      cta: 'Start',
+      langTitle: 'Choose language',
+    },
+    filterSheet: {
+      filters: 'Filters',
+      category: 'Category',
+      all: 'All',
+      urgency: 'Urgency',
+      sort: 'Sort',
+      city: 'City',
+      cityPlaceholder: 'e.g. Dushanbe',
+      budget: 'Budget (TJS)',
+      from: 'From',
+      to: 'To',
+      reset: 'Reset',
+      apply: 'Apply',
+      urgencyOptions: {
+        all: 'All',
+        urgent: 'Urgent',
+        normal: 'Normal',
+        low: 'Low',
+      },
+      sortOptions: {
+        newest: 'Newest',
+        budgetHigh: 'Price ↓',
+        budgetLow: 'Price ↑',
+      }
+    },
     tabs: {
       home: 'Home',
       tasks: 'Tasks',
@@ -128,6 +164,8 @@ const translations = {
       errLength: 'Min. 8 characters',
       errNeedLetter: 'Add a letter',
       errNeedDigit: 'Add a number',
+      googleBtn: 'Sign up with Google',
+      orDivider: 'or',
     },
     createTask: {
       titleLabel: 'Task title *',
@@ -365,6 +403,42 @@ const translations = {
     },
   },
   ru: {
+    onboarding: {
+      tagline: 'Маркетплейс услуг Таджикистана',
+      description: 'Разместите задание — мастера сами напишут вам с ценой и сроками.',
+      features: [
+        { title: 'Найдите мастера', body: 'Ремонт, уборка, доставка, IT и десятки других категорий.' },
+        { title: 'Общайтесь напрямую', body: 'Чат с исполнителем без посредников и скрытых комиссий.' },
+        { title: 'Надёжно', body: 'Реальные отзывы, рейтинги и проверенные профили.' }
+      ],
+      cta: 'Начать',
+      langTitle: 'Выберите язык',
+    },
+    filterSheet: {
+      filters: 'Фильтры',
+      category: 'Категория',
+      all: 'Все',
+      urgency: 'Срочность',
+      sort: 'Сортировка',
+      city: 'Город',
+      cityPlaceholder: 'Например, Душанбе',
+      budget: 'Бюджет (TJS)',
+      from: 'От',
+      to: 'До',
+      reset: 'Сбросить',
+      apply: 'Применить',
+      urgencyOptions: {
+        all: 'Все',
+        urgent: 'Срочно',
+        normal: 'Обычное',
+        low: 'Не срочно',
+      },
+      sortOptions: {
+        newest: 'Новые',
+        budgetHigh: 'Дорогие',
+        budgetLow: 'Дешёвые',
+      }
+    },
     tabs: {
       home: 'Главная',
       tasks: 'Задания',
@@ -485,6 +559,8 @@ const translations = {
       errLength: 'Мин. 8 символов',
       errNeedLetter: 'Добавьте букву',
       errNeedDigit: 'Добавьте цифру',
+      googleBtn: 'Зарегистрироваться с Google',
+      orDivider: 'или',
     },
     createTask: {
       titleLabel: 'Название задания *',
@@ -722,6 +798,42 @@ const translations = {
     },
   },
   tj: {
+    onboarding: {
+      tagline: 'Бозори хизматрасонии Тоҷикистон',
+      description: 'Супориш гузоред — устоҳо бо нарх ва мӯҳлат худашон менависанд.',
+      features: [
+        { title: 'Устоеро ёбед', body: 'Таъмир, тозакорӣ, расонидан, IT ва даҳҳо категорияи дигар.' },
+        { title: 'Мустақим муошират', body: 'Чат бо иҷрокунанда бе миёнарав ва комиссияи пинҳон.' },
+        { title: 'Боэтимод', body: 'Шарҳҳои воқеӣ, рейтингҳо ва профилҳои санҷидашуда.' }
+      ],
+      cta: 'Оғоз кардан',
+      langTitle: 'Забонро интихоб кунед',
+    },
+    filterSheet: {
+      filters: 'Филтрҳо',
+      category: 'Категория',
+      all: 'Ҳама',
+      urgency: 'Фавриёт',
+      sort: 'Мураттабсозӣ',
+      city: 'Шаҳр',
+      cityPlaceholder: 'Масалан, Душанбе',
+      budget: 'Буҷет (ТҶС)',
+      from: 'Аз',
+      to: 'То',
+      reset: 'Тоза кардан',
+      apply: 'Татбиқ кардан',
+      urgencyOptions: {
+        all: 'Ҳама',
+        urgent: 'Фаврӣ',
+        normal: 'Оддӣ',
+        low: 'Бефаврӣ',
+      },
+      sortOptions: {
+        newest: 'Нав',
+        budgetHigh: 'Гаронтар',
+        budgetLow: 'Арзонтар',
+      }
+    },
     tabs: {
       home: 'Асосӣ',
       tasks: 'Супоришҳо',
@@ -842,6 +954,8 @@ const translations = {
       errLength: 'Ҳадди ақал 8 аломат',
       errNeedLetter: 'Ҳарф илова кунед',
       errNeedDigit: 'Рақам илова кунед',
+      googleBtn: 'Бақайдгирӣ бо Google',
+      orDivider: 'ё инчунин',
     },
     createTask: {
       titleLabel: 'Номи супориш *',

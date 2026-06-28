@@ -217,7 +217,7 @@ export default function ResponseList({ taskId, responses, currentUserId, current
                                         </div>
                                     </div>
                                     <div style={{ textAlign: 'right' }}>
-                                        <div style={{ fontWeight: '700', color: 'var(--primary)' }}>{response.price} с.</div>
+                                        <div style={{ fontWeight: '700', color: 'var(--primary)' }}>{response.price} TJS</div>
                                         {isAccepted && <div style={{ color: '#22c55e', fontSize: '0.8rem', fontWeight: 'bold' }}>{t('tasks.accepted')}</div>}
                                         {isRejected && <div style={{ color: '#ef4444', fontSize: '0.8rem', fontWeight: 'bold' }}>{t('tasks.rejected')}</div>}
                                         {response.estimatedTime && (

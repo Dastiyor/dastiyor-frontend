@@ -161,7 +161,7 @@ export default async function MyResponsesPage() {
                                             <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', fontSize: '0.8rem', color: '#64748B' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                                     <DollarSign size={14} />
-                                                    <span style={{ fontWeight: '600', color: accentColor }}>{response.price} с.</span>
+                                                    <span style={{ fontWeight: '600', color: accentColor }}>{response.price} TJS</span>
                                                 </div>
                                                 {response.estimatedTime && (
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>

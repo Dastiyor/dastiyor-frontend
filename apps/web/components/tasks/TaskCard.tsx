@@ -53,7 +53,7 @@ export default function TaskCard({ task }: { task: Task }) {
     const urgencyKey = task.urgency || 'normal';
     const urgencyColors_ = urgencyColors[urgencyKey] || urgencyColors.normal;
     const urgencyLabel = urgencyLabels[urgencyKey] || urgencyLabels.normal;
-    const isNegotiable = task.budget === 'Договорная';
+    const isNegotiable = task.budgetType === 'negotiable';
     const status = task.status || 'OPEN';
     const statusColor = statusColors[status] || statusColors['OPEN'];
     const statusLabel = statusLabels[status] || statusLabels['OPEN'];
@@ -89,7 +89,7 @@ export default function TaskCard({ task }: { task: Task }) {
             setIsFavorite(data.isFavorite);
             toast.success(data.isFavorite ? t('tasks.favoriteAdded') : t('tasks.favoriteRemoved'));
         } catch (err) {
-            toast.error('Ошибка при сохранении');
+            toast.error(t('common.error'));
         } finally {
             setIsLoading(false);
         }

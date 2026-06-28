@@ -85,7 +85,7 @@ export default async function MyTasksPage() {
                                         </h3>
                                     </Link>
                                     <div style={{ color: 'var(--text-light)' }}>
-                                        {task.budgetType === 'fixed' ? `${task.budgetAmount} с.` : t('common.negotiable')} • {t('tasks.responseCountLabel', { count: task._count.responses })}
+                                        {task.budgetType === 'fixed' ? `${task.budgetAmount} TJS` : t('common.negotiable')} • {t('tasks.responseCountLabel', { count: task._count.responses })}
                                     </div>
                                 </div>
 

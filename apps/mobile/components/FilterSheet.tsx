@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export interface FilterState {
   category: string;
@@ -33,21 +34,18 @@ export function hasActiveFilters(f: FilterState) {
   return !!(f.category || f.urgency || f.city || f.minBudget || f.maxBudget || f.sort !== 'newest');
 }
 
+const URGENCY_KEYS = [
+  { key: 'all', value: '' },
+  { key: 'urgent', value: 'urgent' },
+  { key: 'normal', value: 'normal' },
+  { key: 'low', value: 'low' },
+] as const;
 
-const URGENCY_OPTIONS = [
-  { label: { ru: 'Все', tj: 'Ҳама', en: 'All' }, value: '' },
-  { label: { ru: 'Срочно', tj: 'Фаврӣ', en: 'Urgent' }, value: 'urgent' },
-  { label: { ru: 'Обычное', tj: 'Оддӣ', en: 'Normal' }, value: 'normal' },
-  { label: { ru: 'Не срочно', tj: 'Бефаврӣ', en: 'Low' }, value: 'low' },
-];
-
-const SORT_OPTIONS = [
-  { label: { ru: 'Новые', tj: 'Нав', en: 'Newest' }, value: 'newest' },
-  { label: { ru: 'Дорогие', tj: 'Гаронтар', en: 'Price ↓' }, value: 'budget-high' },
-  { label: { ru: 'Дешёвые', tj: 'Арзонтар', en: 'Price ↑' }, value: 'budget-low' },
-];
-
-type Locale = 'ru' | 'tj' | 'en';
+const SORT_KEYS = [
+  { key: 'newest', value: 'newest' },
+  { key: 'budgetHigh', value: 'budget-high' },
+  { key: 'budgetLow', value: 'budget-low' },
+] as const;
 
 interface Props {
   visible: boolean;
@@ -55,57 +53,12 @@ interface Props {
   onChange: (f: FilterState) => void;
   onApply: (f: FilterState) => void;
   onClose: () => void;
-  locale: Locale;
   categories?: string[];
 }
 
-const L = {
-  ru: {
-    filters: 'Фильтры',
-    category: 'Категория',
-    all: 'Все',
-    urgency: 'Срочность',
-    sort: 'Сортировка',
-    city: 'Город',
-    cityPlaceholder: 'Например, Душанбе',
-    budget: 'Бюджет (TJS)',
-    from: 'От',
-    to: 'До',
-    reset: 'Сбросить',
-    apply: 'Применить',
-  },
-  tj: {
-    filters: 'Филтрҳо',
-    category: 'Категория',
-    all: 'Ҳама',
-    urgency: 'Фавриёт',
-    sort: 'Мураттабсозӣ',
-    city: 'Шаҳр',
-    cityPlaceholder: 'Масалан, Душанбе',
-    budget: 'Буҷет (ТҶС)',
-    from: 'Аз',
-    to: 'То',
-    reset: 'Тоза кардан',
-    apply: 'Татбиқ кардан',
-  },
-  en: {
-    filters: 'Filters',
-    category: 'Category',
-    all: 'All',
-    urgency: 'Urgency',
-    sort: 'Sort',
-    city: 'City',
-    cityPlaceholder: 'e.g. Dushanbe',
-    budget: 'Budget (TJS)',
-    from: 'From',
-    to: 'To',
-    reset: 'Reset',
-    apply: 'Apply',
-  },
-};
-
-export function FilterSheet({ visible, filters, onChange, onApply, onClose, locale, categories = [] }: Props) {
-  const t = L[locale] ?? L.ru;
+export function FilterSheet({ visible, filters, onChange, onApply, onClose, categories = [] }: Props) {
+  const { t: globalT } = useLanguage();
+  const t = globalT.filterSheet;
   const { colors } = useTheme();
 
   function set(key: keyof FilterState, value: string) {
@@ -146,7 +99,7 @@ export function FilterSheet({ visible, filters, onChange, onApply, onClose, loca
           {/* Urgency */}
           <Text style={[styles.label, { color: colors.textTertiary }]}>{t.urgency}</Text>
           <View style={styles.chips}>
-            {URGENCY_OPTIONS.map((u) => {
+            {URGENCY_KEYS.map((u) => {
               const active = filters.urgency === u.value;
               return (
                 <TouchableOpacity
@@ -155,7 +108,7 @@ export function FilterSheet({ visible, filters, onChange, onApply, onClose, loca
                   onPress={() => set('urgency', u.value)}
                 >
                   <Text style={[styles.chipText, { color: colors.textSecondary }, active && styles.chipTextActive]}>
-                    {u.label[locale] ?? u.label.ru}
+                    {t.urgencyOptions[u.key]}
                   </Text>
                 </TouchableOpacity>
               );
@@ -165,7 +118,7 @@ export function FilterSheet({ visible, filters, onChange, onApply, onClose, loca
           {/* Sort */}
           <Text style={[styles.label, { color: colors.textTertiary }]}>{t.sort}</Text>
           <View style={styles.chips}>
-            {SORT_OPTIONS.map((s) => {
+            {SORT_KEYS.map((s) => {
               const active = filters.sort === s.value;
               return (
                 <TouchableOpacity
@@ -174,7 +127,7 @@ export function FilterSheet({ visible, filters, onChange, onApply, onClose, loca
                   onPress={() => set('sort', s.value)}
                 >
                   <Text style={[styles.chipText, { color: colors.textSecondary }, active && styles.chipTextActive]}>
-                    {s.label[locale] ?? s.label.ru}
+                    {t.sortOptions[s.key]}
                   </Text>
                 </TouchableOpacity>
               );

@@ -234,7 +234,7 @@ export default function CreateTaskPage() {
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                     style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #D1D5DB', outline: 'none', resize: 'vertical' }}
                                 />
-                                <div style={{ textAlign: 'right', fontSize: '0.75rem', color: '#9CA3AF', marginTop: '4px' }}>0 / 2000 символов</div>
+                                <div style={{ textAlign: 'right', fontSize: '0.75rem', color: '#9CA3AF', marginTop: '4px' }}>0 / 2000 characters</div>
                             </div>
 
                             {/* Image Upload Section */}

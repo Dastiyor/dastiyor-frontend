@@ -102,7 +102,7 @@ function RegisterContent() {
         const password = String(formData.get('password') || '');
         const { isStrong, feedback } = checkPasswordStrength(password);
         if (!isStrong || password.length < 8) {
-            setPasswordFeedback(feedback.length ? feedback : ['Пароль должен содержать минимум 8 символов']);
+            setPasswordFeedback(feedback.length ? feedback : ['Password must be at least 8 characters']);
             setIsLoading(false);
             return;
         }
@@ -400,7 +400,7 @@ function RegisterContent() {
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+                            aria-label={showPassword ? 'Hide password' : 'Show password'}
                             style={{
                                 position: 'absolute',
                                 right: '12px',

@@ -216,7 +216,7 @@ function LoginContent() {
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+                            aria-label={showPassword ? 'Hide password' : 'Show password'}
                             style={{
                                 position: 'absolute',
                                 right: '12px',

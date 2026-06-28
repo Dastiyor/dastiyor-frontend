@@ -245,8 +245,8 @@ export default function ProfileScreen() {
           <View style={[styles.rowItem, { borderBottomColor: 'transparent' }]}>
             <Ionicons name="notifications-outline" size={22} color="#F59E0B" style={styles.rowIcon} />
             <View style={styles.rowBody}>
-              <Text style={[styles.rowLabel, { color: colors.text }]}>{t.settings?.notifPopups ?? 'Всплывающие уведомления'}</Text>
-              <Text style={[styles.rowSublabel, { color: colors.textSecondary }]}>{t.settings?.notifPopupsHint ?? 'Показывать баннер при новых сообщениях'}</Text>
+              <Text style={[styles.rowLabel, { color: colors.text }]}>{t.settings?.notifPopups}</Text>
+              <Text style={[styles.rowSublabel, { color: colors.textSecondary }]}>{t.settings?.notifPopupsHint}</Text>
             </View>
             <Switch
               value={popupsEnabled}

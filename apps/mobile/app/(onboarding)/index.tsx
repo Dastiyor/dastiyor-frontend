@@ -24,54 +24,11 @@ const LANG_OPTIONS: { locale: Locale; label: string; sub: string }[] = [
 
 const LANG_CODE: Record<Locale, string> = { ru: 'RU', tj: 'TJ', en: 'EN' };
 
-const CONTENT: Record<Locale, {
-  tagline: string;
-  description: string;
-  features: { icon: string; title: string; body: string }[];
-  cta: string;
-  langTitle: string;
-}> = {
-  ru: {
-    tagline: 'Маркетплейс услуг Таджикистана',
-    description: 'Разместите задание — мастера сами напишут вам с ценой и сроками.',
-    features: [
-      { icon: 'search-outline', title: 'Найдите мастера', body: 'Ремонт, уборка, доставка, IT и десятки других категорий.' },
-      { icon: 'chatbubble-ellipses-outline', title: 'Общайтесь напрямую', body: 'Чат с исполнителем без посредников и скрытых комиссий.' },
-      { icon: 'shield-checkmark-outline', title: 'Надёжно', body: 'Реальные отзывы, рейтинги и проверенные профили.' },
-    ],
-    cta: 'Начать',
-    langTitle: 'Выберите язык',
-  },
-  tj: {
-    tagline: 'Бозори хизматрасонии Тоҷикистон',
-    description: 'Супориш гузоред — устоҳо бо нарх ва мӯҳлат худашон менависанд.',
-    features: [
-      { icon: 'search-outline', title: 'Устоеро ёбед', body: 'Таъмир, тозакорӣ, расонидан, IT ва даҳҳо категорияи дигар.' },
-      { icon: 'chatbubble-ellipses-outline', title: 'Мустақим муошират', body: 'Чат бо иҷрокунанда бе миёнарав ва комиссияи пинҳон.' },
-      { icon: 'shield-checkmark-outline', title: 'Боэтимод', body: 'Шарҳҳои воқеӣ, рейтингҳо ва профилҳои санҷидашуда.' },
-    ],
-    cta: 'Оғоз кардан',
-    langTitle: 'Забонро интихоб кунед',
-  },
-  en: {
-    tagline: 'Tajikistan\'s Services Marketplace',
-    description: 'Post a task and let skilled professionals come to you with offers.',
-    features: [
-      { icon: 'search-outline', title: 'Find a Pro', body: 'Repairs, cleaning, delivery, IT, and dozens more categories.' },
-      { icon: 'chatbubble-ellipses-outline', title: 'Chat Directly', body: 'Talk to your provider with no middlemen or hidden fees.' },
-      { icon: 'shield-checkmark-outline', title: 'Trusted & Safe', body: 'Real reviews, ratings, and verified profiles.' },
-    ],
-    cta: 'Get Started',
-    langTitle: 'Select Language',
-  },
-};
-
 export default function OnboardingScreen() {
-  const { locale, setLocale } = useLanguage();
+  const { locale, setLocale, t: globalT } = useLanguage();
+  const t = globalT.onboarding;
   const [langModal, setLangModal] = useState(false);
   const insets = useSafeAreaInsets();
-
-  const c = CONTENT[locale] ?? CONTENT.ru;
 
   async function finish() {
     await storage.setItem('onboarding_done', '1').catch(() => {});
@@ -101,28 +58,30 @@ export default function OnboardingScreen() {
           <LogoMark size={56} />
         </View>
         <Text style={styles.appName}>Dastiyor</Text>
-        <Text style={styles.tagline}>{c.tagline}</Text>
-        <Text style={styles.description}>{c.description}</Text>
+        <Text style={styles.tagline}>{t.tagline}</Text>
+        <Text style={styles.description}>{t.description}</Text>
       </View>
 
       {/* Features */}
       <View style={styles.features}>
-        {c.features.map((f) => (
-          <View key={f.icon} style={styles.featureRow}>
+        {t.features.map((f: { title: string; body: string }, i: number) => {
+          const icon = i === 0 ? 'search-outline' : i === 1 ? 'chatbubble-ellipses-outline' : 'shield-checkmark-outline';
+          return (
+          <View key={i} style={styles.featureRow}>
             <View style={styles.featureIcon}>
-              <Ionicons name={f.icon as any} size={22} color="#4648d4" />
+              <Ionicons name={icon} size={22} color="#4648d4" />
             </View>
             <View style={styles.featureText}>
               <Text style={styles.featureTitle}>{f.title}</Text>
               <Text style={styles.featureBody}>{f.body}</Text>
             </View>
           </View>
-        ))}
+        )})}
       </View>
 
       {/* CTA */}
-      <TouchableOpacity style={styles.cta} onPress={finish} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={c.cta}>
-        <Text style={styles.ctaText}>{c.cta}</Text>
+      <TouchableOpacity style={styles.cta} onPress={finish} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t.cta}>
+        <Text style={styles.ctaText}>{t.cta}</Text>
         <Ionicons name="arrow-forward" size={20} color="#ffffff" />
       </TouchableOpacity>
 
@@ -131,7 +90,7 @@ export default function OnboardingScreen() {
         <Pressable style={styles.modalOverlay} onPress={() => setLangModal(false)}>
           <Pressable style={styles.modalCard} onPress={() => {}}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{c.langTitle}</Text>
+              <Text style={styles.modalTitle}>{t.langTitle}</Text>
               <TouchableOpacity onPress={() => setLangModal(false)} hitSlop={8}>
                 <Ionicons name="close" size={22} color="#464554" />
               </TouchableOpacity>

@@ -65,7 +65,7 @@ export default function ChangePasswordScreen() {
         />
         {next.length > 0 && (
           pwIssues.length === 0
-            ? <Text style={styles.pwOk}>✓ {cp.passwordStrong ?? 'Надёжный пароль'}</Text>
+            ? <Text style={styles.pwOk}>✓ {cp.passwordStrong}</Text>
             : pwIssues.map((msg, i) => <Text key={i} style={styles.pwErr}>• {msg}</Text>)
         )}
 

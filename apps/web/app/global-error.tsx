@@ -28,10 +28,10 @@ export default function GlobalError({
                     backgroundColor: '#f9fafb',
                 }}>
                     <h2 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#111827' }}>
-                        Что-то пошло не так
+                        Something went wrong
                     </h2>
                     <p style={{ color: '#6b7280', maxWidth: '400px' }}>
-                        Произошла критическая ошибка. Попробуйте перезагрузить страницу.
+                        A critical error occurred. Please try reloading the page.
                     </p>
                     <button
                         onClick={reset}
@@ -46,10 +46,11 @@ export default function GlobalError({
                             cursor: 'pointer',
                         }}
                     >
-                        Перезагрузить
+                        Reload
                     </button>
                 </div>
             </body>
         </html>
     );
 }
+

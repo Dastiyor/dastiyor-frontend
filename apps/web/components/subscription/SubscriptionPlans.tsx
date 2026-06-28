@@ -155,7 +155,7 @@ export default function SubscriptionPlans({ currentPlan }: Props) {
                         <span style={{ fontSize: '3rem', fontWeight: '800', color: 'var(--text)' }}>
                             {plan.price}
                         </span>
-                        <span style={{ fontSize: '1.2rem', color: 'var(--text-light)' }}> с.</span>
+                        <span style={{ fontSize: '1.2rem', color: 'var(--text-light)' }}> TJS</span>
                         <div style={{ color: 'var(--text-light)', fontSize: '0.9rem' }}>
                             {t(plan.periodKey)}
                         </div>

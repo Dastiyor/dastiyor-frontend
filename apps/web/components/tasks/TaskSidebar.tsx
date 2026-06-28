@@ -157,13 +157,13 @@ export default function TaskSidebar({ task, isOwner, canRespond, isLoggedIn }: T
                                         body: JSON.stringify({ taskId: task.id })
                                     });
                                     if (res.ok) {
-                                        toast.success('Задание отменено');
+                                        toast.success(t('common.done'));
                                         setTimeout(() => window.location.reload(), 1000);
                                     } else {
-                                        toast.error('Не удалось отменить задание');
+                                        toast.error(t('common.error'));
                                     }
                                 } catch (e) {
-                                    toast.error('Ошибка отмены задания');
+                                    toast.error(t('common.error'));
                                 }
                             }}
                             className="btn btn-outline"

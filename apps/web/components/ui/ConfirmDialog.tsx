@@ -18,8 +18,8 @@ export function ConfirmDialog({
     isOpen,
     title,
     message,
-    confirmText = 'Подтвердить',
-    cancelText = 'Отмена',
+    confirmText = 'Confirm',
+    cancelText = 'Cancel',
     onConfirm,
     onCancel,
     type = 'warning'
@@ -190,7 +190,7 @@ export function useConfirm() {
 
     const confirm = (
         message: string,
-        title: string = 'Подтверждение',
+        title: string = 'Confirm',
         type: 'danger' | 'warning' | 'info' = 'warning'
     ): Promise<boolean> => {
         return new Promise((resolve) => {

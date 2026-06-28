@@ -23,7 +23,7 @@ export default function CustomerMobileNav() {
         <>
             <button
                 onClick={() => setOpen(v => !v)}
-                aria-label="Открыть меню"
+                aria-label="Open menu"
                 className="mobile-dash-btn"
                 style={{
                     display: 'none',

@@ -168,7 +168,7 @@ export default async function ProfilePage() {
                         {user.role === 'PROVIDER' && (
                             <div style={{ padding: '24px', borderRadius: '16px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
                                 <div style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '8px', color: '#166534' }}>
-                                    {user.balance.toFixed(2)} с.
+                                    {user.balance.toFixed(2)} TJS
                                 </div>
                                 <div style={{ color: '#15803d' }}>{t('profile.balance')}</div>
                             </div>

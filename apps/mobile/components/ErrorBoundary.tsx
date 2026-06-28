@@ -30,9 +30,9 @@ class ErrorBoundaryClass extends React.Component<
 
   render() {
     if (this.state.hasError) {
-      const title = this.props.title ?? 'Что-то пошло не так';
+      const title = this.props.title ?? 'Something went wrong';
       const subtitle = this.props.subtitle ?? '';
-      const retryText = this.props.retryText ?? 'Попробовать снова';
+      const retryText = this.props.retryText ?? 'Try again';
       const {
         bg = '#FFFFFF',
         text = '#111827',

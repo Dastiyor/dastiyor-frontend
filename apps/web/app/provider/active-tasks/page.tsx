@@ -140,7 +140,7 @@ export default async function ActiveTasksPage() {
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                             <DollarSign size={14} />
                                             <span style={{ fontWeight: '600', color: accentColor }}>
-                                                {task.budgetType === 'fixed' ? `${task.budgetAmount} с.` : t('common.negotiable')}
+                                                {task.budgetType === 'fixed' ? `${task.budgetAmount} TJS` : t('common.negotiable')}
                                             </span>
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>

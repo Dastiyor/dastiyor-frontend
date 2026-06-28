@@ -79,7 +79,7 @@ export default async function PaymentHistoryPage() {
                     <div>
                         <div style={{ color: 'var(--text-light)', fontSize: '0.9rem', marginBottom: '8px' }}>{t('provider.totalSpent')}</div>
                         <div style={{ fontSize: '2rem', fontWeight: '700', color: 'var(--primary)' }}>
-                            {totalSpent} с.
+                            {totalSpent} TJS
                         </div>
                     </div>
                     <div>

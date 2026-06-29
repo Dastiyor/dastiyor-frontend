@@ -75,3 +75,6 @@ graphify-out/
 
 # local audit report (not committed)
 PRODUCTION_AUDIT_REPORT.md
+
+# Apple Sign In private keys (.p8) — never commit
+*.p8

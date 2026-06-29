@@ -28,10 +28,13 @@ export async function GET(request: Request) {
     });
 
     const response = NextResponse.redirect(`https://appleid.apple.com/auth/authorize?${params}`);
+    // Apple replies to our callback with a cross-site form_post. SameSite=Lax would
+    // strip this cookie on that cross-site POST, silently disabling the CSRF check —
+    // so it must be SameSite=None; Secure (Apple Sign In is HTTPS-only anyway).
     response.cookies.set('oauth_state_nonce', nonce, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: true,
+        sameSite: 'none',
         maxAge: 300, // 5 minutes — enough time to complete auth
         path: '/',
     });

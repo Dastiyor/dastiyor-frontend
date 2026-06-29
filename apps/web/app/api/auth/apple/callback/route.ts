@@ -27,7 +27,7 @@ async function verifyAppleToken(idToken: string): Promise<{ sub: string; email?:
 
 // Apple sends a POST with form data (response_mode: form_post)
 export async function POST(request: Request) {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin;
 
     try {
         const body = await request.formData();

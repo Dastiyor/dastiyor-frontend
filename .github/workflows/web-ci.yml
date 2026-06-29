@@ -1,0 +1,40 @@
+name: Web CI
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'apps/web/**'
+      - 'packages/types/**'
+      - 'pnpm-lock.yaml'
+  pull_request:
+    paths:
+      - 'apps/web/**'
+      - 'packages/types/**'
+      - 'pnpm-lock.yaml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # pnpm version is read from the root package.json "packageManager" field.
+      # Do not pin it here — action-setup@v4 errors if both are set.
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      # tsc gives fast, whole-project type feedback (this is the check that
+      # would have caught the budgetType regression before it hit Vercel).
+      - run: pnpm --filter @dastiyor/web exec tsc --noEmit
+      # Full production build mirrors what Vercel runs (compile + Next's own
+      # type/lint pass). Placeholder secrets below are never used at build time
+      # — the web build performs no DB access during compilation; real secrets
+      # live in Vercel. They only let Prisma/Next construct cleanly.
+      - run: pnpm --filter @dastiyor/web build
+        env:
+          POSTGRES_PRISMA_URL: postgresql://user:pass@localhost:5432/db?schema=public
+          POSTGRES_URL_NON_POOLING: postgresql://user:pass@localhost:5432/db?schema=public
+          JWT_SECRET: ci-build-placeholder-secret-not-used-at-runtime-0000000000000000

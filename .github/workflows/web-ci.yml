@@ -7,11 +7,16 @@ on:
       - 'apps/web/**'
       - 'packages/types/**'
       - 'pnpm-lock.yaml'
+      - 'turbo.json'
+      - '.github/workflows/web-ci.yml'
   pull_request:
     paths:
       - 'apps/web/**'
       - 'packages/types/**'
       - 'pnpm-lock.yaml'
+      - 'turbo.json'
+      - '.github/workflows/web-ci.yml'
+  workflow_dispatch:
 
 jobs:
   build:

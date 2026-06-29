@@ -72,3 +72,6 @@ public/uploads/
 
 # graphify knowledge graph (generated, rebuild from source)
 graphify-out/
+
+# local audit report (not committed)
+PRODUCTION_AUDIT_REPORT.md

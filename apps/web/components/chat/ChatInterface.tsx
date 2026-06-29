@@ -52,11 +52,11 @@ export default function ChatInterface({ currentUserId }: Props) {
         scrollToBottom();
     }, [messages]);
 
-    const scrollToBottom = () => {
+    function scrollToBottom() {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
+    }
 
-    const fetchMessages = async () => {
+    async function fetchMessages() {
         if (!partnerId) return;
 
         setLoading(true);
@@ -85,7 +85,7 @@ export default function ChatInterface({ currentUserId }: Props) {
         } finally {
             setLoading(false);
         }
-    };
+    }
 
     const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];

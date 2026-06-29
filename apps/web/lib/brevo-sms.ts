@@ -25,7 +25,7 @@ interface SendSMSParams {
     body: string;
 }
 
-export const sendSMS = async ({ recipient, body }: SendSMSParams): Promise<any> => {
+export const sendSMS = async ({ recipient, body }: SendSMSParams) => {
     const client = getBrevoClient();
 
     if (!client) {
@@ -42,7 +42,7 @@ export const sendSMS = async ({ recipient, body }: SendSMSParams): Promise<any> 
             content: body,
             type: 'transactional',
             unicodeEnabled: true,
-        } as any); // 'content' is required by the API but missing from SDK types
+        } as unknown as Parameters<typeof client.transactionalSms.sendTransacSms>[0]); // 'content' is required by the API but missing from SDK types
 
         console.log('Brevo SMS sent successfully:', {
             messageId: response.messageId,
@@ -51,8 +51,8 @@ export const sendSMS = async ({ recipient, body }: SendSMSParams): Promise<any> 
         });
 
         return response;
-    } catch (error: any) {
-        console.error('Brevo SMS Error:', error?.message || error);
+    } catch (error) {
+        console.error('Brevo SMS Error:', error instanceof Error ? error.message : error);
         throw error;
     }
 };

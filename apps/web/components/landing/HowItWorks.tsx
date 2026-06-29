@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { FileText, MessageSquare, Handshake, Search, UserCheck, Wallet, Sparkles } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 
@@ -106,7 +106,7 @@ export default function HowItWorks() {
     );
 }
 
-function StepCard({ step, index }: { step: any, index: number }) {
+function StepCard({ step, index }: { step: { title: string; description: string; icon: ReactNode; color: string }, index: number }) {
     return (
         <div className="glass-panel" style={{
             padding: '40px 30px',

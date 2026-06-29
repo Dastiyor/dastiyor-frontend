@@ -20,7 +20,7 @@ export default async function CreateTaskTemplatePage() {
                 gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
                 gap: '20px'
             }}>
-                {TEMPLATES.map((tmpl: any, i: number) => {
+                {TEMPLATES.map((tmpl, i: number) => {
                     const Icon = icons[i];
                     return (
                         <Link 

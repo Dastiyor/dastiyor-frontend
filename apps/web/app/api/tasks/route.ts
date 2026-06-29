@@ -108,8 +108,8 @@ export async function GET(request: Request) {
                 hasMore: page * limit < total,
             },
         });
-    } catch (error: any) {
-        logger.error('Tasks list error', { error: error.message });
+    } catch (error) {
+        logger.error('Tasks list error', { error: error instanceof Error ? error.message : String(error) });
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
@@ -215,8 +215,8 @@ export async function POST(request: Request) {
             { status: 201 }
         );
 
-    } catch (error: any) {
-        logger.error('Task Creation Error', { error: error.message, stack: error.stack });
+    } catch (error) {
+        logger.error('Task Creation Error', { error: error instanceof Error ? error.message : String(error), stack: error instanceof Error ? error.stack : undefined });
         return NextResponse.json(
             { error: 'Internal Server Error' },
             { status: 500 }

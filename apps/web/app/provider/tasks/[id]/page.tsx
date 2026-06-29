@@ -17,11 +17,11 @@ type Props = {
 
 export default async function ProviderTaskDetailsPage({ params }: Props) {
     const { id } = await params;
-    const task: any = await prisma.task.findUnique({
+    const task = await prisma.task.findUnique({
         where: { id },
         include: {
             user: {
-                select: { id: true, fullName: true, avatar: true, email: true, phone: true }
+                select: { id: true, fullName: true, avatar: true, email: true, phone: true, createdAt: true }
             },
             assignedUser: {
                 select: { id: true, fullName: true, avatar: true, email: true, phone: true }
@@ -63,7 +63,7 @@ export default async function ProviderTaskDetailsPage({ params }: Props) {
 
     // SECURITY: Filter responses so providers only see their own bids
     if (currentUserId !== task.userId) {
-        task.responses = task.responses.filter((r: any) => r.userId === currentUserId);
+        task.responses = task.responses.filter((r) => r.userId === currentUserId);
     }
 
     const isOwner = currentUserId === task.userId;

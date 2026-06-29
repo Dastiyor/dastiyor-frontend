@@ -60,8 +60,9 @@ async function sendWebPush(userId: string, payload: PushPayload): Promise<void> 
                     },
                     pushPayload
                 );
-            } catch (err: any) {
-                if (err.statusCode === 404 || err.statusCode === 410) {
+            } catch (err) {
+                const statusCode = (err as { statusCode?: number }).statusCode;
+                if (statusCode === 404 || statusCode === 410) {
                     expiredIds.push(sub.id);
                 }
             }

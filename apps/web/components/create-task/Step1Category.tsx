@@ -1,10 +1,11 @@
 'use client';
 
 import { useTranslation } from '@/lib/i18n';
+import type { TaskFormData } from './types';
 
 type StepProps = {
-    onNext: (data: any) => void;
-    data: any;
+    onNext: (data: Partial<TaskFormData>) => void;
+    data: TaskFormData;
 };
 
 const CATEGORIES = [

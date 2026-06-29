@@ -56,8 +56,8 @@ export async function POST(request: Request) {
             message: 'Verification documents submitted. Awaiting admin approval.'
         });
 
-    } catch (error: any) {
-        logger.error('Verification submission error', { error: error.message });
+    } catch (error) {
+        logger.error('Verification submission error', { error: error instanceof Error ? error.message : String(error) });
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
@@ -85,8 +85,8 @@ export async function GET(request: Request) {
             documents: user.verificationDocuments ? JSON.parse(user.verificationDocuments) : []
         });
 
-    } catch (error: any) {
-        logger.error('Get verification status error', { error: error.message });
+    } catch (error) {
+        logger.error('Get verification status error', { error: error instanceof Error ? error.message : String(error) });
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

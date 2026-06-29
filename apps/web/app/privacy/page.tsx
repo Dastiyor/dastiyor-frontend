@@ -38,7 +38,7 @@ export default async function PrivacyPage() {
                 <p style={textStyle}>{content.intro}</p>
             </section>
 
-            {content.sections.map((section: any, idx: number) => (
+            {content.sections.map((section, idx: number) => (
                 <section key={idx} style={sectionStyle}>
                     <h2 className="heading-md" style={headingStyle}>{section.title}</h2>
                     {section.intro && <p style={{ ...textStyle, marginBottom: section.list ? '12px' : '0' }}>{section.intro}</p>}

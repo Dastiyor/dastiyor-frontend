@@ -7,7 +7,7 @@ Sentry.init({
     tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
     // Attach correlation ID from middleware as a tag on every event
     beforeSend(event, hint) {
-        const req = hint?.originalException as any;
+        const req = hint?.originalException as { correlationId?: string } | undefined;
         if (req?.correlationId) {
             event.tags = { ...event.tags, correlation_id: req.correlationId };
         }

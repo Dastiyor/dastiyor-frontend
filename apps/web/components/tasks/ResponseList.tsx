@@ -6,9 +6,19 @@ import { toast } from '@/components/ui/Toast';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useTranslation } from '@/lib/i18n';
 
+type ResponseItem = {
+    id: string;
+    userId: string;
+    status: string;
+    price: string;
+    estimatedTime?: string | null;
+    message: string;
+    user: { fullName: string };
+};
+
 type ResponseListProps = {
     taskId: string;
-    responses: any[];
+    responses: ResponseItem[];
     currentUserId: string | null;
     currentUserRole?: string | null;
     taskOwnerId: string;

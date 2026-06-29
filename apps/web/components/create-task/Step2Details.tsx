@@ -3,11 +3,12 @@
 import { useState } from 'react';
 import { toast } from '@/components/ui/Toast';
 import { useTranslation } from '@/lib/i18n';
+import type { TaskFormData } from './types';
 
 type StepProps = {
-    onNext: (data: any) => void;
+    onNext: (data: Partial<TaskFormData>) => void;
     onBack: () => void;
-    data: any;
+    data: TaskFormData;
 };
 
 export default function Step2Details({ onNext, onBack, data }: StepProps) {
@@ -62,8 +63,8 @@ export default function Step2Details({ onNext, onBack, data }: StepProps) {
                 e.preventDefault();
                 const formData = new FormData(e.currentTarget);
                 onNext({
-                    title: formData.get('title'),
-                    description: formData.get('description'),
+                    title: String(formData.get('title') ?? ''),
+                    description: String(formData.get('description') ?? ''),
                     images: images
                 });
             }} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>

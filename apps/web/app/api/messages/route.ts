@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { sendNewMessageNotification } from '@/lib/notifications/email';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
@@ -27,7 +28,7 @@ export async function GET(request: Request) {
         }
 
         // Get messages between these two users (optionally filtered by task)
-        const whereClause: any = {
+        const whereClause: Prisma.MessageWhereInput = {
             OR: [
                 { senderId: userId, receiverId: otherId },
                 { senderId: otherId, receiverId: userId }

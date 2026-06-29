@@ -36,8 +36,8 @@ function VerifyPhoneContent() {
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || t('auth.oauthFailed'));
             setStep('code');
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : String(err));
         } finally {
             setLoading(false);
         }
@@ -58,8 +58,8 @@ function VerifyPhoneContent() {
             if (!res.ok) throw new Error(data.error || t('auth.oauthFailed'));
             // Full reload so server components pick up the verified state
             window.location.href = redirectTo;
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : String(err));
             setLoading(false);
         }
     }

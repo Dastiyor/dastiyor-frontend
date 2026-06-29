@@ -55,7 +55,17 @@ export default async function ProviderMessagesPage() {
     });
 
     // Group by conversation partner
-    const conversationsMap = new Map<string, any>();
+    type Conversation = {
+        id: string;
+        partnerId: string;
+        partnerName: string;
+        taskId: string | null;
+        taskTitle: string | null;
+        lastMessage: string;
+        lastMessageAt: Date;
+        unreadCount: number;
+    };
+    const conversationsMap = new Map<string, Conversation>();
 
     messages.forEach(msg => {
         const partnerId = msg.senderId === userId ? msg.receiverId : msg.senderId;
@@ -78,7 +88,7 @@ export default async function ProviderMessagesPage() {
 
         if (msg.receiverId === userId && !msg.isRead) {
             const conv = conversationsMap.get(key);
-            conv.unreadCount++;
+            if (conv) conv.unreadCount++;
         }
     });
 

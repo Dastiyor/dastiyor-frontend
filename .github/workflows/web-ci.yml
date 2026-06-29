@@ -34,6 +34,8 @@ jobs:
       # tsc gives fast, whole-project type feedback (this is the check that
       # would have caught the budgetType regression before it hit Vercel).
       - run: pnpm --filter @dastiyor/web exec tsc --noEmit
+      - run: pnpm --filter @dastiyor/web lint
+      - run: pnpm --filter @dastiyor/web test
       # Full production build mirrors what Vercel runs (compile + Next's own
       # type/lint pass). Placeholder secrets below are never used at build time
       # — the web build performs no DB access during compilation; real secrets

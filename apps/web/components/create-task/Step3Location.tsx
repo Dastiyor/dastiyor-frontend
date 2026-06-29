@@ -1,7 +1,9 @@
+import type { TaskFormData } from './types';
+
 type StepProps = {
-    onNext: (data: any) => void;
+    onNext: (data: Partial<TaskFormData>) => void;
     onBack: () => void;
-    data: any;
+    data: TaskFormData;
 };
 
 export default function Step3Location({ onNext, onBack, data }: StepProps) {
@@ -13,8 +15,8 @@ export default function Step3Location({ onNext, onBack, data }: StepProps) {
                 e.preventDefault();
                 const formData = new FormData(e.currentTarget);
                 onNext({
-                    city: formData.get('city'),
-                    address: formData.get('address'),
+                    city: String(formData.get('city') ?? ''),
+                    address: String(formData.get('address') ?? ''),
                 });
             }} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 

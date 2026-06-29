@@ -117,7 +117,7 @@ export default function CreateTaskPage() {
         setFormData(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }));
     };
 
-    const handleSubmit = async (finalData: any) => {
+    const handleSubmit = async (finalData: typeof formData) => {
         setIsSubmitting(true);
         try {
             const res = await fetch('/api/tasks', {
@@ -151,8 +151,8 @@ export default function CreateTaskPage() {
             // Redirect to the new task details
             setTimeout(() => router.push(`/tasks/${json.task.id}`), 1000);
 
-        } catch (error: any) {
-            toast.error(t('createTask.createError', { message: error.message }));
+        } catch (error) {
+            toast.error(t('createTask.createError', { message: error instanceof Error ? error.message : String(error) }));
             setIsSubmitting(false);
         }
     };

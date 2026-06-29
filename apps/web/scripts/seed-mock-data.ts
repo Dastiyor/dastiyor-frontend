@@ -28,7 +28,7 @@ async function seedMockData() {
         console.log(`📊 Found ${existingUsers.length} existing users`);
 
         // Create additional test users if needed
-        let users = [...existingUsers];
+        const users = [...existingUsers];
         console.log('👥 Creating additional test users if needed...');
         const hashedPassword = await bcrypt.hash('password123', 10);
 

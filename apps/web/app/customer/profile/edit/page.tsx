@@ -30,11 +30,7 @@ export default function CustomerEditProfilePage() {
         avatar: ''
     });
 
-    useEffect(() => {
-        fetchProfile();
-    }, []);
-
-    const fetchProfile = async () => {
+    async function fetchProfile() {
         try {
             const res = await fetch('/api/profile');
             if (res.ok) {
@@ -54,7 +50,11 @@ export default function CustomerEditProfilePage() {
         } finally {
             setLoading(false);
         }
-    };
+    }
+
+    useEffect(() => {
+        fetchProfile();
+    }, []);
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];

@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 import TaskFilterSidebar from '@/components/tasks/TaskFilterSidebar';
 import TaskSortSelect from '@/components/tasks/TaskSortSelect';
 import TasksFeed from '@/components/tasks/TasksFeed';
@@ -28,7 +29,7 @@ export default async function TasksPage({ searchParams }: Props) {
     const { t } = await getServerTranslation();
 
     // Get category counts — apply city/query filters so sidebar reflects current filter context
-    const categoryCountWhere: any = { status: 'OPEN' };
+    const categoryCountWhere: Prisma.TaskWhereInput = { status: 'OPEN' };
     if (city) categoryCountWhere.city = { contains: city, mode: 'insensitive' };
     if (query) {
         categoryCountWhere.OR = [
@@ -47,7 +48,7 @@ export default async function TasksPage({ searchParams }: Props) {
     const hasFilter = category || city || minBudget || maxBudget || urgency || query;
     let filteredCount = totalOpenTasks;
     if (hasFilter) {
-        const where: any = { status: 'OPEN' };
+        const where: Prisma.TaskWhereInput = { status: 'OPEN' };
         if (category) where.category = category;
         if (city) where.city = { contains: city, mode: 'insensitive' };
         if (urgency) {
@@ -63,7 +64,7 @@ export default async function TasksPage({ searchParams }: Props) {
         }
         if (minBudget || maxBudget) {
             where.AND = where.AND || [];
-            where.AND.push({
+            (where.AND as Prisma.TaskWhereInput[]).push({
                 OR: [
                     { budgetType: 'negotiable' },
                     {

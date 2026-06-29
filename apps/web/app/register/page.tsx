@@ -130,8 +130,8 @@ function RegisterContent() {
             // Use full page reload to ensure server components refresh
             // This ensures the Header component re-renders with the new auth state
             window.location.href = '/';
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : String(err));
         } finally {
             setIsLoading(false);
         }

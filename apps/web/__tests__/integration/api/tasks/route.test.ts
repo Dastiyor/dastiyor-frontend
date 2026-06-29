@@ -36,6 +36,11 @@ describe('/api/tasks Route', () => {
         jest.clearAllMocks();
         (getClientIP as jest.Mock).mockReturnValue('127.0.0.1');
         (checkRateLimit as jest.Mock).mockReturnValue({ allowed: true });
+        // POST looks up the author for the OAuth phone-verification gate.
+        // A password user (not OAuth-only) passes the gate.
+        prismaMock.user.findUnique.mockResolvedValue({
+            password: 'hashed', googleId: null, appleId: null, phoneVerified: true,
+        } as any);
     });
 
     describe('GET /api/tasks', () => {

@@ -34,7 +34,7 @@ const CITIES = [
 ];
 
 interface TaskFilterSidebarProps {
-    categoryCounts?: any[];
+    categoryCounts?: Array<{ category: string; _count: number }>;
     totalOpenTasks?: number;
 }
 

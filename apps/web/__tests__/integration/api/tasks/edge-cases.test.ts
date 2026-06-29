@@ -31,6 +31,11 @@ describe('Tasks API Edge Cases & Error Handling', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         (getClientIP as jest.Mock).mockReturnValue('127.0.0.1');
+        // POST looks up the author for the OAuth phone-verification gate.
+        // A password user (not OAuth-only) passes the gate.
+        prismaMock.user.findUnique.mockResolvedValue({
+            password: 'hashed', googleId: null, appleId: null, phoneVerified: true,
+        } as any);
     });
 
     it('should block requests exhibiting rapid rate limits', async () => {

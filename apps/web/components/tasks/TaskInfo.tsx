@@ -3,7 +3,18 @@
 import { useTranslation } from '@/lib/i18n';
 
 type TaskInfoProps = {
-    task: any;
+    task: {
+        status: string;
+        createdAt: string | Date;
+        budgetType: string;
+        budgetAmount: string | null;
+        title: string;
+        category: string;
+        city: string;
+        address: string | null;
+        description: string;
+        images: string | null;
+    };
 };
 
 export default function TaskInfo({ task }: TaskInfoProps) {

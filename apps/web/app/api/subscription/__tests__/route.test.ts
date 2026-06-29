@@ -11,6 +11,9 @@ jest.mock('@/lib/auth', () => ({
     getBearerToken: jest.fn(() => null), // return null → fall through to cookie
 }));
 jest.mock('next/headers', () => ({ cookies: jest.fn() }));
+// Subscriptions are gated off in prod via SUBSCRIPTIONS_ENABLED; force it on
+// here so the POST tests still exercise the SmartPay payment flow.
+jest.mock('@/lib/features', () => ({ SUBSCRIPTIONS_ENABLED: true }));
 jest.mock('@/lib/payments', () => ({
     PLANS: {
         basic: { name: 'Basic', nameRu: 'Базовый', price: 99, durationDays: 7 },

@@ -34,7 +34,20 @@ export async function GET(request: Request) {
         });
 
         // Group by conversation partner
-        const conversationsMap = new Map<string, any>();
+        type Conversation = {
+            id: string;
+            partnerId: string;
+            partnerName: string;
+            partnerAvatar: string | null;
+            partnerRole: string | null;
+            taskId: string | null;
+            taskTitle: string | null;
+            taskCategory: string | null;
+            lastMessage: string;
+            lastMessageAt: Date;
+            unreadCount: number;
+        };
+        const conversationsMap = new Map<string, Conversation>();
 
         messages.forEach(msg => {
             const partnerId = msg.senderId === userId ? msg.receiverId : msg.senderId;
@@ -44,14 +57,14 @@ export async function GET(request: Request) {
             const key = msg.taskId ? `${partnerId}-${msg.taskId}` : partnerId;
 
             if (!conversationsMap.has(key)) {
-                const partnerSkills = (partner as any).skills as string | null;
+                const partnerSkills = partner.skills;
                 const firstSkill = partnerSkills ? partnerSkills.split(',')[0].trim() : null;
                 const badge = msg.task?.category || firstSkill || null;
                 conversationsMap.set(key, {
                     id: key,
                     partnerId,
                     partnerName: partner.fullName,
-                    partnerAvatar: (partner as any).avatar ?? null,
+                    partnerAvatar: partner.avatar ?? null,
                     partnerRole: badge,
                     taskId: msg.taskId,
                     taskTitle: msg.task?.title || null,
@@ -65,7 +78,7 @@ export async function GET(request: Request) {
             // Count unread messages
             if (msg.receiverId === userId && !msg.isRead) {
                 const conv = conversationsMap.get(key);
-                conv.unreadCount++;
+                if (conv) conv.unreadCount++;
             }
         });
 

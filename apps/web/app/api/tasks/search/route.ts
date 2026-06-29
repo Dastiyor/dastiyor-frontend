@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 
 // GET - Advanced search with full-text search
@@ -18,7 +19,7 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'Search query must be at least 2 characters' }, { status: 400 });
         }
 
-        const where: any = {
+        const where: Prisma.TaskWhereInput = {
             status: 'OPEN',
             OR: [
                 { title: { contains: query, mode: 'insensitive' } },
@@ -40,7 +41,7 @@ export async function GET(request: Request) {
             const min = minBudget ? parseInt(minBudget, 10) : undefined;
             const max = maxBudget ? parseInt(maxBudget, 10) : undefined;
             where.AND = where.AND || [];
-            where.AND.push({
+            (where.AND as Prisma.TaskWhereInput[]).push({
                 OR: [
                     { budgetType: 'negotiable' },
                     {

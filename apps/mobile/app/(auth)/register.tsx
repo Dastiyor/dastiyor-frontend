@@ -32,6 +32,8 @@ WebBrowser.maybeCompleteAuthSession();
 
 type Role = 'customer' | 'provider';
 
+const ROLE_ICONS = { customer: 'clipboard-outline', provider: 'construct-outline' } as const;
+
 export default function RegisterScreen() {
   const { register, loginWithGoogle, loginWithApple } = useAuth();
   const { t, locale } = useLanguage();

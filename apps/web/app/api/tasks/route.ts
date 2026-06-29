@@ -88,6 +88,7 @@ export async function GET(request: Request) {
             title: task.title,
             category: task.category,
             budget: task.budgetType === 'fixed' ? `${task.budgetAmount} TJS` : 'Договорная',
+            budgetType: task.budgetType,
             city: task.city,
             postedAt: new Date(task.createdAt).toLocaleDateString('ru-RU'),
             description: task.description,

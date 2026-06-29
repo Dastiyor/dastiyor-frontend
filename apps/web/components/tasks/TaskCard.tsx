@@ -11,6 +11,7 @@ export type Task = {
     title: string;
     category: string;
     budget: string;
+    budgetType?: string;
     city: string;
     postedAt: string;
     description: string;

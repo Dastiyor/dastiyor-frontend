@@ -252,7 +252,6 @@ export default function TaskBrowseScreen() {
         filters={filters}
         onChange={setFilters}
         onClose={() => setFilterVisible(false)}
-        locale={locale}
         categories={config.categories}
         onApply={(f) => {
           setFilters(f);

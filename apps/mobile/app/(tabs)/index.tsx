@@ -359,7 +359,6 @@ export default function HomeScreen() {
         filters={filters}
         onChange={setFilters}
         onClose={() => setFilterVisible(false)}
-        locale={locale}
         categories={config.categories}
         onApply={(f) => {
           setFilterVisible(false);

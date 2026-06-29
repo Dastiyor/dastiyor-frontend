@@ -32,7 +32,7 @@ describe('ErrorBoundary', () => {
         <ThrowingChild shouldThrow={true} />
       </ErrorBoundary>
     );
-    expect(getByText('Что-то пошло не так')).toBeTruthy();
+    expect(getByText('Something went wrong')).toBeTruthy();
     expect(queryByText('Test crash message')).toBeNull();
   });
 
@@ -42,7 +42,7 @@ describe('ErrorBoundary', () => {
         <ThrowingChild shouldThrow={true} />
       </ErrorBoundary>
     );
-    expect(getByText('Попробовать снова')).toBeTruthy();
+    expect(getByText('Try again')).toBeTruthy();
   });
 
   it('resets error state when retry button pressed', () => {
@@ -59,7 +59,7 @@ describe('ErrorBoundary', () => {
       </ErrorBoundary>
     );
 
-    const retryBtn = instance.getByText('Попробовать снова');
+    const retryBtn = instance.getByText('Try again');
     fireEvent.press(retryBtn);
 
     // After reset, error UI should disappear (children may throw again, but state resets)

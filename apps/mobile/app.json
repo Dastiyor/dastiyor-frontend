@@ -7,6 +7,12 @@
     "orientation": "portrait",
     "scheme": "dastiyor",
     "icon": "./assets/icon.png",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/b8f37e8c-c58b-4c1e-bacf-d484d1539f98"
+    },
     "platforms": [
       "ios",
       "android"

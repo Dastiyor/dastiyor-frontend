@@ -7,3 +7,10 @@ expo-env.d.ts
 # Generated native projects (expo prebuild / CNG)
 android/
 ios/
+
+# Sentry wizard artifacts
+.sentryclirc
+sentry-wizard-installation-error-*.log
+
+# Logs
+*.log

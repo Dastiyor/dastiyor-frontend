@@ -1,5 +1,6 @@
 import Constants from 'expo-constants';
 import { Linking } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 
 export function getPrivacyPolicyUrl(): string {
   return (
@@ -16,9 +17,25 @@ export function getTermsOfServiceUrl(): string {
 }
 
 export async function openPrivacyPolicy(): Promise<void> {
-  await Linking.openURL(getPrivacyPolicyUrl());
+  try {
+    await WebBrowser.openBrowserAsync(getPrivacyPolicyUrl(), {
+      readerMode: false,
+      enableBarCollapsing: true,
+      dismissButtonStyle: 'close',
+    });
+  } catch {
+    await Linking.openURL(getPrivacyPolicyUrl());
+  }
 }
 
 export async function openTermsOfService(): Promise<void> {
-  await Linking.openURL(getTermsOfServiceUrl());
+  try {
+    await WebBrowser.openBrowserAsync(getTermsOfServiceUrl(), {
+      readerMode: false,
+      enableBarCollapsing: true,
+      dismissButtonStyle: 'close',
+    });
+  } catch {
+    await Linking.openURL(getTermsOfServiceUrl());
+  }
 }

@@ -22,7 +22,13 @@ export function EmptyState({ icon, title, subtitle, actionLabel, onAction }: Pro
       <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
       {subtitle ? <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{subtitle}</Text> : null}
       {actionLabel && onAction ? (
-        <TouchableOpacity style={styles.btn} onPress={onAction} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={styles.btn}
+          onPress={onAction}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel={actionLabel}
+        >
           <Text style={styles.btnText}>{actionLabel}</Text>
         </TouchableOpacity>
       ) : null}

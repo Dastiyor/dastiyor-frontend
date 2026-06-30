@@ -35,7 +35,7 @@ export default function RootIndex() {
   return (
     <View style={styles.container}>
       <View style={styles.logoBox}>
-        <LogoMark size={64} color="#4648d4" />
+        <LogoMark size={64} color="#2563EB" />
       </View>
       <LogoWordmark size={32} color="#ffffff" />
     </View>
@@ -45,7 +45,7 @@ export default function RootIndex() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#4648d4',
+    backgroundColor: '#2563EB',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 24,

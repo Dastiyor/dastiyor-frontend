@@ -15,9 +15,18 @@ interface EnvConfig {
     POSTGRES_PRISMA_URL: string;
     JWT_SECRET: string;
     NODE_ENV: 'development' | 'production' | 'test';
+    GOOGLE_CLIENT_ID: string;
+    GOOGLE_CLIENT_SECRET: string;
+    NEXT_PUBLIC_APP_URL: string;
 }
 
 const requiredEnvVars: (keyof EnvConfig)[] = ['POSTGRES_PRISMA_URL', 'JWT_SECRET', 'NODE_ENV'];
+
+const optionalButWarn: { key: string; label: string }[] = [
+    { key: 'GOOGLE_CLIENT_ID', label: 'Google OAuth' },
+    { key: 'GOOGLE_CLIENT_SECRET', label: 'Google OAuth' },
+    { key: 'NEXT_PUBLIC_APP_URL', label: 'App URL (used for absolute links and OAuth redirect URIs)' },
+];
 
 export function validateEnv(): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
@@ -44,6 +53,13 @@ export function validateEnv(): { isValid: boolean; errors: string[] } {
         const dbUrl = process.env.POSTGRES_PRISMA_URL;
         if (!dbUrl.startsWith('postgresql://') && !dbUrl.startsWith('postgres://')) {
             errors.push('POSTGRES_PRISMA_URL must start with postgresql:// or postgres://');
+        }
+    }
+
+    // Warn about optional but recommended variables
+    for (const { key, label } of optionalButWarn) {
+        if (!process.env[key]) {
+            console.warn(`[env-validation] ${key} (${label}) is not set. Related functionality will be unavailable.`);
         }
     }
 

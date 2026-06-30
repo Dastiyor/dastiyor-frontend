@@ -48,6 +48,9 @@ yarn-error.log*
 .env*
 .env*.local
 
+# Google OAuth client credentials — never commit
+client_secret_*.json
+
 # vercel
 .vercel
 

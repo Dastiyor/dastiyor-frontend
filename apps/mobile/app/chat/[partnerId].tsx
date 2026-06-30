@@ -67,9 +67,10 @@ export default function ChatScreen() {
       if (pollErrorCount.current === 1) {
         toast.show(t.chat.loadError, 'error');
       }
-      // exponential backoff: 4s → 8s → 16s → 30s cap
+      // exponential backoff: 8s → 16s → 30s cap. Keep polling at the capped
+      // cadence so the chat self-heals once connectivity returns instead of
+      // going silent for the rest of the session.
       pollDelayRef.current = Math.min(pollDelayRef.current * 2, 30_000);
-      if (pollErrorCount.current >= 5) return;
     }
   }
 
@@ -78,7 +79,7 @@ export default function ChatScreen() {
       if (appStateRef.current === 'active') {
         await fetchMessages(false);
       }
-      if (pollErrorCount.current < 5) schedulePoll();
+      schedulePoll();
     }, pollDelayRef.current);
   }
 
@@ -115,17 +116,37 @@ export default function ChatScreen() {
 
   async function sendMessage() {
     const content = text.trim();
-    if (!content || sending) return;
+    if (!content || sending || !user) return;
     setSending(true);
     setText('');
     isAtBottomRef.current = true;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    // Optimistically render the outgoing bubble so the UI feels instant; it is
+    // reconciled by the follow-up fetch, or rolled back if the send fails.
+    const tempId = `temp-${Date.now()}`;
+    const optimistic: ChatMessage = {
+      id: tempId,
+      content,
+      imageUrl: null,
+      senderId: user.id,
+      receiverId: partnerId,
+      taskId: taskId ?? null,
+      isRead: false,
+      createdAt: new Date().toISOString(),
+      sender: { id: user.id, fullName: user.fullName },
+    };
+    setMessages((prev) => [...prev, optimistic]);
+    if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
+    scrollTimerRef.current = setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
+
     try {
       await api.post('/api/messages', { receiverId: partnerId, content, taskId: taskId || undefined });
       await fetchMessages(false);
       if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
       scrollTimerRef.current = setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
     } catch {
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
       setText(content);
       toast.show(t.chat.sendError, 'error');
     } finally {

@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { useColorScheme } from 'react-native';
 import * as storage from '@/lib/storage';
 
 export type ThemeMode = 'light' | 'dark';
@@ -67,16 +68,21 @@ const ThemeContext = createContext<ThemeState | null>(null);
 const STORE_KEY = 'app_theme';
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<ThemeMode>('light');
+  // `override` is the user's explicit choice; `null` means "follow the system
+  // appearance" (HIG-recommended default).
+  const [override, setOverride] = useState<ThemeMode | null>(null);
+  const systemScheme = useColorScheme();
 
   useEffect(() => {
     storage.getItem(STORE_KEY).then((val) => {
-      if (val === 'dark' || val === 'light') setThemeState(val);
+      if (val === 'dark' || val === 'light') setOverride(val);
     }).catch(() => {});
   }, []);
 
+  const theme: ThemeMode = override ?? (systemScheme === 'dark' ? 'dark' : 'light');
+
   function setTheme(mode: ThemeMode) {
-    setThemeState(mode);
+    setOverride(mode);
     storage.setItem(STORE_KEY, mode).catch(() => {});
   }
 

@@ -7,6 +7,7 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "environment": "development",
       "ios": {
         "simulator": true
       },
@@ -17,6 +18,7 @@
     "preview": {
       "distribution": "internal",
       "channel": "preview",
+      "environment": "preview",
       "ios": {
         "simulator": false
       },
@@ -27,6 +29,7 @@
     "production": {
       "autoIncrement": true,
       "channel": "production",
+      "environment": "production",
       "ios": {
         "image": "latest"
       },
@@ -38,9 +41,8 @@
   "submit": {
     "production": {
       "ios": {
-        "appleId": "",
-        "ascAppId": "",
-        "appleTeamId": ""
+        "appleId": "mukhammad1005@gmail.com",
+        "appleTeamId": "X2K665V4X7"
       },
       "android": {
         "serviceAccountKeyPath": "./google-service-account.json",

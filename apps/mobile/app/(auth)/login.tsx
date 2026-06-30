@@ -14,7 +14,6 @@ import {
 import { Link, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import * as storage from '@/lib/storage';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import * as AppleAuthentication from 'expo-apple-authentication';
@@ -109,11 +108,6 @@ export default function LoginScreen() {
     } finally {
       setAppleLoading(false);
     }
-  }
-
-  async function resetOnboarding() {
-    await storage.deleteItem('onboarding_done');
-    router.replace('/(onboarding)');
   }
 
   const isAppleAvailable = Platform.OS === 'ios';
@@ -221,12 +215,6 @@ export default function LoginScreen() {
         <Link href="/(auth)/register" style={[styles.link, { color: colors.textSecondary }]}>
           {L.reg} <Text style={[styles.linkBold, { color: colors.accent }]}>{L.regLink}</Text>
         </Link>
-
-        {__DEV__ && (
-          <TouchableOpacity style={styles.devBtn} onPress={resetOnboarding}>
-            <Text style={styles.devBtnText}>DEV: Reset onboarding</Text>
-          </TouchableOpacity>
-        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -269,6 +257,4 @@ const styles = StyleSheet.create({
   forgotLinkText: { fontSize: 14 },
   link: { textAlign: 'center', marginTop: 20, fontSize: 14 },
   linkBold: { fontWeight: '600' },
-  devBtn: { marginTop: 32, alignItems: 'center' },
-  devBtnText: { color: '#D1D5DB', fontSize: 12, textDecorationLine: 'underline' },
 });

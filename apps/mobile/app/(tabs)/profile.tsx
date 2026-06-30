@@ -294,7 +294,7 @@ export default function ProfileScreen() {
         </View>
 
         <Text style={[styles.versionText, { color: colors.textTertiary }]}>
-          v{Constants.expoConfig?.version ?? Constants.manifest?.version ?? '—'}
+          v{Constants.expoConfig?.version ?? '—'}
         </Text>
 
       </ScrollView>

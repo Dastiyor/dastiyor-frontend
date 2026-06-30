@@ -101,15 +101,24 @@ export function initAnalytics() {
   const key = process.env.EXPO_PUBLIC_POSTHOG_KEY;
   if (!key) return;
 
-  loadPostHog(key).catch(() => {
+  try {
+    loadPostHog(key);
+  } catch {
     /* keep console transport on adapter failure */
-  });
+  }
 }
 
-async function loadPostHog(apiKey: string) {
-  const moduleName = 'posthog-react-native';
+function loadPostHog(apiKey: string) {
+  // Literal require so Metro bundles it and Hermes can compile the release build
+  // (a variable `import()` fails Hermes with "Invalid expression encountered").
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const mod: any = await import(/* webpackIgnore: true */ moduleName).catch(() => null);
+  let mod: any = null;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    mod = require('posthog-react-native');
+  } catch {
+    return;
+  }
   const PostHog = mod?.default ?? mod?.PostHog;
   if (!PostHog) return;
 

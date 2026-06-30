@@ -49,9 +49,11 @@ function navigateFromNotificationData(data: NotificationData | undefined) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function loadNotificationsModule(): Promise<any | null> {
+function loadNotificationsModule(): any | null {
   try {
-    return await import('expo-notifications');
+    // Literal require so Metro bundles it and Hermes can compile the release build.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return require('expo-notifications');
   } catch {
     return null;
   }
@@ -64,7 +66,7 @@ export async function initNotificationHandlers(): Promise<void> {
   if (initialized) return;
   initialized = true;
 
-  const Notifications = await loadNotificationsModule();
+  const Notifications = loadNotificationsModule();
   if (!Notifications?.setNotificationHandler) return;
 
   Notifications.setNotificationHandler({

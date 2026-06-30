@@ -85,17 +85,26 @@ export function initErrorReporting() {
   const dsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
   if (!dsn) return; // dev / not configured → console reporter stays
 
-  // Lazy-load the native SDK so the module graph never statically depends on it.
-  loadSentry(dsn).catch((err) => {
+  // Load the native SDK lazily + guarded so the module graph stays import-safe
+  // when Sentry isn't available.
+  try {
+    loadSentry(dsn);
+  } catch (err) {
     consoleReporter.captureException(err, { phase: 'sentry-init' });
-  });
+  }
 }
 
-async function loadSentry(dsn: string) {
-  // Indirection keeps Metro/Jest from trying to statically resolve the module.
-  const moduleName = '@sentry/react-native';
+function loadSentry(dsn: string) {
+  // Literal require so Metro bundles it and Hermes can compile the release build
+  // (a variable `import()` fails Hermes with "Invalid expression encountered").
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const Sentry: any = await import(/* webpackIgnore: true */ moduleName).catch(() => null);
+  let Sentry: any = null;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    Sentry = require('@sentry/react-native');
+  } catch {
+    return;
+  }
   if (!Sentry?.init) return;
 
   Sentry.init({ dsn, tracesSampleRate: 0.2 });

@@ -9,6 +9,19 @@ jest.mock('expo-secure-store', () => ({
   isAvailableAsync: jest.fn().mockResolvedValue(true),
 }));
 
+// Mock expo-notifications / expo-device — the real modules register push-token
+// listeners and timers on import, which leak into Jest workers and cause flaky
+// teardown. Defaults model "not a granted physical device" so push degrades to null.
+jest.mock('expo-notifications', () => ({
+  getExpoPushTokenAsync: jest.fn().mockResolvedValue({ data: 'ExponentPushToken[test]' }),
+  getPermissionsAsync: jest.fn().mockResolvedValue({ status: 'undetermined' }),
+  requestPermissionsAsync: jest.fn().mockResolvedValue({ status: 'denied' }),
+  setNotificationHandler: jest.fn(),
+  addNotificationResponseReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
+  getLastNotificationResponseAsync: jest.fn().mockResolvedValue(null),
+}));
+jest.mock('expo-device', () => ({ isDevice: false }));
+
 // Mock expo-router
 jest.mock('expo-router', () => ({
   router: {

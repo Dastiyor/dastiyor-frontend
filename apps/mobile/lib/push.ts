@@ -11,11 +11,22 @@ import { api } from '@/lib/api-client';
 
 export type PushPermission = 'granted' | 'denied' | 'unavailable';
 
+// Lazily load optional native modules using literal specifiers so Metro bundles
+// them and Hermes can compile the release build — a variable `import()` fails
+// Hermes with "Invalid expression encountered". Guarded so the module stays safe
+// under Jest / web / a build missing a given native dep.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function loadModule(name: string): Promise<any | null> {
+function loadModule(name: string): any | null {
   try {
-    // Indirection prevents static resolution by the bundler / Jest.
-    return await import(/* webpackIgnore: true */ name);
+    switch (name) {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      case 'expo-notifications': return require('expo-notifications');
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      case 'expo-device': return require('expo-device');
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      case 'expo-constants': return require('expo-constants');
+      default: return null;
+    }
   } catch {
     return null;
   }
@@ -26,8 +37,8 @@ async function loadModule(name: string): Promise<any | null> {
  * (web, simulator, denied permission, or native module not installed).
  */
 export async function getExpoPushToken(): Promise<string | null> {
-  const Notifications = await loadModule('expo-notifications');
-  const Device = await loadModule('expo-device');
+  const Notifications = loadModule('expo-notifications');
+  const Device = loadModule('expo-device');
   if (!Notifications?.getExpoPushTokenAsync) return null;
 
   // Push only works on physical devices.
@@ -45,7 +56,7 @@ export async function getExpoPushToken(): Promise<string | null> {
     // EAS injects the project id at build time. Read from every location it can
     // surface so a valid linked project always resolves: app config `extra.eas`
     // (what `eas init` writes) and the runtime `easConfig`.
-    const Constants = (await loadModule('expo-constants'))?.default;
+    const Constants = loadModule('expo-constants')?.default;
     const projectId: string | undefined =
       Constants?.expoConfig?.extra?.eas?.projectId ??
       Constants?.easConfig?.projectId ??

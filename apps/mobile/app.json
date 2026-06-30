@@ -139,7 +139,14 @@
           "color": "#2563EB"
         }
       ],
-      "@sentry/react-native"
+      [
+        "@sentry/react-native/expo",
+        {
+          "organization": "dastiyor",
+          "project": "react-native",
+          "url": "https://sentry.io/"
+        }
+      ]
     ],
     "extra": {
       "eas": {

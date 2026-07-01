@@ -24,7 +24,7 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.dastiyor.app",
+      "bundleIdentifier": "com.dastiyor.ios",
       "buildNumber": "1",
       "usesAppleSignIn": true,
       "infoPlist": {
@@ -32,7 +32,7 @@
         "CFBundleURLTypes": [
           {
             "CFBundleURLSchemes": [
-              "com.googleusercontent.apps.879800960695-bs42pk86fha52g9torto0kmtfguc5in6"
+              "com.googleusercontent.apps.879800960695-cgt63devjbu7bunbseln8mu16a0httk0"
             ]
           }
         ]

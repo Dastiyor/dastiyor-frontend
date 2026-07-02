@@ -34,6 +34,11 @@
             "CFBundleURLSchemes": [
               "com.googleusercontent.apps.879800960695-cgt63devjbu7bunbseln8mu16a0httk0"
             ]
+          },
+          {
+            "CFBundleURLSchemes": [
+              "dastiyor"
+            ]
           }
         ]
       },
@@ -104,7 +109,7 @@
         "NSPrivacyAccessedAPITypes": [
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
-            "NSPrivacyAccessedAPITypeReasons": ["C617.1"]
+            "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]
           },
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryDiskSpace",

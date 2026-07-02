@@ -313,7 +313,6 @@ const translations = {
       sent: 'Response sent!',
       errMsg: 'Write a message to the customer',
       errPrice: 'Enter your price',
-      errSubscription: 'Active subscription required. Visit dastiyor.com to subscribe.',
     },
     review: {
       task: 'TASK',
@@ -394,8 +393,8 @@ const translations = {
       passLabel: 'Password',
     },
     subscription: {
-      required: 'Subscription required',
-      message: 'An active provider subscription is required to respond. Visit dastiyor.com to subscribe.',
+      required: 'Responding unavailable',
+      message: 'Responding to tasks is currently unavailable for your account.',
     },
     phoneVerify: {
       required: 'Phone verification required',
@@ -708,7 +707,6 @@ const translations = {
       sent: 'Отклик отправлен!',
       errMsg: 'Напишите сообщение заказчику',
       errPrice: 'Укажите вашу цену',
-      errSubscription: 'Требуется активная подписка. Оформите на dastiyor.com.',
     },
     review: {
       task: 'ЗАДАНИЕ',
@@ -789,8 +787,8 @@ const translations = {
       passLabel: 'Пароль',
     },
     subscription: {
-      required: 'Требуется подписка',
-      message: 'Для откликов на задания нужна активная подписка. Оформите на dastiyor.com.',
+      required: 'Отклики недоступны',
+      message: 'Отклики на задания сейчас недоступны для вашего аккаунта.',
     },
     phoneVerify: {
       required: 'Требуется подтверждение телефона',
@@ -1103,7 +1101,6 @@ const translations = {
       sent: 'Посух фиристода шуд!',
       errMsg: 'Ба фармоишгар паём нависед',
       errPrice: 'Нархи худро нишон диҳед',
-      errSubscription: 'Обунаи фаъол лозим аст. Дар dastiyor.com обуна кунед.',
     },
     review: {
       task: 'СУПОРИШ',
@@ -1184,8 +1181,8 @@ const translations = {
       passLabel: 'Парол',
     },
     subscription: {
-      required: 'Обуна лозим аст',
-      message: 'Барои посух додан ба супоришҳо обунаи фаъол лозим аст. Дар dastiyor.com обуна кунед.',
+      required: 'Посух додан дастрас нест',
+      message: 'Посух додан ба супоришҳо ҳоло барои аккаунти шумо дастрас нест.',
     },
     phoneVerify: {
       required: 'Тасдиқи телефон лозим аст',

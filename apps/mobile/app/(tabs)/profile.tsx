@@ -115,7 +115,88 @@ export default function ProfileScreen() {
     );
   }
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.bg }]}>
+        <View style={[styles.headerBar, { paddingTop: statusBarHeight + 8, backgroundColor: colors.header, borderBottomColor: colors.border }]}>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{p.title ?? 'Profile'}</Text>
+        </View>
+
+        <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 24 }]} showsVerticalScrollIndicator={false}>
+          {/* Guest card */}
+          <View style={[styles.card, { backgroundColor: colors.surface }]}>
+            <View style={styles.userRow}>
+              <Avatar name={p.guest} size={56} />
+              <View style={styles.userInfo}>
+                <Text style={[styles.userName, { color: colors.text }]}>{p.guest}</Text>
+                <Text style={[styles.userHandle, { color: colors.textSecondary }]}>{p.guestWelcome}</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Log in / Register */}
+          <TouchableOpacity
+            style={[styles.guestCtaBtn, { backgroundColor: colors.accent }]}
+            onPress={() => router.push('/(auth)/register')}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel={p.guestCta}
+          >
+            <Text style={styles.guestCtaText}>{p.guestCta}</Text>
+          </TouchableOpacity>
+
+          {/* Appearance (no account required) */}
+          <View style={[styles.card, { backgroundColor: colors.surface }]}>
+            {/* Language */}
+            <View style={[styles.rowItem, { borderBottomColor: colors.border }]}>
+              <Ionicons name="language-outline" size={22} color="#7C3AED" style={styles.rowIcon} />
+              <Text style={[styles.rowLabel, { color: colors.text }]}>{t.settings?.language ?? 'Language'}</Text>
+              <View style={styles.pills}>
+                {LOCALES.map((loc) => (
+                  <TouchableOpacity
+                    key={loc}
+                    style={[styles.pill, { borderColor: locale === loc ? colors.accent : colors.border, backgroundColor: locale === loc ? colors.iconBg : 'transparent' }]}
+                    onPress={() => setLocale(loc)}
+                  >
+                    <Text style={[styles.pillText, { color: locale === loc ? colors.accent : colors.textSecondary }]}>
+                      {LOCALE_NAMES[loc]}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+            {/* Theme */}
+            <TouchableOpacity onPress={toggleTheme} activeOpacity={0.6}>
+              <View style={[styles.rowItem, { borderBottomColor: 'transparent' }]}>
+                <Ionicons name={isDark ? 'moon-outline' : 'sunny-outline'} size={22} color="#10B981" style={styles.rowIcon} />
+                <Text style={[styles.rowLabel, { color: colors.text }]}>{t.settings?.theme ?? 'Theme'}</Text>
+                <Text style={[styles.themeValue, { color: colors.textSecondary }]}>{isDark ? (t.settings?.dark ?? 'Dark') : (t.settings?.light ?? 'Light')}</Text>
+                <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
+              </View>
+            </TouchableOpacity>
+          </View>
+
+          {/* Legal */}
+          <View style={[styles.card, { backgroundColor: colors.surface }]}>
+            <RowItem
+              icon="document-text-outline"
+              label={t.legal.privacy}
+              onPress={() => { openPrivacyPolicy().catch(() => {}); }}
+            />
+            <RowItem
+              icon="shield-checkmark-outline"
+              label={t.legal.terms}
+              onPress={() => { openTermsOfService().catch(() => {}); }}
+            />
+          </View>
+
+          <Text style={[styles.versionText, { color: colors.textTertiary }]}>
+            v{Constants.expoConfig?.version ?? '—'}
+          </Text>
+        </ScrollView>
+      </View>
+    );
+  }
 
   const roleColors = ROLE_COLORS[user.role] ?? { color: '#374151', bg: 'rgba(243,244,246,0.9)' };
   const roleLabel = p.roles[user.role as keyof typeof p.roles] ?? user.role;
@@ -305,6 +386,8 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   versionText: { textAlign: 'center', fontSize: 12, marginTop: 8, marginBottom: 8 },
+  guestCtaBtn: { borderRadius: 14, paddingVertical: 15, alignItems: 'center', justifyContent: 'center' },
+  guestCtaText: { color: '#fff', fontSize: 16, fontWeight: '700' },
 
   headerBar: {
     flexDirection: 'row',

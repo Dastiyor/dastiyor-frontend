@@ -181,7 +181,6 @@ export default function TabLayout() {
           title: t.tabs.profile,
           tabBarIcon: TabIcon('person', 'person-outline'),
         }}
-        listeners={{ tabPress: guardTabPress }}
       />
     </Tabs>
   );

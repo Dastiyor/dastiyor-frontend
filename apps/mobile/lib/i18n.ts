@@ -128,6 +128,9 @@ const translations = {
       phoneHint: 'When you change the number, all your data will be linked to the new number.',
       changePhone: 'Change number',
       changeEmail: 'Change email address',
+      guest: 'Guest',
+      guestWelcome: 'Welcome to Dastiyor',
+      guestCta: 'Log In / Register',
     },
     common: {
       error: 'Error',
@@ -522,6 +525,9 @@ const translations = {
       phoneHint: 'При смене номера все данные будут привязаны к новому номеру.',
       changePhone: 'Изменить номер',
       changeEmail: 'Изменить email',
+      guest: 'Гость',
+      guestWelcome: 'Добро пожаловать в Dastiyor',
+      guestCta: 'Войти / Регистрация',
     },
     common: {
       error: 'Ошибка',
@@ -916,6 +922,9 @@ const translations = {
       phoneHint: 'Бо иваз кардани рақам, ҳамаи маълумот ба рақами нав пайваст мешавад.',
       changePhone: 'Рақамро иваз кунед',
       changeEmail: 'Email-ро иваз кунед',
+      guest: 'Меҳмон',
+      guestWelcome: 'Хуш омадед ба Dastiyor',
+      guestCta: 'Ворид / Бақайдгирӣ',
     },
     common: {
       error: 'Хато',

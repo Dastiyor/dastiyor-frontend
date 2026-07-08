@@ -32,7 +32,7 @@ export default function OnboardingScreen() {
 
   async function finish() {
     await storage.setItem('onboarding_done', '1').catch(() => {});
-    router.replace('/(auth)/register');
+    router.replace('/(tabs)');
   }
 
   async function pickLang(loc: Locale) {

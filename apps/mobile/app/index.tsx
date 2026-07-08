@@ -17,13 +17,12 @@ export default function RootIndex() {
         const onboardingDone = await storage.getItem('onboarding_done').catch(() => null);
         if (!onboardingDone) {
           router.replace('/(onboarding)');
-        } else if (user) {
-          router.replace('/(tabs)');
         } else {
-          router.replace('/(auth)/login');
+          // Guests can browse (tabs); account-only screens prompt login on tap.
+          router.replace('/(tabs)');
         }
       } catch {
-        router.replace('/(auth)/login');
+        router.replace('/(tabs)');
       } finally {
         SplashScreen.hideAsync().catch(() => {});
       }

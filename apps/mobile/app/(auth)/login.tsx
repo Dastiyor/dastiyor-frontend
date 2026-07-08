@@ -117,6 +117,15 @@ export default function LoginScreen() {
       style={[styles.container, { backgroundColor: colors.header }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      <TouchableOpacity
+        style={[styles.closeBtn, { top: insets.top + 8, backgroundColor: colors.surface, borderColor: colors.border }]}
+        onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)'))}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        accessibilityRole="button"
+        accessibilityLabel={t.common.cancel}
+      >
+        <Ionicons name="close" size={22} color={colors.text} />
+      </TouchableOpacity>
       <ScrollView
         contentContainerStyle={[styles.inner, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}
         keyboardShouldPersistTaps="handled"
@@ -222,6 +231,11 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  closeBtn: {
+    position: 'absolute', left: 16, zIndex: 10,
+    width: 40, height: 40, borderRadius: 20, borderWidth: 1,
+    alignItems: 'center', justifyContent: 'center',
+  },
   inner: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, width: '100%', maxWidth: 520, alignSelf: 'center' },
   subtitle: { fontSize: 16, textAlign: 'center', marginBottom: 28 },
   oauthBtn: {

@@ -29,6 +29,13 @@ export default function TabLayout() {
   const { popupsEnabled } = useNotifPrefs();
   const isCustomer = user?.role === 'CUSTOMER';
   const [unreadMessages, setUnreadMessages] = useState(0);
+
+  // ponytail: account-only tabs open the dismissable auth modal for guests instead of gating the whole app.
+  function guardTabPress(e: { preventDefault: () => void }) {
+    if (user) return;
+    e.preventDefault();
+    router.push('/(auth)/register');
+  }
   const backPressedOnce = useRef(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const prevCountRef = useRef<number | null>(null);
@@ -156,6 +163,7 @@ export default function TabLayout() {
           title: isCustomer ? t.tabs.myTasks : t.tabs.responses,
           tabBarIcon: TabIcon('clipboard', 'clipboard-outline'),
         }}
+        listeners={{ tabPress: guardTabPress }}
       />
       <Tabs.Screen
         name="messages"
@@ -165,6 +173,7 @@ export default function TabLayout() {
           tabBarBadge: unreadMessages > 0 ? unreadMessages : undefined,
           tabBarBadgeStyle: { backgroundColor: '#EF4444', fontSize: 10 },
         }}
+        listeners={{ tabPress: guardTabPress }}
       />
       <Tabs.Screen
         name="profile"
@@ -172,6 +181,7 @@ export default function TabLayout() {
           title: t.tabs.profile,
           tabBarIcon: TabIcon('person', 'person-outline'),
         }}
+        listeners={{ tabPress: guardTabPress }}
       />
     </Tabs>
   );

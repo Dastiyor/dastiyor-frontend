@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Props {
   title: string;
@@ -15,6 +16,7 @@ interface Props {
 export function ScreenHeader({ title, unreadCount = 0, onNotificationsOpen, showBack = false }: Props) {
   const { colors } = useTheme();
   const { t } = useLanguage();
+  const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const statusBarHeight = insets.top;
   const backLabel = t.navigation.back;
@@ -43,6 +45,10 @@ export function ScreenHeader({ title, unreadCount = 0, onNotificationsOpen, show
         <TouchableOpacity
           style={styles.iconBtn}
           onPress={() => {
+            if (!user) {
+              router.push('/(auth)/register');
+              return;
+            }
             onNotificationsOpen?.();
             router.push('/notifications' as any);
           }}

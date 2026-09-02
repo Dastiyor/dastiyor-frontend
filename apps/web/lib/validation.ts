@@ -81,15 +81,24 @@ export function validatePassword(password: string): { valid: boolean; error?: st
 }
 
 // Sanitize string to prevent XSS
+/**
+ * Normalize user text for storage.
+ *
+ * This used to HTML-escape, which was the wrong layer: every consumer already
+ * escapes at output -- React and React Native escape text nodes, and the email
+ * templates run values through esc() -- so the entities were applied twice and
+ * users saw `&quot;` and `&#x27;` in their own messages and task titles.
+ * Escaping belongs at output, where the target syntax is known; storage keeps
+ * what the user actually typed.
+ *
+ * Control characters are stripped because they serve no purpose in these
+ * fields and break rendering and logs.
+ */
 export function sanitizeString(input: string): string {
-    return input
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#x27;')
-        .trim();
+    // eslint-disable-next-line no-control-regex
+    return input.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '').trim();
 }
+
 
 // Validate and sanitize task input
 /**

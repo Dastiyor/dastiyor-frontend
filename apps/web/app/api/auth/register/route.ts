@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { signJWT } from '@/lib/auth';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
-import { validatePassword, isValidPhone, normalizePhone } from '@/lib/validation';
+import { validatePassword, isValidPhone, normalizePhone, sanitizeString } from '@/lib/validation';
 import { sendWelcomeEmail } from '@/lib/notifications/email';
 import { logAction, getRequestIP } from '@/lib/audit';
 
@@ -20,6 +20,24 @@ export async function POST(request: Request) {
 
         if (!password || !fullName) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        }
+
+        // Mirror the checks PUT /api/profile already applies to these same
+        // fields. Registration skipped them entirely, so an account could be
+        // created with an unreachable email -- breaking password reset and every
+        // notification -- or a name of unbounded length.
+        const trimmedName = String(fullName).trim();
+        if (trimmedName.length < 2 || trimmedName.length > 100) {
+            return NextResponse.json(
+                { error: 'Имя должно содержать от 2 до 100 символов' },
+                { status: 400 }
+            );
+        }
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim().toLowerCase())) {
+            return NextResponse.json(
+                { error: 'Неверный формат email' },
+                { status: 400 }
+            );
         }
 
         // Need at least one contact: phone (mobile flow) or email (web flow)
@@ -69,7 +87,7 @@ export async function POST(request: Request) {
             data: {
                 email: resolvedEmail,
                 password: hashedPassword,
-                fullName,
+                fullName: sanitizeString(trimmedName),
                 phone: normalizedPhone,
                 role: String(role ?? '').toLowerCase() === 'provider' ? 'PROVIDER' : 'CUSTOMER',
             },

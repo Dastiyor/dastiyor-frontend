@@ -102,6 +102,7 @@ describe('/api/messages', () => {
                     where: {
                         receiverId: mockUserId,
                         senderId: 'user-2',
+                        taskId: null,
                         isRead: false,
                     },
                     data: { isRead: true },
@@ -250,6 +251,30 @@ describe('/api/messages', () => {
 
             expect(response.status).toBe(404);
             expect(prismaMock.message.create).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('thread scoping', () => {
+        it('scopes mark-as-read to the thread being opened', async () => {
+            (prismaMock.message.findMany as jest.Mock).mockResolvedValue([]);
+
+            await GET(new NextRequest('http://localhost/api/messages?userId=user-2&taskId=task-9'));
+
+            // Without taskId here, opening one chat cleared the unread badge on
+            // every other conversation with the same person.
+            expect(prismaMock.message.updateMany).toHaveBeenCalledWith(
+                expect.objectContaining({ where: expect.objectContaining({ taskId: 'task-9' }) })
+            );
+        });
+
+        it('treats an absent taskId as the task-less thread, not all threads', async () => {
+            (prismaMock.message.findMany as jest.Mock).mockResolvedValue([]);
+
+            await GET(new NextRequest('http://localhost/api/messages?userId=user-2'));
+
+            expect(prismaMock.message.findMany).toHaveBeenCalledWith(
+                expect.objectContaining({ where: expect.objectContaining({ taskId: null }) })
+            );
         });
     });
 });

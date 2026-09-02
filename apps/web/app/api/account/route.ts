@@ -87,6 +87,13 @@ export async function DELETE(request: Request) {
             // Now the user's own tasks, then the user.
             await tx.task.deleteMany({ where: { userId } });
             await tx.user.delete({ where: { id: userId } });
+        }, {
+            // 18 sequential deletes over a pooled connection; Prisma's 5s default
+            // is tight for a heavy account and times out as a generic 500 --
+            // failing exactly the users with the most data to erase. Account
+            // deletion is a store requirement, so give it real headroom.
+            timeout: 30_000,
+            maxWait: 10_000,
         });
 
         logAction({

@@ -28,6 +28,9 @@ jest.mock('@/lib/audit', () => ({
 
 jest.mock('@/lib/validation', () => ({
     validatePassword: jest.fn().mockReturnValue({ valid: true }),
+    isValidPhone: jest.fn().mockReturnValue(true),
+    normalizePhone: jest.fn((p: string) => p),
+    sanitizeString: jest.fn((v: string) => v),
 }));
 
 jest.mock('bcryptjs', () => ({
@@ -82,5 +85,30 @@ describe('/api/auth/register Route', () => {
         // Ensure cookie is set
         const cookieHeader = response.headers.get('set-cookie');
         expect(cookieHeader).toContain('token=mock-jwt-token');
+    });
+
+    it('rejects a malformed email', async () => {
+        // Registration accepted these while PUT /api/profile rejected them, so
+        // an account could be created with an address that never receives a
+        // password reset.
+        const request = new Request('http://localhost/api/auth/register', {
+            method: 'POST',
+            body: JSON.stringify({ email: 'notanemail', password: 'password123', fullName: 'New User' }),
+        });
+        const response = await POST(request);
+
+        expect(response.status).toBe(400);
+        expect(prismaMock.user.create).not.toHaveBeenCalled();
+    });
+
+    it('rejects an over-long full name', async () => {
+        const request = new Request('http://localhost/api/auth/register', {
+            method: 'POST',
+            body: JSON.stringify({ email: 'a@b.com', password: 'password123', fullName: 'x'.repeat(101) }),
+        });
+        const response = await POST(request);
+
+        expect(response.status).toBe(400);
+        expect(prismaMock.user.create).not.toHaveBeenCalled();
     });
 });

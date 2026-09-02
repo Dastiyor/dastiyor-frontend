@@ -21,7 +21,11 @@ export async function GET(request: Request) {
         const otherId = searchParams.get('userId');
         const taskId = searchParams.get('taskId');
         const limitStr = searchParams.get('limit');
-        const limit = limitStr ? Math.max(1, Math.min(parseInt(limitStr, 10), 100)) : 50;
+        // A non-numeric limit used to reach Prisma as take: NaN and surface a 500.
+        const parsedLimit = limitStr ? Number.parseInt(limitStr, 10) : NaN;
+        const limit = Number.isFinite(parsedLimit)
+            ? Math.max(1, Math.min(parsedLimit, 100))
+            : 50;
 
         if (!otherId) {
             return NextResponse.json({ error: 'Missing userId parameter' }, { status: 400 });
@@ -92,8 +96,11 @@ export async function POST(request: Request) {
         const body = await request.json();
         const { receiverId, content, taskId, imageUrl } = body;
 
-        if (!receiverId) {
+        if (!receiverId || typeof receiverId !== 'string') {
             return NextResponse.json({ error: 'Missing receiverId' }, { status: 400 });
+        }
+        if (taskId !== undefined && taskId !== null && typeof taskId !== 'string') {
+            return NextResponse.json({ error: 'Invalid taskId' }, { status: 400 });
         }
 
         // Must have either content or image
@@ -101,7 +108,11 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Message must have content or image' }, { status: 400 });
         }
 
-        if (content && typeof content === 'string' && content.length > 2000) {
+        if (content !== undefined && content !== null && typeof content !== 'string') {
+            return NextResponse.json({ error: 'Message content must be text' }, { status: 400 });
+        }
+
+        if (content && content.length > 2000) {
             return NextResponse.json({ error: 'Message must not exceed 2000 characters' }, { status: 400 });
         }
 
@@ -127,6 +138,19 @@ export async function POST(request: Request) {
         });
         if (!receiverExists) {
             return NextResponse.json({ error: 'Recipient not found' }, { status: 404 });
+        }
+
+        // Same reasoning as the receiver check: a stale taskId -- the client had
+        // a chat open on a task whose owner has since deleted their account --
+        // otherwise surfaces the foreign-key violation as a bare 500.
+        if (taskId) {
+            const taskExists = await prisma.task.findUnique({
+                where: { id: taskId },
+                select: { id: true },
+            });
+            if (!taskExists) {
+                return NextResponse.json({ error: 'Task not found' }, { status: 404 });
+            }
         }
 
         const sanitizedContent = content ? sanitizeString(content) : '';

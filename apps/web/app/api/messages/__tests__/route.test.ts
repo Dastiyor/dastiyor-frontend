@@ -277,4 +277,45 @@ describe('/api/messages', () => {
             );
         });
     });
+
+    describe('malformed input returns 4xx, not 500', () => {
+        const post = (body: object) =>
+            new NextRequest('http://localhost/api/messages', { method: 'POST', body: JSON.stringify(body) });
+
+        it('rejects a non-string content', async () => {
+            // The length guard checked typeof, so numbers slipped through to
+            // sanitizeString and threw.
+            expect((await POST(post({ receiverId: 'user-2', content: 12345 }))).status).toBe(400);
+        });
+
+        it('rejects a non-string receiverId', async () => {
+            expect((await POST(post({ receiverId: ['user-2'], content: 'hi' }))).status).toBe(400);
+        });
+
+        it('rejects a non-string taskId', async () => {
+            expect((await POST(post({ receiverId: 'user-2', content: 'hi', taskId: 42 }))).status).toBe(400);
+        });
+
+        it('404s a taskId that no longer exists', async () => {
+            // Reachable: the task owner deleted their account while a client
+            // still had that chat open.
+            (prismaMock.user.findUnique as jest.Mock).mockResolvedValue({ id: 'user-2' });
+            (prismaMock.task.findUnique as jest.Mock).mockResolvedValue(null);
+
+            const res = await POST(post({ receiverId: 'user-2', content: 'hi', taskId: 'gone' }));
+
+            expect(res.status).toBe(404);
+            expect(prismaMock.message.create).not.toHaveBeenCalled();
+        });
+
+        it('falls back to the default limit when limit is not a number', async () => {
+            (prismaMock.message.findMany as jest.Mock).mockResolvedValue([]);
+
+            await GET(new NextRequest('http://localhost/api/messages?userId=user-2&limit=abc'));
+
+            expect(prismaMock.message.findMany).toHaveBeenCalledWith(
+                expect.objectContaining({ take: 50 })
+            );
+        });
+    });
 });

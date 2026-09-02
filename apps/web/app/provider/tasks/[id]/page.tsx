@@ -214,6 +214,7 @@ export default async function ProviderTaskDetailsPage({ params }: Props) {
                         taskOwnerId={task.userId}
                         assignedUserId={task.assignedUserId}
                         taskStatus={task.status}
+                        messagesBasePath="/provider/messages"
                     />
                 </main>
 

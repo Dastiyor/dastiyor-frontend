@@ -162,6 +162,31 @@ describe('/api/profile', () => {
             expect(updateCall.data.bio).toBeNull();
         });
 
+        it('leaves avatar untouched when the field is omitted', async () => {
+            prismaMock.user.update.mockResolvedValue(mockUser as any);
+
+            await PUT(makeRequest({ fullName: 'Ali' }));
+
+            expect(prismaMock.user.update.mock.calls[0][0].data).not.toHaveProperty('avatar');
+        });
+
+        it('clears avatar when explicitly sent as null', async () => {
+            prismaMock.user.update.mockResolvedValue(mockUser as any);
+
+            await PUT(makeRequest({ fullName: 'Ali', avatar: null }));
+
+            expect(prismaMock.user.update.mock.calls[0][0].data.avatar).toBeNull();
+        });
+
+        it('stores a valid https avatar URL', async () => {
+            prismaMock.user.update.mockResolvedValue(mockUser as any);
+
+            await PUT(makeRequest({ fullName: 'Ali', avatar: 'https://x.public.blob.vercel-storage.com/a.jpg' }));
+
+            expect(prismaMock.user.update.mock.calls[0][0].data.avatar)
+                .toBe('https://x.public.blob.vercel-storage.com/a.jpg');
+        });
+
         it('returns 500 on database error', async () => {
             prismaMock.user.update.mockRejectedValue(new Error('DB error'));
 

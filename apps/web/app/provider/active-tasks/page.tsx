@@ -43,7 +43,7 @@ export default async function ActiveTasksPage() {
         }
     });
 
-    const { t } = await getServerTranslation();
+    const { t, tr } = await getServerTranslation();
     const accentColor = 'var(--primary)';
     const accentColorLight = '#DBEAFE';
 
@@ -145,7 +145,7 @@ export default async function ActiveTasksPage() {
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                             <MapPin size={14} />
-                                            <span>{task.city}</span>
+                                            <span>{tr(task.city)}</span>
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                             <User size={14} />

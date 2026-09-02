@@ -3,6 +3,7 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { LayoutGrid, Wrench, Monitor, SprayCan, Truck, Zap, Clock, Calendar, Camera, Palette, PartyPopper, Scale, Bot, Cpu, Laptop, Droplets, BookOpen, Sparkles } from 'lucide-react';
 import { useState, useCallback, useTransition } from 'react';
 import { useTranslation } from '@/lib/i18n';
+import { CITIES } from '@/app/api/config/route';
 
 const CATEGORIES = [
     { nameKey: 'categories.allTasks', value: '', icon: LayoutGrid },
@@ -23,15 +24,7 @@ const CATEGORIES = [
     { nameKey: 'categories.virtualAssistant', value: 'Виртуальный помощник', icon: Bot },
 ];
 
-const CITIES = [
-    'cities.dushanbe',
-    'cities.khujand',
-    'cities.bokhtar',
-    'cities.kulob',
-    'cities.istravshan',
-    'cities.tursunzoda',
-    'cities.online',
-];
+
 
 interface TaskFilterSidebarProps {
     categoryCounts?: Array<{ category: string; _count: number }>;
@@ -43,7 +36,7 @@ export default function TaskFilterSidebar({ categoryCounts = [], totalOpenTasks 
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const [isPending, startTransition] = useTransition();
-    const { t } = useTranslation();
+    const { t, tr } = useTranslation();
 
     // Get current values from URL
     const currentCategory = searchParams.get('category') || '';
@@ -223,7 +216,7 @@ export default function TaskFilterSidebar({ categoryCounts = [], totalOpenTasks 
                     >
                         <option value="">{t('filters.allCities')}</option>
                         {CITIES.map(c => (
-                            <option key={c} value={c}>{t(c)}</option>
+                            <option key={c} value={c}>{tr(c)}</option>
                         ))}
                     </select>
                     <div style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>

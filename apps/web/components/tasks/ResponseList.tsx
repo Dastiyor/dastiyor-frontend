@@ -24,9 +24,11 @@ type ResponseListProps = {
     taskOwnerId: string;
     assignedUserId?: string | null;
     taskStatus?: string;
+    /** Dashboard-scoped messages route; defaults to the public one. */
+    messagesBasePath?: string;
 };
 
-export default function ResponseList({ taskId, responses, currentUserId, currentUserRole, taskOwnerId, assignedUserId, taskStatus }: ResponseListProps) {
+export default function ResponseList({ taskId, responses, currentUserId, currentUserRole, taskOwnerId, assignedUserId, taskStatus, messagesBasePath = '/messages' }: ResponseListProps) {
     const router = useRouter();
     const { confirm, Dialog } = useConfirm();
     const { t } = useTranslation();
@@ -240,6 +242,27 @@ export default function ResponseList({ taskId, responses, currentUserId, current
                                 <p style={{ color: 'var(--text)', whiteSpace: 'pre-wrap', marginBottom: '16px' }}>
                                     {response.message}
                                 </p>
+
+                                {isOwner && (
+                                    <Link
+                                        href={`${messagesBasePath}?userId=${response.userId}&taskId=${taskId}`}
+                                        className="btn"
+                                        style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '6px',
+                                            fontSize: '0.9rem',
+                                            padding: '8px 16px',
+                                            marginBottom: '12px',
+                                            backgroundColor: 'white',
+                                            color: 'var(--primary)',
+                                            border: '1px solid var(--primary)',
+                                            textDecoration: 'none'
+                                        }}
+                                    >
+                                        💬 {t('tasks.sendMessage')}
+                                    </Link>
+                                )}
 
                                 {isOwner && isTaskOpen && isPending && (
                                     <div style={{ display: 'flex', gap: '12px' }}>

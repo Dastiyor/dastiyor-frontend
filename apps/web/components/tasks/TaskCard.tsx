@@ -37,7 +37,7 @@ const statusColors: Record<string, { bg: string; text: string }> = {
 export default function TaskCard({ task }: { task: Task }) {
     const [isFavorite, setIsFavorite] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const { t } = useTranslation();
+    const { t, tr } = useTranslation();
 
     const urgencyLabels: Record<string, string> = {
         urgent: t('tasks.urgent'),
@@ -148,7 +148,7 @@ export default function TaskCard({ task }: { task: Task }) {
                             fontSize: '0.75rem',
                             fontWeight: '600',
                         }}>
-                            {task.category}
+                            {tr(task.category)}
                         </span>
                     )}
                     <span style={{
@@ -251,7 +251,7 @@ export default function TaskCard({ task }: { task: Task }) {
                         color: 'var(--text)',
                         lineHeight: '1.2'
                     }}>
-                        {task.budget}
+                        {tr(task.budget)}
                     </div>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-light)', fontWeight: '700' }}>
                         {isNegotiable ? t('common.negotiable') : t('tasks.fixedPrice')}

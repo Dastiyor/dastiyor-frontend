@@ -4,10 +4,10 @@ import { useRouter } from 'next/navigation';
 import { MapPin, Lightbulb } from 'lucide-react';
 import { toast } from '@/components/ui/Toast';
 import { useTranslation } from '@/lib/i18n';
-import { CATEGORIES } from '@/app/api/config/route';
+import { CATEGORIES, CITIES } from '@/app/api/config/route';
 
 export default function CreateTaskPage() {
-    const { t } = useTranslation();
+    const { t, tr } = useTranslation();
     const router = useRouter();
     const [uploading, setUploading] = useState(false);
     const [authChecked, setAuthChecked] = useState(false);
@@ -220,7 +220,7 @@ export default function CreateTaskPage() {
                                 >
                                     <option value="">{t('createTask.selectCategory')}</option>
                                     {CATEGORIES.map(cat => (
-                                        <option key={cat} value={cat}>{cat}</option>
+                                        <option key={cat} value={cat}>{tr(cat)}</option>
                                     ))}
                                 </select>
                             </div>
@@ -269,13 +269,16 @@ export default function CreateTaskPage() {
                             <div className="form-row-2" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px', marginBottom: '24px' }}>
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>{t('createTask.cityLabel')}</label>
-                                    <input
-                                        type="text"
-                                        placeholder={t('createTask.cityPlaceholder')}
+                                    <select
                                         value={formData.city}
                                         onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                                        style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #D1D5DB', outline: 'none' }}
-                                    />
+                                        style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #D1D5DB', outline: 'none', backgroundColor: 'white' }}
+                                    >
+                                        <option value="">{t('createTask.cityPlaceholder')}</option>
+                                        {CITIES.map(c => (
+                                            <option key={c} value={c}>{tr(c)}</option>
+                                        ))}
+                                    </select>
                                 </div>
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>{t('tasks.urgency')}</label>

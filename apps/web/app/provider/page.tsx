@@ -109,7 +109,7 @@ export default async function ProviderDashboard() {
         rejected: responses.filter(r => r.status === 'REJECTED').length
     };
 
-    const { t } = await getServerTranslation();
+    const { t, tr } = await getServerTranslation();
     const accentColor = 'var(--primary)';
     const accentColorLight = '#DBEAFE';
 
@@ -272,7 +272,7 @@ export default async function ProviderDashboard() {
                                             <td style={{ padding: '14px 0' }}>
                                                 <Link href={`/provider/tasks/${task.id}`} style={{ textDecoration: 'none' }}>
                                                     <div style={{ fontWeight: '600', fontSize: '0.85rem', color: '#1E293B' }}>{task.title}</div>
-                                                    <div style={{ fontSize: '0.75rem', color: '#64748B' }}>{task.category}</div>
+                                                    <div style={{ fontSize: '0.75rem', color: '#64748B' }}>{tr(task.category)}</div>
                                                 </Link>
                                             </td>
                                             <td style={{ padding: '14px 0' }}>
@@ -428,7 +428,7 @@ export default async function ProviderDashboard() {
                                         </div>
                                         <div style={{ fontSize: '0.75rem', color: '#64748B', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                             <MapPin size={12} />
-                                            {task.city}
+                                            {tr(task.city)}
                                         </div>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <div style={{ fontSize: '0.85rem', fontWeight: '600', color: accentColor }}>

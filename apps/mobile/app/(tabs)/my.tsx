@@ -71,7 +71,7 @@ interface MyResponseItem {
 
 export default function MyScreen() {
   const { user } = useAuth();
-  const { t, locale } = useLanguage();
+  const { t, locale, tr } = useLanguage();
   const { colors } = useTheme();
   const toast = useToast();
   const insets = useSafeAreaInsets();
@@ -145,25 +145,25 @@ export default function MyScreen() {
       onPress={() => router.push(`/task/${item.id}`)}
       activeOpacity={0.75}
       accessibilityRole="button"
-      accessibilityLabel={`${item.title}, ${item.category}, ${item.budget}`}
+      accessibilityLabel={`${item.title}, ${tr(item.category)}, ${tr(item.budget)}`}
     >
       <View style={[styles.cardIconBox, { backgroundColor: colors.iconBg }]}>
         <Ionicons name={CATEGORY_ICONS[item.category] ?? 'briefcase-outline'} size={22} color="#2563EB" />
       </View>
       <View style={styles.cardBody}>
         <View style={styles.cardTopRow}>
-          <Text style={[styles.cardCategory, { color: colors.textTertiary }]} numberOfLines={1}>{item.category}</Text>
+          <Text style={[styles.cardCategory, { color: colors.textTertiary }]} numberOfLines={1}>{tr(item.category)}</Text>
           <StatusBadge status={item.status} label={t.status[item.status as keyof typeof t.status] ?? item.status} />
         </View>
         <Text style={[styles.cardTitle, { color: colors.text }]} numberOfLines={1}>{item.title}</Text>
         {item.city ? (
           <View style={styles.cardLocation}>
             <Ionicons name="location-outline" size={11} color={colors.textTertiary} />
-            <Text style={[styles.cardLocationText, { color: colors.textTertiary }]}>{item.city}</Text>
+            <Text style={[styles.cardLocationText, { color: colors.textTertiary }]}>{tr(item.city)}</Text>
           </View>
         ) : null}
         <View style={styles.cardFooter}>
-          <Text style={styles.cardBudget}>{item.budget}</Text>
+          <Text style={styles.cardBudget}>{tr(item.budget)}</Text>
           <Text style={[styles.cardMeta, { color: colors.textTertiary }]}>{timeAgo(item.postedAt, locale)}</Text>
         </View>
       </View>
@@ -176,14 +176,14 @@ export default function MyScreen() {
       onPress={() => router.push(`/task/${item.task.id}`)}
       activeOpacity={0.75}
       accessibilityRole="button"
-      accessibilityLabel={`${item.task.title}, ${item.task.category}, ${item.price} TJS`}
+      accessibilityLabel={`${item.task.title}, ${tr(item.task.category)}, ${item.price} TJS`}
     >
       <View style={[styles.cardIconBox, { backgroundColor: colors.iconBg }]}>
         <Ionicons name={CATEGORY_ICONS[item.task.category] ?? 'briefcase-outline'} size={22} color="#2563EB" />
       </View>
       <View style={styles.cardBody}>
         <View style={styles.cardTopRow}>
-          <Text style={[styles.cardCategory, { color: colors.textTertiary }]} numberOfLines={1}>{item.task.category}</Text>
+          <Text style={[styles.cardCategory, { color: colors.textTertiary }]} numberOfLines={1}>{tr(item.task.category)}</Text>
           <StatusBadge status={item.status} label={t.status[item.status as keyof typeof t.status] ?? item.status} />
         </View>
         <Text style={[styles.cardTitle, { color: colors.text }]} numberOfLines={1}>{item.task.title}</Text>
@@ -191,7 +191,7 @@ export default function MyScreen() {
         {item.task.city ? (
           <View style={styles.cardLocation}>
             <Ionicons name="location-outline" size={11} color={colors.textTertiary} />
-            <Text style={[styles.cardLocationText, { color: colors.textTertiary }]}>{item.task.city}</Text>
+            <Text style={[styles.cardLocationText, { color: colors.textTertiary }]}>{tr(item.task.city)}</Text>
           </View>
         ) : null}
         <View style={styles.cardFooter}>

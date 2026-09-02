@@ -101,10 +101,12 @@ describe('Tasks API Edge Cases & Error Handling', () => {
         const validPayload = {
             title: 'Valid Task Title Name',
             description: 'This is a sufficiently long description for a task',
-            category: 'Cleaning',
+            // Canonical values -- the API stores these verbatim, so an English
+            // label here would now (correctly) fail validation before the DB.
+            category: 'Уборка',
             budget: 'fixed',
             amount: '500',
-            city: 'Dushanbe'
+            city: 'Душанбе'
         };
 
         // Simulate DB crash

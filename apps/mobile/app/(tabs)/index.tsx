@@ -43,7 +43,7 @@ interface TasksResponse {
 
 export default function HomeScreen() {
   const { user } = useAuth();
-  const { t, locale } = useLanguage();
+  const { t, locale, tr } = useLanguage();
   const { colors } = useTheme();
   const { config } = useConfig();
   const insets = useSafeAreaInsets();
@@ -146,7 +146,7 @@ export default function HomeScreen() {
   const popular = tasks.slice(1);
   const categories = [
     { name: t.categories.all, value: '' },
-    ...config.categories.map((c) => ({ name: c, value: c })),
+    ...config.categories.map((c) => ({ name: tr(c), value: c })),
   ];
 
 
@@ -266,7 +266,7 @@ export default function HomeScreen() {
                         </View>
                         <View style={styles.featBadge}>
                           <Text style={styles.featBadgeText}>
-                            {task.urgency === 'urgent' ? t.urgency.urgent : task.category}
+                            {task.urgency === 'urgent' ? t.urgency.urgent : tr(task.category)}
                           </Text>
                         </View>
                       </View>
@@ -274,15 +274,15 @@ export default function HomeScreen() {
                       {task.city ? (
                         <View style={styles.featLocation}>
                           <Ionicons name="location-outline" size={11} color="rgba(255,255,255,0.75)" />
-                          <Text style={styles.featLocationText}>{task.city}</Text>
+                          <Text style={styles.featLocationText}>{tr(task.city)}</Text>
                         </View>
                       ) : null}
                       <View style={styles.featTags}>
                         <View style={styles.featTag}>
-                          <Text style={styles.featTagText}>{task.category}</Text>
+                          <Text style={styles.featTagText}>{tr(task.category)}</Text>
                         </View>
                         <View style={styles.featTag}>
-                          <Text style={styles.featTagText}>{task.budget}</Text>
+                          <Text style={styles.featTagText}>{tr(task.budget)}</Text>
                         </View>
                       </View>
                     </TouchableOpacity>
@@ -317,7 +317,7 @@ export default function HomeScreen() {
                       </View>
                       <View style={styles.popBody}>
                         <View style={styles.popTopRow}>
-                          <Text style={[styles.popCategory, { color: colors.textTertiary }]} numberOfLines={1}>{task.category}</Text>
+                          <Text style={[styles.popCategory, { color: colors.textTertiary }]} numberOfLines={1}>{tr(task.category)}</Text>
                           <View style={[styles.popBadge, { backgroundColor: urgencyColor + '22' }]}>
                             <Text style={[styles.popBadgeText, { color: urgencyColor }]}>{urgencyLabel}</Text>
                           </View>
@@ -329,11 +329,11 @@ export default function HomeScreen() {
                         {task.city ? (
                           <View style={styles.popLocation}>
                             <Ionicons name="location-outline" size={11} color={colors.textTertiary} />
-                            <Text style={[styles.popLocationText, { color: colors.textTertiary }]}>{task.city}</Text>
+                            <Text style={[styles.popLocationText, { color: colors.textTertiary }]}>{tr(task.city)}</Text>
                           </View>
                         ) : null}
                         <View style={styles.popFooter}>
-                          <Text style={styles.popBudget}>{task.budget}</Text>
+                          <Text style={styles.popBudget}>{tr(task.budget)}</Text>
                           <Text style={[styles.popMeta, { color: colors.textTertiary }]}>{timeAgo(task.postedAt, locale)}</Text>
                         </View>
                       </View>
@@ -360,6 +360,7 @@ export default function HomeScreen() {
         onChange={setFilters}
         onClose={() => setFilterVisible(false)}
         categories={config.categories}
+        cities={config.cities}
         onApply={(f) => {
           setFilterVisible(false);
           router.push({

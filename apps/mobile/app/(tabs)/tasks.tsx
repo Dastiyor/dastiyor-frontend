@@ -39,7 +39,7 @@ interface TasksResponse {
 }
 
 export default function TaskBrowseScreen() {
-  const { t, locale } = useLanguage();
+  const { t, locale, tr } = useLanguage();
   const { colors } = useTheme();
   const { config } = useConfig();
   const insets = useSafeAreaInsets();
@@ -143,7 +143,7 @@ export default function TaskBrowseScreen() {
         onPress={() => router.push(`/task/${item.id}`)}
         activeOpacity={0.75}
         accessibilityRole="button"
-        accessibilityLabel={`${item.title}, ${item.category}, ${item.budget}`}
+        accessibilityLabel={`${item.title}, ${tr(item.category)}, ${tr(item.budget)}`}
       >
         <View style={[styles.cardIconBox, { backgroundColor: colors.iconBg }]}>
           <Ionicons name={iconName} size={22} color="#2563EB" />
@@ -151,7 +151,7 @@ export default function TaskBrowseScreen() {
 
         <View style={styles.cardBody}>
           <View style={styles.cardTopRow}>
-            <Text style={[styles.cardCategory, { color: colors.textTertiary }]} numberOfLines={1}>{item.category}</Text>
+            <Text style={[styles.cardCategory, { color: colors.textTertiary }]} numberOfLines={1}>{tr(item.category)}</Text>
             <View style={[styles.urgencyBadge, { backgroundColor: urgencyColor + '22' }]}>
               <Text style={[styles.urgencyText, { color: urgencyColor }]}>{urgencyLabel}</Text>
             </View>
@@ -161,22 +161,22 @@ export default function TaskBrowseScreen() {
           {item.city ? (
             <View style={styles.cardLocation}>
               <Ionicons name="location-outline" size={11} color={colors.textTertiary} />
-              <Text style={[styles.cardLocationText, { color: colors.textTertiary }]}>{item.city}</Text>
+              <Text style={[styles.cardLocationText, { color: colors.textTertiary }]}>{tr(item.city)}</Text>
             </View>
           ) : null}
           <View style={styles.cardFooter}>
-            <Text style={styles.cardBudget}>{item.budget}</Text>
+            <Text style={styles.cardBudget}>{tr(item.budget)}</Text>
             <Text style={[styles.cardMeta, { color: colors.textTertiary }]}>{timeAgo(item.postedAt, locale)}</Text>
           </View>
         </View>
       </TouchableOpacity>
     );
-  }, [t, locale, colors]);
+  }, [t, tr, locale, colors]);
 
   const categories = useMemo(() => [
     { name: t.categories.all, value: '' },
-    ...config.categories.map((c) => ({ name: c, value: c })),
-  ], [t.categories.all, config.categories]);
+    ...config.categories.map((c) => ({ name: tr(c), value: c })),
+  ], [t.categories.all, config.categories, tr]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
@@ -253,6 +253,7 @@ export default function TaskBrowseScreen() {
         onChange={setFilters}
         onClose={() => setFilterVisible(false)}
         categories={config.categories}
+        cities={config.cities}
         onApply={(f) => {
           setFilters(f);
           setFilterVisible(false);

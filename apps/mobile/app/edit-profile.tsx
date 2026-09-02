@@ -11,15 +11,17 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { router } from 'expo-router';
+import { goBack } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { api } from '@/lib/api-client';
+import * as ImagePicker from 'expo-image-picker';
+import { api, uploadFile } from '@/lib/api-client';
+import { Avatar } from '@/components/Avatar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 
 
-interface ProfileData { fullName: string; phone: string; bio: string; skills: string; }
+interface ProfileData { fullName: string; phone: string; bio: string; skills: string; avatar: string | null; }
 
 export default function EditProfileScreen() {
   const { user, refreshUser } = useAuth();
@@ -27,19 +29,51 @@ export default function EditProfileScreen() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const ep = t.editProfile;
-  const [form, setForm] = useState<ProfileData>({ fullName: '', phone: '', bio: '', skills: '' });
+  const [form, setForm] = useState<ProfileData>({ fullName: '', phone: '', bio: '', skills: '', avatar: null });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     api.get<{ user: ProfileData & { email: string } }>('/api/profile')
-      .then((res) => setForm({ fullName: res.user.fullName ?? '', phone: res.user.phone ?? '', bio: res.user.bio ?? '', skills: res.user.skills ?? '' }))
+      .then((res) => setForm({ fullName: res.user.fullName ?? '', phone: res.user.phone ?? '', bio: res.user.bio ?? '', skills: res.user.skills ?? '', avatar: res.user.avatar ?? null }))
       .catch(() => { if (user) setForm((f) => ({ ...f, fullName: user.fullName, phone: user.phone ?? '' })); })
       .finally(() => setLoading(false));
   }, []);
 
   function set(key: keyof ProfileData) {
     return (val: string) => setForm((f) => ({ ...f, [key]: val }));
+  }
+
+  async function pickAvatar() {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert(t.common.error, ep.photoPermission);
+      return;
+    }
+    const picked = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      // /api/upload rejects anything over 5MB; a square avatar needs nothing more.
+      quality: 0.7,
+    });
+    if (picked.canceled) return;
+
+    const asset = picked.assets[0];
+    setUploading(true);
+    try {
+      const url = await uploadFile(
+        asset.uri,
+        asset.mimeType ?? 'image/jpeg',
+        asset.fileName ?? 'avatar.jpg',
+      );
+      setForm((f) => ({ ...f, avatar: url }));
+    } catch (e) {
+      Alert.alert(t.common.error, (e as Error).message || ep.photoUploadError);
+    } finally {
+      setUploading(false);
+    }
   }
 
   async function handleSave() {
@@ -54,9 +88,10 @@ export default function EditProfileScreen() {
         phone: form.phone.trim() || undefined,
         bio: form.bio.trim() || undefined,
         skills: form.skills.trim() || undefined,
+        avatar: form.avatar,
       });
       await refreshUser();
-      Alert.alert(ep.saved, ep.profileUpdated, [{ text: t.common.ok, onPress: () => router.back() }]);
+      Alert.alert(ep.saved, ep.profileUpdated, [{ text: t.common.ok, onPress: () => goBack() }]);
     } catch (e) {
       Alert.alert(t.common.error, (e as Error).message);
     } finally {
@@ -71,6 +106,23 @@ export default function EditProfileScreen() {
   return (
     <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 40 }]} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
+        <View style={styles.avatarRow}>
+          <Avatar name={form.fullName || user?.fullName || '?'} size={84} avatarUrl={form.avatar} />
+          <View style={styles.avatarActions}>
+            <Text style={[styles.label, { color: colors.text, marginBottom: 6 }]}>{ep.photo}</Text>
+            <TouchableOpacity onPress={pickAvatar} disabled={uploading} accessibilityRole="button">
+              {uploading
+                ? <ActivityIndicator color="#2563EB" />
+                : <Text style={styles.link}>{form.avatar ? ep.changePhoto : ep.addPhoto}</Text>}
+            </TouchableOpacity>
+            {form.avatar && !uploading ? (
+              <TouchableOpacity onPress={() => setForm((f) => ({ ...f, avatar: null }))} accessibilityRole="button">
+                <Text style={[styles.link, styles.linkDanger]}>{ep.removePhoto}</Text>
+              </TouchableOpacity>
+            ) : null}
+          </View>
+        </View>
+
         <Text style={[styles.label, { color: colors.text }]}>{ep.fullName}</Text>
         <TextInput style={inputStyle} value={form.fullName} onChangeText={set('fullName')} autoComplete="name" maxLength={100} />
 
@@ -96,6 +148,10 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   center: { flex: 1, marginTop: 60 },
   scroll: { padding: 20 },
+  avatarRow: { flexDirection: 'row', alignItems: 'center', gap: 16, marginBottom: 24 },
+  avatarActions: { flex: 1, gap: 6 },
+  link: { fontSize: 14, fontWeight: '600', color: '#2563EB' },
+  linkDanger: { color: '#DC2626' },
   label: { fontSize: 13, fontWeight: '700', color: '#374151', marginBottom: 8 },
   input: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, padding: 14, fontSize: 15, color: '#111827', backgroundColor: '#F9FAFB', marginBottom: 20 },
   textarea: { minHeight: 100, lineHeight: 22, marginBottom: 4 },

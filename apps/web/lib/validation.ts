@@ -92,12 +92,23 @@ export function sanitizeString(input: string): string {
 }
 
 // Validate and sanitize task input
+/**
+ * Canonical enum values. These columns are plain strings in Postgres, so
+ * whatever reaches prisma.create is what gets stored -- a display label like
+ * 'Срочно' written into `urgency` renders untranslated in every locale and
+ * misses the colour map. Whitelist at the write boundary.
+ */
+export const URGENCY_VALUES = ['low', 'normal', 'urgent'] as const;
+
 export function validateTaskInput(data: {
     title?: string;
     description?: string;
     category?: string;
     city?: string;
     budgetAmount?: string;
+    urgency?: string;
+    allowedCategories?: readonly string[];
+    allowedCities?: readonly string[];
 }): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
 
@@ -115,10 +126,18 @@ export function validateTaskInput(data: {
 
     if (!data.category) {
         errors.push('Выберите категорию');
+    } else if (data.allowedCategories && !data.allowedCategories.includes(data.category)) {
+        errors.push('Неизвестная категория');
     }
 
     if (!data.city) {
         errors.push('Укажите город');
+    } else if (data.allowedCities && !data.allowedCities.includes(data.city)) {
+        errors.push('Неизвестный город');
+    }
+
+    if (data.urgency && !URGENCY_VALUES.includes(data.urgency as typeof URGENCY_VALUES[number])) {
+        errors.push('Неизвестная срочность');
     }
 
     if (data.budgetAmount) {

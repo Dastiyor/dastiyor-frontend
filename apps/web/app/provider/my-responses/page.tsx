@@ -4,8 +4,10 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle, XCircle, Clock, DollarSign, MapPin, Calendar, MessageSquare } from 'lucide-react';
+import { getServerTranslation } from '@/lib/i18n/server';
 
 export default async function MyResponsesPage() {
+    const { tr } = await getServerTranslation();
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 
@@ -171,7 +173,7 @@ export default async function MyResponsesPage() {
                                                 )}
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                                     <MapPin size={14} />
-                                                    <span>{response.task.city}</span>
+                                                    <span>{tr(response.task.city)}</span>
                                                 </div>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                                     <Calendar size={14} />

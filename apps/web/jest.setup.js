@@ -143,6 +143,8 @@ jest.mock('@/lib/i18n/context', () => {
     useTranslation: () => ({
       locale: 'ru',
       setLocale: jest.fn(),
+      // Locale is 'ru', so canonical values pass through unchanged -- same as prod.
+      tr: (value) => value,
       t: (key, params) => {
         let value = getNestedValue(ru, key);
         if (params && typeof value === 'string') {

@@ -21,6 +21,10 @@ export function isSafeAvatarUrl(url: string | null | undefined): boolean {
     if (allowed.has(host)) return true;
     if (host.endsWith('.supabase.co') || host.endsWith('.supabase.in')) return true;
     if (host.endsWith('.dastiyor.com')) return true;
+    // /api/upload stores to Vercel Blob in production and returns
+    // https://<store>.public.blob.vercel-storage.com/... -- without this every
+    // uploaded avatar silently falls back to initials.
+    if (host.endsWith('.public.blob.vercel-storage.com')) return true;
 
     return false;
   } catch {

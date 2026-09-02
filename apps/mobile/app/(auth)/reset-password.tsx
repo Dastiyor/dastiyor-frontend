@@ -109,7 +109,7 @@ export default function ResetPasswordScreen() {
           {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{rp.btn}</Text>}
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.backLink} onPress={() => router.back()}>
+        <TouchableOpacity style={styles.backLink} onPress={() => router.replace('/(auth)/login')}>
           <Text style={styles.backLinkText}>{t.forgotPassword.backToLogin}</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -126,6 +126,8 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12,
     padding: 14, fontSize: 16, color: '#111827', marginBottom: 12, backgroundColor: '#F9FAFB', letterSpacing: 0,
   },
+  // RN styles the placeholder with the input's own font, so codePh is a 6-slot
+  // mask rather than a sentence -- prose here renders at 24px/ls-3 and overflows.
   codeInput: {
     fontSize: 24, fontWeight: '700', letterSpacing: 3,
     color: '#111827', marginBottom: 20,

@@ -94,6 +94,46 @@ describe('Validation Utilities', () => {
             expect(result.errors.length).toBeGreaterThan(0);
         });
 
+        const base = {
+            title: 'Test Task Title',
+            description: 'This is a detailed description of the task',
+            category: 'Уборка',
+            city: 'Душанбе',
+        };
+        const lists = {
+            allowedCategories: ['Уборка', 'Ремонт'],
+            allowedCities: ['Душанбе'],
+        };
+
+        it('accepts the canonical urgency values', () => {
+            for (const urgency of ['low', 'normal', 'urgent']) {
+                expect(validateTaskInput({ ...base, ...lists, urgency }).isValid).toBe(true);
+            }
+        });
+
+        it('rejects a display label written into urgency', () => {
+            // The exact value found stored in production.
+            const result = validateTaskInput({ ...base, ...lists, urgency: 'Срочно' });
+            expect(result.isValid).toBe(false);
+            expect(result.errors).toContain('Неизвестная срочность');
+        });
+
+        it('rejects a category that is not on the list', () => {
+            const result = validateTaskInput({ ...base, ...lists, category: 'Made Up' });
+            expect(result.isValid).toBe(false);
+            expect(result.errors).toContain('Неизвестная категория');
+        });
+
+        it('rejects a city that is not on the list', () => {
+            const result = validateTaskInput({ ...base, ...lists, city: 'Atlantis' });
+            expect(result.isValid).toBe(false);
+            expect(result.errors).toContain('Неизвестный город');
+        });
+
+        it('skips membership checks when no lists are supplied', () => {
+            expect(validateTaskInput({ ...base, category: 'Anything', city: 'Anywhere' }).isValid).toBe(true);
+        });
+
         it('should validate budget amount', () => {
             const result = validateTaskInput({
                 title: 'Test Task',

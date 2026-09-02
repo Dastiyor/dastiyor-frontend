@@ -4,6 +4,7 @@ import type { Prisma } from '@prisma/client';
 import { logger } from '@/lib/logger';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 import { validateTaskInput, sanitizeString } from '@/lib/validation';
+import { CATEGORIES, CITIES } from '@/app/api/config/route';
 import { logAction, getRequestIP } from '@/lib/audit';
 import { requireAuth } from '@/lib/require-auth';
 import { needsPhoneVerification, PHONE_VERIFICATION_REQUIRED } from '@/lib/phone-gate';
@@ -161,7 +162,11 @@ export async function POST(request: Request) {
         } = body;
 
         // Validate Request using pre-defined schema
-        const validation = validateTaskInput({ title, description, category, city, budgetAmount: amount });
+        const validation = validateTaskInput({
+            title, description, category, city, budgetAmount: amount, urgency,
+            allowedCategories: CATEGORIES,
+            allowedCities: CITIES,
+        });
         if (!validation.isValid) {
             return NextResponse.json(
                 { error: validation.errors.join(', ') },
@@ -197,7 +202,7 @@ export async function POST(request: Request) {
                 userId: payload.id as string,
                 images: images ? JSON.stringify(images) : undefined,
                 dueDate: dueDate ? new Date(dueDate) : null,
-                urgency: urgency || 'normal',
+                urgency: urgency || 'normal', // validated above against URGENCY_VALUES
             },
         });
 

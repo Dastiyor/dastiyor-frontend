@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,9 +7,11 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  AppState,
   RefreshControl,
 } from 'react-native';
 import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
+import { goBack } from '@/lib/nav';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '@/lib/api-client';
@@ -17,12 +19,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { timeAgo } from '@/lib/timeAgo';
+import { TASK_POLL_MS } from '@/lib/constants';
 import type { TaskDetail, TaskResponse, MyResponse } from '@dastiyor/types';
 
 export default function TaskDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
-  const { t, locale } = useLanguage();
+  const { t, locale, tr } = useLanguage();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const tk = t.task;
@@ -34,6 +37,7 @@ export default function TaskDetailScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [taskActionLoading, setTaskActionLoading] = useState<string | null>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const URGENCY_LABEL: Record<string, { label: string; color: string }> = {
     urgent: { label: t.urgency.urgent, color: '#EF4444' },
@@ -41,10 +45,15 @@ export default function TaskDetailScreen() {
     low:    { label: t.urgency.low,    color: '#10B981' },
   };
 
-  const RESPONSE_STATUS: Record<string, { label: string; color: string; bg: string }> = {
+  const STATUS_BADGE: Record<string, { label: string; color: string; bg: string }> = {
     PENDING:  { label: t.status.PENDING,  color: '#F59E0B', bg: '#FEF3C7' },
     ACCEPTED: { label: t.status.ACCEPTED, color: '#059669', bg: '#D1FAE5' },
     REJECTED: { label: t.status.REJECTED, color: '#EF4444', bg: '#FEE2E2' },
+    // Task states -- the provider had no way to see the task was finished.
+    OPEN:        { label: t.status.OPEN,        color: '#059669', bg: '#D1FAE5' },
+    IN_PROGRESS: { label: t.status.IN_PROGRESS, color: '#2563EB', bg: '#DBEAFE' },
+    COMPLETED:   { label: t.status.COMPLETED,   color: '#6B7280', bg: '#F3F4F6' },
+    CANCELLED:   { label: t.status.CANCELLED,   color: '#EF4444', bg: '#FEE2E2' },
   };
 
   async function loadTask() {
@@ -83,6 +92,22 @@ export default function TaskDetailScreen() {
           setLoading(false);
         }
       })();
+
+      // The other side of the deal changes this screen from another device --
+      // accept, complete, a new response -- so refresh while it stays open.
+      // Silent: no spinner, and a failed tick leaves the last good state alone.
+      pollRef.current = setInterval(async () => {
+        if (AppState.currentState !== 'active') return;
+        try {
+          const data = await loadTask();
+          if (data) await loadResponses(data);
+        } catch {}
+      }, TASK_POLL_MS);
+
+      return () => {
+        if (pollRef.current) clearInterval(pollRef.current);
+        pollRef.current = null;
+      };
     }, [id, user?.id])
   );
 
@@ -154,7 +179,7 @@ export default function TaskDetailScreen() {
         <TouchableOpacity style={styles.respondBtn} onPress={retryLoad}>
           <Text style={styles.respondBtnText}>{t.common.errorRetry}</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={{ marginTop: 16 }} onPress={() => router.back()}>
+        <TouchableOpacity style={{ marginTop: 16 }} onPress={() => goBack()}>
           <Text style={{ color: colors.accent }}>{t.navigation.back}</Text>
         </TouchableOpacity>
       </View>
@@ -181,10 +206,18 @@ export default function TaskDetailScreen() {
         }
       >
         <View style={styles.badgeRow}>
+          {(() => {
+            const ts = STATUS_BADGE[task.status];
+            return ts ? (
+              <View style={[styles.badge, { backgroundColor: ts.bg }]}>
+                <Text style={[styles.badgeText, { color: ts.color }]}>{ts.label}</Text>
+              </View>
+            ) : null;
+          })()}
           <View style={[styles.badge, { backgroundColor: urgency.color + '18' }]}>
             <Text style={[styles.badgeText, { color: urgency.color }]}>{urgency.label}</Text>
           </View>
-          <Text style={[styles.category, { color: colors.textSecondary }]}>{task.category}</Text>
+          <Text style={[styles.category, { color: colors.textSecondary }]}>{tr(task.category)}</Text>
         </View>
 
         <Text style={[styles.title, { color: colors.text }]}>{task.title}</Text>
@@ -193,7 +226,7 @@ export default function TaskDetailScreen() {
           {task.city ? (
             <View style={styles.metaItem}>
               <Ionicons name="location-outline" size={13} color={colors.textSecondary} />
-              <Text style={[styles.meta, { color: colors.textSecondary }]}>{task.city}</Text>
+              <Text style={[styles.meta, { color: colors.textSecondary }]}>{tr(task.city)}</Text>
             </View>
           ) : null}
           <View style={styles.metaItem}>
@@ -208,7 +241,7 @@ export default function TaskDetailScreen() {
 
         <View style={[styles.budgetBox, { backgroundColor: colors.iconBg }]}>
           <Text style={styles.budgetLabel}>{tk.budget}</Text>
-          <Text style={styles.budgetValue}>{task.budget}</Text>
+          <Text style={styles.budgetValue}>{tr(task.budget)}</Text>
         </View>
 
         <Text style={[styles.sectionTitle, { color: colors.text }]}>{tk.description}</Text>
@@ -230,7 +263,7 @@ export default function TaskDetailScreen() {
           <View style={[styles.responsesSection, { borderTopColor: colors.border }]}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>{tk.responses} ({responses.length})</Text>
             {responses.map((r) => {
-              const rs = RESPONSE_STATUS[r.status] ?? { label: r.status, color: '#374151', bg: '#F3F4F6' };
+              const rs = STATUS_BADGE[r.status] ?? { label: r.status, color: '#374151', bg: '#F3F4F6' };
               const busy = actionLoading === r.id;
               return (
                 <View key={r.id} style={[styles.responseCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
@@ -252,6 +285,14 @@ export default function TaskDetailScreen() {
                       </View>
                     ) : null}
                   </View>
+                  <TouchableOpacity
+                    style={styles.messageBtn}
+                    onPress={() => router.push({ pathname: '/chat/[partnerId]', params: { partnerId: r.provider.id, partnerName: r.provider.fullName, taskId: task.id } })}
+                    accessibilityRole="button"
+                  >
+                    <Ionicons name="chatbubble-outline" size={15} color="#2563EB" />
+                    <Text style={styles.messageBtnText}>{t.provider.chat}</Text>
+                  </TouchableOpacity>
                   {r.status === 'PENDING' && task.status === 'OPEN' ? (
                     <View style={styles.responseActions}>
                       <TouchableOpacity style={[styles.rejectBtn, busy && styles.btnBusy]} onPress={() => handleReject(r)} disabled={!!actionLoading}>
@@ -272,7 +313,8 @@ export default function TaskDetailScreen() {
           <View style={styles.noResponses}><Text style={styles.noResponsesText}>{tk.noResponses}</Text></View>
         ) : null}
 
-        {isOwner && task.status === 'IN_PROGRESS' ? (
+        {/* Cancel is OPEN-only: /api/tasks/cancel rejects anything else (400). */}
+        {isOwner && task.status === 'OPEN' ? (
           <View style={[styles.lifecycleRow, { borderTopColor: colors.border }]}>
             <TouchableOpacity
               style={[styles.cancelTaskBtn, taskActionLoading === 'cancel' && styles.btnBusy]}
@@ -298,6 +340,11 @@ export default function TaskDetailScreen() {
             >
               {taskActionLoading === 'cancel' ? <ActivityIndicator color="#EF4444" size="small" /> : <Text style={styles.cancelTaskBtnText}>{tk.cancel}</Text>}
             </TouchableOpacity>
+          </View>
+        ) : null}
+
+        {isOwner && task.status === 'IN_PROGRESS' ? (
+          <View style={[styles.lifecycleRow, { borderTopColor: colors.border }]}>
             <TouchableOpacity
               style={[styles.completeBtn, taskActionLoading === 'complete' && styles.btnBusy]}
               disabled={!!taskActionLoading}
@@ -345,9 +392,9 @@ export default function TaskDetailScreen() {
           <View style={[styles.myResponseCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <View style={styles.myResponseHeader}>
               <Text style={[styles.myResponseTitle, { color: colors.text }]}>{tk.myResponseTitle}</Text>
-              <View style={[styles.rsBadge, { backgroundColor: RESPONSE_STATUS[myResponse.status]?.bg ?? '#F3F4F6' }]}>
-                <Text style={[styles.rsBadgeText, { color: RESPONSE_STATUS[myResponse.status]?.color ?? '#374151' }]}>
-                  {RESPONSE_STATUS[myResponse.status]?.label ?? myResponse.status}
+              <View style={[styles.rsBadge, { backgroundColor: STATUS_BADGE[myResponse.status]?.bg ?? '#F3F4F6' }]}>
+                <Text style={[styles.rsBadgeText, { color: STATUS_BADGE[myResponse.status]?.color ?? '#374151' }]}>
+                  {STATUS_BADGE[myResponse.status]?.label ?? myResponse.status}
                 </Text>
               </View>
             </View>
@@ -361,6 +408,16 @@ export default function TaskDetailScreen() {
                 </View>
               ) : null}
             </View>
+            {task.customer ? (
+              <TouchableOpacity
+                style={styles.messageBtn}
+                onPress={() => router.push({ pathname: '/chat/[partnerId]', params: { partnerId: task.customer!.id, partnerName: task.customer!.fullName, taskId: task.id } })}
+                accessibilityRole="button"
+              >
+                <Ionicons name="chatbubble-outline" size={15} color="#2563EB" />
+                <Text style={styles.messageBtnText}>{t.provider.chat}</Text>
+              </TouchableOpacity>
+            ) : null}
           </View>
         ) : null}
       </ScrollView>
@@ -408,6 +465,8 @@ const styles = StyleSheet.create({
   responsePrice: { fontSize: 15, fontWeight: '700', color: '#2563EB' },
   responseTime: { fontSize: 13, color: '#6B7280' },
   responseActions: { flexDirection: 'row', gap: 10 },
+  messageBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderWidth: 1, borderColor: '#2563EB', borderRadius: 10, paddingVertical: 9, marginTop: 10 },
+  messageBtnText: { color: '#2563EB', fontSize: 14, fontWeight: '600' },
   rejectBtn: { flex: 1, borderWidth: 1.5, borderColor: '#EF4444', borderRadius: 10, padding: 10, alignItems: 'center' },
   rejectBtnText: { color: '#EF4444', fontWeight: '700', fontSize: 13 },
   acceptBtn: { flex: 1, backgroundColor: '#2563EB', borderRadius: 10, padding: 10, alignItems: 'center' },

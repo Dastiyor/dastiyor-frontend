@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { DEFAULT_LOCALE, type Locale } from './types';
+import { localizeTerm } from './terms';
 import ru from './locales/ru.json';
 import tj from './locales/tj.json';
 
@@ -36,5 +37,8 @@ export async function getServerTranslation() {
         return value;
     }
 
-    return { t, locale };
+    /** Localize a canonical (Russian) category/city/budget value for display. */
+    const tr = (value: string) => localizeTerm(value, locale);
+
+    return { t, tr, locale };
 }

@@ -60,9 +60,19 @@ describe('Validation Utilities', () => {
     });
 
     describe('sanitizeString', () => {
-        it('should escape HTML special characters', () => {
-            expect(sanitizeString('<script>alert("xss")</script>')).toBe('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;');
-            expect(sanitizeString('Hello & World')).toBe('Hello &amp; World');
+        it('keeps text as the user typed it', () => {
+            // Escaping here was double-escaping: React, React Native and the
+            // email templates all escape at output, so users saw &quot; and
+            // &#x27; in their own messages.
+            expect(sanitizeString('Цена "под ключ" — 500')).toBe('Цена "под ключ" — 500');
+            expect(sanitizeString("It's ok?")).toBe("It's ok?");
+            expect(sanitizeString('R&D + уборка')).toBe('R&D + уборка');
+            expect(sanitizeString('<script>alert("xss")</script>')).toBe('<script>alert("xss")</script>');
+        });
+
+        it('strips control characters and trims', () => {
+            expect(sanitizeString('a\u0000b\u001Fc')).toBe('abc');
+            expect(sanitizeString('  padded  ')).toBe('padded');
         });
 
         it('should trim whitespace', () => {

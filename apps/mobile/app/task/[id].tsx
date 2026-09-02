@@ -46,16 +46,23 @@ export default function TaskDetailScreen() {
   /** Alert.alert wrapped so the poll stays out of the way while it is on screen. */
   function confirmThen(title: string, message: string, confirmLabel: string, run: () => Promise<void>, destructive = false) {
     busyRef.current = true;
-    Alert.alert(title, message, [
-      { text: t.common.cancel, style: 'cancel', onPress: () => { busyRef.current = false; } },
-      {
-        text: confirmLabel,
-        style: destructive ? 'destructive' : 'default',
-        onPress: async () => {
-          try { await run(); } finally { busyRef.current = false; }
+    Alert.alert(
+      title,
+      message,
+      [
+        { text: t.common.cancel, style: 'cancel', onPress: () => { busyRef.current = false; } },
+        {
+          text: confirmLabel,
+          style: destructive ? 'destructive' : 'default',
+          onPress: async () => {
+            try { await run(); } finally { busyRef.current = false; }
+          },
         },
-      },
-    ]);
+      ],
+      // Android can dismiss with the hardware back button, firing neither
+      // handler; without this the flag would stay set and stop the poll for good.
+      { onDismiss: () => { busyRef.current = false; } },
+    );
   }
 
   const URGENCY_LABEL: Record<string, { label: string; color: string }> = {

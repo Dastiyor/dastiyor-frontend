@@ -115,14 +115,30 @@ export async function checkRateLimit(
 
 const IP_REGEX = /^[\d.:a-fA-F]+$/;
 
+/**
+ * The client's IP, for rate-limit bucketing.
+ *
+ * Cloudflare fronts this app, so by the time a request reaches Vercel the first
+ * entry of x-forwarded-for is a Cloudflare edge address, not the caller. Keying
+ * on that bucketed every visitor behind an edge into one shared 5/min budget --
+ * which both let an attacker multiply their allowance across edges and would
+ * have started rejecting legitimate users as traffic grew.
+ *
+ * cf-connecting-ip is set by Cloudflare on every proxied request and overwrites
+ * anything the client sends, so it is the trustworthy source here.
+ */
 export function getClientIP(request: Request): string {
-    const forwardedFor = request.headers.get('x-forwarded-for');
-    if (forwardedFor) {
-        const candidate = forwardedFor.split(',')[0].trim();
-        if (IP_REGEX.test(candidate)) return candidate;
+    const candidates = [
+        request.headers.get('cf-connecting-ip'),
+        request.headers.get('true-client-ip'),
+        request.headers.get('x-real-ip'),
+        request.headers.get('x-forwarded-for')?.split(',')[0],
+    ];
+
+    for (const raw of candidates) {
+        const candidate = raw?.trim();
+        if (candidate && IP_REGEX.test(candidate)) return candidate;
     }
-    const realIP = request.headers.get('x-real-ip');
-    if (realIP && IP_REGEX.test(realIP.trim())) return realIP.trim();
     return 'unknown';
 }
 

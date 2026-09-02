@@ -23,6 +23,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useToast } from '@/contexts/ToastContext';
 import { POLL_INTERVAL_MS } from '@/lib/constants';
+import { useKeyboardOffset } from '@/lib/useKeyboardOffset';
 import { formatTime, formatDate } from '@/lib/intl';
 import type { ChatMessage } from '@dastiyor/types';
 
@@ -182,8 +183,12 @@ export default function ChatScreen() {
   // Stack header height = status bar + 44pt nav bar on iOS
   const iosOffset = insets.top + 44;
 
+  // Lift the pinned input bar clear of the keyboard on Android; see the hook.
+  const keyboardOffset = useKeyboardOffset();
+  const inputPaddingBottom = keyboardOffset > 0 ? 8 : insets.bottom + 8;
+
   return (
-    <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? iosOffset : 0}>
+    <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={Platform.OS === 'ios' ? iosOffset : 0}>
       {taskTitle ? <View style={[styles.taskBar, { backgroundColor: colors.iconBg, borderBottomColor: colors.border }]}><Text style={styles.taskBarText} numberOfLines={1}>{taskTitle}</Text></View> : null}
 
       {loading ? (
@@ -208,7 +213,7 @@ export default function ChatScreen() {
         />
       )}
 
-      <View style={[styles.inputBar, { backgroundColor: colors.surface, borderTopColor: colors.border, paddingBottom: insets.bottom + 8 }]}>
+      <View style={[styles.inputBar, { backgroundColor: colors.surface, borderTopColor: colors.border, paddingBottom: inputPaddingBottom, marginBottom: keyboardOffset }]}>
         <TextInput
           style={[styles.input, { backgroundColor: colors.surfaceAlt, color: colors.text }]}
           placeholder={t.chat.placeholder}

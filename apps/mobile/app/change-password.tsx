@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { goBack } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useKeyboardOffset } from '@/lib/useKeyboardOffset';
 import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PasswordInput } from '@/components/PasswordInput';
@@ -21,6 +22,7 @@ export default function ChangePasswordScreen() {
   const { t } = useLanguage();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const keyboardOffset = useKeyboardOffset();
   const cp = t.changePassword;
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
@@ -46,8 +48,8 @@ export default function ChangePasswordScreen() {
   }
 
   return (
-    <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 40 }]} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 40 + keyboardOffset }]} keyboardShouldPersistTaps="handled">
         <Text style={[styles.label, { color: colors.text }]}>{cp.current}</Text>
         <PasswordInput value={current} onChangeText={setCurrent} autoComplete="password" placeholder="••••••••" />
 

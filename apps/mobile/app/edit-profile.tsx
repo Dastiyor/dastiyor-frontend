@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { goBack } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useKeyboardOffset } from '@/lib/useKeyboardOffset';
 import * as ImagePicker from 'expo-image-picker';
 import { api, uploadFile } from '@/lib/api-client';
 import { Avatar } from '@/components/Avatar';
@@ -34,6 +35,7 @@ export default function EditProfileScreen() {
   const { t } = useLanguage();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const keyboardOffset = useKeyboardOffset();
   const ep = t.editProfile;
   const [form, setForm] = useState<ProfileData>({ fullName: '', phone: '', bio: '', skills: '', avatar: null });
   const [loading, setLoading] = useState(true);
@@ -110,8 +112,8 @@ export default function EditProfileScreen() {
   const inputStyle = [styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }];
 
   return (
-    <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 40 }]} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
+    <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 40 + keyboardOffset }]} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
         <View style={styles.avatarRow}>
           <Avatar name={form.fullName || user?.fullName || '?'} size={84} avatarUrl={form.avatar} />
           <View style={styles.avatarActions}>

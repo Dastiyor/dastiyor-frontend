@@ -120,6 +120,16 @@ export async function POST(request: Request) {
             }
         }
 
+        // Without this the FK violation surfaces as a generic 500. Check first so
+        // the caller gets a real answer.
+        const receiverExists = await prisma.user.findUnique({
+            where: { id: receiverId },
+            select: { id: true },
+        });
+        if (!receiverExists) {
+            return NextResponse.json({ error: 'Recipient not found' }, { status: 404 });
+        }
+
         const sanitizedContent = content ? sanitizeString(content) : '';
 
         // Reject if sanitizer stripped content to empty (e.g. whitespace-only input)

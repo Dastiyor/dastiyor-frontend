@@ -187,6 +187,7 @@ describe('/api/messages', () => {
                 sender: { id: mockUserId, fullName: 'User 1' },
             };
 
+            (prismaMock.user.findUnique as jest.Mock).mockResolvedValue({ id: 'user-2' });
             (prismaMock.message.create as jest.Mock).mockResolvedValue(mockMessage);
 
             const request = new NextRequest('http://localhost/api/messages', {
@@ -217,6 +218,7 @@ describe('/api/messages', () => {
                 sender: { id: mockUserId, fullName: 'User 1' },
             };
 
+            (prismaMock.user.findUnique as jest.Mock).mockResolvedValue({ id: 'user-2' });
             (prismaMock.message.create as jest.Mock).mockResolvedValue(mockMessage);
 
             const request = new NextRequest('http://localhost/api/messages', {
@@ -232,6 +234,22 @@ describe('/api/messages', () => {
 
             expect(response.status).toBe(201);
             expect(data.message.imageUrl).toBe('https://example.com/image.jpg');
+        });
+    });
+
+    describe('POST recipient validation', () => {
+        it('returns 404 for a recipient that does not exist', async () => {
+            // Previously the FK violation escaped as a generic 500.
+            (prismaMock.user.findUnique as jest.Mock).mockResolvedValue(null);
+
+            const request = new NextRequest('http://localhost/api/messages', {
+                method: 'POST',
+                body: JSON.stringify({ receiverId: 'ghost', content: 'hi' }),
+            });
+            const response = await POST(request);
+
+            expect(response.status).toBe(404);
+            expect(prismaMock.message.create).not.toHaveBeenCalled();
         });
     });
 });

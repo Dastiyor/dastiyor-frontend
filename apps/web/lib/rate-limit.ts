@@ -4,9 +4,11 @@
  * (local dev / CI). In production on Vercel serverless, only the Redis
  * path enforces limits across all instances.
  *
- * Required env vars (Upstash console → REST API):
- *   UPSTASH_REDIS_REST_URL
- *   UPSTASH_REDIS_REST_TOKEN
+ * Reads either naming convention:
+ *   UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN   (raw Upstash console)
+ *   KV_REST_API_URL        / KV_REST_API_TOKEN          (Vercel Marketplace)
+ * The Vercel integration provisions the KV_* names, so accepting both avoids
+ * duplicating the credentials just to satisfy a variable name.
  */
 
 import { Ratelimit } from '@upstash/ratelimit';
@@ -27,14 +29,11 @@ export type RateLimitType = keyof typeof RATE_LIMITS;
 // ─── Upstash Redis client (lazy, only when env vars present) ─────────────────
 
 function getRedis(): Redis | null {
-    if (
-        process.env.UPSTASH_REDIS_REST_URL &&
-        process.env.UPSTASH_REDIS_REST_TOKEN
-    ) {
-        return new Redis({
-            url: process.env.UPSTASH_REDIS_REST_URL,
-            token: process.env.UPSTASH_REDIS_REST_TOKEN,
-        });
+    const url = process.env.UPSTASH_REDIS_REST_URL ?? process.env.KV_REST_API_URL;
+    const token = process.env.UPSTASH_REDIS_REST_TOKEN ?? process.env.KV_REST_API_TOKEN;
+
+    if (url && token) {
+        return new Redis({ url, token });
     }
     return null;
 }

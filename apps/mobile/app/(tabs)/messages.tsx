@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import {
+  Alert,
   View,
   Text,
   FlatList,
@@ -45,6 +46,30 @@ export default function MessagesScreen() {
 
   async function onRefresh() { setRefreshing(true); await load(); setRefreshing(false); }
 
+  function confirmDelete(conv: Conversation) {
+    const m = t.messages;
+    Alert.alert(m.deleteTitle, m.deleteBody.replace('{name}', conv.partnerName), [
+      { text: t.common.cancel, style: 'cancel' },
+      {
+        text: m.deleteConfirm,
+        style: 'destructive',
+        onPress: async () => {
+          // Optimistic: the row is gone for this user either way, and a failed
+          // request just means it comes back on the next refresh.
+          setConversations((cs) => cs.filter((c) => c.id !== conv.id));
+          try {
+            const qs = new URLSearchParams({ userId: conv.partnerId });
+            if (conv.taskId) qs.set('taskId', conv.taskId);
+            await api.del(`/api/conversations?${qs}`);
+          } catch (e) {
+            Alert.alert(t.common.error, (e as Error).message);
+            await load();
+          }
+        },
+      },
+    ]);
+  }
+
   function openChat(conv: Conversation) {
     router.push({
       pathname: '/chat/[partnerId]',
@@ -56,7 +81,7 @@ export default function MessagesScreen() {
     const roleKey = item.partnerRole as keyof typeof t.profile.roles | undefined;
     const roleLabel = roleKey ? (t.profile.roles[roleKey] ?? item.partnerRole) : null;
     return (
-      <TouchableOpacity style={[styles.row, { backgroundColor: colors.surface }]} onPress={() => openChat(item)} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel={item.partnerName}>
+      <TouchableOpacity style={[styles.row, { backgroundColor: colors.surface }]} onPress={() => openChat(item)} onLongPress={() => confirmDelete(item)} delayLongPress={350} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel={item.partnerName}>
         <Avatar name={item.partnerName} avatarUrl={item.partnerAvatar} size={52} />
         <View style={styles.rowBody}>
           <View style={styles.rowTop}>
@@ -78,7 +103,7 @@ export default function MessagesScreen() {
         </View>
       </TouchableOpacity>
     );
-  }, [t, colors]);
+  }, [t, colors, confirmDelete]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>

@@ -464,7 +464,9 @@ const styles = StyleSheet.create({
   responseMeta: { flexDirection: 'row', gap: 16, marginBottom: 10 },
   responsePrice: { fontSize: 15, fontWeight: '700', color: '#2563EB' },
   responseTime: { fontSize: 13, color: '#6B7280' },
-  responseActions: { flexDirection: 'row', gap: 10 },
+  // marginTop here, not marginBottom on messageBtn -- the Message button also
+  // renders alone (accepted responses), where a trailing gap would look wrong.
+  responseActions: { flexDirection: 'row', gap: 10, marginTop: 10 },
   messageBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderWidth: 1, borderColor: '#2563EB', borderRadius: 10, paddingVertical: 9, marginTop: 10 },
   messageBtnText: { color: '#2563EB', fontSize: 14, fontWeight: '600' },
   rejectBtn: { flex: 1, borderWidth: 1.5, borderColor: '#EF4444', borderRadius: 10, padding: 10, alignItems: 'center' },

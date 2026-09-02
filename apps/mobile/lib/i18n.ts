@@ -144,6 +144,8 @@ const translations = {
       errorRetry: 'Try again',
       exitApp: 'Press again to exit',
       noInternet: 'No internet connection',
+      showPassword: 'Show password',
+      hidePassword: 'Hide password',
     },
     time: { justNow: 'just now', min: 'min', h: 'h', d: 'd' },
     register: {
@@ -547,6 +549,8 @@ const translations = {
       errorRetry: 'Попробовать снова',
       exitApp: 'Нажмите ещё раз для выхода',
       noInternet: 'Нет подключения к интернету',
+      showPassword: 'Показать пароль',
+      hidePassword: 'Скрыть пароль',
     },
     time: { justNow: 'только что', min: 'мин', h: 'ч', d: 'д' },
     register: {
@@ -950,6 +954,8 @@ const translations = {
       errorRetry: 'Дубора кӯшиш кунед',
       exitApp: 'Барои хуруҷ боз пахш кунед',
       noInternet: 'Пайвастшавӣ нест',
+      showPassword: 'Намоиши парол',
+      hidePassword: 'Пинҳон кардани парол',
     },
     time: { justNow: 'ҳозир', min: 'дақ', h: 'с', d: 'р' },
     register: {

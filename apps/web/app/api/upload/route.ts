@@ -53,8 +53,18 @@ export async function POST(request: Request) {
                 contentType: file.type,
             });
             url = blob.url;
+        } else if (process.env.VERCEL) {
+            // The filesystem fallback below cannot work on Vercel -- the runtime
+            // filesystem is read-only, so writeFile throws EROFS and the caller
+            // just sees a generic 500. Fail loudly instead: this needs a Blob
+            // store connected to the project so BLOB_READ_WRITE_TOKEN is injected.
+            console.error('Upload Error: BLOB_READ_WRITE_TOKEN is not set; no storage backend configured');
+            return NextResponse.json(
+                { error: 'File storage is not configured', code: 'STORAGE_NOT_CONFIGURED' },
+                { status: 503 }
+            );
         } else {
-            // Development fallback: local filesystem
+            // Local development only: write into public/uploads.
             const uploadsDir = join(process.cwd(), 'public', 'uploads');
             await mkdir(uploadsDir, { recursive: true });
             const bytes = await file.arrayBuffer();

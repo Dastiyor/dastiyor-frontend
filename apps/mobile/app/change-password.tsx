@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import {
-  View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
@@ -15,6 +13,7 @@ import { goBack } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { PasswordInput } from '@/components/PasswordInput';
 import { useTheme } from '@/contexts/ThemeContext';
 import { passwordStrength } from '@/lib/validation';
 
@@ -50,18 +49,14 @@ export default function ChangePasswordScreen() {
     <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 40 }]} keyboardShouldPersistTaps="handled">
         <Text style={[styles.label, { color: colors.text }]}>{cp.current}</Text>
-        <TextInput style={[styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]} value={current} onChangeText={setCurrent} secureTextEntry autoComplete="password" placeholder="••••••••" placeholderTextColor={colors.textTertiary} maxLength={128} />
+        <PasswordInput value={current} onChangeText={setCurrent} autoComplete="password" placeholder="••••••••" />
 
         <Text style={[styles.label, { color: colors.text }]}>{cp.new}</Text>
-        <TextInput
-          style={[styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]}
+        <PasswordInput
           value={next}
           onChangeText={(v) => { setNext(v); setPwIssues(v ? passwordStrength(v, cp) : []); }}
-          secureTextEntry
           autoComplete="new-password"
           placeholder={cp.newPh}
-          placeholderTextColor={colors.textTertiary}
-          maxLength={128}
         />
         {next.length > 0 && (
           pwIssues.length === 0
@@ -70,7 +65,7 @@ export default function ChangePasswordScreen() {
         )}
 
         <Text style={[styles.label, { color: colors.text }]}>{cp.confirm}</Text>
-        <TextInput style={[styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]} value={confirm} onChangeText={setConfirm} secureTextEntry placeholder={cp.confirmPh} placeholderTextColor={colors.textTertiary} maxLength={128} />
+        <PasswordInput value={confirm} onChangeText={setConfirm} placeholder={cp.confirmPh} />
 
         <TouchableOpacity style={[styles.btn, saving && styles.btnDisabled]} onPress={handleSave} disabled={saving} accessibilityLabel={cp.btn} accessibilityRole="button">
           {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>{cp.btn}</Text>}
@@ -84,7 +79,6 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   scroll: { padding: 20, paddingBottom: 40 },
   label: { fontSize: 13, fontWeight: '700', color: '#374151', marginBottom: 8 },
-  input: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, padding: 14, fontSize: 15, color: '#111827', backgroundColor: '#F9FAFB', marginBottom: 20, letterSpacing: 0 },
   pwOk: { fontSize: 12, color: '#059669', fontWeight: '500', marginBottom: 14 },
   pwErr: { fontSize: 12, color: '#DC2626', marginBottom: 2 },
   btn: { backgroundColor: '#2563EB', borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 8 },

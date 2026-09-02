@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { formatBudget } from '@/lib/format-budget';
 import { requireAuth } from '@/lib/require-auth';
 
 const DEFAULT_LIMIT = 20;
@@ -33,7 +34,7 @@ export async function GET(request: Request) {
                 id: t.id,
                 title: t.title,
                 category: t.category,
-                budget: t.budgetType === 'fixed' ? `${t.budgetAmount} TJS` : 'Договорная',
+                budget: formatBudget(t.budgetType, t.budgetAmount),
                 city: t.city,
                 status: t.status,
                 urgency: t.urgency,

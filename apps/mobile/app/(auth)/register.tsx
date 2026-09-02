@@ -15,6 +15,7 @@ import { Link, router } from 'expo-router';
 import { goBack } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardOffset } from '@/lib/useKeyboardOffset';
+import { useKeyboardAwareScroll } from '@/lib/useKeyboardAwareScroll';
 import { AuthBackground } from '@/components/AuthBackground';
 import * as storage from '@/lib/storage';
 import * as WebBrowser from 'expo-web-browser';
@@ -42,6 +43,7 @@ export default function RegisterScreen() {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const keyboardOffset = useKeyboardOffset();
+  const kbScroll = useKeyboardAwareScroll();
   const r = t.register;
 
   const [fullName, setFullName] = useState('');
@@ -181,7 +183,7 @@ export default function RegisterScreen() {
       >
         <Ionicons name="close" size={22} color={colors.text} />
       </TouchableOpacity>
-      <ScrollView
+      <ScrollView {...kbScroll}
         contentContainerStyle={[styles.inner, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 + keyboardOffset }]}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"

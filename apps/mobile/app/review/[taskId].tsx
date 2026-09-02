@@ -15,6 +15,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { goBack } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardOffset } from '@/lib/useKeyboardOffset';
+import { useKeyboardAwareScroll } from '@/lib/useKeyboardAwareScroll';
 import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -27,6 +28,7 @@ export default function ReviewScreen() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const keyboardOffset = useKeyboardOffset();
+  const kbScroll = useKeyboardAwareScroll();
   const rv = t.review;
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
@@ -47,7 +49,7 @@ export default function ReviewScreen() {
 
   return (
     <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 40 + keyboardOffset }]} keyboardShouldPersistTaps="handled">
+      <ScrollView {...kbScroll} contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 40 + keyboardOffset }]} keyboardShouldPersistTaps="handled">
         {taskTitle ? (
           <View style={[styles.taskBox, { backgroundColor: colors.surface }]}>
             <Text style={[styles.taskBoxLabel, { color: colors.textTertiary }]}>{rv.task}</Text>

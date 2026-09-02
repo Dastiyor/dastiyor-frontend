@@ -29,21 +29,34 @@ export function useKeyboardAwareScroll() {
 
   useEffect(() => {
     if (Platform.OS !== 'android') return;
-    const sub = Keyboard.addListener('keyboardDidShow', (e) => {
-      const focused = TextInput.State.currentlyFocusedInput?.();
-      const scroll = ref.current;
-      if (!focused || !scroll) return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
 
-      // endCoordinates.screenY is the top of the keyboard in window space.
-      const keyboardTop = e.endCoordinates.screenY;
-      focused.measureInWindow((_x: number, y: number, _w: number, h: number) => {
-        const overlap = y + h - keyboardTop + 24; // 24 = breathing room
-        if (overlap > 0) {
-          scroll.scrollTo({ y: offsetY.current + overlap, animated: true });
-        }
-      });
+    const sub = Keyboard.addListener('keyboardDidShow', (e) => {
+      // useKeyboardOffset() listens to this same event and grows the scroll
+      // content padding through setState. scrollTo clamps to the CURRENT
+      // maximum offset, so scrolling here lands short by exactly the padding
+      // that has not been committed yet -- the field ends up half behind the
+      // keyboard. Wait for that render and layout to settle first.
+      timer = setTimeout(() => {
+        const focused = TextInput.State.currentlyFocusedInput?.();
+        const scroll = ref.current;
+        if (!focused || !scroll) return;
+
+        // endCoordinates.screenY is the top of the keyboard in window space.
+        const keyboardTop = e.endCoordinates.screenY;
+        focused.measureInWindow((_x: number, y: number, _w: number, h: number) => {
+          const overlap = y + h - keyboardTop + 24; // 24 = breathing room
+          if (overlap > 0) {
+            scroll.scrollTo({ y: offsetY.current + overlap, animated: true });
+          }
+        });
+      }, 150);
     });
-    return () => sub.remove();
+
+    return () => {
+      sub.remove();
+      if (timer) clearTimeout(timer);
+    };
   }, []);
 
   return { ref, onScroll, scrollEventThrottle: 16 };

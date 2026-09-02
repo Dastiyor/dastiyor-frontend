@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/require-auth';
+import { logAction, getRequestIP } from '@/lib/audit';
 
 // GET - Fetch all conversations for the current user
 export async function GET(request: Request) {
@@ -13,9 +14,11 @@ export async function GET(request: Request) {
         // Limit to most recent 500 messages to bound memory usage
         const messages = await prisma.message.findMany({
             where: {
+                // Hide conversations this user deleted; messages sent after the
+                // delete are unmarked, so the thread reappears with just those.
                 OR: [
-                    { senderId: userId },
-                    { receiverId: userId }
+                    { senderId: userId, deletedBySender: false },
+                    { receiverId: userId, deletedByReceiver: false }
                 ]
             },
             orderBy: { createdAt: 'desc' },
@@ -89,6 +92,62 @@ export async function GET(request: Request) {
 
     } catch (error) {
         console.error('Get Conversations Error:', error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}
+
+// DELETE - Remove one conversation from the caller's view only. The other
+// participant keeps their copy; nothing is erased from the database.
+export async function DELETE(request: Request) {
+    try {
+        const payload = await requireAuth(request);
+        if (!payload) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+        const userId = payload.id as string;
+        const { searchParams } = new URL(request.url);
+        const partnerId = searchParams.get('userId');
+        const taskIdParam = searchParams.get('taskId');
+
+        if (!partnerId) {
+            return NextResponse.json({ error: 'Missing userId parameter' }, { status: 400 });
+        }
+        if (partnerId === userId) {
+            return NextResponse.json({ error: 'Cannot delete a conversation with yourself' }, { status: 400 });
+        }
+
+        // Conversations are keyed by partner + task, so scope the delete the
+        // same way: an absent taskId means the task-less thread, not all of them.
+        const taskScope = { taskId: taskIdParam ? taskIdParam : null };
+
+        const [sent, received] = await prisma.$transaction([
+            prisma.message.updateMany({
+                where: { senderId: userId, receiverId: partnerId, ...taskScope },
+                data: { deletedBySender: true },
+            }),
+            prisma.message.updateMany({
+                where: { senderId: partnerId, receiverId: userId, ...taskScope },
+                data: { deletedByReceiver: true },
+            }),
+        ]);
+
+        const deleted = sent.count + received.count;
+        if (deleted === 0) {
+            return NextResponse.json({ error: 'Conversation not found' }, { status: 404 });
+        }
+
+        logAction({
+            action: 'DELETE_CONVERSATION',
+            userId,
+            entity: 'Message',
+            entityId: partnerId,
+            details: { partnerId, taskId: taskIdParam ?? null, messagesHidden: deleted },
+            ipAddress: getRequestIP(request),
+        });
+
+        return NextResponse.json({ message: 'Conversation deleted', count: deleted });
+
+    } catch (error) {
+        console.error('Delete Conversation Error:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

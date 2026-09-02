@@ -19,6 +19,7 @@ export type AuditAction =
     | 'ACCEPT_RESPONSE'
     | 'REJECT_RESPONSE'
     | 'SEND_MESSAGE'
+    | 'DELETE_CONVERSATION'
     | 'LEAVE_REVIEW'
     | 'UPDATE_PROFILE'
     | 'CHANGE_PASSWORD'

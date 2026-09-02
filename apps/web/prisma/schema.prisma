@@ -3,90 +3,90 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL") // uses connection pooling
   directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
 }
 
 // User Model
 model User {
-  id        String   @id @default(cuid())
-  fullName  String
-  email     String?  @unique
-  password  String?  // null for OAuth-only users
-  googleId  String?  @unique
-  appleId   String?  @unique
-  phone     String?
-  phoneVerified Boolean @default(false) // OAuth registrants must verify a phone before posting/accepting tasks
-  bio       String?  // Provider bio/description
-  skills    String?  // Comma-separated skills
-  avatar    String?  // Profile image URL
-  balance   Int      @default(0) // Provider earnings/balance (in TJS, whole somoni)
-  role      String   @default("CUSTOMER") // CUSTOMER, PROVIDER
-  isVerified Boolean  @default(false) // Provider verification status
+  id                    String    @id @default(cuid())
+  fullName              String
+  email                 String?   @unique
+  password              String? // null for OAuth-only users
+  googleId              String?   @unique
+  appleId               String?   @unique
+  phone                 String?
+  phoneVerified         Boolean   @default(false) // OAuth registrants must verify a phone before posting/accepting tasks
+  bio                   String? // Provider bio/description
+  skills                String? // Comma-separated skills
+  avatar                String? // Profile image URL
+  balance               Int       @default(0) // Provider earnings/balance (in TJS, whole somoni)
+  role                  String    @default("CUSTOMER") // CUSTOMER, PROVIDER
+  isVerified            Boolean   @default(false) // Provider verification status
   verificationDocuments String? // JSON array of document URLs
-  loginAttempts Int      @default(0)
-  lockedUntil   DateTime?
-  tokenVersion  Int      @default(0) // Incremented on logout/password-change to invalidate old JWTs
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  loginAttempts         Int       @default(0)
+  lockedUntil           DateTime?
+  tokenVersion          Int       @default(0) // Incremented on logout/password-change to invalidate old JWTs
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   // Relationships
-  tasks        Task[]     @relation("UserTasks")
-  assignedTasks Task[]    @relation("AssignedTasks")
-  responses    Response[]
-  subscription Subscription?
-  
+  tasks         Task[]        @relation("UserTasks")
+  assignedTasks Task[]        @relation("AssignedTasks")
+  responses     Response[]
+  subscription  Subscription?
+
   // Chat & Reviews
   sentMessages     Message[] @relation("SentMessages")
   receivedMessages Message[] @relation("ReceivedMessages")
   reviewsGiven     Review[]  @relation("ReviewsGiven")
   reviewsReceived  Review[]  @relation("ReviewsReceived")
-  
+
   // Password Reset
-  passwordResets   PasswordReset[]
-  
+  passwordResets PasswordReset[]
+
   // Notifications
-  notifications    Notification[]
-  
+  notifications Notification[]
+
   // Favorites
-  favoriteTasks   TaskFavorite[]
+  favoriteTasks TaskFavorite[]
 
   // Audit logs
-  actionLogs      ActionLog[]
+  actionLogs ActionLog[]
 
   // Push subscriptions
   pushSubscriptions PushSubscription[]
 
   // Native (Expo) device push tokens
-  deviceTokens     DeviceToken[]
+  deviceTokens DeviceToken[]
 
   // Payments
-  payments         Payment[]
+  payments Payment[]
 
   // Reports
-  reportsMade      Report[]  @relation("ReportReporter")
-  reportsAgainst   Report[]  @relation("ReportTargetUser")
+  reportsMade    Report[] @relation("ReportReporter")
+  reportsAgainst Report[] @relation("ReportTargetUser")
 }
 
 // Task Model
 model Task {
-  id          String     @id @default(cuid())
-  title       String
-  description String
-  category    String     @default("Other")
-  subcategory String?    // Subcategory field
-  budgetType  String     // 'fixed' or 'negotiable'
-  budgetAmount String?   // Display string (e.g. "100" or "negotiable")
-  budgetAmountNum Int?   // Numeric value for filtering/sorting (TJS)
-  city        String
-  address     String?
-  images      String?    // JSON array of image URLs
-  urgency     String     @default("normal") // low, normal, urgent
-  dueDate     DateTime?  // Optional deadline
-  status      String     @default("OPEN") // OPEN, IN_PROGRESS, COMPLETED, CANCELLED
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id              String    @id @default(cuid())
+  title           String
+  description     String
+  category        String    @default("Other")
+  subcategory     String? // Subcategory field
+  budgetType      String // 'fixed' or 'negotiable'
+  budgetAmount    String? // Display string (e.g. "100" or "negotiable")
+  budgetAmountNum Int? // Numeric value for filtering/sorting (TJS)
+  city            String
+  address         String?
+  images          String? // JSON array of image URLs
+  urgency         String    @default("normal") // low, normal, urgent
+  dueDate         DateTime? // Optional deadline
+  status          String    @default("OPEN") // OPEN, IN_PROGRESS, COMPLETED, CANCELLED
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   // Relationships
   userId    String
@@ -96,16 +96,16 @@ model Task {
   // Assignment
   assignedUserId String?
   assignedUser   User?   @relation("AssignedTasks", fields: [assignedUserId], references: [id])
-  
+
   // Chat & Reviews
   messages Message[]
   review   Review?
-  
+
   // Favorites
   favorites TaskFavorite[]
 
   // Reports
-  reports   Report[] @relation("ReportTargetTask")
+  reports Report[] @relation("ReportTargetTask")
 
   @@index([status])
   @@index([category])
@@ -120,17 +120,17 @@ model Response {
   id            String   @id @default(cuid())
   message       String
   price         String
-  priceNum      Int?     // Numeric price (TJS) for sorting/filtering
-  estimatedTime String?  // Estimated completion time (e.g., "2 hours", "1 day")
+  priceNum      Int? // Numeric price (TJS) for sorting/filtering
+  estimatedTime String? // Estimated completion time (e.g., "2 hours", "1 day")
   status        String   @default("PENDING") // PENDING, ACCEPTED, REJECTED
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   // Relationships
-  taskId    String
-  task      Task     @relation(fields: [taskId], references: [id])
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
   @@unique([taskId, userId])
   @@index([taskId])
@@ -140,14 +140,14 @@ model Response {
 // Subscription Model (for Providers)
 model Subscription {
   id        String   @id @default(cuid())
-  plan      String   // 'basic', 'standard', 'premium'
+  plan      String // 'basic', 'standard', 'premium'
   startDate DateTime @default(now())
   endDate   DateTime
   isActive  Boolean  @default(true)
 
   // Relationships
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id])
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
 
   @@index([endDate])
 }
@@ -156,21 +156,27 @@ model Subscription {
 model Message {
   id        String   @id @default(cuid())
   content   String
-  imageUrl  String?  // Optional image attachment
+  imageUrl  String? // Optional image attachment
   createdAt DateTime @default(now())
   isRead    Boolean  @default(false)
 
+  // Per-side conversation delete: one row serves both participants, so each
+  // hides their own copy. Deleting a chat marks every message currently in it;
+  // later messages arrive unmarked, so the thread reappears with just those.
+  deletedBySender   Boolean @default(false)
+  deletedByReceiver Boolean @default(false)
+
   // Sender
-  senderId   String
-  sender     User   @relation("SentMessages", fields: [senderId], references: [id])
-  
+  senderId String
+  sender   User   @relation("SentMessages", fields: [senderId], references: [id])
+
   // Receiver
   receiverId String
   receiver   User   @relation("ReceivedMessages", fields: [receiverId], references: [id])
-  
+
   // Task context (optional - messages related to a task)
-  taskId    String?
-  task      Task?   @relation(fields: [taskId], references: [id])
+  taskId String?
+  task   Task?   @relation(fields: [taskId], references: [id])
 
   @@index([senderId, createdAt])
   @@index([receiverId, isRead, createdAt])
@@ -185,8 +191,8 @@ model PasswordReset {
   createdAt DateTime @default(now())
 
   // User
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
   @@index([token])
   @@index([userId, used])
@@ -197,7 +203,7 @@ model VerificationCode {
   id        String   @id @default(cuid())
   phone     String
   code      String
-  type      String   // 'REGISTRATION', 'RESET_PASSWORD', 'LOGIN'
+  type      String // 'REGISTRATION', 'RESET_PASSWORD', 'LOGIN'
   used      Boolean  @default(false)
   expiresAt DateTime
   createdAt DateTime @default(now())
@@ -208,7 +214,7 @@ model VerificationCode {
 // Review Model (Ratings)
 model Review {
   id        String   @id @default(cuid())
-  rating    Int      // 1-5 stars
+  rating    Int // 1-5 stars
   comment   String?
   hidden    Boolean  @default(false)
   createdAt DateTime @default(now())
@@ -216,30 +222,29 @@ model Review {
   // Reviewer (Customer who leaves the review)
   reviewerId String
   reviewer   User   @relation("ReviewsGiven", fields: [reviewerId], references: [id])
-  
+
   // Reviewed (Provider who receives the review)
   reviewedId String
   reviewed   User   @relation("ReviewsReceived", fields: [reviewedId], references: [id])
-  
 
   // Task the review is for
-  taskId    String  @unique
-  task      Task    @relation(fields: [taskId], references: [id])
+  taskId String @unique
+  task   Task   @relation(fields: [taskId], references: [id])
 }
 
 // Notification Model
 model Notification {
   id        String   @id @default(cuid())
-  type      String   // 'TASK_UPDATE', 'NEW_MESSAGE', 'NEW_OFFER', 'OFFER_ACCEPTED', 'SYSTEM'
+  type      String // 'TASK_UPDATE', 'NEW_MESSAGE', 'NEW_OFFER', 'OFFER_ACCEPTED', 'SYSTEM'
   title     String
   message   String
-  link      String?  // URL to redirect to
+  link      String? // URL to redirect to
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
 
   // Recipient
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
   @@index([userId, isRead, createdAt])
 }
@@ -247,16 +252,16 @@ model Notification {
 // Action Log Model (Audit Trail)
 model ActionLog {
   id        String   @id @default(cuid())
-  action    String   // e.g. 'LOGIN', 'REGISTER', 'CREATE_TASK', 'ACCEPT_RESPONSE', etc.
-  entity    String?  // e.g. 'Task', 'Response', 'User'
-  entityId  String?  // ID of the affected entity
-  details   String?  // JSON string with extra context
+  action    String // e.g. 'LOGIN', 'REGISTER', 'CREATE_TASK', 'ACCEPT_RESPONSE', etc.
+  entity    String? // e.g. 'Task', 'Response', 'User'
+  entityId  String? // ID of the affected entity
+  details   String? // JSON string with extra context
   ipAddress String?
   createdAt DateTime @default(now())
 
   // Actor (optional — null for anonymous actions like failed logins)
-  userId    String?
-  user      User?    @relation(fields: [userId], references: [id])
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([action])
@@ -269,10 +274,10 @@ model TaskFavorite {
   createdAt DateTime @default(now())
 
   // Relationships
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  taskId    String
-  task      Task     @relation(fields: [taskId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id])
 
   @@unique([userId, taskId])
 }
@@ -280,22 +285,22 @@ model TaskFavorite {
 // Payment Model (Transaction History)
 model Payment {
   id              String   @id @default(cuid())
-  amount          Int      // Amount in TJS (somoni)
+  amount          Int // Amount in TJS (somoni)
   currency        String   @default("TJS")
   status          String   @default("PENDING") // PENDING, COMPLETED, FAILED, CANCELLED
-  type            String   // SUBSCRIPTION
-  description     String   // Human-readable description
-  plan            String?  // Subscription plan if type=SUBSCRIPTION
+  type            String // SUBSCRIPTION
+  description     String // Human-readable description
+  plan            String? // Subscription plan if type=SUBSCRIPTION
   // SmartPay fields
   transactionId   String?  @unique // SmartPay transaction ID
-  paymentMethod   String?  // e.g. 'visa', 'humo', 'dc_next'
+  paymentMethod   String? // e.g. 'visa', 'humo', 'dc_next'
   smartpayOrderId String?  @unique // Our order ID sent to SmartPay
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   // Relationships
-  userId          String
-  user            User     @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([status])
@@ -306,12 +311,12 @@ model Payment {
 model PushSubscription {
   id        String   @id @default(cuid())
   endpoint  String   @unique
-  p256dh    String   // Public key
-  auth      String   // Auth secret
+  p256dh    String // Public key
+  auth      String // Auth secret
   createdAt DateTime @default(now())
 
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -321,29 +326,29 @@ model PushSubscription {
 model DeviceToken {
   id        String   @id @default(cuid())
   token     String   @unique // Expo push token, e.g. ExponentPushToken[xxx]
-  platform  String?  // 'ios' | 'android'
+  platform  String? // 'ios' | 'android'
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
 
 // Report Model (User/Task reports for moderation)
 model Report {
-  id           String   @id @default(cuid())
-  reason       String
-  status       String   @default("OPEN") // OPEN, RESOLVED, DISMISSED
-  createdAt    DateTime @default(now())
+  id        String   @id @default(cuid())
+  reason    String
+  status    String   @default("OPEN") // OPEN, RESOLVED, DISMISSED
+  createdAt DateTime @default(now())
 
   reporterId   String
-  reporter     User     @relation("ReportReporter", fields: [reporterId], references: [id])
+  reporter     User    @relation("ReportReporter", fields: [reporterId], references: [id])
   targetUserId String?
-  targetUser   User?    @relation("ReportTargetUser", fields: [targetUserId], references: [id])
+  targetUser   User?   @relation("ReportTargetUser", fields: [targetUserId], references: [id])
   targetTaskId String?
-  targetTask   Task?    @relation("ReportTargetTask", fields: [targetTaskId], references: [id])
+  targetTask   Task?   @relation("ReportTargetTask", fields: [targetTaskId], references: [id])
 
   @@index([status])
   @@index([reporterId])
@@ -357,7 +362,7 @@ model Category {
   name          String
   slug          String   @unique
   order         Int      @default(0)
-  subcategories String?  // JSON array of subcategory names
+  subcategories String? // JSON array of subcategory names
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }

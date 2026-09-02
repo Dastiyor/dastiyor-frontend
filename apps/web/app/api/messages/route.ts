@@ -27,11 +27,13 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'Missing userId parameter' }, { status: 400 });
         }
 
-        // Get messages between these two users (optionally filtered by task)
+        // Get messages between these two users (optionally filtered by task).
+        // Each side's own conversation-delete is honoured: a message is hidden
+        // from whichever participant deleted their copy of the chat.
         const whereClause: Prisma.MessageWhereInput = {
             OR: [
-                { senderId: userId, receiverId: otherId },
-                { senderId: otherId, receiverId: userId }
+                { senderId: userId, receiverId: otherId, deletedBySender: false },
+                { senderId: otherId, receiverId: userId, deletedByReceiver: false }
             ]
         };
 

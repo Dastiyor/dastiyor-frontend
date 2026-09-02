@@ -278,6 +278,9 @@ const translations = {
       hint: 'Start a chat by responding to a task',
       noMore: 'No more messages. Place a new order to start talking to experts',
       loadError: 'Failed to load messages',
+      deleteTitle: 'Delete chat?',
+      deleteBody: 'This removes your copy of the chat with {name}. They will still have theirs.',
+      deleteConfirm: 'Delete',
     },
     task: {
       budget: 'Budget',
@@ -683,6 +686,9 @@ const translations = {
       hint: 'Начните чат, откликнувшись на задание',
       noMore: 'Больше сообщений нет. Разместите новый заказ, чтобы начать общение с мастерами',
       loadError: 'Не удалось загрузить сообщения',
+      deleteTitle: 'Удалить чат?',
+      deleteBody: 'Ваша копия переписки с {name} будет удалена. У собеседника она останется.',
+      deleteConfirm: 'Удалить',
     },
     task: {
       budget: 'Бюджет',
@@ -1088,6 +1094,9 @@ const translations = {
       hint: 'Бо посух додан ба супориш чат оғоз кунед',
       noMore: 'Дигар паём нест. Фармоиши нав диҳед то бо мутахассисон гуфтугӯ оғоз кунед',
       loadError: 'Паёмҳоро бор кардан нашуд',
+      deleteTitle: 'Чатро нест кунем?',
+      deleteBody: 'Нусхаи шумо аз сӯҳбат бо {name} нест мешавад. Дар тарафи ӯ боқӣ мемонад.',
+      deleteConfirm: 'Нест кардан',
     },
     task: {
       budget: 'Буҷет',

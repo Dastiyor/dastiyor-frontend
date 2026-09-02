@@ -23,6 +23,12 @@ import { useTheme } from '@/contexts/ThemeContext';
 
 interface ProfileData { fullName: string; phone: string; bio: string; skills: string; avatar: string | null; }
 
+/** API stores the full +992XXXXXXXXX; this field edits only the 9 local digits. */
+function toLocalPhone(full: string | null | undefined): string {
+  const digits = (full ?? '').replace(/\D/g, '');
+  return digits.startsWith('992') ? digits.slice(3, 12) : digits.slice(-9);
+}
+
 export default function EditProfileScreen() {
   const { user, refreshUser } = useAuth();
   const { t } = useLanguage();
@@ -36,8 +42,8 @@ export default function EditProfileScreen() {
 
   useEffect(() => {
     api.get<{ user: ProfileData & { email: string } }>('/api/profile')
-      .then((res) => setForm({ fullName: res.user.fullName ?? '', phone: res.user.phone ?? '', bio: res.user.bio ?? '', skills: res.user.skills ?? '', avatar: res.user.avatar ?? null }))
-      .catch(() => { if (user) setForm((f) => ({ ...f, fullName: user.fullName, phone: user.phone ?? '' })); })
+      .then((res) => setForm({ fullName: res.user.fullName ?? '', phone: toLocalPhone(res.user.phone), bio: res.user.bio ?? '', skills: res.user.skills ?? '', avatar: res.user.avatar ?? null }))
+      .catch(() => { if (user) setForm((f) => ({ ...f, fullName: user.fullName, phone: toLocalPhone(user.phone) })); })
       .finally(() => setLoading(false));
   }, []);
 
@@ -85,7 +91,7 @@ export default function EditProfileScreen() {
     try {
       await api.put('/api/profile', {
         fullName: form.fullName.trim(),
-        phone: form.phone.trim() || undefined,
+        phone: form.phone ? `+992${form.phone}` : undefined,
         bio: form.bio.trim() || undefined,
         skills: form.skills.trim() || undefined,
         avatar: form.avatar,
@@ -127,7 +133,26 @@ export default function EditProfileScreen() {
         <TextInput style={inputStyle} value={form.fullName} onChangeText={set('fullName')} autoComplete="name" maxLength={100} />
 
         <Text style={[styles.label, { color: colors.text }]}>{ep.phone}</Text>
-        <TextInput style={inputStyle} value={form.phone} onChangeText={set('phone')} keyboardType="phone-pad" autoComplete="tel" placeholder="+992..." placeholderTextColor={colors.textTertiary} maxLength={20} />
+        <View style={[styles.phoneRow, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
+          <View style={styles.phonePrefix}>
+            <View style={styles.flagImg}>
+              <View style={{ flex: 1, backgroundColor: '#BE0027' }} />
+              <View style={{ flex: 1, backgroundColor: '#FFFFFF' }} />
+              <View style={{ flex: 1, backgroundColor: '#006B3F' }} />
+            </View>
+            <Text style={styles.phonePrefixText}>+992</Text>
+          </View>
+          <TextInput
+            style={[styles.phoneInput, { color: colors.text }]}
+            value={form.phone}
+            onChangeText={(v) => setForm((f) => ({ ...f, phone: v.replace(/\D/g, '').slice(0, 9) }))}
+            keyboardType="number-pad"
+            autoComplete="tel"
+            placeholder="XX XXX XXXX"
+            placeholderTextColor={colors.textTertiary}
+            maxLength={9}
+          />
+        </View>
 
         <Text style={[styles.label, { color: colors.text }]}>{ep.bio}</Text>
         <TextInput style={[...inputStyle, styles.textarea]} value={form.bio} onChangeText={set('bio')} multiline textAlignVertical="top" placeholder={ep.bioPh} placeholderTextColor={colors.textTertiary} maxLength={500} />
@@ -150,6 +175,18 @@ const styles = StyleSheet.create({
   scroll: { padding: 20 },
   avatarRow: { flexDirection: 'row', alignItems: 'center', gap: 16, marginBottom: 24 },
   avatarActions: { flex: 1, gap: 6 },
+  phoneRow: {
+    flexDirection: 'row', borderWidth: 1, borderRadius: 12,
+    overflow: 'hidden', marginBottom: 20,
+  },
+  phonePrefix: {
+    paddingHorizontal: 14, backgroundColor: '#F0F4FF',
+    borderRightWidth: 1, borderRightColor: '#E5E7EB',
+    justifyContent: 'center', alignItems: 'center', flexDirection: 'row', gap: 6,
+  },
+  flagImg: { width: 24, height: 16, borderRadius: 2, overflow: 'hidden' },
+  phonePrefixText: { fontSize: 15, fontWeight: '600', color: '#374151' },
+  phoneInput: { flex: 1, padding: 14, fontSize: 15, backgroundColor: 'transparent' },
   link: { fontSize: 14, fontWeight: '600', color: '#2563EB' },
   linkDanger: { color: '#DC2626' },
   label: { fontSize: 13, fontWeight: '700', color: '#374151', marginBottom: 8 },

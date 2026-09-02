@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { PasswordInput } from '@/components/PasswordInput';
 import { useTheme } from '@/contexts/ThemeContext';
 
 interface ProfileSnapshot {
@@ -101,15 +102,11 @@ export default function ChangeEmailScreen() {
         ) : null}
 
         <Text style={[styles.label, { color: colors.text }]}>{ce.passwordLabel}</Text>
-        <TextInput
-          style={inputStyle}
+        <PasswordInput
           value={currentPassword}
           onChangeText={setCurrentPassword}
-          secureTextEntry
           autoComplete="password"
           placeholder={ce.passwordPh}
-          placeholderTextColor={colors.textTertiary}
-          maxLength={128}
         />
 
         <Text style={[styles.label, { color: colors.text }]}>{ce.newLabel}</Text>

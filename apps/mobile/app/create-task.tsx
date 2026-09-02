@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { goBack } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useKeyboardOffset } from '@/lib/useKeyboardOffset';
 import * as Haptics from 'expo-haptics';
 import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -67,6 +68,7 @@ export default function CreateTaskScreen() {
   const ct = t.createTask;
   const { config } = useConfig();
   const insets = useSafeAreaInsets();
+  const keyboardOffset = useKeyboardOffset();
 
   const URGENCY = [
     { value: 'urgent', label: t.urgency.urgent },
@@ -131,8 +133,8 @@ export default function CreateTaskScreen() {
   const inputStyle = [styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }];
 
   return (
-    <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 40 }]} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
+    <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 40 + keyboardOffset }]} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
         <Text style={[styles.label, { color: colors.text }]}>{ct.titleLabel}</Text>
         <TextInput style={inputStyle} placeholder={ct.titlePh} placeholderTextColor={colors.textTertiary} value={title} onChangeText={setTitle} maxLength={120} />
 

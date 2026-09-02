@@ -14,6 +14,7 @@ import {
 import { Link, router } from 'expo-router';
 import { goBack } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useKeyboardOffset } from '@/lib/useKeyboardOffset';
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
@@ -31,6 +32,7 @@ export default function LoginScreen() {
   const { t } = useLanguage();
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
+  const keyboardOffset = useKeyboardOffset();
   const L = t.login;
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -116,7 +118,7 @@ export default function LoginScreen() {
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: colors.header }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <TouchableOpacity
         style={[styles.closeBtn, { top: insets.top + 8, backgroundColor: colors.surface, borderColor: colors.border }]}
@@ -128,7 +130,7 @@ export default function LoginScreen() {
         <Ionicons name="close" size={22} color={colors.text} />
       </TouchableOpacity>
       <ScrollView
-        contentContainerStyle={[styles.inner, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}
+        contentContainerStyle={[styles.inner, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 + keyboardOffset }]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >

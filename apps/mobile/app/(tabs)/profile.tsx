@@ -148,21 +148,23 @@ export default function ProfileScreen() {
           {/* Appearance (no account required) */}
           <View style={[styles.card, { backgroundColor: colors.surface }]}>
             {/* Language */}
-            <View style={[styles.rowItem, { borderBottomColor: colors.border }]}>
+            <View style={[styles.rowItem, styles.langRow, { borderBottomColor: colors.border }]}>
               <Ionicons name="language-outline" size={22} color="#7C3AED" style={styles.rowIcon} />
-              <Text style={[styles.rowLabel, { color: colors.text }]}>{t.settings?.language ?? 'Language'}</Text>
-              <View style={styles.pills}>
-                {LOCALES.map((loc) => (
-                  <TouchableOpacity
-                    key={loc}
-                    style={[styles.pill, { borderColor: locale === loc ? colors.accent : colors.border, backgroundColor: locale === loc ? colors.iconBg : 'transparent' }]}
-                    onPress={() => setLocale(loc)}
-                  >
-                    <Text style={[styles.pillText, { color: locale === loc ? colors.accent : colors.textSecondary }]}>
-                      {LOCALE_NAMES[loc]}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+              <View style={styles.langBody}>
+                <Text style={[styles.rowLabel, { color: colors.text }]}>{t.settings?.language ?? 'Language'}</Text>
+                <View style={styles.pills}>
+                  {LOCALES.map((loc) => (
+                    <TouchableOpacity
+                      key={loc}
+                      style={[styles.pill, { borderColor: locale === loc ? colors.accent : colors.border, backgroundColor: locale === loc ? colors.iconBg : 'transparent' }]}
+                      onPress={() => setLocale(loc)}
+                    >
+                      <Text style={[styles.pillText, { color: locale === loc ? colors.accent : colors.textSecondary }]}>
+                        {LOCALE_NAMES[loc]}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
             </View>
             {/* Theme */}
@@ -296,21 +298,23 @@ export default function ProfileScreen() {
         {/* Appearance */}
         <View style={[styles.card, { backgroundColor: colors.surface }]}>
           {/* Language */}
-          <View style={[styles.rowItem, { borderBottomColor: colors.border }]}>
+          <View style={[styles.rowItem, styles.langRow, { borderBottomColor: colors.border }]}>
             <Ionicons name="language-outline" size={22} color="#7C3AED" style={styles.rowIcon} />
-            <Text style={[styles.rowLabel, { color: colors.text }]}>{t.settings?.language ?? 'Language'}</Text>
-            <View style={styles.pills}>
-              {LOCALES.map((loc) => (
-                <TouchableOpacity
-                  key={loc}
-                  style={[styles.pill, { borderColor: locale === loc ? colors.accent : colors.border, backgroundColor: locale === loc ? colors.iconBg : 'transparent' }]}
-                  onPress={() => setLocale(loc)}
-                >
-                  <Text style={[styles.pillText, { color: locale === loc ? colors.accent : colors.textSecondary }]}>
-                    {LOCALE_NAMES[loc]}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+            <View style={styles.langBody}>
+              <Text style={[styles.rowLabel, { color: colors.text }]}>{t.settings?.language ?? 'Language'}</Text>
+              <View style={styles.pills}>
+                {LOCALES.map((loc) => (
+                  <TouchableOpacity
+                    key={loc}
+                    style={[styles.pill, { borderColor: locale === loc ? colors.accent : colors.border, backgroundColor: locale === loc ? colors.iconBg : 'transparent' }]}
+                    onPress={() => setLocale(loc)}
+                  >
+                    <Text style={[styles.pillText, { color: locale === loc ? colors.accent : colors.textSecondary }]}>
+                      {LOCALE_NAMES[loc]}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
           </View>
           {/* Theme */}
@@ -427,7 +431,7 @@ const styles = StyleSheet.create({
   },
   rowIcon: { width: 28, textAlign: 'center', flexShrink: 0 },
   rowBody: { flex: 1 },
-  rowLabel: { fontSize: 15, fontWeight: '600' },
+  rowLabel: { fontSize: 15, fontWeight: '600', flexShrink: 1 },
   rowSublabel: { fontSize: 12, marginTop: 1 },
   rowRight: { fontSize: 14, fontWeight: '500' },
 
@@ -452,8 +456,13 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
   },
   linkText: { fontSize: 14, fontWeight: '600' },
-  pills: { flexDirection: 'row', gap: 6 },
-  pill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 16, borderWidth: 1.5 },
+  // Language: the pills are always the three native names, so their width is
+  // fixed while the label changes with locale. Stacking them removes the
+  // competition -- "Language" is wide enough to clip the last pill otherwise.
+  langRow: { alignItems: 'flex-start' },
+  langBody: { flex: 1, gap: 10 },
+  pills: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  pill: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, borderWidth: 1.5 },
   pillText: { fontSize: 12, fontWeight: '600' },
   themeValue: { fontSize: 13, marginRight: 6 },
 });

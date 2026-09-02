@@ -8,6 +8,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useToast } from '@/contexts/ToastContext';
 import { useNotifPrefs } from '@/contexts/NotifPrefsContext';
 import { api } from '@/lib/api-client';
+import { setForegroundNotificationListener, navigateFromNotificationData } from '@/lib/notifications-handler';
 import { BACK_PRESS_TIMEOUT_MS, BADGE_POLL_MS } from '@/lib/constants';
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
@@ -75,6 +76,17 @@ export default function TabLayout() {
       })
       .catch(() => {});
   }
+
+  // A push that lands while the app is open shows the in-app banner directly,
+  // rather than waiting for the unread poll to notice it.
+  useEffect(() => {
+    if (!popupsEnabled) { setForegroundNotificationListener(null); return; }
+    setForegroundNotificationListener((title, body, data) => {
+      showBanner(title || 'Dastiyor', body || '', 'chatbubble', () => navigateFromNotificationData(data));
+      fetchBadge();
+    });
+    return () => setForegroundNotificationListener(null);
+  }, [popupsEnabled, showBanner]);
 
   useEffect(() => {
     if (!user) return;

@@ -152,7 +152,7 @@ describe('/api/profile', () => {
             expect(updateCall.data.fullName).toBe('Ali');
         });
 
-        it('stores null for empty optional fields', async () => {
+        it('stores null for optional fields explicitly sent empty', async () => {
             prismaMock.user.update.mockResolvedValue(mockUser as any);
 
             await PUT(makeRequest({ fullName: 'Ali', phone: '', bio: '' }));
@@ -160,6 +160,21 @@ describe('/api/profile', () => {
             const updateCall = prismaMock.user.update.mock.calls[0][0];
             expect(updateCall.data.phone).toBeNull();
             expect(updateCall.data.bio).toBeNull();
+        });
+
+        it('leaves phone, bio and skills untouched when omitted', async () => {
+            prismaMock.user.update.mockResolvedValue(mockUser as any);
+
+            // A partial update used to null every field it did not mention.
+            // Wiping `phone` locks phone-registered users out permanently,
+            // since that is what they log in with.
+            await PUT(makeRequest({ fullName: 'Ali' }));
+
+            const data = prismaMock.user.update.mock.calls[0][0].data;
+            expect(data).not.toHaveProperty('phone');
+            expect(data).not.toHaveProperty('bio');
+            expect(data).not.toHaveProperty('skills');
+            expect(data.fullName).toBe('Ali');
         });
 
         it('leaves avatar untouched when the field is omitted', async () => {
@@ -185,6 +200,14 @@ describe('/api/profile', () => {
 
             expect(prismaMock.user.update.mock.calls[0][0].data.avatar)
                 .toBe('https://x.public.blob.vercel-storage.com/a.jpg');
+        });
+
+        it('rejects an avatar hosted anywhere we do not control', async () => {
+            // An arbitrary host would be fetched by everyone viewing the profile.
+            const response = await PUT(makeRequest({ fullName: 'Ali', avatar: 'https://evil.example.com/x.png' }));
+
+            expect(response.status).toBe(400);
+            expect(prismaMock.user.update).not.toHaveBeenCalled();
         });
 
         it('returns 500 on database error', async () => {

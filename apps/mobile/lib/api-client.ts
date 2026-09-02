@@ -54,6 +54,14 @@ async function parseResponseBody(res: Response): Promise<{ error?: string; [key:
   }
 }
 
+/**
+ * Endpoints where a 401 means "those credentials are wrong", not "your session
+ * expired". Treating those as an expired session logs the user out and bounces
+ * them to /login mid-form -- which looks like the screen randomly refreshing
+ * and discarding what they typed. Let the server's own message through instead.
+ */
+const CREDENTIAL_ENDPOINTS = /^\/api\/auth\/(login|register|google|apple|forgot-password|reset-password|verify-check|verify-send|change-password)/;
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = await getToken();
   const headers: Record<string, string> = {
@@ -79,7 +87,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     clearTimeout(timeoutId);
   }
 
-  if (res.status === 401) {
+  if (res.status === 401 && !CREDENTIAL_ENDPOINTS.test(path)) {
     _onUnauthorized?.();
     throw new Error('Сессия истекла. Войдите снова.');
   }

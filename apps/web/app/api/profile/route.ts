@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import { logAction, getRequestIP } from '@/lib/audit';
 import { requireAuth } from '@/lib/require-auth';
 import { sanitizeString } from '@/lib/validation';
+import { isSafeAvatarUrl } from '@/lib/avatar-url';
 
 // GET - Get current user profile
 export async function GET(request: Request) {
@@ -97,10 +98,11 @@ export async function PUT(request: Request) {
             newEmail = trimmed;
         }
 
-        // Validate avatar is a safe https URL from Vercel Blob or known CDN
+        // Avatar must live on storage we control -- an arbitrary https host would
+        // be fetched by everyone who views this profile.
         let safeAvatar: string | null = null;
         if (avatar) {
-            if (typeof avatar !== 'string' || !avatar.startsWith('https://')) {
+            if (!isSafeAvatarUrl(avatar)) {
                 return NextResponse.json({ error: 'Invalid avatar URL' }, { status: 400 });
             }
             safeAvatar = avatar;
@@ -110,11 +112,14 @@ export async function PUT(request: Request) {
             where: { id: payload.id as string },
             data: {
                 fullName: sanitizeString(fullName.trim()),
-                phone: phone?.trim() || null,
-                bio: bio ? sanitizeString(bio.trim()) : null,
-                skills: skills ? sanitizeString(skills.trim()) : null,
-                // Only touch avatar when the client actually sent the field --
-                // an omitted key used to silently wipe an existing picture.
+                // Only touch a field the client actually sent. Omitting one used
+                // to null it: a partial update that left out `phone` wiped the
+                // number, and since phone-registered users log in with it, that
+                // locked them out of their own account for good. Send an explicit
+                // empty string to clear a field on purpose.
+                ...(phone !== undefined ? { phone: phone?.trim() || null } : {}),
+                ...(bio !== undefined ? { bio: bio ? sanitizeString(bio.trim()) : null } : {}),
+                ...(skills !== undefined ? { skills: skills ? sanitizeString(skills.trim()) : null } : {}),
                 ...(avatar !== undefined ? { avatar: safeAvatar } : {}),
                 ...(newEmail !== undefined ? { email: newEmail } : {}),
             },

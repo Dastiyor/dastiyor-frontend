@@ -175,3 +175,34 @@ describe('api-client', () => {
     });
   });
 });
+
+describe('401 handling', () => {
+  const originalFetch = global.fetch;
+  afterEach(() => { global.fetch = originalFetch; jest.clearAllMocks(); });
+
+  function mock401(body: object) {
+    global.fetch = jest.fn().mockResolvedValue({
+      status: 401, ok: false, text: async () => JSON.stringify(body),
+    }) as unknown as typeof fetch;
+  }
+
+  it('does not log the user out when login credentials are rejected', async () => {
+    const onUnauthorized = jest.fn();
+    setOnUnauthorized(onUnauthorized);
+    mock401({ error: 'Invalid credentials' });
+
+    await expect(api.post('/api/auth/login', {})).rejects.toThrow();
+    // A wrong password must not clear the session and bounce to /login --
+    // that wipes the form the user is standing in.
+    expect(onUnauthorized).not.toHaveBeenCalled();
+  });
+
+  it('logs the user out when an authenticated endpoint 401s', async () => {
+    const onUnauthorized = jest.fn();
+    setOnUnauthorized(onUnauthorized);
+    mock401({ error: 'Unauthorized' });
+
+    await expect(api.get('/api/conversations')).rejects.toThrow();
+    expect(onUnauthorized).toHaveBeenCalled();
+  });
+});

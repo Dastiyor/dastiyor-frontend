@@ -26,7 +26,7 @@
       "unrs-resolver"
     ],
     "patchedDependencies": {
-      "expo-constants@18.0.13": "patches/expo-constants@18.0.13.patch"
+      "expo-constants@18.0.14": "patches/expo-constants@18.0.14.patch"
     }
   }
 }

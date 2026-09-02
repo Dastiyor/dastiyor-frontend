@@ -5,10 +5,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useToast } from '@/contexts/ToastContext';
 import { useNotifPrefs } from '@/contexts/NotifPrefsContext';
 import { api } from '@/lib/api-client';
-import { setForegroundNotificationListener, navigateFromNotificationData } from '@/lib/notifications-handler';
 import { BACK_PRESS_TIMEOUT_MS, BADGE_POLL_MS } from '@/lib/constants';
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
@@ -26,7 +24,6 @@ export default function TabLayout() {
   const { user } = useAuth();
   const { t } = useLanguage();
   const { colors } = useTheme();
-  const { showBanner } = useToast();
   const { popupsEnabled } = useNotifPrefs();
   const isCustomer = user?.role === 'CUSTOMER';
   const [unreadMessages, setUnreadMessages] = useState(0);
@@ -50,43 +47,11 @@ export default function TabLayout() {
         const total = convs.reduce((s: number, c: Conversation) => s + c.unreadCount, 0);
         setUnreadMessages(total);
 
-        // Show banner when new message arrives (count increased) and not on messages tab
-        if (prevCountRef.current !== null && total > prevCountRef.current && popupsEnabled) {
-          // Find conversation with newly increased unread count
-          const newConv = convs.find((c) => {
-            const prev = prevConvsRef.current.find((p) => p.partnerId === c.partnerId);
-            return c.unreadCount > (prev?.unreadCount ?? 0);
-          }) ?? convs.find((c) => c.unreadCount > 0);
-
-          if (newConv) {
-            showBanner(
-              newConv.partnerName,
-              newConv.lastMessage,
-              'chatbubble',
-              () => router.push({
-                pathname: '/chat/[partnerId]',
-                params: { partnerId: newConv.partnerId, partnerName: newConv.partnerName, taskId: newConv.taskId ?? '' },
-              }),
-            );
-          }
-        }
-
         prevCountRef.current = total;
         prevConvsRef.current = convs;
       })
       .catch(() => {});
   }
-
-  // A push that lands while the app is open shows the in-app banner directly,
-  // rather than waiting for the unread poll to notice it.
-  useEffect(() => {
-    if (!popupsEnabled) { setForegroundNotificationListener(null); return; }
-    setForegroundNotificationListener((title, body, data) => {
-      showBanner(title || 'Dastiyor', body || '', 'chatbubble', () => navigateFromNotificationData(data));
-      fetchBadge();
-    });
-    return () => setForegroundNotificationListener(null);
-  }, [popupsEnabled, showBanner]);
 
   useEffect(() => {
     if (!user) return;

@@ -47,8 +47,6 @@ export function navigateFromNotificationData(data: NotificationData | undefined)
     }
   }
 }
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function loadNotificationsModule(): any | null {
   try {
     // Literal require so Metro bundles it and Hermes can compile the release build.
@@ -61,18 +59,6 @@ function loadNotificationsModule(): any | null {
 
 let initialized = false;
 
-/**
- * Called when a push arrives while the app is open, so the in-app banner can
- * show it. The OS banner is suppressed in the foreground (see below), and the
- * unread poll only notices up to 20s later, so without this a foregrounded
- * push would appear late or not at all.
- */
-type ForegroundListener = (title: string, body: string, data?: NotificationData) => void;
-let _onForeground: ForegroundListener | null = null;
-
-export function setForegroundNotificationListener(cb: ForegroundListener | null) {
-  _onForeground = cb;
-}
 
 /** Register notification handlers. Idempotent. Safe when native module absent. */
 export async function initNotificationHandlers(): Promise<void> {
@@ -82,27 +68,18 @@ export async function initNotificationHandlers(): Promise<void> {
   const Notifications = loadNotificationsModule();
   if (!Notifications?.setNotificationHandler) return;
 
-  // This handler only runs for notifications that arrive while the app is
-  // OPEN; the OS shows backgrounded ones regardless. Showing the system banner
-  // here duplicated the app's own in-app banner -- the same message twice.
-  // Suppress the system banner in the foreground and let the in-app one handle
-  // it, while keeping sound, badge and the notification list intact.
+  // The OS shows this banner in its own window, so it can neither cover the
+  // app's native header nor swallow touches. An in-app banner drawn at the top
+  // of the screen does both -- it sat exactly over the header back button.
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
-      shouldShowAlert: false,
+      shouldShowAlert: true,
       shouldPlaySound: true,
       shouldSetBadge: true,
-      shouldShowBanner: false,
+      shouldShowBanner: true,
       shouldShowList: true,
     }),
   });
-
-  Notifications.addNotificationReceivedListener?.(
-    (notification: { request: { content: { title?: string; body?: string; data?: NotificationData } } }) => {
-      const c = notification.request.content;
-      _onForeground?.(c.title ?? '', c.body ?? '', c.data);
-    },
-  );
 
   // Cold start from notification tap
   const last = await Notifications.getLastNotificationResponseAsync?.();

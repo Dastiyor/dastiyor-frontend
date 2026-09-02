@@ -38,6 +38,25 @@ export default function TaskDetailScreen() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [taskActionLoading, setTaskActionLoading] = useState<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // True while a confirm dialog is up or its action is running. Refetching then
+  // re-renders the screen underneath a presented alert, which on iOS can leave
+  // the view hierarchy unresponsive -- the header back button stops working.
+  const busyRef = useRef(false);
+
+  /** Alert.alert wrapped so the poll stays out of the way while it is on screen. */
+  function confirmThen(title: string, message: string, confirmLabel: string, run: () => Promise<void>, destructive = false) {
+    busyRef.current = true;
+    Alert.alert(title, message, [
+      { text: t.common.cancel, style: 'cancel', onPress: () => { busyRef.current = false; } },
+      {
+        text: confirmLabel,
+        style: destructive ? 'destructive' : 'default',
+        onPress: async () => {
+          try { await run(); } finally { busyRef.current = false; }
+        },
+      },
+    ]);
+  }
 
   const URGENCY_LABEL: Record<string, { label: string; color: string }> = {
     urgent: { label: t.urgency.urgent, color: '#EF4444' },
@@ -97,7 +116,7 @@ export default function TaskDetailScreen() {
       // accept, complete, a new response -- so refresh while it stays open.
       // Silent: no spinner, and a failed tick leaves the last good state alone.
       pollRef.current = setInterval(async () => {
-        if (AppState.currentState !== 'active') return;
+        if (AppState.currentState !== 'active' || busyRef.current) return;
         try {
           const data = await loadTask();
           if (data) await loadResponses(data);
@@ -125,37 +144,27 @@ export default function TaskDetailScreen() {
   }
 
   async function handleAccept(response: TaskResponse) {
-    Alert.alert(
+    confirmThen(
       tk.confirmAccept,
       tk.confirmAcceptMsg.replace('{name}', response.provider.fullName).replace('{price}', String(response.price)),
-      [
-        { text: t.common.cancel, style: 'cancel' },
-        {
-          text: tk.accept,
-          onPress: async () => {
-            setActionLoading(response.id);
-            try {
-              await api.post('/api/tasks/accept', { taskId: task!.id, providerId: response.provider.id });
-              const [newTask] = await Promise.all([loadTask()]);
-              if (newTask) await loadResponses(newTask);
-            } catch (e) {
-              Alert.alert(t.common.error, (e as Error).message);
-            } finally {
-              setActionLoading(null);
-            }
-          },
-        },
-      ]
+      tk.accept,
+      async () => {
+        setActionLoading(response.id);
+        try {
+          await api.post('/api/tasks/accept', { taskId: task!.id, providerId: response.provider.id });
+          const newTask = await loadTask();
+          if (newTask) await loadResponses(newTask);
+        } catch (e) {
+          Alert.alert(t.common.error, (e as Error).message);
+        } finally {
+          setActionLoading(null);
+        }
+      }
     );
   }
 
   async function handleReject(response: TaskResponse) {
-    Alert.alert(tk.confirmReject, tk.confirmRejectMsg, [
-      { text: t.common.cancel, style: 'cancel' },
-      {
-        text: tk.reject,
-        style: 'destructive',
-        onPress: async () => {
+    confirmThen(tk.confirmReject, tk.confirmRejectMsg, tk.reject, async () => {
           setActionLoading(response.id);
           try {
             await api.post('/api/responses/reject', { responseId: response.id });
@@ -166,9 +175,7 @@ export default function TaskDetailScreen() {
           } finally {
             setActionLoading(null);
           }
-        },
-      },
-    ]);
+    }, true);
   }
 
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#2563EB" /></View>;
@@ -320,22 +327,15 @@ export default function TaskDetailScreen() {
               style={[styles.cancelTaskBtn, taskActionLoading === 'cancel' && styles.btnBusy]}
               disabled={!!taskActionLoading}
               onPress={() =>
-                Alert.alert(tk.confirmCancel, tk.confirmCancelMsg, [
-                  { text: t.common.no, style: 'cancel' },
-                  {
-                    text: tk.cancelTask,
-                    style: 'destructive',
-                    onPress: async () => {
-                      setTaskActionLoading('cancel');
-                      try {
-                        await api.post('/api/tasks/cancel', { taskId: task.id });
-                        const d = await loadTask();
-                        if (d) await loadResponses(d);
-                      } catch (e) { Alert.alert(t.common.error, (e as Error).message); }
-                      finally { setTaskActionLoading(null); }
-                    },
-                  },
-                ])
+                confirmThen(tk.confirmCancel, tk.confirmCancelMsg, tk.cancelTask, async () => {
+                  setTaskActionLoading('cancel');
+                  try {
+                    await api.post('/api/tasks/cancel', { taskId: task.id });
+                    const d = await loadTask();
+                    if (d) await loadResponses(d);
+                  } catch (e) { Alert.alert(t.common.error, (e as Error).message); }
+                  finally { setTaskActionLoading(null); }
+                }, true)
               }
             >
               {taskActionLoading === 'cancel' ? <ActivityIndicator color="#EF4444" size="small" /> : <Text style={styles.cancelTaskBtnText}>{tk.cancel}</Text>}
@@ -349,21 +349,15 @@ export default function TaskDetailScreen() {
               style={[styles.completeBtn, taskActionLoading === 'complete' && styles.btnBusy]}
               disabled={!!taskActionLoading}
               onPress={() =>
-                Alert.alert(tk.confirmComplete, tk.confirmCompleteMsg, [
-                  { text: t.common.no, style: 'cancel' },
-                  {
-                    text: tk.completeBtn,
-                    onPress: async () => {
-                      setTaskActionLoading('complete');
-                      try {
-                        await api.post('/api/tasks/complete', { taskId: task.id });
-                        const d = await loadTask();
-                        if (d) await loadResponses(d);
-                      } catch (e) { Alert.alert(t.common.error, (e as Error).message); }
-                      finally { setTaskActionLoading(null); }
-                    },
-                  },
-                ])
+                confirmThen(tk.confirmComplete, tk.confirmCompleteMsg, tk.completeBtn, async () => {
+                  setTaskActionLoading('complete');
+                  try {
+                    await api.post('/api/tasks/complete', { taskId: task.id });
+                    const d = await loadTask();
+                    if (d) await loadResponses(d);
+                  } catch (e) { Alert.alert(t.common.error, (e as Error).message); }
+                  finally { setTaskActionLoading(null); }
+                })
               }
             >
               {taskActionLoading === 'complete' ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.completeBtnText}>{tk.complete}</Text>}

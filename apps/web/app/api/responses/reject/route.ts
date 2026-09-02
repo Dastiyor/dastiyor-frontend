@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { isValidId } from '@/lib/validation';
 import { sendOfferRejectedNotification } from '@/lib/notifications/email';
 import { logAction, getRequestIP } from '@/lib/audit';
 import { requireAuth } from '@/lib/require-auth';
@@ -15,7 +16,7 @@ export async function POST(request: Request) {
         const body = await request.json();
         const { responseId } = body;
 
-        if (!responseId) {
+        if (!isValidId(responseId)) {
             return NextResponse.json({ error: 'Response ID is required' }, { status: 400 });
         }
 

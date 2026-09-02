@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { isValidId } from '@/lib/validation';
 import { sendTaskCancelledNotification } from '@/lib/notifications/email';
 import { logAction, getRequestIP } from '@/lib/audit';
 import { requireAuth } from '@/lib/require-auth';
@@ -16,7 +17,7 @@ export async function POST(request: Request) {
         const body = await request.json();
         const { taskId } = body;
 
-        if (!taskId) {
+        if (!isValidId(taskId)) {
             return NextResponse.json({ error: 'Task ID is required' }, { status: 400 });
         }
 

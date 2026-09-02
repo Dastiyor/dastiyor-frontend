@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { isValidId } from '@/lib/validation';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 import { logAction, getRequestIP } from '@/lib/audit';
 import { validateResponseInput } from '@/lib/validation';
@@ -70,7 +71,7 @@ export async function POST(request: Request) {
         const body = await request.json();
         const { taskId, message, price, estimatedTime } = body;
 
-        if (!taskId || !message || !price) {
+        if (!isValidId(taskId) || !message || !price) {
             return NextResponse.json(
                 { error: 'Missing required fields' },
                 { status: 400 }
@@ -96,6 +97,17 @@ export async function POST(request: Request) {
             return NextResponse.json(
                 { error: 'Task not found' },
                 { status: 404 }
+            );
+        }
+
+        // Bidding on your own task lets one account run the whole lifecycle --
+        // post, bid, accept, complete, review itself -- and manufacture a 5.0
+        // rating, a completed-job count and a balance with no counterparty.
+        // Customers pick providers on exactly those numbers.
+        if (task.userId === (payload.id as string)) {
+            return NextResponse.json(
+                { error: 'Cannot respond to your own task' },
+                { status: 403 }
             );
         }
 

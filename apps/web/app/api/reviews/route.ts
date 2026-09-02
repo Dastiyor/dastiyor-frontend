@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { isValidId } from '@/lib/validation';
 import { sendNewReviewNotification } from '@/lib/notifications/email';
 import { logAction, getRequestIP } from '@/lib/audit';
 import { requireAuth } from '@/lib/require-auth';
@@ -78,7 +79,7 @@ export async function POST(request: Request) {
         const body = await request.json();
         const { taskId, rating, comment } = body;
 
-        if (!taskId || !rating) {
+        if (!isValidId(taskId) || !rating) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
@@ -117,6 +118,15 @@ export async function POST(request: Request) {
         }
 
         // Verify there's an assigned provider
+        // Second line of defence for the self-review chain blocked in
+        // /api/responses: never let a review point at its own author.
+        if (task.assignedUserId === reviewerId) {
+            return NextResponse.json(
+                { error: 'Cannot review yourself' },
+                { status: 403 }
+            );
+        }
+
         if (!task.assignedUserId) {
             return NextResponse.json({ error: 'No provider assigned to this task' }, { status: 400 });
         }

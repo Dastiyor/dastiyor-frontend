@@ -44,7 +44,7 @@ export async function GET(
             urgency: task.urgency,
             dueDate: task.dueDate,
             status: task.status,
-            postedAt: new Date(task.createdAt).toLocaleDateString('ru-RU'),
+            postedAt: task.createdAt.toISOString(),
             responseCount: task._count.responses,
             customer: task.user,
             hasReview: !!task.review,

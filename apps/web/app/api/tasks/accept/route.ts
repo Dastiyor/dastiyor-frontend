@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { isValidId } from '@/lib/validation';
 import { sendOfferAcceptedNotification } from '@/lib/notifications/email';
 import { logAction, getRequestIP } from '@/lib/audit';
 import { sendPushNotification } from '@/lib/web-push';
@@ -19,7 +20,7 @@ export async function POST(request: Request) {
         const body = await request.json();
         const { taskId, providerId } = body; // We can accept responseId too, but providerId is direct for Schema
 
-        if (!taskId || !providerId) {
+        if (!isValidId(taskId) || !isValidId(providerId)) {
             return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
         }
 

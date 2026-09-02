@@ -254,4 +254,25 @@ describe('/api/responses', () => {
             );
         });
     });
+
+    it('refuses a bid on your own task', async () => {
+        // One account could otherwise post, bid, accept, complete and review
+        // itself -- manufacturing a 5.0 rating and completed-job count with no
+        // counterparty. Customers choose providers on exactly those numbers.
+        prismaMock.user.findUnique.mockResolvedValue({
+            id: 'user-1', role: 'PROVIDER', password: 'x', googleId: null, appleId: null, phoneVerified: true,
+        } as never);
+        prismaMock.task.findUnique.mockResolvedValue({
+            userId: 'user-1', title: 'Mine', status: 'OPEN', user: { email: 'a@b.c' },
+        } as never);
+
+        const request = new NextRequest('http://localhost/api/responses', {
+            method: 'POST',
+            body: JSON.stringify({ taskId: 'task-1', message: 'bidding on myself', price: 100 }),
+        });
+        const response = await POST(request);
+
+        expect(response.status).toBe(403);
+        expect(prismaMock.response.create).not.toHaveBeenCalled();
+    });
 });

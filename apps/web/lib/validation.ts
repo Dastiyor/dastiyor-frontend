@@ -94,6 +94,18 @@ export function validatePassword(password: string): { valid: boolean; error?: st
  * Control characters are stripped because they serve no purpose in these
  * fields and break rendering and logs.
  */
+/**
+ * Request-body identifiers must be strings.
+ *
+ * A falsiness check alone is not enough: an object like `{"contains":"c"}` is
+ * truthy, so it passes and reaches Prisma, which rejects it as a malformed
+ * filter and surfaces a 500. Prisma never matches on it, so this is a crash
+ * rather than an injection -- but a client type-mismatch should be a 400.
+ */
+export function isValidId(value: unknown): value is string {
+    return typeof value === 'string' && value.length > 0 && value.length <= 64;
+}
+
 export function sanitizeString(input: string): string {
     // eslint-disable-next-line no-control-regex
     return input.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '').trim();

@@ -6,13 +6,13 @@ import { TOAST_HIDE_DELAY_MS } from '@/lib/constants';
 
 type ToastType = 'success' | 'error' | 'info';
 
-interface ToastItem {
+interface ToastData {
   id: number;
   message: string;
   type: ToastType;
 }
 
-interface BannerItem {
+interface BannerData {
   id: number;
   icon: React.ComponentProps<typeof Ionicons>['name'];
   title: string;
@@ -35,18 +35,29 @@ const TOAST_COLORS: Record<ToastType, { bg: string; icon: React.ComponentProps<t
 
 const BANNER_HIDE_MS = 4500;
 
-function ToastItem({ item, onHide }: { item: ToastItem; onHide: () => void }) {
+function ToastItem({ item, onHide }: { item: ToastData; onHide: () => void }) {
   const anim = useRef(new Animated.Value(0)).current;
+  const onHideRef = useRef(onHide);
+  onHideRef.current = onHide;
 
   const hide = useCallback(() => {
-    Animated.timing(anim, { toValue: 0, duration: 220, useNativeDriver: true }).start(onHide);
-  }, []);
+    Animated.timing(anim, { toValue: 0, duration: 220, useNativeDriver: true }).start(() => onHideRef.current());
+  }, [anim]);
 
   useEffect(() => {
-    Animated.timing(anim, { toValue: 1, duration: 260, useNativeDriver: true }).start(() => {
-      setTimeout(hide, TOAST_HIDE_DELAY_MS);
+    let hideTimer: ReturnType<typeof setTimeout> | undefined;
+    const animation = Animated.timing(anim, { toValue: 1, duration: 260, useNativeDriver: true });
+
+    animation.start((result) => {
+      if (result?.finished === false) return;
+      hideTimer = setTimeout(hide, TOAST_HIDE_DELAY_MS);
     });
-  }, []);
+
+    return () => {
+      animation.stop();
+      if (hideTimer) clearTimeout(hideTimer);
+    };
+  }, [anim, hide]);
 
   const { bg, icon } = TOAST_COLORS[item.type];
 
@@ -64,18 +75,29 @@ function ToastItem({ item, onHide }: { item: ToastItem; onHide: () => void }) {
   );
 }
 
-function BannerItem({ item, topInset: _topInset, onHide }: { item: BannerItem; topInset: number; onHide: () => void }) {
+function BannerItem({ item, topInset: _topInset, onHide }: { item: BannerData; topInset: number; onHide: () => void }) {
   const anim = useRef(new Animated.Value(0)).current;
+  const onHideRef = useRef(onHide);
+  onHideRef.current = onHide;
 
   const hide = useCallback(() => {
-    Animated.spring(anim, { toValue: 0, useNativeDriver: true, speed: 20 }).start(onHide);
-  }, []);
+    Animated.spring(anim, { toValue: 0, useNativeDriver: true, speed: 20 }).start(() => onHideRef.current());
+  }, [anim]);
 
   useEffect(() => {
-    Animated.spring(anim, { toValue: 1, useNativeDriver: true, speed: 16, bounciness: 4 }).start(() => {
-      setTimeout(hide, BANNER_HIDE_MS);
+    let hideTimer: ReturnType<typeof setTimeout> | undefined;
+    const animation = Animated.spring(anim, { toValue: 1, useNativeDriver: true, speed: 16, bounciness: 4 });
+
+    animation.start((result) => {
+      if (result?.finished === false) return;
+      hideTimer = setTimeout(hide, BANNER_HIDE_MS);
     });
-  }, []);
+
+    return () => {
+      animation.stop();
+      if (hideTimer) clearTimeout(hideTimer);
+    };
+  }, [anim, hide]);
 
   const content = (
     <Animated.View
@@ -113,8 +135,8 @@ function BannerItem({ item, topInset: _topInset, onHide }: { item: BannerItem; t
 let _counter = 0;
 
 export function ToastProvider({ children }: { children: ReactNode }) {
-  const [toasts, setToasts] = useState<ToastItem[]>([]);
-  const [banners, setBanners] = useState<BannerItem[]>([]);
+  const [toasts, setToasts] = useState<ToastData[]>([]);
+  const [banners, setBanners] = useState<BannerData[]>([]);
   const insets = useSafeAreaInsets();
 
   const show = useCallback((message: string, type: ToastType = 'info') => {

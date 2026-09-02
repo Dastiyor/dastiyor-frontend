@@ -93,17 +93,6 @@ export default function HomeScreen() {
           const count = r.unreadCount ?? 0;
           setUnreadCount(count);
 
-          if (prevNotifCountRef.current !== null && count > prevNotifCountRef.current && popupsEnabled) {
-            const latest = r.notifications?.[0];
-            if (latest) {
-              toast.showBanner(
-                latest.title ?? t.notifications.title,
-                latest.body ?? '',
-                'notifications',
-                () => router.push('/notifications' as any),
-              );
-            }
-          }
           prevNotifCountRef.current = count;
         })
         .catch(() => {});

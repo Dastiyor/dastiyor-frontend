@@ -23,6 +23,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useToast } from '@/contexts/ToastContext';
 import { POLL_INTERVAL_MS } from '@/lib/constants';
+import { setActiveConversation } from '@/lib/notifications-handler';
 import { useKeyboardOffset } from '@/lib/useKeyboardOffset';
 import { formatTime, formatDate } from '@/lib/intl';
 import type { ChatMessage } from '@dastiyor/types';
@@ -49,6 +50,15 @@ export default function ChatScreen() {
   const appStateRef = useRef(AppState.currentState);
 
   useEffect(() => { navigation.setOptions({ title: partnerName ?? t.chat.empty }); }, [partnerName]);
+
+  // Suppress push banners for the chat being read; they are redundant here and
+  // on iOS the banner overlays the navigation header.
+  useFocusEffect(
+    useCallback(() => {
+      setActiveConversation(partnerId ?? null);
+      return () => setActiveConversation(null);
+    }, [partnerId])
+  );
 
   async function fetchMessages(isInitial = false) {
     const params = new URLSearchParams({ userId: partnerId });

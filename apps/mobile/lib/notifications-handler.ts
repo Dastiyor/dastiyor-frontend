@@ -11,6 +11,24 @@ type NotificationData = {
   url?: string;
 };
 
+/**
+ * The conversation currently on screen, if any. A push for the chat you are
+ * already reading is noise -- and on iOS its banner sits over the navigation
+ * header, so it also gets in the way of the back button.
+ */
+let activePartnerId: string | null = null;
+
+export function setActiveConversation(partnerId: string | null) {
+  activePartnerId = partnerId;
+}
+
+function isForActiveConversation(data: NotificationData | undefined): boolean {
+  if (!activePartnerId || !data) return false;
+  if (data.partnerId) return String(data.partnerId) === activePartnerId;
+  const link = data.link ?? data.url ?? '';
+  return link.includes(`userId=${activePartnerId}`);
+}
+
 export function navigateFromNotificationData(data: NotificationData | undefined) {
   if (!data) return;
 
@@ -72,13 +90,17 @@ export async function initNotificationHandlers(): Promise<void> {
   // app's native header nor swallow touches. An in-app banner drawn at the top
   // of the screen does both -- it sat exactly over the header back button.
   Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowAlert: true,
-      shouldPlaySound: true,
-      shouldSetBadge: true,
-      shouldShowBanner: true,
-      shouldShowList: true,
-    }),
+    handleNotification: async (notification: { request: { content: { data?: NotificationData } } }) => {
+      const mine = isForActiveConversation(notification?.request?.content?.data);
+      return {
+        // Silent for the chat already open; the message is right there.
+        shouldShowAlert: !mine,
+        shouldShowBanner: !mine,
+        shouldPlaySound: !mine,
+        shouldSetBadge: true,
+        shouldShowList: true,
+      };
+    },
   });
 
   // Cold start from notification tap

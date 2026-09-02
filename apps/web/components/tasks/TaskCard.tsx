@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { MapPin, Clock, MessageCircle, Zap, Heart, Share2 } from 'lucide-react';
+import { formatTaskDate } from '@/lib/format-date';
 import { toast } from '@/components/ui/Toast';
 import { useTranslation } from '@/lib/i18n';
 
@@ -215,7 +216,7 @@ export default function TaskCard({ task }: { task: Task }) {
                         <MapPin size={18} /> {task.city || 'Remote'}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary)', fontSize: '0.9rem', fontWeight: '600' }}>
-                        <Clock size={18} /> {task.postedAt}
+                        <Clock size={18} /> {formatTaskDate(task.postedAt)}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary)', fontSize: '0.9rem', fontWeight: '600' }}>
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>

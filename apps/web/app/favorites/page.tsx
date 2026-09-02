@@ -82,7 +82,7 @@ export default async function FavoritesPage() {
                                     budget: fav.task.budgetType === 'fixed' ? `${fav.task.budgetAmount} TJS` : t('common.negotiable'),
                                     budgetType: fav.task.budgetType,
                                     city: fav.task.city,
-                                    postedAt: new Date(fav.task.createdAt).toLocaleDateString('ru-RU'),
+                                    postedAt: fav.task.createdAt.toISOString(),
                                     description: fav.task.description,
                                     urgency: fav.task.urgency,
                                     responseCount: fav.task._count.responses,

@@ -37,7 +37,7 @@ export async function GET(
                 price: r.price,
                 estimatedTime: r.estimatedTime,
                 status: r.status,
-                createdAt: new Date(r.createdAt).toLocaleDateString('ru-RU'),
+                createdAt: r.createdAt.toISOString(),
                 provider: r.user,
             })),
         });

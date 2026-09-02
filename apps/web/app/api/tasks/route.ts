@@ -92,7 +92,7 @@ export async function GET(request: Request) {
             budget: formatBudget(task.budgetType, task.budgetAmount),
             budgetType: task.budgetType,
             city: task.city,
-            postedAt: new Date(task.createdAt).toLocaleDateString('ru-RU'),
+            postedAt: task.createdAt.toISOString(),
             description: task.description,
             urgency: task.urgency,
             responseCount: task._count.responses,

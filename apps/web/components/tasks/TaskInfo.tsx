@@ -18,7 +18,7 @@ type TaskInfoProps = {
 };
 
 export default function TaskInfo({ task }: TaskInfoProps) {
-    const { t } = useTranslation();
+    const { t, tr } = useTranslation();
 
     const statusLabel = (() => {
         switch (task.status) {
@@ -59,11 +59,11 @@ export default function TaskInfo({ task }: TaskInfoProps) {
                 <div style={{ display: 'flex', gap: '40px', borderBottom: '1px solid var(--border)', paddingBottom: '24px', flexWrap: 'wrap' }}>
                     <div>
                         <div style={{ color: 'var(--text-light)', fontSize: '0.85rem', marginBottom: '4px' }}>{t('tasks.category')}</div>
-                        <div style={{ fontWeight: '500' }}>{task.category}</div>
+                        <div style={{ fontWeight: '500' }}>{tr(task.category)}</div>
                     </div>
                     <div>
                         <div style={{ color: 'var(--text-light)', fontSize: '0.85rem', marginBottom: '4px' }}>{t('createTask.location')}</div>
-                        <div style={{ fontWeight: '500' }}>{task.city}{task.address ? `, ${task.address}` : ''}</div>
+                        <div style={{ fontWeight: '500' }}>{tr(task.city)}{task.address ? `, ${task.address}` : ''}</div>
                     </div>
                 </div>
             </div>

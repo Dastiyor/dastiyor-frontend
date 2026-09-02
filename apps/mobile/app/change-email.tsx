@@ -11,7 +11,7 @@ import {
   Alert,
   View,
 } from 'react-native';
-import { router } from 'expo-router';
+import { goBack } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -79,7 +79,7 @@ export default function ChangeEmailScreen() {
         currentPassword,
       });
       await refreshUser();
-      Alert.alert(t.common.done, ce.success, [{ text: t.common.ok, onPress: () => router.back() }]);
+      Alert.alert(t.common.done, ce.success, [{ text: t.common.ok, onPress: () => goBack() }]);
     } catch (e) {
       Alert.alert(t.common.error, (e as Error).message);
     } finally {

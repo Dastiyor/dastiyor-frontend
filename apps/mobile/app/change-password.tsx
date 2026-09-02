@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { router } from 'expo-router';
+import { goBack } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -38,7 +38,7 @@ export default function ChangePasswordScreen() {
     setSaving(true);
     try {
       await api.post('/api/auth/change-password', { currentPassword: current, newPassword: next });
-      Alert.alert(t.common.done, cp.success, [{ text: t.common.ok, onPress: () => router.back() }]);
+      Alert.alert(t.common.done, cp.success, [{ text: t.common.ok, onPress: () => goBack() }]);
     } catch (e) {
       Alert.alert(t.common.error, (e as Error).message);
     } finally {

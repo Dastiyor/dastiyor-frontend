@@ -113,7 +113,9 @@ export async function PUT(request: Request) {
                 phone: phone?.trim() || null,
                 bio: bio ? sanitizeString(bio.trim()) : null,
                 skills: skills ? sanitizeString(skills.trim()) : null,
-                avatar: safeAvatar,
+                // Only touch avatar when the client actually sent the field --
+                // an omitted key used to silently wipe an existing picture.
+                ...(avatar !== undefined ? { avatar: safeAvatar } : {}),
                 ...(newEmail !== undefined ? { email: newEmail } : {}),
             },
             select: {

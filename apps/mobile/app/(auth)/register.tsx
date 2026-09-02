@@ -12,6 +12,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Link, router } from 'expo-router';
+import { goBack } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthBackground } from '@/components/AuthBackground';
 import * as storage from '@/lib/storage';
@@ -171,7 +172,7 @@ export default function RegisterScreen() {
       <AuthBackground />
       <TouchableOpacity
         style={[styles.closeBtn, { top: insets.top + 8, backgroundColor: colors.surface, borderColor: colors.border }]}
-        onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)'))}
+        onPress={goBack}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         accessibilityRole="button"
         accessibilityLabel={t.common.cancel}

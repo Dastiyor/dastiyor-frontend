@@ -12,6 +12,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { router } from 'expo-router';
+import { goBack } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthBackground } from '@/components/AuthBackground';
 import { api } from '@/lib/api-client';
@@ -77,7 +78,7 @@ export default function ForgotPasswordScreen() {
           {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{fp.btn}</Text>}
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.backLink} onPress={() => router.back()}>
+        <TouchableOpacity style={styles.backLink} onPress={() => goBack()}>
           <Text style={styles.backLinkText}>{fp.backToLogin}</Text>
         </TouchableOpacity>
       </ScrollView>

@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { router } from 'expo-router';
+import { goBack } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { api } from '@/lib/api-client';
@@ -62,7 +62,7 @@ const chip = StyleSheet.create({
 });
 
 export default function CreateTaskScreen() {
-  const { t } = useLanguage();
+  const { t, tr } = useLanguage();
   const { colors } = useTheme();
   const ct = t.createTask;
   const { config } = useConfig();
@@ -114,7 +114,7 @@ export default function CreateTaskScreen() {
         address: address.trim() || undefined,
       });
       track(AnalyticsEvent.TaskCreateCompleted, { category, city, budgetType });
-      Alert.alert(t.common.done, ct.published, [{ text: t.common.ok, onPress: () => router.back() }]);
+      Alert.alert(t.common.done, ct.published, [{ text: t.common.ok, onPress: () => goBack() }]);
     } catch (e) {
       const err = e as { code?: string; message: string };
       const msg = err.message ?? '';
@@ -141,10 +141,10 @@ export default function CreateTaskScreen() {
         <Text style={styles.charCount}>{description.length}/1000</Text>
 
         <Text style={[styles.label, { color: colors.text }]}>{ct.categoryLabel}</Text>
-        <ChipGroup options={config.categories} value={category} onChange={setCategory} colors={colors} />
+        <ChipGroup options={config.categories} value={category} onChange={setCategory} getLabel={(o) => tr(o as string)} colors={colors} />
 
         <Text style={[styles.label, { color: colors.text }]}>{ct.cityLabel}</Text>
-        <ChipGroup options={config.cities} value={city} onChange={setCity} colors={colors} />
+        <ChipGroup options={config.cities} value={city} onChange={setCity} getLabel={(o) => tr(o as string)} colors={colors} />
 
         <Text style={[styles.label, { color: colors.text }]}>{ct.budgetLabel}</Text>
         <View style={[styles.segmented, { borderColor: colors.border }]}>

@@ -67,7 +67,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function TaskDetailsPage({ params }: Props) {
     const { id } = await params;
-    const { t } = await getServerTranslation();
+    const { t, tr } = await getServerTranslation();
 
     // Handle static preview links from landing (e.g. /tasks/preview-0, preview-1, preview-2)
     const previewMatch = id.match(/^preview-(\d)$/);
@@ -101,7 +101,7 @@ export default async function TaskDetailsPage({ params }: Props) {
                                 padding: '4px 12px',
                                 borderRadius: '20px',
                             }}>
-                                {task.category}
+                                {tr(task.category)}
                             </span>
                             <h1 style={{ fontSize: '1.75rem', fontWeight: '700', marginTop: '16px', marginBottom: '24px' }}>
                                 {task.title}
@@ -120,7 +120,7 @@ export default async function TaskDetailsPage({ params }: Props) {
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#059669', fontWeight: '700' }}>
                                     <Wallet size={18} />
-                                    {task.budget}
+                                    {tr(task.budget)}
                                 </div>
                             </div>
                             <p style={{ fontSize: '0.9rem', color: 'var(--text-light)', marginBottom: '24px' }}>

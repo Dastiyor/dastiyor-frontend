@@ -220,6 +220,7 @@ export default async function CustomerTaskDetailsPage({ params }: Props) {
                         taskOwnerId={task.userId}
                         assignedUserId={task.assignedUserId}
                         taskStatus={task.status}
+                        messagesBasePath="/customer/messages"
                     />
                 </main>
 

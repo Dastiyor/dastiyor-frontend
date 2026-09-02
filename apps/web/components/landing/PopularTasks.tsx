@@ -5,7 +5,7 @@ import { PREVIEW_TASKS } from '@/lib/landing-tasks';
 import { useTranslation } from '@/lib/i18n';
 
 export default function PopularTasks() {
-    const { t } = useTranslation();
+    const { t, tr } = useTranslation();
     const tasks = PREVIEW_TASKS.slice(0, 3);
     return (
         <section className="popular-tasks-section" style={{ padding: '100px 0', backgroundColor: '#F9FAFB' }}>
@@ -46,7 +46,7 @@ export default function PopularTasks() {
                                     padding: '4px 12px',
                                     borderRadius: '20px'
                                 }}>
-                                    {task.category}
+                                    {tr(task.category)}
                                 </span>
                                 <span style={{ color: 'var(--text-light)', fontSize: '0.85rem' }}>
                                     {task.timeAgo}
@@ -78,7 +78,7 @@ export default function PopularTasks() {
                             }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#059669', fontWeight: '700', fontSize: '1.1rem' }}>
                                     <Wallet size={20} />
-                                    {task.budget}
+                                    {tr(task.budget)}
                                 </div>
                                 <Link href={`/tasks/preview-${index}`} style={{
                                     color: 'var(--primary)',

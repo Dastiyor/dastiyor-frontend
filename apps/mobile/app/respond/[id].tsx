@@ -11,7 +11,8 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
+import { goBack } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { api } from '@/lib/api-client';
@@ -38,7 +39,7 @@ export default function RespondScreen() {
     try {
       await api.post('/api/responses', { taskId, message: message.trim(), price: Number(price), estimatedTime: estimatedTime.trim() || undefined });
       track(AnalyticsEvent.ResponseSubmitted, { taskId: String(taskId), price: Number(price) });
-      Alert.alert(t.common.done, r.sent, [{ text: t.common.ok, onPress: () => router.back() }]);
+      Alert.alert(t.common.done, r.sent, [{ text: t.common.ok, onPress: () => goBack() }]);
     } catch (e) {
       const err = e as { code?: string; message: string };
       const msg = err.message ?? '';

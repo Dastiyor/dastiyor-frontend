@@ -54,10 +54,11 @@ interface Props {
   onApply: (f: FilterState) => void;
   onClose: () => void;
   categories?: string[];
+  cities?: string[];
 }
 
-export function FilterSheet({ visible, filters, onChange, onApply, onClose, categories = [] }: Props) {
-  const { t: globalT } = useLanguage();
+export function FilterSheet({ visible, filters, onChange, onApply, onClose, categories = [], cities = [] }: Props) {
+  const { t: globalT, tr } = useLanguage();
   const t = globalT.filterSheet;
   const { colors } = useTheme();
 
@@ -82,7 +83,7 @@ export function FilterSheet({ visible, filters, onChange, onApply, onClose, cate
           {/* Category */}
           <Text style={[styles.label, { color: colors.textTertiary }]}>{t.category}</Text>
           <View style={styles.chips}>
-            {[{ label: t.all, value: '' }, ...categories.map((c) => ({ label: c, value: c }))].map((c) => {
+            {[{ label: t.all, value: '' }, ...categories.map((c) => ({ label: tr(c), value: c }))].map((c) => {
               const active = filters.category === c.value;
               return (
                 <TouchableOpacity
@@ -134,22 +135,22 @@ export function FilterSheet({ visible, filters, onChange, onApply, onClose, cate
             })}
           </View>
 
-          {/* City */}
+          {/* City -- chips, not free text: the value must stay the canonical
+              Russian string the API filters on, whatever the UI language is. */}
           <Text style={[styles.label, { color: colors.textTertiary }]}>{t.city}</Text>
-          <View style={[styles.inputWrap, { borderColor: colors.border, backgroundColor: colors.surfaceAlt }]}>
-            <Ionicons name="location-outline" size={16} color={colors.textTertiary} style={styles.inputIcon} />
-            <TextInput
-              style={[styles.input, { color: colors.text }]}
-              placeholder={t.cityPlaceholder}
-              placeholderTextColor={colors.textTertiary}
-              value={filters.city}
-              onChangeText={(v) => set('city', v)}
-            />
-            {filters.city ? (
-              <TouchableOpacity onPress={() => set('city', '')}>
-                <Ionicons name="close-circle" size={16} color={colors.textTertiary} />
-              </TouchableOpacity>
-            ) : null}
+          <View style={styles.chips}>
+            {[{ label: t.all, value: '' }, ...cities.map((c) => ({ label: tr(c), value: c }))].map((c) => {
+              const active = filters.city === c.value;
+              return (
+                <TouchableOpacity
+                  key={c.value || '__all__'}
+                  style={[styles.chip, { borderColor: colors.border, backgroundColor: colors.surfaceAlt }, active && styles.chipActive]}
+                  onPress={() => set('city', c.value)}
+                >
+                  <Text style={[styles.chipText, { color: colors.textSecondary }, active && styles.chipTextActive]}>{c.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
 
           {/* Budget range */}
@@ -235,7 +236,6 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderRadius: 12,
     paddingHorizontal: 12, paddingVertical: 10, marginBottom: 16,
   },
-  inputIcon: { marginRight: 8 },
   input: { flex: 1, fontSize: 14, padding: 0 },
   budgetRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   budgetInput: { flex: 1, marginBottom: 16 },

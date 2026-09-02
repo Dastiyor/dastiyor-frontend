@@ -83,7 +83,7 @@ export default async function TaskFeedPage({
         }
     });
 
-    const { t } = await getServerTranslation();
+    const { t, tr } = await getServerTranslation();
 
     // Client-side budget filtering
     let filteredTasks = tasks;
@@ -155,7 +155,7 @@ export default async function TaskFeedPage({
                                                 fontSize: '0.75rem',
                                                 fontWeight: '600'
                                             }}>
-                                                {task.category}
+                                                {tr(task.category)}
                                             </span>
                                             {task.urgency === 'urgent' && (
                                                 <span style={{
@@ -184,7 +184,7 @@ export default async function TaskFeedPage({
                                             </div>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                                 <MapPin size={16} />
-                                                <span>{task.city}</span>
+                                                <span>{tr(task.city)}</span>
                                             </div>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                                 <Calendar size={16} />

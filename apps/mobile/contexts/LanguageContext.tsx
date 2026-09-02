@@ -1,10 +1,13 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState, ReactNode } from 'react';
 import * as storage from '@/lib/storage';
 import { type Locale, type Translations, getTranslations } from '@/lib/i18n';
+import { localizeTerm } from '@/lib/terms';
 
 interface LanguageState {
   locale: Locale;
   t: Translations;
+  /** Localize a canonical (Russian) category/city value for display. */
+  tr: (value: string) => string;
   setLocale: (locale: Locale) => Promise<void>;
 }
 
@@ -26,8 +29,16 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     await storage.setItem(STORAGE_KEY, next);
   }
 
+  // Stable identity per locale so consumers' useMemo/useCallback deps don't thrash.
+  const value = useMemo<LanguageState>(() => ({
+    locale,
+    t: getTranslations(locale),
+    tr: (v: string) => localizeTerm(v, locale),
+    setLocale,
+  }), [locale]);
+
   return (
-    <LanguageContext.Provider value={{ locale, t: getTranslations(locale), setLocale }}>
+    <LanguageContext.Provider value={value}>
       {children}
     </LanguageContext.Provider>
   );

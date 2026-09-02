@@ -7,12 +7,16 @@ import tj from './locales/tj.json';
 
 type TranslationDict = Record<string, unknown>;
 
+import { localizeTerm } from './terms';
+
 const translations: Record<Locale, TranslationDict> = { ru, tj };
 
 interface I18nContextType {
     locale: Locale;
     setLocale: (locale: Locale) => void;
     t: (key: string, params?: Record<string, string | number>) => string;
+    /** Localize a canonical (Russian) category/city/budget value for display. */
+    tr: (value: string) => string;
 }
 
 const I18nContext = createContext<I18nContextType | null>(null);
@@ -51,8 +55,10 @@ export function I18nProvider({ children, initialLocale }: { children: ReactNode;
         return value;
     }, [locale]);
 
+    const tr = useCallback((value: string) => localizeTerm(value, locale), [locale]);
+
     return (
-        <I18nContext.Provider value={{ locale, setLocale, t }}>
+        <I18nContext.Provider value={{ locale, setLocale, t, tr }}>
             {children}
         </I18nContext.Provider>
     );

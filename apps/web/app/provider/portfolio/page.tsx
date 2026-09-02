@@ -28,7 +28,7 @@ export default async function ProviderPortfolioPage() {
         redirect('/access-denied');
     }
 
-    const { t } = await getServerTranslation();
+    const { t, tr } = await getServerTranslation();
 
     // Get completed tasks with images as portfolio items
     const completedTasks = await prisma.task.findMany({
@@ -128,7 +128,7 @@ export default async function ProviderPortfolioPage() {
                                         fontSize: '0.85rem'
                                     }}>
                                         <div style={{ fontWeight: '600' }}>{item.taskTitle}</div>
-                                        <div style={{ fontSize: '0.75rem', opacity: 0.9 }}>{item.category}</div>
+                                        <div style={{ fontSize: '0.75rem', opacity: 0.9 }}>{tr(item.category)}</div>
                                     </div>
                                 </div>
                             ))}

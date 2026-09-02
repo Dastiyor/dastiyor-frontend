@@ -15,6 +15,7 @@ import { Link, router } from 'expo-router';
 import { goBack } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardOffset } from '@/lib/useKeyboardOffset';
+import { useKeyboardAwareScroll } from '@/lib/useKeyboardAwareScroll';
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
@@ -33,6 +34,7 @@ export default function LoginScreen() {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const keyboardOffset = useKeyboardOffset();
+  const kbScroll = useKeyboardAwareScroll();
   const L = t.login;
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -129,7 +131,7 @@ export default function LoginScreen() {
       >
         <Ionicons name="close" size={22} color={colors.text} />
       </TouchableOpacity>
-      <ScrollView
+      <ScrollView {...kbScroll}
         contentContainerStyle={[styles.inner, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 + keyboardOffset }]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { formatBudget } from '@/lib/format-budget';
 
 export async function GET(
     _request: Request,
@@ -36,7 +37,7 @@ export async function GET(
             title: task.title,
             description: task.description,
             category: task.category,
-            budget: task.budgetType === 'fixed' ? `${task.budgetAmount} TJS` : 'Договорная',
+            budget: formatBudget(task.budgetType, task.budgetAmount),
             city: task.city,
             address: task.address,
             images,

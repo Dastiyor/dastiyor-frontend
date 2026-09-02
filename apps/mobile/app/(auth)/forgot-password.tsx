@@ -15,6 +15,7 @@ import { router } from 'expo-router';
 import { goBack } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardOffset } from '@/lib/useKeyboardOffset';
+import { useKeyboardAwareScroll } from '@/lib/useKeyboardAwareScroll';
 import { AuthBackground } from '@/components/AuthBackground';
 import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -26,6 +27,7 @@ export default function ForgotPasswordScreen() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const keyboardOffset = useKeyboardOffset();
+  const kbScroll = useKeyboardAwareScroll();
   const fp = t.forgotPassword;
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -51,7 +53,7 @@ export default function ForgotPasswordScreen() {
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <AuthBackground />
-      <ScrollView
+      <ScrollView {...kbScroll}
         contentContainerStyle={[styles.inner, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 + keyboardOffset }]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}

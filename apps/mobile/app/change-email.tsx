@@ -14,6 +14,7 @@ import {
 import { goBack } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardOffset } from '@/lib/useKeyboardOffset';
+import { useKeyboardAwareScroll } from '@/lib/useKeyboardAwareScroll';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -34,6 +35,7 @@ export default function ChangeEmailScreen() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const keyboardOffset = useKeyboardOffset();
+  const kbScroll = useKeyboardAwareScroll();
   const ce = t.changeEmail;
 
   const currentEmail = user?.email && !user.email.endsWith('@phone.dastiyor.local')
@@ -94,7 +96,7 @@ export default function ChangeEmailScreen() {
 
   return (
     <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 40 + keyboardOffset }]} keyboardShouldPersistTaps="handled">
+      <ScrollView {...kbScroll} contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 40 + keyboardOffset }]} keyboardShouldPersistTaps="handled">
 
         {currentEmail ? (
           <View style={[styles.currentBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>

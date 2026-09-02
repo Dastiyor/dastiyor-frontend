@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { formatBudget } from '@/lib/format-budget';
 import type { Prisma } from '@prisma/client';
 import { logger } from '@/lib/logger';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
@@ -88,7 +89,7 @@ export async function GET(request: Request) {
             id: task.id,
             title: task.title,
             category: task.category,
-            budget: task.budgetType === 'fixed' ? `${task.budgetAmount} TJS` : 'Договорная',
+            budget: formatBudget(task.budgetType, task.budgetAmount),
             budgetType: task.budgetType,
             city: task.city,
             postedAt: new Date(task.createdAt).toLocaleDateString('ru-RU'),

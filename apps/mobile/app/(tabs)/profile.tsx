@@ -203,7 +203,9 @@ export default function ProfileScreen() {
   const roleColors = ROLE_COLORS[user.role] ?? { color: '#374151', bg: 'rgba(243,244,246,0.9)' };
   const roleLabel = p.roles[user.role as keyof typeof p.roles] ?? user.role;
   const hasRealEmail = user.email && !user.email.endsWith('@phone.dastiyor.local');
-  const username = user.email ? user.email.split('@')[0] : (user.phone ?? '');
+  // Phone-registered users get a generated @phone.dastiyor.local address;
+  // showing its local part surfaces "phone_992905550101" as their handle.
+  const username = hasRealEmail ? user.email!.split('@')[0] : (user.phone ?? '');
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import {
-  View,
   Text,
   TextInput,
   TouchableOpacity,
@@ -18,6 +17,7 @@ import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { LogoWordmark } from '@/components/Logo';
+import { PasswordInput } from '@/components/PasswordInput';
 import { passwordStrength } from '@/lib/validation';
 
 export default function ResetPasswordScreen() {
@@ -30,6 +30,8 @@ export default function ResetPasswordScreen() {
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [loading, setLoading] = useState(false);
+  const [pwVisible, setPwVisible] = useState(false);
+  const share = { visible: pwVisible, onToggleVisible: () => setPwVisible((v) => !v) };
 
   async function handleReset() {
     if (!code.trim() || !password || !confirm) {
@@ -81,24 +83,20 @@ export default function ResetPasswordScreen() {
           textAlign="center"
         />
 
-        <TextInput
-          style={[styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]}
+        <PasswordInput
+          {...share}
           placeholder={rp.newPh}
-          placeholderTextColor={colors.textTertiary}
           value={password}
           onChangeText={setPassword}
-          secureTextEntry
-          maxLength={128}
+          autoComplete="new-password"
         />
 
-        <TextInput
-          style={[styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]}
+        <PasswordInput
+          {...share}
+          showToggle={false}
           placeholder={rp.confirmPh}
-          placeholderTextColor={colors.textTertiary}
           value={confirm}
           onChangeText={setConfirm}
-          secureTextEntry
-          maxLength={128}
         />
 
         <TouchableOpacity

@@ -4,11 +4,31 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 
-/** Password field with a show/hide toggle. Same treatment as the auth screens. */
-export function PasswordInput(props: Omit<TextInputProps, 'secureTextEntry'>) {
+type Props = Omit<TextInputProps, 'secureTextEntry'> & {
+  /** Controlled visibility, so a group of fields can share one toggle. */
+  visible?: boolean;
+  onToggleVisible?: () => void;
+  /** Render the eye. Off for the other fields in a shared group. */
+  showToggle?: boolean;
+};
+
+/**
+ * Password field with a show/hide eye.
+ *
+ * A new-password and its confirm field are a matched pair: revealing one
+ * without the other is incoherent, and revealing both makes the confirm
+ * redundant anyway. So a group shares a single toggle -- pass `visible` and
+ * `onToggleVisible` to every field and `showToggle` to just the first.
+ * Used alone (one field, no props), it manages its own state.
+ */
+export function PasswordInput({ visible, onToggleVisible, showToggle = true, ...props }: Props) {
   const { colors } = useTheme();
   const { t } = useLanguage();
-  const [visible, setVisible] = useState(false);
+  const [ownVisible, setOwnVisible] = useState(false);
+
+  const isControlled = visible !== undefined;
+  const shown = isControlled ? visible : ownVisible;
+  const toggle = isControlled ? onToggleVisible : () => setOwnVisible((v) => !v);
 
   return (
     <View style={[styles.row, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
@@ -16,18 +36,20 @@ export function PasswordInput(props: Omit<TextInputProps, 'secureTextEntry'>) {
         {...props}
         style={[styles.input, { color: colors.text }, props.style]}
         placeholderTextColor={props.placeholderTextColor ?? colors.textTertiary}
-        secureTextEntry={!visible}
+        secureTextEntry={!shown}
         maxLength={props.maxLength ?? 128}
       />
-      <TouchableOpacity
-        style={styles.eyeBtn}
-        onPress={() => setVisible((v) => !v)}
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        accessibilityRole="button"
-        accessibilityLabel={visible ? t.common.hidePassword : t.common.showPassword}
-      >
-        <Ionicons name={visible ? 'eye-outline' : 'eye-off-outline'} size={20} color="#9CA3AF" />
-      </TouchableOpacity>
+      {showToggle ? (
+        <TouchableOpacity
+          style={styles.eyeBtn}
+          onPress={toggle}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityRole="button"
+          accessibilityLabel={shown ? t.common.hidePassword : t.common.showPassword}
+        >
+          <Ionicons name={shown ? 'eye-outline' : 'eye-off-outline'} size={20} color="#9CA3AF" />
+        </TouchableOpacity>
+      ) : null}
     </View>
   );
 }

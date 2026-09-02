@@ -29,6 +29,8 @@ export default function ChangePasswordScreen() {
   const [confirm, setConfirm] = useState('');
   const [pwIssues, setPwIssues] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  const [pwVisible, setPwVisible] = useState(false);
+  const share = { visible: pwVisible, onToggleVisible: () => setPwVisible((v) => !v) };
 
   async function handleSave() {
     if (!current || !next || !confirm) { Alert.alert(t.common.error, cp.errFill); return; }
@@ -51,10 +53,12 @@ export default function ChangePasswordScreen() {
     <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 40 + keyboardOffset }]} keyboardShouldPersistTaps="handled">
         <Text style={[styles.label, { color: colors.text }]}>{cp.current}</Text>
-        <PasswordInput value={current} onChangeText={setCurrent} autoComplete="password" placeholder="••••••••" />
+        <PasswordInput {...share} value={current} onChangeText={setCurrent} autoComplete="password" placeholder="••••••••" />
 
         <Text style={[styles.label, { color: colors.text }]}>{cp.new}</Text>
         <PasswordInput
+          {...share}
+          showToggle={false}
           value={next}
           onChangeText={(v) => { setNext(v); setPwIssues(v ? passwordStrength(v, cp) : []); }}
           autoComplete="new-password"
@@ -67,7 +71,7 @@ export default function ChangePasswordScreen() {
         )}
 
         <Text style={[styles.label, { color: colors.text }]}>{cp.confirm}</Text>
-        <PasswordInput value={confirm} onChangeText={setConfirm} placeholder={cp.confirmPh} />
+        <PasswordInput {...share} showToggle={false} value={confirm} onChangeText={setConfirm} placeholder={cp.confirmPh} />
 
         <TouchableOpacity style={[styles.btn, saving && styles.btnDisabled]} onPress={handleSave} disabled={saving} accessibilityLabel={cp.btn} accessibilityRole="button">
           {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>{cp.btn}</Text>}

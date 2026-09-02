@@ -46,19 +46,32 @@ export async function POST(request: Request) {
                 ? task.budgetAmountNum
                 : 0;
 
-        const updatedTask = await prisma.$transaction(async (tx) => {
-            const updated = await tx.task.update({
-                where: { id: taskId },
-                data: { status: 'COMPLETED' },
-            });
-            if (task.assignedUserId && balanceIncrement > 0) {
-                await tx.user.update({
-                    where: { id: task.assignedUserId },
-                    data: { balance: { increment: balanceIncrement } },
+        let updatedTask;
+        try {
+            updatedTask = await prisma.$transaction(async (tx) => {
+                // Atomic claim: only the call that flips IN_PROGRESS -> COMPLETED wins.
+                // A losing duplicate POST gets count === 0 and aborts before crediting balance.
+                const claim = await tx.task.updateMany({
+                    where: { id: taskId, status: 'IN_PROGRESS' },
+                    data: { status: 'COMPLETED' },
                 });
+                if (claim.count === 0) {
+                    throw new Error('TASK_NOT_IN_PROGRESS');
+                }
+                if (task.assignedUserId && balanceIncrement > 0) {
+                    await tx.user.update({
+                        where: { id: task.assignedUserId },
+                        data: { balance: { increment: balanceIncrement } },
+                    });
+                }
+                return await tx.task.findUnique({ where: { id: taskId } });
+            });
+        } catch (error) {
+            if (error instanceof Error && error.message === 'TASK_NOT_IN_PROGRESS') {
+                return NextResponse.json({ error: 'Task must be in progress to complete' }, { status: 400 });
             }
-            return updated;
-        });
+            throw error;
+        }
 
         // Notify Provider if assigned
         if (task.assignedUserId) {

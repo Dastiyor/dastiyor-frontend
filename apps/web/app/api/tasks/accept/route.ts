@@ -52,26 +52,38 @@ export async function POST(request: Request) {
             );
         }
 
-        // 5. Atomically update task + accept response + notify — all or nothing
-        await prisma.$transaction([
-            prisma.task.update({
-                where: { id: taskId },
-                data: { status: 'IN_PROGRESS', assignedUserId: providerId },
-            }),
-            prisma.response.update({
-                where: { id: providerResponse.id },
-                data: { status: 'ACCEPTED' },
-            }),
-            prisma.notification.create({
-                data: {
-                    userId: providerId,
-                    type: 'OFFER_ACCEPTED',
-                    title: 'Отклик принят!',
-                    message: `Вас выбрали исполнителем задания "${task.title}". Свяжитесь с заказчиком.`,
-                    link: `/tasks/${taskId}`,
-                },
-            }),
-        ]);
+        // 5. Atomically update task + accept response + notify — all or nothing.
+        //    Guarded claim: the task transition only wins if it's still OPEN, so two
+        //    concurrent accepts for different providers can't both commit.
+        try {
+            await prisma.$transaction(async (tx) => {
+                const claim = await tx.task.updateMany({
+                    where: { id: taskId, status: 'OPEN' },
+                    data: { status: 'IN_PROGRESS', assignedUserId: providerId },
+                });
+                if (claim.count === 0) {
+                    throw new Error('TASK_NOT_OPEN');
+                }
+                await tx.response.update({
+                    where: { id: providerResponse.id },
+                    data: { status: 'ACCEPTED' },
+                });
+                await tx.notification.create({
+                    data: {
+                        userId: providerId,
+                        type: 'OFFER_ACCEPTED',
+                        title: 'Отклик принят!',
+                        message: `Вас выбрали исполнителем задания "${task.title}". Свяжитесь с заказчиком.`,
+                        link: `/tasks/${taskId}`,
+                    },
+                });
+            });
+        } catch (e) {
+            if (e instanceof Error && e.message === 'TASK_NOT_OPEN') {
+                return NextResponse.json({ error: 'Task is not open for acceptance' }, { status: 400 });
+            }
+            throw e;
+        }
 
         const updatedTask = await prisma.task.findUnique({ where: { id: taskId } });
 

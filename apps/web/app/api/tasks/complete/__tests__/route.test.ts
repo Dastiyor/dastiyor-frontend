@@ -111,10 +111,12 @@ describe('/api/tasks/complete', () => {
         };
         const completedTask = { ...mockTask, status: 'COMPLETED' };
 
-        (prismaMock.task.findUnique as jest.Mock).mockResolvedValue(mockTask);
+        (prismaMock.task.findUnique as jest.Mock)
+            .mockResolvedValueOnce(mockTask)       // initial load for pre-checks
+            .mockResolvedValueOnce(completedTask); // in-transaction return of the updated row
         // $transaction callback — call the callback with prismaMock so inner updates are tracked
         (prismaMock.$transaction as jest.Mock).mockImplementation(async (fn: (tx: typeof prismaMock) => Promise<unknown>) => {
-            (prismaMock.task.update as jest.Mock).mockResolvedValue(completedTask);
+            (prismaMock.task.updateMany as jest.Mock).mockResolvedValue({ count: 1 }); // atomic claim wins
             (prismaMock.user.update as jest.Mock).mockResolvedValue({});
             return fn(prismaMock);
         });
@@ -148,7 +150,7 @@ describe('/api/tasks/complete', () => {
 
         (prismaMock.task.findUnique as jest.Mock).mockResolvedValue(mockTask);
         (prismaMock.$transaction as jest.Mock).mockImplementation(async (fn: (tx: typeof prismaMock) => Promise<unknown>) => {
-            (prismaMock.task.update as jest.Mock).mockResolvedValue({ ...mockTask, status: 'COMPLETED' });
+            (prismaMock.task.updateMany as jest.Mock).mockResolvedValue({ count: 1 }); // atomic claim wins
             (prismaMock.user.update as jest.Mock).mockResolvedValue({});
             return fn(prismaMock);
         });
@@ -167,5 +169,37 @@ describe('/api/tasks/complete', () => {
                 data: { balance: { increment: 500 } },
             })
         );
+    });
+    it('does not credit balance when the atomic claim is lost (concurrent duplicate complete)', async () => {
+        const mockTask = {
+            id: 'task-1',
+            userId: mockUserId,
+            title: 'Task',
+            status: 'IN_PROGRESS',
+            assignedUserId: 'provider-1',
+            budgetType: 'fixed',
+            budgetAmount: '500',
+            budgetAmountNum: 500,
+        };
+
+        (prismaMock.task.findUnique as jest.Mock).mockResolvedValue(mockTask);
+        // Loser: another request already flipped the task, so updateMany matches 0 rows.
+        (prismaMock.$transaction as jest.Mock).mockImplementation(async (fn: (tx: typeof prismaMock) => Promise<unknown>) => {
+            (prismaMock.task.updateMany as jest.Mock).mockResolvedValue({ count: 0 });
+            return fn(prismaMock);
+        });
+
+        const request = new NextRequest('http://localhost/api/tasks/complete', {
+            method: 'POST',
+            body: JSON.stringify({ taskId: 'task-1' }),
+        });
+
+        const response = await POST(request);
+        const data = await response.json();
+
+        expect(response.status).toBe(400);
+        expect(data.error).toContain('in progress');
+        // Critical: the provider balance must NOT be credited a second time.
+        expect(prismaMock.user.update).not.toHaveBeenCalled();
     });
 });

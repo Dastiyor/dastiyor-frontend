@@ -37,9 +37,7 @@ export async function GET(request: Request) {
             ]
         };
 
-        if (taskId) {
-            whereClause.taskId = taskId;
-        }
+        whereClause.taskId = taskId ? taskId : null;
 
         const messages = await prisma.message.findMany({
             where: whereClause,
@@ -60,6 +58,7 @@ export async function GET(request: Request) {
             where: {
                 receiverId: userId,
                 senderId: otherId,
+                taskId: taskId ? taskId : null,
                 isRead: false
             },
             data: { isRead: true }

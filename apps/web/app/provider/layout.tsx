@@ -14,6 +14,9 @@ import { getServerTranslation } from '@/lib/i18n/server';
 
 export const dynamic = 'force-dynamic';
 
+// Provider-dashboard chrome + PROVIDER-only guard. The public profile page
+// /provider/<id> deliberately lives outside this segment, at
+// app/(public)/provider/[id], so anyone can read it.
 export default async function ProviderLayout({
     children,
 }: {

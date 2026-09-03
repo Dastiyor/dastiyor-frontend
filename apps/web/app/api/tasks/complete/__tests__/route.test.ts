@@ -3,10 +3,12 @@ import { prismaMock } from '../../../../../__tests__/mocks/prisma';
 import { verifyJWTWithVersion } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
+import { sendPushNotification } from '@/lib/web-push';
 
 
 
 jest.mock('@/lib/auth', () => ({ verifyJWTWithVersion: jest.fn(), getBearerToken: jest.fn(() => null) }));
+jest.mock('@/lib/web-push', () => ({ sendPushNotification: jest.fn().mockResolvedValue(undefined) }));
 jest.mock('next/headers', () => ({ cookies: jest.fn() }));
 
 describe('/api/tasks/complete', () => {
@@ -201,5 +203,32 @@ describe('/api/tasks/complete', () => {
         expect(data.error).toContain('in progress');
         // Critical: the provider balance must NOT be credited a second time.
         expect(prismaMock.user.update).not.toHaveBeenCalled();
+    });
+
+    it('pushes to the assigned provider on completion', async () => {
+        // Being told the job is done -- and the balance credited -- should not
+        // require opening the app to notice.
+        const mockTask = {
+            id: 'task-1', userId: mockUserId, title: 'Job', status: 'IN_PROGRESS',
+            assignedUserId: 'provider-1', budgetType: 'fixed', budgetAmount: '150',
+        };
+        (prismaMock.task.findUnique as jest.Mock)
+            .mockResolvedValueOnce(mockTask)
+            .mockResolvedValueOnce({ ...mockTask, status: 'COMPLETED' });
+        (prismaMock.$transaction as jest.Mock).mockImplementation(async (fn: (tx: typeof prismaMock) => Promise<unknown>) => {
+            (prismaMock.task.updateMany as jest.Mock).mockResolvedValue({ count: 1 });
+            (prismaMock.user.update as jest.Mock).mockResolvedValue({});
+            return fn(prismaMock);
+        });
+        (prismaMock.notification.create as jest.Mock).mockResolvedValue({});
+        (prismaMock.user.findUnique as jest.Mock).mockResolvedValue({ email: 'p@x.com' });
+
+        await POST(new NextRequest('http://localhost/api/tasks/complete', {
+            method: 'POST', body: JSON.stringify({ taskId: 'task-1' }),
+        }));
+
+        expect(sendPushNotification).toHaveBeenCalledWith('provider-1', expect.objectContaining({
+            url: '/tasks/task-1',
+        }));
     });
 });

@@ -39,6 +39,16 @@ export function I18nProvider({ children, initialLocale }: { children: ReactNode;
         localStorage.setItem('dastiyor_locale', newLocale);
         document.documentElement.lang = newLocale;
         document.cookie = `dastiyor_locale=${newLocale};path=/;max-age=31536000;SameSite=Lax`;
+
+        // Mirror to the account. Notifications and emails are produced by other
+        // people's actions, so the server needs the preference stored rather
+        // than read off the request. Signed-out visitors 401 here, which is
+        // inert -- the cookie above already covers their session.
+        fetch('/api/profile/locale', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ locale: newLocale }),
+        }).catch(() => {});
     }, []);
 
     const t = useCallback((key: string, params?: Record<string, string | number>): string => {

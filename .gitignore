@@ -51,6 +51,9 @@ yarn-error.log*
 # Google OAuth client credentials — never commit
 client_secret_*.json
 
+# Google Play submission credentials — never commit
+apps/mobile/google-service-account.json
+
 # vercel
 .vercel
 

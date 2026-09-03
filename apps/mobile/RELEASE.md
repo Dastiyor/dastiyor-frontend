@@ -6,7 +6,7 @@ native projects from `app.json`). Build & submit via **EAS**.
 ## What's already done (in code)
 
 - App icon + splash from `assets/icon.png` / `assets/splash.png` (`app.json`).
-- Bundle IDs: iOS `com.dastiyor.app`, Android `com.dastiyor.app`.
+- Bundle IDs: iOS `com.dastiyor.ios`, Android `com.dastiyor.app`.
 - iOS export compliance: `ios.config.usesNonExemptEncryption = false` (no yearly prompt).
 - Apple Sign In: `ios.usesAppleSignIn` + `expo-apple-authentication` plugin (entitlement auto-added on prebuild).
 - Android permissions trimmed to none beyond defaults.
@@ -17,7 +17,7 @@ native projects from `app.json`). Build & submit via **EAS**.
 
 ## Prerequisites (your accounts — I can't create these)
 
-- **Apple Developer Program** ($99/yr) + an app record in App Store Connect (bundle `com.dastiyor.app`).
+- **Apple Developer Program** ($99/yr) + an app record in App Store Connect (bundle `com.dastiyor.ios`).
 - **Google Play Console** ($25 once) + a Play app + a **service-account JSON** for `eas submit`.
 - **Expo account** (free): `npx eas login`.
 

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { notificationStrings } from '@/lib/notifications/strings';
 import { isValidId } from '@/lib/validation';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 import { logAction, getRequestIP } from '@/lib/audit';
@@ -90,7 +91,7 @@ export async function POST(request: Request) {
         // Fetch the task and its owner for notification
         const task = await prisma.task.findUnique({
             where: { id: taskId },
-            select: { userId: true, title: true, status: true, user: { select: { email: true } } }
+            select: { userId: true, title: true, status: true, user: { select: { email: true, locale: true } } }
         });
 
         if (!task) {
@@ -146,12 +147,14 @@ export async function POST(request: Request) {
         });
 
         // Create notification for task owner
+        const ownerStrings = notificationStrings(task.user?.locale);
+
         await prisma.notification.create({
             data: {
                 userId: task.userId,
                 type: 'NEW_OFFER',
-                title: 'Новое предложение',
-                message: `На ваше задание "${task.title}" поступило новое предложение: ${price} с.`,
+                title: ownerStrings.newResponseTitle,
+                message: ownerStrings.newResponseBody(user.fullName || 'Исполнитель', String(price), task.title),
                 link: `/tasks/${taskId}`
             }
         });
@@ -170,8 +173,8 @@ export async function POST(request: Request) {
 
         // Web push notification to task owner (non-blocking)
         sendPushNotification(task.userId, {
-            title: 'Новое предложение',
-            body: `${user.fullName || 'Исполнитель'} предложил ${priceStr} с. за "${task.title}"`,
+            title: ownerStrings.newResponseTitle,
+            body: ownerStrings.newResponseBody(user.fullName || 'Исполнитель', priceStr, task.title),
             url: `/tasks/${taskId}`,
         }).catch(() => {});
 

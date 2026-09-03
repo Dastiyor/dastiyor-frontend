@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { notificationStrings } from '@/lib/notifications/strings';
 import { sendPushNotification } from '@/lib/web-push';
 import { isValidId } from '@/lib/validation';
 import { sendTaskCompletedNotification } from '@/lib/notifications/email';
@@ -77,12 +78,16 @@ export async function POST(request: Request) {
 
         // Notify Provider if assigned
         if (task.assignedUserId) {
+            const providerStrings = notificationStrings(
+                (await prisma.user.findUnique({ where: { id: task.assignedUserId }, select: { locale: true } }))?.locale
+            );
+
             await prisma.notification.create({
                 data: {
                     userId: task.assignedUserId,
                     type: 'TASK_COMPLETED',
-                    title: 'Задание выполнено',
-                    message: `Заказчик подтвердил выполнение задания "${task.title}".${balanceIncrement > 0 ? ` Баланс пополнен на ${balanceIncrement} с.` : ''}`,
+                    title: providerStrings.completedTitle,
+                    message: providerStrings.completedBody(task.title, balanceIncrement),
                     link: `/tasks/${taskId}`
                 }
             });
@@ -91,8 +96,8 @@ export async function POST(request: Request) {
             // the job is done -- and the balance credited -- should not require
             // opening the app to notice.
             sendPushNotification(task.assignedUserId, {
-                title: 'Задание выполнено',
-                body: `Заказчик подтвердил выполнение задания "${task.title}".${balanceIncrement > 0 ? ` Баланс пополнен на ${balanceIncrement} с.` : ''}`,
+                title: providerStrings.completedTitle,
+                body: providerStrings.completedBody(task.title, balanceIncrement),
                 url: `/tasks/${taskId}`,
             }).catch(() => {});
 

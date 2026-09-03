@@ -18,6 +18,7 @@ model User {
   appleId               String?   @unique
   phone                 String?
   phoneVerified         Boolean   @default(false) // OAuth registrants must verify a phone before posting/accepting tasks
+  locale                String    @default("ru") // ru | tj | en — language for notifications sent to this user
   bio                   String? // Provider bio/description
   skills                String? // Comma-separated skills
   avatar                String? // Profile image URL

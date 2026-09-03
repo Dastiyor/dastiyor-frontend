@@ -167,7 +167,8 @@ export async function POST(request: Request) {
                 task.title,
                 user.fullName || 'Исполнитель',
                 priceStr,
-                `${baseUrl}/tasks/${taskId}`
+                `${baseUrl}/tasks/${taskId}`,
+                task.user?.locale,
             ).catch(err => console.error('Email notification error:', err));
         }
 

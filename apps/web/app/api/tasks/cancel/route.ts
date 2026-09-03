@@ -51,7 +51,7 @@ export async function POST(request: Request) {
         // Notify providers who had pending responses (non-blocking)
         const pendingResponses = await prisma.response.findMany({
             where: { taskId, status: 'PENDING' },
-            include: { user: { select: { email: true } } }
+            include: { user: { select: { email: true, locale: true } } }
         });
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dastiyor.com';
         for (const resp of pendingResponses) {
@@ -59,7 +59,8 @@ export async function POST(request: Request) {
                 sendTaskCancelledNotification(
                     resp.user.email!,
                     task.title,
-                    `${baseUrl}/tasks`
+                    `${baseUrl}/tasks`,
+                    resp.user.locale,
                 ).catch(err => console.error('Email notification error:', err));
             }
         }

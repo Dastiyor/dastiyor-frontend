@@ -80,7 +80,7 @@ describe('/api/auth/register Route', () => {
         expect(data.user.id).toBe('new-user-id');
 
         // Ensure email notification was sent
-        expect(sendWelcomeEmail).toHaveBeenCalledWith('new@test.com', 'New User', 'CUSTOMER');
+        expect(sendWelcomeEmail).toHaveBeenCalledWith('new@test.com', 'New User', 'CUSTOMER', undefined);
 
         // Ensure cookie is set
         const cookieHeader = response.headers.get('set-cookie');

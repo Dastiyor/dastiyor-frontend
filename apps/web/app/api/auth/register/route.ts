@@ -120,7 +120,7 @@ export async function POST(request: Request) {
 
         // Only send welcome email if a real email address was given
         if (email) {
-            sendWelcomeEmail(resolvedEmail, user.fullName, user.role)
+            sendWelcomeEmail(resolvedEmail, user.fullName, user.role, user.locale)
                 .catch(err => console.error('Welcome email error:', err));
         }
 

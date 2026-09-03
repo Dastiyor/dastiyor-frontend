@@ -201,7 +201,7 @@ export async function POST(request: Request) {
 
         const receiver = await prisma.user.findUnique({
             where: { id: receiverId },
-            select: { email: true }
+            select: { email: true, locale: true }
         });
         if (!recentMessage && receiver?.email && sanitizedContent) {
             const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dastiyor.com';
@@ -209,7 +209,8 @@ export async function POST(request: Request) {
                 receiver.email,
                 message.sender.fullName,
                 sanitizedContent,
-                `${baseUrl}/messages?userId=${senderId}${taskId ? `&taskId=${taskId}` : ''}`
+                `${baseUrl}/messages?userId=${senderId}${taskId ? `&taskId=${taskId}` : ''}`,
+                receiver?.locale,
             ).catch(err => console.error('Email notification error:', err));
         }
 

@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { MapPin, Lightbulb } from 'lucide-react';
 import { toast } from '@/components/ui/Toast';
 import { useTranslation } from '@/lib/i18n';
-import { CATEGORIES, CITIES } from '@/app/api/config/route';
+import { CATEGORIES, CITIES } from '@/lib/config-fallback';
 
 export default function CreateTaskPage() {
     const { t, tr } = useTranslation();
@@ -27,6 +27,20 @@ export default function CreateTaskPage() {
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [hasDraft, setHasDraft] = useState(false);
+    // Categories are admin-managed; the static list is the first-paint value
+    // until /api/config answers. Cities are static everywhere.
+    const [categories, setCategories] = useState<string[]>(CATEGORIES);
+
+    useEffect(() => {
+        fetch('/api/config')
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data.categories) && data.categories.length) {
+                    setCategories(data.categories);
+                }
+            })
+            .catch(() => { /* keep the static list */ });
+    }, []);
 
     // Auth gate on mount — redirect to login before user fills the form
     useEffect(() => {
@@ -219,7 +233,7 @@ export default function CreateTaskPage() {
                                     style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #D1D5DB', outline: 'none', backgroundColor: 'white' }}
                                 >
                                     <option value="">{t('createTask.selectCategory')}</option>
-                                    {CATEGORIES.map(cat => (
+                                    {categories.map(cat => (
                                         <option key={cat} value={cat}>{tr(cat)}</option>
                                     ))}
                                 </select>

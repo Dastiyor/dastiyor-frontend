@@ -5,7 +5,8 @@ import type { Prisma } from '@prisma/client';
 import { logger } from '@/lib/logger';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 import { validateTaskInput, sanitizeString } from '@/lib/validation';
-import { CATEGORIES, CITIES } from '@/app/api/config/route';
+import { CITIES } from '@/lib/config-fallback';
+import { getCategories } from '@/lib/categories';
 import { logAction, getRequestIP } from '@/lib/audit';
 import { requireAuth } from '@/lib/require-auth';
 import { needsPhoneVerification, PHONE_VERIFICATION_REQUIRED } from '@/lib/phone-gate';
@@ -165,7 +166,7 @@ export async function POST(request: Request) {
         // Validate Request using pre-defined schema
         const validation = validateTaskInput({
             title, description, category, city, budgetAmount: amount, urgency,
-            allowedCategories: CATEGORIES,
+            allowedCategories: await getCategories(),
             allowedCities: CITIES,
         });
         if (!validation.isValid) {

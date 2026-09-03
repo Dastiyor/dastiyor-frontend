@@ -3,7 +3,7 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { LayoutGrid, Wrench, Monitor, SprayCan, Truck, Zap, Clock, Calendar, Camera, Palette, PartyPopper, Scale, Bot, Cpu, Laptop, Droplets, BookOpen, Sparkles } from 'lucide-react';
 import { useState, useCallback, useTransition } from 'react';
 import { useTranslation } from '@/lib/i18n';
-import { CITIES } from '@/app/api/config/route';
+import { CITIES } from '@/lib/config-fallback';
 
 const CATEGORIES = [
     { nameKey: 'categories.allTasks', value: '', icon: LayoutGrid },

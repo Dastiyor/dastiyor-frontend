@@ -1,36 +1,9 @@
 import { NextResponse } from 'next/server';
+import { getCategories } from '@/lib/categories';
+import { CITIES } from '@/lib/config-fallback';
 
 export const revalidate = 3600;
 
-export const CATEGORIES = [
-    'Ремонт',
-    'Уборка',
-    'Доставка',
-    'Сантехника',
-    'Электрик',
-    'IT и Веб',
-    'Компьютерная помощь',
-    'Ремонт техники',
-    'Обучение',
-    'Дизайн',
-    'Красота',
-    'Фото и видео',
-    'Мероприятия',
-    'Юридические услуги',
-    'Виртуальный помощник',
-];
-
-export const CITIES = [
-    'Душанбе',
-    'Худжанд',
-    'Бохтар',
-    'Кӯлоб',
-    'Истаравшан',
-    'Турсунзода',
-    'Вахш',
-    'Онлайн',
-];
-
 export async function GET() {
-    return NextResponse.json({ categories: CATEGORIES, cities: CITIES });
+    return NextResponse.json({ categories: await getCategories(), cities: CITIES });
 }

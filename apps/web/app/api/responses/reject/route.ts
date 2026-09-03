@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { sendPushNotification } from '@/lib/web-push';
 import { isValidId } from '@/lib/validation';
 import { sendOfferRejectedNotification } from '@/lib/notifications/email';
 import { logAction, getRequestIP } from '@/lib/audit';
@@ -58,6 +59,12 @@ export async function POST(request: Request) {
                 link: `/tasks/${response.taskId}`
             }
         });
+
+        sendPushNotification(response.userId, {
+            title: 'Отклик отклонен',
+            body: `Ваш отклик на задание "${response.task.title}" был отклонен заказчиком.`,
+            url: `/tasks/${response.taskId}`,
+        }).catch(() => {});
 
         // Send email notification to provider (non-blocking)
         const provider = await prisma.user.findUnique({

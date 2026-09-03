@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { sendPushNotification } from '@/lib/web-push';
 import { isValidId } from '@/lib/validation';
 import { sendTaskCompletedNotification } from '@/lib/notifications/email';
 import { logAction, getRequestIP } from '@/lib/audit';
@@ -85,6 +86,15 @@ export async function POST(request: Request) {
                     link: `/tasks/${taskId}`
                 }
             });
+
+            // Push too, matching the accept and new-response events. Being told
+            // the job is done -- and the balance credited -- should not require
+            // opening the app to notice.
+            sendPushNotification(task.assignedUserId, {
+                title: 'Задание выполнено',
+                body: `Заказчик подтвердил выполнение задания "${task.title}".${balanceIncrement > 0 ? ` Баланс пополнен на ${balanceIncrement} с.` : ''}`,
+                url: `/tasks/${taskId}`,
+            }).catch(() => {});
 
             // Send email notification to provider (non-blocking)
             const provider = await prisma.user.findUnique({

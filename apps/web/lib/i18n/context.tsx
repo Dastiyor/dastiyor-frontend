@@ -31,7 +31,7 @@ function getNestedValue(obj: unknown, path: string): string | undefined {
     return typeof current === 'string' ? current : undefined;
 }
 
-export function I18nProvider({ children, initialLocale }: { children: ReactNode; initialLocale?: Locale }) {
+export function I18nProvider({ children, initialLocale, isAuthenticated = false }: { children: ReactNode; initialLocale?: Locale; isAuthenticated?: boolean }) {
     const [locale, setLocaleState] = useState<Locale>(initialLocale ?? DEFAULT_LOCALE);
 
     const setLocale = useCallback((newLocale: Locale) => {
@@ -42,14 +42,16 @@ export function I18nProvider({ children, initialLocale }: { children: ReactNode;
 
         // Mirror to the account. Notifications and emails are produced by other
         // people's actions, so the server needs the preference stored rather
-        // than read off the request. Signed-out visitors 401 here, which is
-        // inert -- the cookie above already covers their session.
-        fetch('/api/profile/locale', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ locale: newLocale }),
-        }).catch(() => {});
-    }, []);
+        // than read off the request. Signed-out visitors have nothing to store
+        // it against, and the cookie above already covers their session.
+        if (isAuthenticated) {
+            fetch('/api/profile/locale', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ locale: newLocale }),
+            }).catch(() => {});
+        }
+    }, [isAuthenticated]);
 
     const t = useCallback((key: string, params?: Record<string, string | number>): string => {
         let value = getNestedValue(translations[locale], key)

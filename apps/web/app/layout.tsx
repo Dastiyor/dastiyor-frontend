@@ -46,11 +46,15 @@ export default async function RootLayout({
   const cookieStore = await cookies();
   const raw = cookieStore.get("dastiyor_locale")?.value;
   const locale: Locale = raw === "ru" || raw === "tj" ? raw : "ru";
+  // The session cookie is httpOnly, so the client cannot see it. Pass a plain
+  // signal down instead, so the language switcher skips the account write for
+  // signed-out visitors rather than firing a request that is certain to 401.
+  const isAuthenticated = Boolean(cookieStore.get("token")?.value);
 
   return (
     <html lang={locale}>
       <body className={manrope.className}>
-        <I18nProvider initialLocale={locale}>
+        <I18nProvider initialLocale={locale} isAuthenticated={isAuthenticated}>
           <ClientLayoutWrapper header={<Header />} footer={<Footer />}>
             {children}
           </ClientLayoutWrapper>

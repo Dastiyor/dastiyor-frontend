@@ -7,6 +7,7 @@ import { ToastContainer } from "@/components/ui/Toast";
 import ClientLayoutWrapper from "@/components/ClientLayoutWrapper";
 import { I18nProvider } from "@/lib/i18n/context";
 import { cookies } from "next/headers";
+import { getCompany } from "@/lib/company";
 import type { Locale } from "@/lib/i18n/types";
 
 const manrope = Manrope({
@@ -50,12 +51,15 @@ export default async function RootLayout({
   // signal down instead, so the language switcher skips the account write for
   // signed-out visitors rather than firing a request that is certain to 401.
   const isAuthenticated = Boolean(cookieStore.get("token")?.value);
+  // Read here rather than in the footer: this is a server component, so the
+  // details ship with the page instead of costing a request on every load.
+  const company = await getCompany();
 
   return (
     <html lang={locale}>
       <body className={manrope.className}>
         <I18nProvider initialLocale={locale} isAuthenticated={isAuthenticated}>
-          <ClientLayoutWrapper header={<Header />} footer={<Footer />}>
+          <ClientLayoutWrapper header={<Header />} footer={<Footer company={company} />}>
             {children}
           </ClientLayoutWrapper>
           <ToastContainer />

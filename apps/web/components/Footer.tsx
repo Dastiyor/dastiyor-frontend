@@ -4,9 +4,22 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useTranslation } from '@/lib/i18n';
 import { SUBSCRIPTIONS_ENABLED } from '@/lib/features';
+import { COMPANY_DEFAULTS, type Company } from '@/lib/company-defaults';
 
-export default function Footer() {
+const linkStyle = { color: '#4B5563', textDecoration: 'none', fontSize: '0.95rem' };
+
+/** Company details come from the admin panel; see lib/company.ts. */
+export default function Footer({ company = COMPANY_DEFAULTS }: { company?: Company }) {
     const { t } = useTranslation();
+    // Each row is omitted when the admin leaves that field blank, so a
+    // partly-filled form never renders a dangling label.
+    const contacts = [
+        company.phone && { key: 'phone', href: `tel:${company.phone.replace(/[^+\d]/g, '')}`, text: company.phone },
+        company.email && { key: 'email', href: `mailto:${company.email}`, text: company.email },
+        company.supportEmail && company.supportEmail !== company.email && {
+            key: 'support', href: `mailto:${company.supportEmail}`, text: company.supportEmail,
+        },
+    ].filter(Boolean) as { key: string; href: string; text: string }[];
 
     return (
         <footer style={{ backgroundColor: '#FFFFFF', padding: '80px 0 40px', borderTop: '1px solid #E5E7EB', marginTop: 'auto' }}>
@@ -73,6 +86,21 @@ export default function Footer() {
                                 <li><Link href="/contractor-plans" style={{ color: '#4B5563', textDecoration: 'none', fontSize: '0.95rem' }}>{t('footer.plans')}</Link></li>
                             )}
                             <li><Link href="/mobile-app" style={{ color: '#4B5563', textDecoration: 'none', fontSize: '0.95rem' }}>{t('footer.mobileApp')}</Link></li>
+                        </ul>
+                    </div>
+
+                    {/* Contacts Column — values managed in the admin panel */}
+                    <div>
+                        <h4 style={{ fontSize: '0.8rem', fontWeight: '800', color: '#111827', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '24px' }}>
+                            {t('footer.contacts')}
+                        </h4>
+                        <ul style={{ display: 'flex', flexDirection: 'column', gap: '16px', listStyle: 'none', padding: 0 }}>
+                            {contacts.map(c => (
+                                <li key={c.key}><a href={c.href} style={linkStyle}>{c.text}</a></li>
+                            ))}
+                            {company.address && (
+                                <li style={{ color: '#6B7280', fontSize: '0.95rem', lineHeight: '1.5' }}>{company.address}</li>
+                            )}
                         </ul>
                     </div>
                 </div>

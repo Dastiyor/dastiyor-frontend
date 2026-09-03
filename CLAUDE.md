@@ -82,6 +82,12 @@ Categories live in the `Category` table, edited from the separate **dastiyor-adm
 
 **Both the picker (`/api/config`) and the task-creation allow-list (`POST /api/tasks`) must call `getCategories()`** — if they diverge, the form offers a category the API then rejects with 400. `getCategories()` imports Prisma, so client components read `/api/config` and use `CATEGORIES` from `lib/config-fallback.ts` as their first-paint value; never import the route module from a client component.
 
+### Company contact details are admin-managed
+
+The footer's Contacts column comes from `SystemSetting['company']`, a JSON blob written by dastiyor-admin (Settings → Company). `lib/company.ts` → `getCompany()` reads it and merges over `lib/company-defaults.ts`, per key so a field cleared in the panel stays cleared. `app/layout.tsx` reads it server-side and passes it to `<Footer company={...} />` — do not fetch it from the client, the footer is on every public page. Seed with `prisma/seed-company.ts`.
+
+The logo and favicon inputs on that admin page are inert — bare `<input type="file">` with no handler. They save nothing, so there is no image field to read.
+
 Cities have no table and stay static in `lib/config-fallback.ts`. Seed a fresh database with `prisma/seed-categories.ts`. Note `/api/config` has `revalidate = 3600` and mobile caches for 10 minutes, so a newly added category can take up to an hour to appear.
 
 ### Feature flags

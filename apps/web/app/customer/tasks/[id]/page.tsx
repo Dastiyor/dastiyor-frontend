@@ -8,6 +8,7 @@ import { cookies } from 'next/headers';
 import { verifyJWT } from '@/lib/auth';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
+import { getServerTranslation } from '@/lib/i18n/server';
 
 type Props = {
     params: {
@@ -16,6 +17,7 @@ type Props = {
 };
 
 export default async function CustomerTaskDetailsPage({ params }: Props) {
+    const { t } = await getServerTranslation();
     const { id } = await params;
     const task = await prisma.task.findUnique({
         where: { id },
@@ -80,9 +82,9 @@ export default async function CustomerTaskDetailsPage({ params }: Props) {
         <div>
             {/* Breadcrumb */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px', fontSize: '0.9rem', color: '#64748B' }}>
-                <Link href="/customer" style={{ textDecoration: 'none', color: '#64748B' }}>Dashboard</Link>
+                <Link href="/customer" style={{ textDecoration: 'none', color: '#64748B' }}>{t('common.dashboard')}</Link>
                 <ChevronRight size={14} />
-                <Link href="/customer/my-tasks" style={{ textDecoration: 'none', color: '#64748B' }}>My Tasks</Link>
+                <Link href="/customer/my-tasks" style={{ textDecoration: 'none', color: '#64748B' }}>{t('customer.myTasks')}</Link>
                 <ChevronRight size={14} />
                 <span style={{ color: accentColor, fontWeight: '500' }}>{task.title}</span>
             </div>
@@ -136,7 +138,7 @@ export default async function CustomerTaskDetailsPage({ params }: Props) {
                                 <div>
                                     <div style={{ fontSize: '0.85rem', color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                         <span style={{ width: '8px', height: '8px', backgroundColor: '#22c55e', borderRadius: '50%' }}></span>
-                                        Assigned Professional
+                                        {t('tasks.assignedProvider')}
                                     </div>
                                     <div style={{ fontWeight: '600', fontSize: '1.1rem', color: '#1E293B' }}>
                                         {task.assignedUser.fullName}
@@ -161,7 +163,7 @@ export default async function CustomerTaskDetailsPage({ params }: Props) {
                                         fontSize: '0.9rem'
                                     }}
                                 >
-                                    💬 Message Provider
+                                    💬 {t('tasks.messageProvider')}
                                 </Link>
                             )}
                         </div>
@@ -176,7 +178,7 @@ export default async function CustomerTaskDetailsPage({ params }: Props) {
                                 padding: '32px',
                                 border: '1px solid #E2E8F0'
                             }}>
-                                <h3 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '16px' }}>Leave a Review</h3>
+                                <h3 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '16px' }}>{t('reviews.leaveReview')}</h3>
                                 <ReviewForm
                                     taskId={task.id}
                                     providerName={task.assignedUser.fullName}
@@ -194,7 +196,7 @@ export default async function CustomerTaskDetailsPage({ params }: Props) {
                             marginTop: '24px',
                             border: '1px solid #E2E8F0'
                         }}>
-                            <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '16px', color: '#1E293B' }}>Your Review</h3>
+                            <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '16px', color: '#1E293B' }}>{t('reviews.yourReview')}</h3>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                                 <span style={{ color: '#fbbf24', fontSize: '1.5rem' }}>
                                     {'★'.repeat(task.review.rating)}

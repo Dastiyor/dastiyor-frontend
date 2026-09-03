@@ -8,6 +8,7 @@ import { cookies } from 'next/headers';
 import { verifyJWT } from '@/lib/auth';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
+import { getServerTranslation } from '@/lib/i18n/server';
 
 type Props = {
     params: {
@@ -16,6 +17,7 @@ type Props = {
 };
 
 export default async function ProviderTaskDetailsPage({ params }: Props) {
+    const { t } = await getServerTranslation();
     const { id } = await params;
     const task = await prisma.task.findUnique({
         where: { id },
@@ -76,9 +78,9 @@ export default async function ProviderTaskDetailsPage({ params }: Props) {
         <div style={{ paddingBottom: '40px' }}>
             {/* Breadcrumb */}
             <div style={{ marginBottom: '24px', fontSize: '0.9rem', color: '#64748B', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Link href="/provider" style={{ textDecoration: 'none', color: '#64748B' }}>Dashboard</Link>
+                <Link href="/provider" style={{ textDecoration: 'none', color: '#64748B' }}>{t('common.dashboard')}</Link>
                 <ChevronRight size={14} />
-                <Link href="/provider/task-feed" style={{ textDecoration: 'none', color: '#64748B' }}>Tasks</Link>
+                <Link href="/provider/task-feed" style={{ textDecoration: 'none', color: '#64748B' }}>{t('tasks.tasksBreadcrumb')}</Link>
                 <ChevronRight size={14} />
                 <span style={{ color: 'var(--primary)', fontWeight: '500' }}>{task.title}</span>
             </div>
@@ -137,7 +139,7 @@ export default async function ProviderTaskDetailsPage({ params }: Props) {
                                 </div>
                                 <div>
                                     <div style={{ fontSize: '0.85rem', color: '#64748B' }}>
-                                        Assigned To
+                                        {t('tasks.assignedProvider')}
                                     </div>
                                     <div style={{ fontWeight: '600', fontSize: '1.1rem', color: '#1E293B' }}>
                                         {task.assignedUser.fullName}
@@ -161,7 +163,7 @@ export default async function ProviderTaskDetailsPage({ params }: Props) {
                                         fontSize: '0.9rem'
                                     }}
                                 >
-                                    💬 Send Message
+                                    💬 {t('tasks.sendMessage')}
                                 </Link>
                             )}
                         </div>
@@ -186,7 +188,7 @@ export default async function ProviderTaskDetailsPage({ params }: Props) {
                             marginTop: '24px',
                             border: '1px solid #E2E8F0'
                         }}>
-                            <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1E293B', marginBottom: '16px' }}>Review</h3>
+                            <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1E293B', marginBottom: '16px' }}>{t('tasks.review')}</h3>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                                 <span style={{ color: '#F59E0B', fontSize: '1.5rem', letterSpacing: '2px' }}>
                                     {'★'.repeat(task.review.rating)}

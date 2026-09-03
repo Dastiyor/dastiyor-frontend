@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n';
 
 type UserProfile = {
     id: string;
@@ -16,6 +17,7 @@ type UserProfile = {
 };
 
 export default function ProviderEditProfilePage() {
+    const { t } = useTranslation();
     const router = useRouter();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -80,10 +82,10 @@ export default function ProviderEditProfilePage() {
                 const data = await res.json();
                 setFormData(prev => ({ ...prev, avatar: data.url }));
             } else {
-                setError('Failed to upload image');
+                setError(t('profileEdit.uploadFailed'));
             }
         } catch (err) {
-            setError('Upload failed');
+            setError(t('profileEdit.uploadFailed'));
         } finally {
             setUploading(false);
         }
@@ -105,14 +107,14 @@ export default function ProviderEditProfilePage() {
             const data = await res.json();
 
             if (res.ok) {
-                setSuccess('Profile updated successfully!');
+                setSuccess(t('profileEdit.updateSuccess'));
                 setProfile(data.user);
                 setTimeout(() => router.push('/provider/profile'), 1500);
             } else {
-                setError(data.error || 'Failed to update profile');
+                setError(data.error || t('profileEdit.updateFailed'));
             }
         } catch (err) {
-            setError('An error occurred');
+            setError(t('reviews.genericError'));
         } finally {
             setSaving(false);
         }
@@ -126,7 +128,7 @@ export default function ProviderEditProfilePage() {
                 alignItems: 'center',
                 justifyContent: 'center'
             }}>
-                <p>Loading...</p>
+                <p>{t('common.loading')}</p>
             </div>
         );
     }
@@ -136,7 +138,7 @@ export default function ProviderEditProfilePage() {
             <div style={{ maxWidth: '700px', margin: '0 auto' }}>
                 <div style={{ marginBottom: '24px' }}>
                     <Link href="/provider/profile" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: '500' }}>
-                        ← Back to Profile
+                        {t('profileEdit.backToProfile')}
                     </Link>
                 </div>
 
@@ -147,7 +149,7 @@ export default function ProviderEditProfilePage() {
                     border: '1px solid #E2E8F0'
                 }}>
                     <style>{`@media (max-width: 480px) { .edit-card { padding: 20px !important; border-radius: 16px !important; } }`}</style>
-                    <h1 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#1E293B', marginBottom: '32px' }}>Edit Profile</h1>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#1E293B', marginBottom: '32px' }}>{t('profile.editProfile')}</h1>
 
                     {error && (
                         <div style={{
@@ -194,7 +196,7 @@ export default function ProviderEditProfilePage() {
                                 {formData.avatar ? (
                                     <img
                                         src={formData.avatar}
-                                        alt="Avatar"
+                                        alt={t('profile.avatar')}
                                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                     />
                                 ) : (
@@ -223,14 +225,14 @@ export default function ProviderEditProfilePage() {
                                     fontWeight: '500'
                                 }}
                             >
-                                {uploading ? 'Uploading...' : '📷 Change Photo'}
+                                {uploading ? t('profileEdit.uploading') : t('profileEdit.changePhoto')}
                             </button>
                         </div>
 
                         {/* Full Name */}
                         <div style={{ marginBottom: '20px' }}>
                             <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#1E293B' }}>
-                                Full Name *
+                                {t('profile.fullName')} *
                             </label>
                             <input
                                 type="text"
@@ -251,7 +253,7 @@ export default function ProviderEditProfilePage() {
                         {/* Email (read-only) */}
                         <div style={{ marginBottom: '20px' }}>
                             <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#1E293B' }}>
-                                Email
+                                {t('profile.email')}
                             </label>
                             <input
                                 type="email"
@@ -268,14 +270,14 @@ export default function ProviderEditProfilePage() {
                                 }}
                             />
                             <p style={{ fontSize: '0.85rem', color: '#94A3B8', marginTop: '4px' }}>
-                                Email cannot be changed
+                                {t('profileEdit.emailReadOnly')}
                             </p>
                         </div>
 
                         {/* Phone */}
                         <div style={{ marginBottom: '20px' }}>
                             <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#1E293B' }}>
-                                Phone Number
+                                {t('profile.phoneLabel')}
                             </label>
                             <input
                                 type="tel"
@@ -298,13 +300,13 @@ export default function ProviderEditProfilePage() {
                             <>
                                 <div style={{ marginBottom: '20px' }}>
                                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#1E293B' }}>
-                                        Bio / About Me
+                                        {t('profile.aboutMe')}
                                     </label>
                                     <textarea
                                         value={formData.bio}
                                         onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
                                         rows={4}
-                                        placeholder="Tell customers about yourself and your experience..."
+                                        placeholder={t('profileEdit.bioPlaceholder')}
                                         style={{
                                             width: '100%',
                                             padding: '14px 16px',
@@ -319,13 +321,13 @@ export default function ProviderEditProfilePage() {
 
                                 <div style={{ marginBottom: '32px' }}>
                                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#1E293B' }}>
-                                        Skills
+                                        {t('profile.skills')}
                                     </label>
                                     <input
                                         type="text"
                                         value={formData.skills}
                                         onChange={(e) => setFormData(prev => ({ ...prev, skills: e.target.value }))}
-                                        placeholder="e.g., Plumbing, Electrical, Painting"
+                                        placeholder={t('profileEdit.skillsPlaceholder')}
                                         style={{
                                             width: '100%',
                                             padding: '14px 16px',
@@ -336,7 +338,7 @@ export default function ProviderEditProfilePage() {
                                         }}
                                     />
                                     <p style={{ fontSize: '0.85rem', color: '#94A3B8', marginTop: '4px' }}>
-                                        Separate skills with commas
+                                        {t('profileEdit.skillsHint')}
                                     </p>
                                 </div>
                             </>
@@ -353,7 +355,7 @@ export default function ProviderEditProfilePage() {
                                 textDecoration: 'none',
                                 fontWeight: '600'
                             }}>
-                                Cancel
+                                {t('common.cancel')}
                             </Link>
                             <button
                                 type="submit"
@@ -369,7 +371,7 @@ export default function ProviderEditProfilePage() {
                                     cursor: 'pointer'
                                 }}
                             >
-                                {saving ? 'Saving...' : 'Save Changes'}
+                                {saving ? t('profileEdit.saving') : t('profile.saveChanges')}
                             </button>
                         </div>
                     </form>

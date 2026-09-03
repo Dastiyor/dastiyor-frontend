@@ -7,7 +7,7 @@ import { CheckCircle, XCircle, Clock, DollarSign, MapPin, Calendar, MessageSquar
 import { getServerTranslation } from '@/lib/i18n/server';
 
 export default async function MyResponsesPage() {
-    const { tr } = await getServerTranslation();
+    const { t, tr, locale } = await getServerTranslation();
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 
@@ -53,15 +53,16 @@ export default async function MyResponsesPage() {
     };
 
     const accentColor = 'var(--primary)';
+    const dateLocale = locale === 'tj' ? 'tg-TJ' : 'ru-RU';
 
     const getStatusInfo = (status: string) => {
         switch (status) {
             case 'ACCEPTED':
-                return { text: 'Accepted', color: '#10B981', bg: '#D1FAE5', icon: <CheckCircle size={16} color="#10B981" /> };
+                return { text: t('provider.accepted'), color: '#10B981', bg: '#D1FAE5', icon: <CheckCircle size={16} color="#10B981" /> };
             case 'REJECTED':
-                return { text: 'Rejected', color: '#EF4444', bg: '#FEE2E2', icon: <XCircle size={16} color="#EF4444" /> };
+                return { text: t('provider.rejected'), color: '#EF4444', bg: '#FEE2E2', icon: <XCircle size={16} color="#EF4444" /> };
             default:
-                return { text: 'Pending', color: '#F59E0B', bg: '#FEF3C7', icon: <Clock size={16} color="#F59E0B" /> };
+                return { text: t('provider.pending'), color: '#F59E0B', bg: '#FEF3C7', icon: <Clock size={16} color="#F59E0B" /> };
         }
     };
 
@@ -70,10 +71,10 @@ export default async function MyResponsesPage() {
             {/* Page Header */}
             <div style={{ marginBottom: '24px' }}>
                 <h1 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#1E293B', marginBottom: '6px' }}>
-                    My Responses
+                    {t('provider.myResponsesTitle')}
                 </h1>
                 <p style={{ color: '#64748B', fontSize: '0.9rem' }}>
-                    Track and manage all your task responses
+                    {t('provider.myResponsesDesc')}
                 </p>
             </div>
 
@@ -81,19 +82,19 @@ export default async function MyResponsesPage() {
             <div className="my-responses-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
                 <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
                     <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#1E293B', marginBottom: '4px' }}>{stats.total}</div>
-                    <div style={{ fontSize: '0.8rem', color: '#64748B' }}>Total Responses</div>
+                    <div style={{ fontSize: '0.8rem', color: '#64748B' }}>{t('provider.totalResponses')}</div>
                 </div>
                 <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
                     <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#F59E0B', marginBottom: '4px' }}>{stats.pending}</div>
-                    <div style={{ fontSize: '0.8rem', color: '#64748B' }}>Pending</div>
+                    <div style={{ fontSize: '0.8rem', color: '#64748B' }}>{t('provider.pending')}</div>
                 </div>
                 <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
                     <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#10B981', marginBottom: '4px' }}>{stats.accepted}</div>
-                    <div style={{ fontSize: '0.8rem', color: '#64748B' }}>Accepted</div>
+                    <div style={{ fontSize: '0.8rem', color: '#64748B' }}>{t('provider.accepted')}</div>
                 </div>
                 <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
                     <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#EF4444', marginBottom: '4px' }}>{stats.rejected}</div>
-                    <div style={{ fontSize: '0.8rem', color: '#64748B' }}>Rejected</div>
+                    <div style={{ fontSize: '0.8rem', color: '#64748B' }}>{t('provider.rejected')}</div>
                 </div>
             </div>
 
@@ -102,9 +103,9 @@ export default async function MyResponsesPage() {
                 {responses.length === 0 ? (
                     <div style={{ padding: '60px', textAlign: 'center' }}>
                         <div style={{ fontSize: '3rem', marginBottom: '16px' }}>📝</div>
-                        <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1E293B', marginBottom: '8px' }}>No responses yet</h3>
+                        <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#1E293B', marginBottom: '8px' }}>{t('provider.noResponsesYet')}</h3>
                         <p style={{ color: '#64748B', marginBottom: '20px', fontSize: '0.9rem' }}>
-                            Start responding to tasks to see them here
+                            {t('provider.startResponding')}
                         </p>
                         <Link href="/provider/task-feed" style={{
                             display: 'inline-block',
@@ -116,7 +117,7 @@ export default async function MyResponsesPage() {
                             fontWeight: '600',
                             fontSize: '0.9rem'
                         }}>
-                            Find Tasks
+                            {t('provider.findTasks')}
                         </Link>
                     </div>
                 ) : (
@@ -177,11 +178,11 @@ export default async function MyResponsesPage() {
                                                 </div>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                                     <Calendar size={14} />
-                                                    <span>{new Date(response.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                                                    <span>{new Date(response.createdAt).toLocaleDateString(dateLocale, { month: 'short', day: 'numeric' })}</span>
                                                 </div>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                                     <MessageSquare size={14} />
-                                                    <span>{response.task._count.responses} responses</span>
+                                                    <span>{t('tasks.responseCountLabel', { count: response.task._count.responses })}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -201,7 +202,7 @@ export default async function MyResponsesPage() {
                                                     textAlign: 'center'
                                                 }}
                                             >
-                                                View Task
+                                                {t('provider.viewTask')}
                                             </Link>
                                             {response.status === 'ACCEPTED' && (
                                                 <Link
@@ -217,7 +218,7 @@ export default async function MyResponsesPage() {
                                                         textAlign: 'center'
                                                     }}
                                                 >
-                                                    Message Client
+                                                    {t('provider.messageClient')}
                                                 </Link>
                                             )}
                                         </div>

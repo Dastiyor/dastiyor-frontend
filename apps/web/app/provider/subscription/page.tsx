@@ -5,10 +5,13 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Check, Crown, Zap, Star } from 'lucide-react';
 import { SUBSCRIPTIONS_ENABLED } from '@/lib/features';
+import { getServerTranslation } from '@/lib/i18n/server';
 
 export default async function SubscriptionPage() {
     // Subscriptions are temporarily hidden — see lib/features.ts
     if (!SUBSCRIPTIONS_ENABLED) redirect('/provider');
+
+    const { t } = await getServerTranslation();
 
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
@@ -41,42 +44,42 @@ export default async function SubscriptionPage() {
 
     const plans = [
         {
-            name: 'Basic',
+            name: t('subscription.basic'),
             price: '99',
             period: 'month',
             features: [
-                '10 responses per month',
-                'Basic profile visibility',
-                'Standard support',
-                'Access to task feed'
+                t('subscription.featureResponses10'),
+                t('subscription.featureVisibilityBasic'),
+                t('subscription.featureSupportStandard'),
+                t('subscription.featureTaskFeedAccess')
             ],
             current: user.subscription?.plan === 'basic'
         },
         {
-            name: 'Pro',
+            name: t('subscription.standard'),
             price: '199',
             period: 'month',
             popular: true,
             features: [
-                '50 responses per month',
-                '3x profile visibility',
-                'Priority support',
-                'Featured in search',
-                'Analytics dashboard'
+                t('subscription.featureResponses50'),
+                t('subscription.featureVisibility3x'),
+                t('subscription.featureSupportPriority'),
+                t('subscription.featureFeaturedSearch'),
+                t('subscription.featureAnalyticsDashboard')
             ],
             current: user.subscription?.plan === 'standard'
         },
         {
-            name: 'Premium',
+            name: t('subscription.premium'),
             price: '399',
             period: 'month',
             features: [
-                'Unlimited responses',
-                '5x profile visibility',
-                '24/7 premium support',
-                'Top placement in search',
-                'Advanced analytics',
-                'Verified badge'
+                t('subscription.featureResponsesUnlimited'),
+                t('subscription.featureVisibility5x'),
+                t('subscription.featureSupport247Premium'),
+                t('subscription.featureVisibilityTop'),
+                t('subscription.featureAnalyticsFull'),
+                t('subscription.featureBadgeVerified')
             ],
             current: user.subscription?.plan === 'premium'
         }
@@ -87,10 +90,10 @@ export default async function SubscriptionPage() {
             {/* Page Header */}
             <div style={{ marginBottom: '24px' }}>
                 <h1 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#1E293B', marginBottom: '6px' }}>
-                    Subscription
+                    {t('provider.subscriptionPageTitle')}
                 </h1>
                 <p style={{ color: '#64748B', fontSize: '0.9rem' }}>
-                    Manage your subscription and billing
+                    {t('provider.subscriptionPageDesc')}
                 </p>
             </div>
 
@@ -119,16 +122,16 @@ export default async function SubscriptionPage() {
                             <Crown size={24} color="white" />
                         </div>
                         <div>
-                            <div style={{ fontSize: '0.8rem', color: '#64748B', marginBottom: '4px' }}>Current Plan</div>
+                            <div style={{ fontSize: '0.8rem', color: '#64748B', marginBottom: '4px' }}>{t('provider.currentPlanLabel')}</div>
                             <div style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1E293B' }}>
-                                {user.subscription.plan === 'premium' ? 'Premium' :
-                                    user.subscription.plan === 'standard' ? 'Pro' : 'Basic'} Plan
+                                {user.subscription.plan === 'premium' ? t('subscription.premium') :
+                                    user.subscription.plan === 'standard' ? t('subscription.standard') : t('subscription.basic')}
                             </div>
                         </div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: '0.8rem', color: '#64748B', marginBottom: '4px' }}>Time Remaining</div>
-                        <div style={{ fontSize: '1.25rem', fontWeight: '700', color: accentColor }}>{daysLeft} days</div>
+                        <div style={{ fontSize: '0.8rem', color: '#64748B', marginBottom: '4px' }}>{t('provider.timeRemaining')}</div>
+                        <div style={{ fontSize: '1.25rem', fontWeight: '700', color: accentColor }}>{daysLeft} {t('provider.days')}</div>
                     </div>
                 </div>
             )}
@@ -163,7 +166,7 @@ export default async function SubscriptionPage() {
                                 gap: '4px'
                             }}>
                                 <Star size={12} fill="white" />
-                                Most Popular
+                                {t('provider.mostPopular')}
                             </div>
                         )}
 
@@ -173,7 +176,7 @@ export default async function SubscriptionPage() {
 
                         <div style={{ marginBottom: '20px' }}>
                             <span style={{ fontSize: '2rem', fontWeight: '700', color: '#1E293B' }}>{plan.price}</span>
-                            <span style={{ color: '#64748B', fontSize: '0.9rem' }}> TJS/mo</span>
+                            <span style={{ color: '#64748B', fontSize: '0.9rem' }}> {t('common.somali')}/{t('subscription.monthAbbr')}</span>
                         </div>
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
@@ -195,7 +198,7 @@ export default async function SubscriptionPage() {
                                 fontWeight: '600',
                                 fontSize: '0.9rem'
                             }}>
-                                Current Plan
+                                {t('provider.currentPlanBtn')}
                             </div>
                         ) : (
                             <Link
@@ -213,7 +216,7 @@ export default async function SubscriptionPage() {
                                     border: plan.popular ? 'none' : `1px solid ${accentColor}`
                                 }}
                             >
-                                {user.subscription?.isActive ? 'Switch Plan' : 'Get Started'}
+                                {user.subscription?.isActive ? t('provider.switchPlan') : t('provider.getStarted')}
                             </Link>
                         )}
                     </div>
@@ -224,25 +227,25 @@ export default async function SubscriptionPage() {
             <div style={{ marginTop: '32px', backgroundColor: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #E2E8F0' }}>
                 <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#1E293B', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Zap size={20} color={accentColor} />
-                    Why Upgrade?
+                    {t('provider.whyUpgrade')}
                 </h3>
                 <div className="sub-benefits-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
                     <div>
-                        <div style={{ fontWeight: '600', color: '#1E293B', marginBottom: '4px' }}>More Visibility</div>
+                        <div style={{ fontWeight: '600', color: '#1E293B', marginBottom: '4px' }}>{t('provider.moreVisibility')}</div>
                         <p style={{ fontSize: '0.85rem', color: '#64748B', lineHeight: '1.5' }}>
-                            Get featured in search results and attract more clients.
+                            {t('provider.moreVisibilityDesc')}
                         </p>
                     </div>
                     <div>
-                        <div style={{ fontWeight: '600', color: '#1E293B', marginBottom: '4px' }}>More Responses</div>
+                        <div style={{ fontWeight: '600', color: '#1E293B', marginBottom: '4px' }}>{t('provider.moreResponses')}</div>
                         <p style={{ fontSize: '0.85rem', color: '#64748B', lineHeight: '1.5' }}>
-                            Respond to more tasks and grow your business faster.
+                            {t('provider.moreResponsesDesc')}
                         </p>
                     </div>
                     <div>
-                        <div style={{ fontWeight: '600', color: '#1E293B', marginBottom: '4px' }}>Priority Support</div>
+                        <div style={{ fontWeight: '600', color: '#1E293B', marginBottom: '4px' }}>{t('provider.prioritySupport')}</div>
                         <p style={{ fontSize: '0.85rem', color: '#64748B', lineHeight: '1.5' }}>
-                            Get help when you need it with dedicated support.
+                            {t('provider.prioritySupportDesc')}
                         </p>
                     </div>
                 </div>

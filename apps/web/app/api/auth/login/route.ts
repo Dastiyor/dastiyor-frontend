@@ -41,7 +41,7 @@ export async function POST(request: Request) {
 
         if (!user) {
             return NextResponse.json(
-                { error: 'Invalid credentials' },
+                { error: 'Неверный логин или пароль' },
                 { status: 401 }
             );
         }
@@ -82,7 +82,7 @@ export async function POST(request: Request) {
                 ipAddress: getRequestIP(request),
             });
             return NextResponse.json(
-                { error: lockout ? 'Аккаунт заблокирован на 15 минут из-за многократных неудачных попыток.' : 'Invalid credentials' },
+                { error: lockout ? 'Аккаунт заблокирован на 15 минут из-за многократных неудачных попыток.' : 'Неверный логин или пароль' },
                 { status: 401 }
             );
         }

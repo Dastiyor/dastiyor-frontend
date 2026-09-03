@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { AlertTriangle, X } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 
 interface ConfirmDialogProps {
     isOpen: boolean;
@@ -18,12 +19,13 @@ export function ConfirmDialog({
     isOpen,
     title,
     message,
-    confirmText = 'Confirm',
-    cancelText = 'Cancel',
+    confirmText,
+    cancelText,
     onConfirm,
     onCancel,
     type = 'warning'
 }: ConfirmDialogProps) {
+    const { t } = useTranslation();
     const [isVisible, setIsVisible] = useState(isOpen);
 
     if (!isOpen) return null;
@@ -140,7 +142,7 @@ export function ConfirmDialog({
                             fontSize: '0.95rem'
                         }}
                     >
-                        {cancelText}
+                        {cancelText ?? t('common.cancel')}
                     </button>
                     <button
                         onClick={handleConfirm}
@@ -161,7 +163,7 @@ export function ConfirmDialog({
                             e.currentTarget.style.backgroundColor = colors.button;
                         }}
                     >
-                        {confirmText}
+                        {confirmText ?? t('common.confirm')}
                     </button>
                 </div>
             </div>
@@ -171,6 +173,7 @@ export function ConfirmDialog({
 
 // Hook for easy confirmation
 export function useConfirm() {
+    const { t } = useTranslation();
     const [dialog, setDialog] = useState<{
         isOpen: boolean;
         title: string;
@@ -190,7 +193,7 @@ export function useConfirm() {
 
     const confirm = (
         message: string,
-        title: string = 'Confirm',
+        title: string = t('common.confirm'),
         type: 'danger' | 'warning' | 'info' = 'warning'
     ): Promise<boolean> => {
         return new Promise((resolve) => {

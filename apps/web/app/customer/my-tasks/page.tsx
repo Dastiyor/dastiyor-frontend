@@ -4,8 +4,10 @@ import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { PlusCircle } from 'lucide-react';
+import { getServerTranslation } from '@/lib/i18n/server';
 
 export default async function CustomerMyTasksPage() {
+    const { t } = await getServerTranslation();
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 
@@ -34,10 +36,17 @@ export default async function CustomerMyTasksPage() {
 
     const accentColor = 'var(--primary)';
 
+    const statusLabel: Record<string, string> = {
+        OPEN: t('tasks.open'),
+        IN_PROGRESS: t('tasks.inProgress'),
+        COMPLETED: t('tasks.completed'),
+        CANCELLED: t('tasks.cancelled'),
+    };
+
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-                <h1 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#1E293B' }}>My Tasks</h1>
+                <h1 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#1E293B' }}>{t('customer.myTasks')}</h1>
                 <Link href="/customer/create-task" style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -51,15 +60,15 @@ export default async function CustomerMyTasksPage() {
                     fontSize: '0.9rem'
                 }}>
                     <PlusCircle size={18} />
-                    Create New Task
+                    {t('customer.createNewTask')}
                 </Link>
             </div>
 
             {tasks.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '60px', backgroundColor: 'white', borderRadius: '16px', border: '1px solid #E2E8F0' }}>
                     <div style={{ fontSize: '3rem', marginBottom: '16px' }}>📝</div>
-                    <h3 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '16px', color: '#1E293B' }}>You haven&apos;t created any tasks yet.</h3>
-                    <p style={{ color: '#64748B', marginBottom: '32px' }}>Create your first task to find help.</p>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: '700', marginBottom: '16px', color: '#1E293B' }}>{t('customer.noTasks')}</h3>
+                    <p style={{ color: '#64748B', marginBottom: '32px' }}>{t('customer.createFirstTaskDesc')}</p>
                     <Link href="/customer/create-task" style={{
                         display: 'inline-block',
                         backgroundColor: accentColor,
@@ -68,7 +77,7 @@ export default async function CustomerMyTasksPage() {
                         borderRadius: '8px',
                         fontWeight: '600',
                         textDecoration: 'none'
-                    }}>Create Task</Link>
+                    }}>{t('customer.createTask')}</Link>
                 </div>
             ) : (
                 <div style={{ display: 'grid', gap: '16px' }}>
@@ -95,7 +104,7 @@ export default async function CustomerMyTasksPage() {
                                         backgroundColor: task.status === 'OPEN' ? '#DBEAFE' : task.status === 'IN_PROGRESS' ? '#FEF3C7' : task.status === 'CANCELLED' ? '#FEE2E2' : '#D1FAE5',
                                         color: task.status === 'OPEN' ? '#1D4ED8' : task.status === 'IN_PROGRESS' ? '#D97706' : task.status === 'CANCELLED' ? '#DC2626' : '#059669'
                                     }}>
-                                        {task.status}
+                                        {statusLabel[task.status] || task.status}
                                     </span>
                                     <span style={{ color: '#64748B', fontSize: '0.85rem' }}>
                                         {new Date(task.createdAt).toLocaleDateString('ru-RU')}
@@ -107,7 +116,7 @@ export default async function CustomerMyTasksPage() {
                                     </h3>
                                 </Link>
                                 <div style={{ color: '#64748B', fontSize: '0.9rem' }}>
-                                    {task.budgetType === 'fixed' ? `${task.budgetAmount} TJS` : 'Negotiable'} • {task._count.responses} offers
+                                    {task.budgetType === 'fixed' ? `${task.budgetAmount} ${t('common.somali')}` : t('common.negotiable')} • {t('customer.offersCount', { count: task._count.responses })}
                                 </div>
                             </div>
 
@@ -121,7 +130,7 @@ export default async function CustomerMyTasksPage() {
                                 fontSize: '0.9rem',
                                 backgroundColor: 'white'
                             }}>
-                                Manage
+                                {t('customer.manage')}
                             </Link>
                         </div>
                     ))}

@@ -4,11 +4,13 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Menu, X, LayoutDashboard } from 'lucide-react';
 import { usePathname } from 'next/navigation';
+import { useTranslation } from '@/lib/i18n';
 import ProviderSidebarNav from './ProviderSidebarNav';
 
 export default function ProviderMobileNav() {
     const [open, setOpen] = useState(false);
     const pathname = usePathname();
+    const { t } = useTranslation();
 
     useEffect(() => {
         setOpen(false);
@@ -23,7 +25,7 @@ export default function ProviderMobileNav() {
         <>
             <button
                 onClick={() => setOpen(v => !v)}
-                aria-label="Open menu"
+                aria-label={t('common.openMenu')}
                 className="mobile-dash-btn"
                 style={{
                     display: 'none',
@@ -84,7 +86,7 @@ export default function ProviderMobileNav() {
                         </div>
                         <div>
                             <div style={{ fontWeight: '700', fontSize: '1.1rem', color: '#1E293B' }}>Dastiyor</div>
-                            <div style={{ fontSize: '0.7rem', color: '#64748B' }}>Provider Portal</div>
+                            <div style={{ fontSize: '0.7rem', color: '#64748B' }}>{t('provider.providerPortal')}</div>
                         </div>
                     </Link>
                     <button

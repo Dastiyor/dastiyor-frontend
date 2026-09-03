@@ -4,8 +4,10 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, Phone, Calendar, Edit, User } from 'lucide-react';
+import { getServerTranslation } from '@/lib/i18n/server';
 
 export default async function CustomerProfilePage() {
+    const { t, locale } = await getServerTranslation();
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 
@@ -27,6 +29,7 @@ export default async function CustomerProfilePage() {
     }
 
     const accentColor = 'var(--primary)';
+    const dateLocale = locale === 'tj' ? 'tg-TJ' : 'ru-RU';
 
     return (
         <div>
@@ -34,10 +37,10 @@ export default async function CustomerProfilePage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <div>
                     <h1 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#1E293B', marginBottom: '6px' }}>
-                        My Profile
+                        {t('profile.myProfile')}
                     </h1>
                     <p style={{ color: '#64748B', fontSize: '0.9rem' }}>
-                        Manage your personal information
+                        {t('profile.manageInfo')}
                     </p>
                 </div>
                 <Link
@@ -56,7 +59,7 @@ export default async function CustomerProfilePage() {
                     }}
                 >
                     <Edit size={16} />
-                    Edit Profile
+                    {t('profile.editProfile')}
                 </Link>
             </div>
 
@@ -80,7 +83,7 @@ export default async function CustomerProfilePage() {
                         border: '4px solid #F1F5F9'
                     }}>
                         {user.avatar ? (
-                            <img src={user.avatar} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <img src={user.avatar} alt={t('profile.avatar')} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         ) : (
                             user.fullName.charAt(0).toUpperCase()
                         )}
@@ -92,29 +95,29 @@ export default async function CustomerProfilePage() {
                             {user.fullName}
                         </h2>
                         <div style={{ fontSize: '0.9rem', color: '#64748B', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ padding: '2px 8px', backgroundColor: '#F1F5F9', borderRadius: '4px', fontWeight: '600', fontSize: '0.75rem' }}>Customer</span>
+                            <span style={{ padding: '2px 8px', backgroundColor: '#F1F5F9', borderRadius: '4px', fontWeight: '600', fontSize: '0.75rem' }}>{t('profile.roleCustomer')}</span>
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#475569', fontSize: '1rem', padding: '12px', backgroundColor: '#F8FAFC', borderRadius: '8px' }}>
                                 <Mail size={20} color="#94A3B8" />
                                 <div>
-                                    <div style={{ fontSize: '0.75rem', color: '#94A3B8', marginBottom: '2px' }}>Email Address</div>
+                                    <div style={{ fontSize: '0.75rem', color: '#94A3B8', marginBottom: '2px' }}>{t('profile.emailLabel')}</div>
                                     {user.email}
                                 </div>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#475569', fontSize: '1rem', padding: '12px', backgroundColor: '#F8FAFC', borderRadius: '8px' }}>
                                 <Phone size={20} color="#94A3B8" />
                                 <div>
-                                    <div style={{ fontSize: '0.75rem', color: '#94A3B8', marginBottom: '2px' }}>Phone Number</div>
-                                    {user.phone || 'Not specified'}
+                                    <div style={{ fontSize: '0.75rem', color: '#94A3B8', marginBottom: '2px' }}>{t('profile.phoneLabel')}</div>
+                                    {user.phone || t('profile.phoneNotSet')}
                                 </div>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#475569', fontSize: '1rem', padding: '12px', backgroundColor: '#F8FAFC', borderRadius: '8px' }}>
                                 <Calendar size={20} color="#94A3B8" />
                                 <div>
-                                    <div style={{ fontSize: '0.75rem', color: '#94A3B8', marginBottom: '2px' }}>Joined</div>
-                                    Joined {new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                                    <div style={{ fontSize: '0.75rem', color: '#94A3B8', marginBottom: '2px' }}>{t('profile.memberSinceLabel')}</div>
+                                    {new Date(user.createdAt).toLocaleDateString(dateLocale, { month: 'long', year: 'numeric' })}
                                 </div>
                             </div>
                         </div>

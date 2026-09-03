@@ -4,8 +4,10 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { User, Mail, Phone, MapPin, Star, Calendar, Edit, Briefcase } from 'lucide-react';
+import { getServerTranslation } from '@/lib/i18n/server';
 
 export default async function ProfilePage() {
+    const { t, locale } = await getServerTranslation();
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 
@@ -47,6 +49,7 @@ export default async function ProfilePage() {
     const averageRating = reviews.length > 0 ? (totalRating / reviews.length).toFixed(1) : '0.0';
 
     const accentColor = 'var(--primary)';
+    const dateLocale = locale === 'tj' ? 'tg-TJ' : 'ru-RU';
 
     return (
         <>
@@ -54,10 +57,10 @@ export default async function ProfilePage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <div>
                     <h1 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#1E293B', marginBottom: '6px' }}>
-                        My Profile
+                        {t('profile.myProfile')}
                     </h1>
                     <p style={{ color: '#64748B', fontSize: '0.9rem' }}>
-                        Manage your profile information
+                        {t('profile.manageInfo')}
                     </p>
                 </div>
                 <Link
@@ -76,7 +79,7 @@ export default async function ProfilePage() {
                     }}
                 >
                     <Edit size={16} />
-                    Edit Profile
+                    {t('profile.editProfile')}
                 </Link>
             </div>
 
@@ -108,7 +111,7 @@ export default async function ProfilePage() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '16px' }}>
                             <Star size={16} color="#F59E0B" fill="#F59E0B" />
                             <span style={{ fontWeight: '600', color: '#1E293B' }}>{averageRating}</span>
-                            <span style={{ color: '#64748B', fontSize: '0.85rem' }}>({reviews.length} reviews)</span>
+                            <span style={{ color: '#64748B', fontSize: '0.85rem' }}>({t('profile.reviewsCount', { count: reviews.length })})</span>
                         </div>
 
                         <div className="prov-contact-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
@@ -123,7 +126,7 @@ export default async function ProfilePage() {
 
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#475569', fontSize: '0.9rem' }}>
                                 <Calendar size={16} color="#64748B" />
-                                Joined {new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                                {t('profile.memberSinceLabel')} {new Date(user.createdAt).toLocaleDateString(dateLocale, { month: 'long', year: 'numeric' })}
                             </div>
                         </div>
                     </div>
@@ -134,26 +137,26 @@ export default async function ProfilePage() {
             <div className="prov-profile-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
                 <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '12px', border: '1px solid #E2E8F0', textAlign: 'center' }}>
                     <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#1E293B', marginBottom: '4px' }}>{completedTasks}</div>
-                    <div style={{ fontSize: '0.8rem', color: '#64748B' }}>Completed</div>
+                    <div style={{ fontSize: '0.8rem', color: '#64748B' }}>{t('provider.completedTasks')}</div>
                 </div>
                 <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '12px', border: '1px solid #E2E8F0', textAlign: 'center' }}>
                     <div style={{ fontSize: '1.75rem', fontWeight: '700', color: accentColor, marginBottom: '4px' }}>{activeTasks}</div>
-                    <div style={{ fontSize: '0.8rem', color: '#64748B' }}>Active</div>
+                    <div style={{ fontSize: '0.8rem', color: '#64748B' }}>{t('provider.activeTasks')}</div>
                 </div>
                 <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '12px', border: '1px solid #E2E8F0', textAlign: 'center' }}>
                     <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#F59E0B', marginBottom: '4px' }}>{averageRating}</div>
-                    <div style={{ fontSize: '0.8rem', color: '#64748B' }}>Rating</div>
+                    <div style={{ fontSize: '0.8rem', color: '#64748B' }}>{t('provider.rating')}</div>
                 </div>
                 <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '12px', border: '1px solid #E2E8F0', textAlign: 'center' }}>
                     <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#1E293B', marginBottom: '4px' }}>{reviews.length}</div>
-                    <div style={{ fontSize: '0.8rem', color: '#64748B' }}>Reviews</div>
+                    <div style={{ fontSize: '0.8rem', color: '#64748B' }}>{t('common.reviews')}</div>
                 </div>
             </div>
 
             {/* Bio */}
             {user.bio && (
                 <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '16px', border: '1px solid #E2E8F0', marginBottom: '24px' }}>
-                    <h3 style={{ fontSize: '1rem', fontWeight: '700', color: '#1E293B', marginBottom: '12px' }}>About Me</h3>
+                    <h3 style={{ fontSize: '1rem', fontWeight: '700', color: '#1E293B', marginBottom: '12px' }}>{t('profile.aboutMe')}</h3>
                     <p style={{ color: '#475569', lineHeight: '1.6', fontSize: '0.9rem' }}>{user.bio}</p>
                 </div>
             )}
@@ -163,7 +166,7 @@ export default async function ProfilePage() {
                 <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '16px', border: '1px solid #E2E8F0' }}>
                     <h3 style={{ fontSize: '1rem', fontWeight: '700', color: '#1E293B', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <Briefcase size={18} />
-                        Skills
+                        {t('profile.skills')}
                     </h3>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                         {user.skills.map((skill: string, index: number) => (

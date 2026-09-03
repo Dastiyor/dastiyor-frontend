@@ -153,7 +153,7 @@ export default async function CustomerMessagesPage() {
                         justifyContent: 'center',
                         color: '#64748B'
                     }}>
-                        <div>Loading chat...</div>
+                        <div>{t('chat.loadingChat')}</div>
                     </div>
                 }>
                     <ChatInterface currentUserId={userId} />

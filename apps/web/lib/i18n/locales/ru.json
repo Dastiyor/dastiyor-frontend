@@ -37,7 +37,9 @@
     "negotiable": "Договорная",
     "home": "Главная",
     "open": "Открыть",
-    "somethingWentWrong": "Что-то пошло не так"
+    "somethingWentWrong": "Что-то пошло не так",
+    "confirm": "Подтвердить",
+    "openMenu": "Открыть меню"
   },
   "header": {
     "howItWorks": "Как это работает",
@@ -238,7 +240,9 @@
     "colAction": "Действие",
     "noTasksFoundCta": "Заданий нет. Создайте задание, чтобы начать!",
     "offersCount": "{count} откликов",
-    "manage": "Управлять"
+    "manage": "Управлять",
+    "portal": "Портал заказчика",
+    "searchPlaceholder": "Поиск услуг..."
   },
   "provider": {
     "dashboard": "Панель исполнителя",
@@ -450,6 +454,7 @@
     "submitOffer": "Отправить предложение",
     "responding": "Отправка...",
     "responseSent": "Отклик успешно отправлен!",
+    "alreadyResponded": "Вы уже откликнулись на это задание",
     "responseError": "Не удалось отправить отклик",
     "responseErrorGeneric": "Ошибка при отправке отклика",
     "offerAcceptedToast": "Предложение принято!",
@@ -518,7 +523,16 @@
     "featurePriorityHighest": "Высший приоритет",
     "featureAnalyticsFull": "Полная аналитика",
     "featureManagerPersonal": "Персональный менеджер",
-    "featureSupport247Phone": "24/7 поддержка по телефону"
+    "featureSupport247Phone": "24/7 поддержка по телефону",
+    "featureResponses10": "10 откликов в месяц",
+    "featureVisibilityBasic": "Базовая видимость профиля",
+    "featureSupportStandard": "Стандартная поддержка",
+    "featureTaskFeedAccess": "Доступ к ленте заданий",
+    "featureVisibility3x": "Видимость профиля x3",
+    "featureFeaturedSearch": "Выделение в результатах поиска",
+    "featureAnalyticsDashboard": "Панель аналитики",
+    "featureVisibility5x": "Видимость профиля x5",
+    "featureSupport247Premium": "Премиум-поддержка 24/7"
   },
   "reviews": {
     "title": "Отзывы",
@@ -546,7 +560,8 @@
     "genericError": "Произошла ошибка",
     "review": "отзыв",
     "reviewsFew": "отзыва",
-    "reviewsMany": "отзывов"
+    "reviewsMany": "отзывов",
+    "yourReview": "Ваш отзыв"
   },
   "chat": {
     "title": "Чат",
@@ -744,7 +759,9 @@
     "emailLabel": "Email адрес",
     "phoneLabel": "Номер телефона",
     "phoneNotSet": "Не указан",
-    "memberSinceLabel": "Участник с"
+    "memberSinceLabel": "Участник с",
+    "manageInfo": "Управляйте информацией профиля",
+    "reviewsCount": "{count} отзывов"
   },
   "notifications": {
     "pushNotifications": "Push-уведомления",
@@ -1030,5 +1047,18 @@
         "description": "Требуется маляр. Укажите площадь и тип поверхности."
       }
     ]
+  },
+  "profileEdit": {
+    "backToProfile": "← Назад к профилю",
+    "changePhoto": "📷 Изменить фото",
+    "uploading": "Загрузка...",
+    "emailReadOnly": "Email нельзя изменить",
+    "bioPlaceholder": "Расскажите заказчикам о себе и своём опыте...",
+    "skillsPlaceholder": "например: Сантехника, Электрика, Малярные работы",
+    "skillsHint": "Разделяйте навыки запятыми",
+    "saving": "Сохранение...",
+    "updateSuccess": "Профиль успешно обновлён!",
+    "updateFailed": "Не удалось обновить профиль",
+    "uploadFailed": "Не удалось загрузить изображение"
   }
 }

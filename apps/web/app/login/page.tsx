@@ -118,7 +118,7 @@ function LoginContent() {
 
             if (!res.ok) {
                 const json = await res.json();
-                throw new Error(json.error || 'Login failed');
+                throw new Error(json.error || t('common.somethingWentWrong'));
             }
 
             const profileRes = await fetch('/api/profile');
@@ -216,7 +216,7 @@ function LoginContent() {
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                            aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
                             style={{
                                 position: 'absolute',
                                 right: '12px',

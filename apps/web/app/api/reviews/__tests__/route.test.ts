@@ -29,7 +29,7 @@ describe('/api/reviews', () => {
             const data = await response.json();
 
             expect(response.status).toBe(400);
-            expect(data.error).toBe('Missing userId parameter');
+            expect(data.error).toBe('Не указан параметр userId');
         });
 
         it('should return reviews and stats for a user', async () => {
@@ -137,7 +137,7 @@ describe('/api/reviews', () => {
             const data = await response.json();
 
             expect(response.status).toBe(400);
-            expect(data.error).toContain('1 and 5');
+            expect(data.error).toContain('от 1 до 5');
         });
 
         it('should return 404 if task not found', async () => {
@@ -170,7 +170,7 @@ describe('/api/reviews', () => {
             const data = await response.json();
 
             expect(response.status).toBe(403);
-            expect(data.error).toContain('Only task owner');
+            expect(data.error).toContain('Оставить отзыв может только автор задания');
         });
 
         it('should return 400 if task is not COMPLETED', async () => {
@@ -191,7 +191,7 @@ describe('/api/reviews', () => {
             const data = await response.json();
 
             expect(response.status).toBe(400);
-            expect(data.error).toContain('completed');
+            expect(data.error).toContain('после завершения задания');
         });
 
         it('should return 400 if review already exists', async () => {
@@ -212,7 +212,7 @@ describe('/api/reviews', () => {
             const data = await response.json();
 
             expect(response.status).toBe(400);
-            expect(data.error).toContain('already exists');
+            expect(data.error).toContain('уже оставлен');
         });
 
         it('should create review successfully', async () => {

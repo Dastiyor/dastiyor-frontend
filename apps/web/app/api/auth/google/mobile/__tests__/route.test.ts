@@ -29,7 +29,7 @@ describe('POST /api/auth/google/mobile', () => {
         const data = await response.json();
 
         expect(response.status).toBe(400);
-        expect(data.error).toBe('Access token required');
+        expect(data.error).toBe('Требуется токен доступа');
     });
 
     it('should return 401 if Google userinfo request is not ok', async () => {
@@ -46,7 +46,7 @@ describe('POST /api/auth/google/mobile', () => {
         const data = await response.json();
 
         expect(response.status).toBe(401);
-        expect(data.error).toBe('Invalid Google token');
+        expect(data.error).toBe('Недействительный токен Google');
     });
 
     it('should return 401 if Google profile is incomplete', async () => {
@@ -64,7 +64,7 @@ describe('POST /api/auth/google/mobile', () => {
         const data = await response.json();
 
         expect(response.status).toBe(401);
-        expect(data.error).toBe('Incomplete Google profile');
+        expect(data.error).toBe('Неполный профиль Google');
     });
 
     it('should login and return user details on successful token verification', async () => {

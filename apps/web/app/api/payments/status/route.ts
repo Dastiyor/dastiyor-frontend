@@ -15,7 +15,7 @@ export async function GET(request: Request) {
         const orderId = searchParams.get('orderId');
 
         if (!orderId) {
-            return NextResponse.json({ error: 'Missing orderId' }, { status: 400 });
+            return NextResponse.json({ error: 'Не указан orderId' }, { status: 400 });
         }
 
         const payment = await prisma.payment.findUnique({
@@ -23,7 +23,7 @@ export async function GET(request: Request) {
         });
 
         if (!payment) {
-            return NextResponse.json({ error: 'Payment not found' }, { status: 404 });
+            return NextResponse.json({ error: 'Платёж не найден' }, { status: 404 });
         }
 
         // Ensure user can only check their own payments

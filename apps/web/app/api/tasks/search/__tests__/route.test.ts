@@ -13,7 +13,7 @@ describe('/api/tasks/search', () => {
         const req1 = new NextRequest('http://localhost/api/tasks/search');
         const res1 = await GET(req1);
         expect(res1.status).toBe(400);
-        expect((await res1.json()).error).toContain('at least 2 characters');
+        expect((await res1.json()).error).toContain('минимум 2 символа');
 
         const req2 = new NextRequest('http://localhost/api/tasks/search?q=a');
         const res2 = await GET(req2);
@@ -122,6 +122,6 @@ describe('/api/tasks/search', () => {
         const data = await response.json();
 
         expect(response.status).toBe(500);
-        expect(data.error).toBe('Search failed');
+        expect(data.error).toBe('Не удалось выполнить поиск');
     });
 });

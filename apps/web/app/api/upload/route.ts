@@ -24,19 +24,19 @@ export async function POST(request: Request) {
         const file = formData.get('file') as File;
 
         if (!file) {
-            return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+            return NextResponse.json({ error: 'Файл не выбран' }, { status: 400 });
         }
 
         if (!ALLOWED_TYPES.includes(file.type)) {
             return NextResponse.json(
-                { error: 'Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.' },
+                { error: 'Недопустимый тип файла. Разрешены только JPEG, PNG, GIF и WebP.' },
                 { status: 400 }
             );
         }
 
         if (file.size > MAX_SIZE) {
             return NextResponse.json(
-                { error: 'File too large. Maximum size is 5MB.' },
+                { error: 'Файл слишком большой. Максимальный размер — 5 МБ.' },
                 { status: 400 }
             );
         }
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
             // store connected to the project so BLOB_READ_WRITE_TOKEN is injected.
             console.error('Upload Error: BLOB_READ_WRITE_TOKEN is not set; no storage backend configured');
             return NextResponse.json(
-                { error: 'File storage is not configured', code: 'STORAGE_NOT_CONFIGURED' },
+                { error: 'Хранилище файлов не настроено', code: 'STORAGE_NOT_CONFIGURED' },
                 { status: 503 }
             );
         } else {
@@ -76,6 +76,6 @@ export async function POST(request: Request) {
 
     } catch (error) {
         console.error('Upload Error:', error);
-        return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 });
+        return NextResponse.json({ error: 'Не удалось загрузить файл' }, { status: 500 });
     }
 }

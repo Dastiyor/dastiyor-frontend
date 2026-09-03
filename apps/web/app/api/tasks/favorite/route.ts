@@ -15,7 +15,7 @@ export async function POST(request: Request) {
         const { taskId } = body;
 
         if (!taskId) {
-            return NextResponse.json({ error: 'Task ID is required' }, { status: 400 });
+            return NextResponse.json({ error: 'Не указан ID задания' }, { status: 400 });
         }
 
         const userId = payload.id as string;
@@ -65,7 +65,7 @@ export async function GET(request: Request) {
         const taskId = searchParams.get('taskId');
 
         if (!taskId) {
-            return NextResponse.json({ error: 'Task ID is required' }, { status: 400 });
+            return NextResponse.json({ error: 'Не указан ID задания' }, { status: 400 });
         }
 
         const favorite = await prisma.taskFavorite.findUnique({

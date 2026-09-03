@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from '@/components/ui/Toast';
+import { useTranslation } from '@/lib/i18n';
 
 type UserProfile = {
     id: string;
@@ -18,6 +19,7 @@ type UserProfile = {
 
 export default function EditProfilePage() {
     const router = useRouter();
+    const { t } = useTranslation();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [loading, setLoading] = useState(true);
@@ -80,10 +82,10 @@ export default function EditProfilePage() {
                 const data = await res.json();
                 setFormData(prev => ({ ...prev, avatar: data.url }));
             } else {
-                setError('Failed to upload image');
+                setError(t('profileEdit.uploadFailed'));
             }
         } catch (err) {
-            setError('Upload failed');
+            setError(t('profileEdit.uploadFailed'));
         } finally {
             setUploading(false);
         }
@@ -104,14 +106,14 @@ export default function EditProfilePage() {
             const data = await res.json();
 
             if (res.ok) {
-                toast.success('Profile updated successfully!');
+                toast.success(t('profileEdit.updateSuccess'));
                 setProfile(data.user);
                 setTimeout(() => router.push('/profile'), 1500);
             } else {
-                setError(data.error || 'Failed to update profile');
+                setError(data.error || t('profileEdit.updateFailed'));
             }
         } catch (err) {
-            setError('An error occurred');
+            setError(t('reviews.genericError'));
         } finally {
             setSaving(false);
         }
@@ -126,7 +128,7 @@ export default function EditProfilePage() {
                 justifyContent: 'center',
                 backgroundColor: 'var(--secondary)'
             }}>
-                <p>Loading...</p>
+                <p>{t('common.loading')}</p>
             </div>
         );
     }
@@ -136,7 +138,7 @@ export default function EditProfilePage() {
             <div className="container" style={{ maxWidth: '700px' }}>
                 <div style={{ marginBottom: '24px' }}>
                     <Link href="/profile" style={{ color: 'var(--primary)', textDecoration: 'none' }}>
-                        ← Back to Profile
+                        {t('profileEdit.backToProfile')}
                     </Link>
                 </div>
 
@@ -147,7 +149,7 @@ export default function EditProfilePage() {
                     border: '1px solid var(--border)'
                 }}>
                     <style>{`@media (max-width: 480px) { .edit-card { padding: 20px !important; border-radius: 16px !important; } }`}</style>
-                    <h1 className="heading-lg" style={{ marginBottom: '32px' }}>Edit Profile</h1>
+                    <h1 className="heading-lg" style={{ marginBottom: '32px' }}>{t('profile.editProfile')}</h1>
 
                     {error && (
                         <div style={{
@@ -182,7 +184,7 @@ export default function EditProfilePage() {
                                 {formData.avatar ? (
                                     <img
                                         src={formData.avatar}
-                                        alt="Avatar"
+                                        alt={t('profile.avatar')}
                                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                     />
                                 ) : (
@@ -203,14 +205,14 @@ export default function EditProfilePage() {
                                 className="btn btn-outline"
                                 style={{ fontSize: '0.9rem' }}
                             >
-                                {uploading ? 'Uploading...' : '📷 Change Photo'}
+                                {uploading ? t('profileEdit.uploading') : t('profileEdit.changePhoto')}
                             </button>
                         </div>
 
                         {/* Full Name */}
                         <div style={{ marginBottom: '20px' }}>
                             <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                                Full Name *
+                                {t('profile.fullName')} *
                             </label>
                             <input
                                 type="text"
@@ -230,7 +232,7 @@ export default function EditProfilePage() {
                         {/* Email (read-only) */}
                         <div style={{ marginBottom: '20px' }}>
                             <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                                Email
+                                {t('profile.email')}
                             </label>
                             <input
                                 type="email"
@@ -247,14 +249,14 @@ export default function EditProfilePage() {
                                 }}
                             />
                             <p style={{ fontSize: '0.85rem', color: 'var(--text-light)', marginTop: '4px' }}>
-                                Email cannot be changed
+                                {t('profileEdit.emailReadOnly')}
                             </p>
                         </div>
 
                         {/* Phone */}
                         <div style={{ marginBottom: '20px' }}>
                             <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                                Phone Number
+                                {t('profile.phoneLabel')}
                             </label>
                             <input
                                 type="tel"
@@ -276,13 +278,13 @@ export default function EditProfilePage() {
                             <>
                                 <div style={{ marginBottom: '20px' }}>
                                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                                        Bio / About Me
+                                        {t('profile.aboutMe')}
                                     </label>
                                     <textarea
                                         value={formData.bio}
                                         onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
                                         rows={4}
-                                        placeholder="Tell customers about yourself and your experience..."
+                                        placeholder={t('profileEdit.bioPlaceholder')}
                                         style={{
                                             width: '100%',
                                             padding: '14px 16px',
@@ -296,13 +298,13 @@ export default function EditProfilePage() {
 
                                 <div style={{ marginBottom: '32px' }}>
                                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                                        Skills
+                                        {t('profile.skills')}
                                     </label>
                                     <input
                                         type="text"
                                         value={formData.skills}
                                         onChange={(e) => setFormData(prev => ({ ...prev, skills: e.target.value }))}
-                                        placeholder="e.g., Plumbing, Electrical, Painting"
+                                        placeholder={t('profileEdit.skillsPlaceholder')}
                                         style={{
                                             width: '100%',
                                             padding: '14px 16px',
@@ -312,7 +314,7 @@ export default function EditProfilePage() {
                                         }}
                                     />
                                     <p style={{ fontSize: '0.85rem', color: 'var(--text-light)', marginTop: '4px' }}>
-                                        Separate skills with commas
+                                        {t('profileEdit.skillsHint')}
                                     </p>
                                 </div>
                             </>
@@ -320,7 +322,7 @@ export default function EditProfilePage() {
 
                         <div style={{ display: 'flex', gap: '12px' }}>
                             <Link href="/profile" className="btn btn-outline" style={{ flex: 1, textAlign: 'center' }}>
-                                Cancel
+                                {t('common.cancel')}
                             </Link>
                             <button
                                 type="submit"
@@ -328,7 +330,7 @@ export default function EditProfilePage() {
                                 className="btn btn-primary"
                                 style={{ flex: 1 }}
                             >
-                                {saving ? 'Saving...' : 'Save Changes'}
+                                {saving ? t('profileEdit.saving') : t('profile.saveChanges')}
                             </button>
                         </div>
                     </form>

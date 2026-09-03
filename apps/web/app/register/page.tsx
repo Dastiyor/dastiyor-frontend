@@ -125,7 +125,7 @@ function RegisterContent() {
 
             if (!res.ok) {
                 const json = await res.json();
-                throw new Error(json.error || 'Registration failed');
+                throw new Error(json.error || t('common.somethingWentWrong'));
             }
 
             // Use full page reload to ensure server components refresh
@@ -391,7 +391,7 @@ function RegisterContent() {
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                            aria-label={showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
                             style={{
                                 position: 'absolute',
                                 right: '12px',

@@ -33,13 +33,13 @@ export async function POST(request: Request) {
         });
 
         if (!user) {
-            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+            return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });
         }
 
         // 3. Enforce Provider Role
         if (user.role !== 'PROVIDER') {
             return NextResponse.json(
-                { error: 'Only providers can respond to tasks', code: 'PROVIDER_REQUIRED' },
+                { error: 'Откликаться на задания могут только исполнители', code: 'PROVIDER_REQUIRED' },
                 { status: 403 }
             );
         }
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
                 subscription?.isActive && new Date(subscription.endDate) > new Date();
             if (!hasActiveSub) {
                 return NextResponse.json(
-                    { error: 'Active subscription required to respond', code: 'SUBSCRIPTION_REQUIRED' },
+                    { error: 'Для отклика нужна активная подписка', code: 'SUBSCRIPTION_REQUIRED' },
                     { status: 403 }
                 );
             }
@@ -74,7 +74,7 @@ export async function POST(request: Request) {
 
         if (!isValidId(taskId) || !message || !price) {
             return NextResponse.json(
-                { error: 'Missing required fields' },
+                { error: 'Заполнены не все обязательные поля' },
                 { status: 400 }
             );
         }
@@ -96,7 +96,7 @@ export async function POST(request: Request) {
 
         if (!task) {
             return NextResponse.json(
-                { error: 'Task not found' },
+                { error: 'Задание не найдено' },
                 { status: 404 }
             );
         }
@@ -107,7 +107,7 @@ export async function POST(request: Request) {
         // Customers pick providers on exactly those numbers.
         if (task.userId === (payload.id as string)) {
             return NextResponse.json(
-                { error: 'Cannot respond to your own task' },
+                { error: 'Нельзя откликнуться на собственное задание' },
                 { status: 403 }
             );
         }
@@ -115,7 +115,7 @@ export async function POST(request: Request) {
         // Only allow responses on open tasks
         if (task.status !== 'OPEN') {
             return NextResponse.json(
-                { error: 'This task is no longer accepting responses' },
+                { error: 'Это задание больше не принимает отклики' },
                 { status: 409 }
             );
         }

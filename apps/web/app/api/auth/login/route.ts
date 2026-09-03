@@ -23,7 +23,7 @@ export async function POST(request: Request) {
 
         if (!identifier || !password) {
             return NextResponse.json(
-                { error: 'Email/phone and password are required' },
+                { error: 'Укажите email или телефон и пароль' },
                 { status: 400 }
             );
         }

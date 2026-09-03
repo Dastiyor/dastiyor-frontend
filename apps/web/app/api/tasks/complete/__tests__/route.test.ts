@@ -45,7 +45,7 @@ describe('/api/tasks/complete', () => {
         const data = await response.json();
 
         expect(response.status).toBe(400);
-        expect(data.error).toBe('Missing taskId');
+        expect(data.error).toBe('Не указан ID задания');
     });
 
     it('should return 404 if task not found', async () => {
@@ -58,7 +58,7 @@ describe('/api/tasks/complete', () => {
 
         const response = await POST(request);
         expect(response.status).toBe(404);
-        expect((await response.json()).error).toBe('Task not found');
+        expect((await response.json()).error).toBe('Задание не найдено');
     });
 
     it('should return 403 if user does not own the task', async () => {
@@ -78,7 +78,7 @@ describe('/api/tasks/complete', () => {
         const data = await response.json();
 
         expect(response.status).toBe(403);
-        expect(data.error).toContain('do not own');
+        expect(data.error).toContain('это не ваше задание');
     });
 
     it('should return 400 if task is not IN_PROGRESS', async () => {
@@ -98,7 +98,7 @@ describe('/api/tasks/complete', () => {
         const data = await response.json();
 
         expect(response.status).toBe(400);
-        expect(data.error).toContain('in progress');
+        expect(data.error).toContain('Завершить можно только задание в работе');
     });
 
     it('should complete task and update status to COMPLETED', async () => {
@@ -200,7 +200,7 @@ describe('/api/tasks/complete', () => {
         const data = await response.json();
 
         expect(response.status).toBe(400);
-        expect(data.error).toContain('in progress');
+        expect(data.error).toContain('Завершить можно только задание в работе');
         // Critical: the provider balance must NOT be credited a second time.
         expect(prismaMock.user.update).not.toHaveBeenCalled();
     });

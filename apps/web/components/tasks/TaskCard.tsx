@@ -166,7 +166,7 @@ export default function TaskCard({ task }: { task: Task }) {
                         type="button"
                         onClick={handleFavorite}
                         disabled={isLoading}
-                        aria-label="Favorite"
+                        aria-label={t('tasks.addToFavorites')}
                         style={{
                             background: 'none',
                             border: 'none',
@@ -182,7 +182,7 @@ export default function TaskCard({ task }: { task: Task }) {
                     <button
                         type="button"
                         onClick={handleShare}
-                        aria-label="Share"
+                        aria-label={t('tasks.share')}
                         style={{
                             background: 'none',
                             border: 'none',
@@ -243,7 +243,7 @@ export default function TaskCard({ task }: { task: Task }) {
                             gap: '4px',
                             marginBottom: '4px'
                         }}>
-                            <span style={{ fontSize: '12px' }}>★</span> PREMIUM
+                            <span style={{ fontSize: '12px' }}>★</span> {t('tasks.premium')}
                         </div>
                     )}
                     <div style={{

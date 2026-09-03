@@ -7,7 +7,7 @@ export async function POST(request: Request) {
         const { accessToken, role } = await request.json();
 
         if (!accessToken) {
-            return NextResponse.json({ error: 'Access token required' }, { status: 400 });
+            return NextResponse.json({ error: 'Требуется токен доступа' }, { status: 400 });
         }
 
         const userRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
@@ -15,13 +15,13 @@ export async function POST(request: Request) {
         });
 
         if (!userRes.ok) {
-            return NextResponse.json({ error: 'Invalid Google token' }, { status: 401 });
+            return NextResponse.json({ error: 'Недействительный токен Google' }, { status: 401 });
         }
 
         const googleUser = await userRes.json();
 
         if (!googleUser.sub || !googleUser.email) {
-            return NextResponse.json({ error: 'Incomplete Google profile' }, { status: 401 });
+            return NextResponse.json({ error: 'Неполный профиль Google' }, { status: 401 });
         }
 
         const { user, token } = await upsertOAuthUser({

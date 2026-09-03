@@ -125,7 +125,7 @@ describe('/api/subscription', () => {
             });
             const res1 = await POST(req1);
             expect(res1.status).toBe(400);
-            expect((await res1.json()).error).toBe('Invalid plan');
+            expect((await res1.json()).error).toBe('Неверный тариф');
 
             const req2 = new NextRequest('http://localhost/api/subscription', {
                 method: 'POST',
@@ -223,7 +223,7 @@ describe('/api/subscription', () => {
             const data = await response.json();
 
             expect(response.status).toBe(404);
-            expect(data.error).toBe('No subscription found');
+            expect(data.error).toBe('Подписка не найдена');
         });
 
         it('should set subscription isActive to false', async () => {

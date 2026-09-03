@@ -22,7 +22,7 @@ export async function POST(request: Request) {
         const { taskId } = body;
 
         if (!isValidId(taskId)) {
-            return NextResponse.json({ error: 'Missing taskId' }, { status: 400 });
+            return NextResponse.json({ error: 'Не указан ID задания' }, { status: 400 });
         }
 
         // 3. Verify Ownership & Current Status
@@ -31,15 +31,15 @@ export async function POST(request: Request) {
         });
 
         if (!task) {
-            return NextResponse.json({ error: 'Task not found' }, { status: 404 });
+            return NextResponse.json({ error: 'Задание не найдено' }, { status: 404 });
         }
 
         if (task.userId !== currentUserId) {
-            return NextResponse.json({ error: 'Forbidden: You do not own this task' }, { status: 403 });
+            return NextResponse.json({ error: 'Доступ запрещён: это не ваше задание' }, { status: 403 });
         }
 
         if (task.status !== 'IN_PROGRESS') {
-            return NextResponse.json({ error: 'Task must be in progress to complete' }, { status: 400 });
+            return NextResponse.json({ error: 'Завершить можно только задание в работе' }, { status: 400 });
         }
 
         // 4. Update Task and provider balance atomically
@@ -71,7 +71,7 @@ export async function POST(request: Request) {
             });
         } catch (error) {
             if (error instanceof Error && error.message === 'TASK_NOT_IN_PROGRESS') {
-                return NextResponse.json({ error: 'Task must be in progress to complete' }, { status: 400 });
+                return NextResponse.json({ error: 'Завершить можно только задание в работе' }, { status: 400 });
             }
             throw error;
         }

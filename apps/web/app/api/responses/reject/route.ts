@@ -19,7 +19,7 @@ export async function POST(request: Request) {
         const { responseId } = body;
 
         if (!isValidId(responseId)) {
-            return NextResponse.json({ error: 'Response ID is required' }, { status: 400 });
+            return NextResponse.json({ error: 'Не указан ID отклика' }, { status: 400 });
         }
 
         // Get the response and task
@@ -29,18 +29,18 @@ export async function POST(request: Request) {
         });
 
         if (!response) {
-            return NextResponse.json({ error: 'Response not found' }, { status: 404 });
+            return NextResponse.json({ error: 'Отклик не найден' }, { status: 404 });
         }
 
         // Verify the user is the task owner
         if (response.task.userId !== userId) {
-            return NextResponse.json({ error: 'Only task owner can reject responses' }, { status: 403 });
+            return NextResponse.json({ error: 'Отклонять отклики может только автор задания' }, { status: 403 });
         }
 
         // Can only reject pending responses
         if (response.status !== 'PENDING') {
             return NextResponse.json({
-                error: 'Only pending responses can be rejected'
+                error: 'Отклонить можно только отклики в ожидании'
             }, { status: 400 });
         }
 

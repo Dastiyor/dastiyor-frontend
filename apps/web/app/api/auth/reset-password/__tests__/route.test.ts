@@ -24,7 +24,7 @@ describe('/api/auth/reset-password', () => {
             });
             const res1 = await POST(req1);
             expect(res1.status).toBe(400);
-            expect((await res1.json()).error).toContain('Token and password');
+            expect((await res1.json()).error).toContain('Укажите токен и пароль');
 
             const req2 = new NextRequest('http://localhost/api/auth/reset-password', {
                 method: 'POST',
@@ -44,7 +44,7 @@ describe('/api/auth/reset-password', () => {
             const data = await response.json();
 
             expect(response.status).toBe(400);
-            expect(data.error).toContain('at least 8 characters');
+            expect(data.error).toContain('минимум 8 символов');
         });
 
         it('should return 400 if token is invalid or expired', async () => {
@@ -59,7 +59,7 @@ describe('/api/auth/reset-password', () => {
             const data = await response.json();
 
             expect(response.status).toBe(400);
-            expect(data.error).toContain('Invalid or expired');
+            expect(data.error).toContain('недействительна или истекла');
         });
 
         it('should reset password and mark token as used', async () => {
@@ -131,7 +131,7 @@ describe('/api/auth/reset-password', () => {
 
             expect(response.status).toBe(400);
             expect(data.valid).toBe(false);
-            expect(data.error).toContain('Token is required');
+            expect(data.error).toContain('Требуется токен');
         });
 
         it('should return valid: true when token is valid', async () => {

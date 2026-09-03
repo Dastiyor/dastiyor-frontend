@@ -180,7 +180,7 @@ export default async function ProviderDashboard() {
                             <CheckCircle size={22} color={accentColor} />
                         </div>
                         {completedRecent > 0 && (
-                            <span style={{ fontSize: '0.75rem', color: accentColor, fontWeight: '600' }} title="Last 30 days">
+                            <span style={{ fontSize: '0.75rem', color: accentColor, fontWeight: '600' }} title={t('provider.last30Days')}>
                                 📈 +{completedRecent}
                             </span>
                         )}

@@ -23,7 +23,7 @@ export async function POST(request: Request) {
         const { email } = body;
 
         if (!email) {
-            return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+            return NextResponse.json({ error: 'Укажите email' }, { status: 400 });
         }
 
         const user = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });

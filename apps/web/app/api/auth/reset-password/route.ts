@@ -18,7 +18,7 @@ export async function POST(request: Request) {
         const { token, password } = body;
 
         if (!token || !password) {
-            return NextResponse.json({ error: 'Token and password are required' }, { status: 400 });
+            return NextResponse.json({ error: 'Укажите токен и пароль' }, { status: 400 });
         }
 
         const passwordValidation = validatePassword(password);
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
 
         if (!resetToken) {
             return NextResponse.json({
-                error: 'Invalid or expired reset token. Please request a new password reset.'
+                error: 'Ссылка для сброса пароля недействительна или истекла. Запросите новую.'
             }, { status: 400 });
         }
 
@@ -82,7 +82,7 @@ export async function GET(request: Request) {
         const token = searchParams.get('token');
 
         if (!token) {
-            return NextResponse.json({ valid: false, error: 'Token is required' }, { status: 400 });
+            return NextResponse.json({ valid: false, error: 'Требуется токен' }, { status: 400 });
         }
 
         const resetToken = await prisma.passwordReset.findFirst({

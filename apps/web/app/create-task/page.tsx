@@ -248,7 +248,7 @@ export default function CreateTaskPage() {
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                     style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #D1D5DB', outline: 'none', resize: 'vertical' }}
                                 />
-                                <div style={{ textAlign: 'right', fontSize: '0.75rem', color: '#9CA3AF', marginTop: '4px' }}>0 / 2000 characters</div>
+                                <div style={{ textAlign: 'right', fontSize: '0.75rem', color: '#9CA3AF', marginTop: '4px' }}>{t('createTask.charCount', { count: formData.description.length })}</div>
                             </div>
 
                             {/* Image Upload Section */}
@@ -257,7 +257,7 @@ export default function CreateTaskPage() {
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
                                     {formData.images.map((img, idx) => (
                                         <div key={idx} style={{ position: 'relative', width: '80px', height: '80px' }}>
-                                            <img src={img} alt="Task" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
+                                            <img src={img} alt={t('createTask.photoAlt')} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} />
                                             <button
                                                 onClick={() => removeImage(idx)}
                                                 style={{ position: 'absolute', top: '-5px', right: '-5px', background: 'red', color: 'white', border: 'none', borderRadius: '50%', width: '20px', height: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px' }}

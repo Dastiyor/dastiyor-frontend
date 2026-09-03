@@ -18,7 +18,7 @@ export async function POST(request: Request) {
         const { token, platform } = body;
 
         if (!token || typeof token !== 'string' || !EXPO_TOKEN_RE.test(token)) {
-            return NextResponse.json({ error: 'Invalid push token' }, { status: 400 });
+            return NextResponse.json({ error: 'Недействительный push-токен' }, { status: 400 });
         }
 
         const safePlatform =
@@ -51,7 +51,7 @@ export async function DELETE(request: Request) {
         const { token } = body;
 
         if (!token || typeof token !== 'string') {
-            return NextResponse.json({ error: 'Token required' }, { status: 400 });
+            return NextResponse.json({ error: 'Требуется токен' }, { status: 400 });
         }
 
         await prisma.deviceToken.deleteMany({

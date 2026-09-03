@@ -16,14 +16,14 @@ export async function POST(request: Request) {
         });
 
         if (!user || user.role !== 'PROVIDER') {
-            return NextResponse.json({ error: 'Only providers can verify' }, { status: 403 });
+            return NextResponse.json({ error: 'Проходить верификацию могут только исполнители' }, { status: 403 });
         }
 
         const body = await request.json();
         const { documentUrls } = body;
 
         if (!documentUrls || !Array.isArray(documentUrls) || documentUrls.length === 0) {
-            return NextResponse.json({ error: 'Document URLs required' }, { status: 400 });
+            return NextResponse.json({ error: 'Требуются ссылки на документы' }, { status: 400 });
         }
 
         // Allow only valid HTTPS URLs to prevent storage of arbitrary/malicious content
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
 
         if (validUrls.length === 0) {
             return NextResponse.json(
-                { error: 'At least one valid HTTPS document URL is required' },
+                { error: 'Укажите хотя бы одну корректную HTTPS-ссылку на документ' },
                 { status: 400 }
             );
         }
@@ -76,7 +76,7 @@ export async function GET(request: Request) {
         });
 
         if (!user) {
-            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+            return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });
         }
 
         return NextResponse.json({

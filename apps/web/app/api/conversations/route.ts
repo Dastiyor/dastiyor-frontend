@@ -109,10 +109,10 @@ export async function DELETE(request: Request) {
         const taskIdParam = searchParams.get('taskId');
 
         if (!partnerId) {
-            return NextResponse.json({ error: 'Missing userId parameter' }, { status: 400 });
+            return NextResponse.json({ error: 'Не указан параметр userId' }, { status: 400 });
         }
         if (partnerId === userId) {
-            return NextResponse.json({ error: 'Cannot delete a conversation with yourself' }, { status: 400 });
+            return NextResponse.json({ error: 'Нельзя удалить переписку с самим собой' }, { status: 400 });
         }
 
         // Conversations are keyed by partner + task, so scope the delete the
@@ -132,7 +132,7 @@ export async function DELETE(request: Request) {
 
         const deleted = sent.count + received.count;
         if (deleted === 0) {
-            return NextResponse.json({ error: 'Conversation not found' }, { status: 404 });
+            return NextResponse.json({ error: 'Переписка не найдена' }, { status: 404 });
         }
 
         logAction({

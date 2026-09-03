@@ -19,7 +19,7 @@ describe('/api/auth/forgot-password', () => {
         const data = await response.json();
 
         expect(response.status).toBe(400);
-        expect(data.error).toBe('Email is required');
+        expect(data.error).toBe('Укажите email');
     });
 
     it('should return 200 with generic message when user does not exist (no enumeration)', async () => {

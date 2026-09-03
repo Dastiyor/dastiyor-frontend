@@ -215,7 +215,20 @@
     "verifyPhoneVerifying": "Тафтиш…",
     "verifyPhoneCodeSent": "Рамз ба рақами {phone} фиристода шуд",
     "verifyPhoneSuccess": "Рақам тасдиқ шуд!",
-    "verifyPhoneChangeNumber": "Тағйири рақам"
+    "verifyPhoneChangeNumber": "Тағйири рақам",
+    "validatingResetLink": "Пайванд санҷида мешавад...",
+    "resetLinkInvalidTitle": "Пайванд нодуруст аст ё мӯҳлаташ гузаштааст",
+    "resetLinkInvalidDesc": "Ин пайванди барқарорсозии рамз нодуруст аст ё мӯҳлаташ гузаштааст. Пайванди навро дархост кунед.",
+    "requestNewLink": "Дархости пайванди нав",
+    "resetSuccessTitle": "Рамз иваз шуд!",
+    "resetSuccessDesc": "Рамзи шумо бомуваффақият иваз шуд. Акнун шумо метавонед бо рамзи нав ворид шавед.",
+    "goToLogin": "Ба саҳифаи вуруд",
+    "resetPasswordSubtitle": "Барои ҳисоби худ рамзи нави боэътимод интихоб кунед",
+    "confirmPassword": "Рамзро тасдиқ кунед",
+    "confirmPasswordPlaceholder": "Рамзи навро такрор кунед",
+    "passwordsDoNotMatch": "Рамзҳо мувофиқат намекунанд",
+    "showPassword": "Намоиши рамз",
+    "hidePassword": "Пинҳон кардани рамз"
   },
   "customer": {
     "dashboard": "Панели фармоишгар",
@@ -350,7 +363,8 @@
     "newOpportunities": "Имкониятҳои нав",
     "noNewOpportunities": "Имконияти нав нест",
     "viewDetails": "Муфассал",
-    "seeAllMatches": "Ҳамаи вазифаҳоро дар категорияҳои шумо бубинед"
+    "seeAllMatches": "Ҳамаи вазифаҳоро дар категорияҳои шумо бубинед",
+    "last30Days": "Дар 30 рӯзи охир"
   },
   "tasks": {
     "title": "Вазифаҳо",
@@ -470,7 +484,11 @@
     "rejectResponseTitle": "Рад кардани ҷавоб",
     "confirmComplete": "Оё мутмаин ҳастед, ки вазифа анҷом ёфт? Ин амалро бекор кардан мумкин нест.",
     "createNewTask": "Сохтани вазифаи нав",
-    "noActiveTasks": "Шумо ҳанӯз вазифаи фаъол надоред."
+    "noActiveTasks": "Шумо ҳанӯз вазифаи фаъол надоред.",
+    "addToFavorites": "Ба интихобшудаҳо",
+    "share": "Мубодила",
+    "proMember": "ИШТИРОКЧИИ PRO",
+    "premium": "ПРЕМИУМ"
   },
   "subscription": {
     "title": "Обуна",
@@ -586,7 +604,9 @@
     "deleteChat": "Чатро нест кардан",
     "deleteChatConfirm": "Нусхаи шумо аз сӯҳбат бо {name} нест мешавад. Дар тарафи ӯ боқӣ мемонад.",
     "deleteChatDone": "Чат нест шуд",
-    "deleteChatError": "Чатро нест кардан нашуд"
+    "deleteChatError": "Чатро нест кардан нашуд",
+    "sharedImage": "Тасвири фиристодашуда",
+    "imagePreview": "Пешнамоиши тасвир"
   },
   "filters": {
     "allCities": "Ҳамаи шаҳрҳо",
@@ -670,7 +690,9 @@
     "useTemplate": "Намуна истифода бурдан",
     "templateTip": "Маслиҳат оид ба истифодаи намунаҳо",
     "templateTipDesc": "Намунаҳо ба шумо кӯмак мекунанд, ки вазифаро зуд созед. Пас аз интихоби намуна шумо метавонед ҳамаи майдонҳоро пеш аз нашр таҳрир кунед.",
-    "templateLoaded2": "Намуна бор карда шуд. Майдонҳои боқимондаро пур кунед."
+    "templateLoaded2": "Намуна бор карда шуд. Майдонҳои боқимондаро пур кунед.",
+    "charCount": "{count} / 2000 аломат",
+    "photoAlt": "Сурати супориш"
   },
   "favorites": {
     "title": "Вазифаҳои дӯстдошта",
@@ -828,7 +850,8 @@
     "featureSupportPriorityNo": "Бедидаи дастгирии афзалиятнок",
     "featureResponsesUnlimited": "Ҷавобҳои бемаҳдуд",
     "featureBadgeVerification": "Нишонаи тасдиқ",
-    "featureSupportPriorityYes": "Дастгирии афзалиятнок"
+    "featureSupportPriorityYes": "Дастгирии афзалиятнок",
+    "proPlanName": "Про"
   },
   "categories": {
     "allTasks": "Ҳамаи вазифаҳо",

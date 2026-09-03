@@ -147,7 +147,7 @@ describe('/api/responses', () => {
             const data = await response.json();
 
             expect(response.status).toBe(403);
-            expect(data.error).toContain('Only providers can respond');
+            expect(data.error).toContain('Откликаться на задания могут только исполнители');
             expect(data.code).toBe('PROVIDER_REQUIRED');
         });
 
@@ -171,7 +171,7 @@ describe('/api/responses', () => {
             const data = await response.json();
 
             expect(response.status).toBe(403);
-            expect(data.error).toContain('Active subscription required');
+            expect(data.error).toContain('Для отклика нужна активная подписка');
             expect(data.code).toBe('SUBSCRIPTION_REQUIRED');
         });
 
@@ -218,7 +218,7 @@ describe('/api/responses', () => {
             const data = await response.json();
 
             expect(response.status).toBe(404);
-            expect(data.error).toBe('Task not found');
+            expect(data.error).toBe('Задание не найдено');
         });
 
         it('should create notification for task owner when response is submitted', async () => {

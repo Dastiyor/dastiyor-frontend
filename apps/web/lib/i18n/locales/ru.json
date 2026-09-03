@@ -215,7 +215,20 @@
     "verifyPhoneVerifying": "Проверка…",
     "verifyPhoneCodeSent": "Код отправлен на номер {phone}",
     "verifyPhoneSuccess": "Номер подтверждён!",
-    "verifyPhoneChangeNumber": "Изменить номер"
+    "verifyPhoneChangeNumber": "Изменить номер",
+    "validatingResetLink": "Проверяем ссылку...",
+    "resetLinkInvalidTitle": "Ссылка недействительна или истекла",
+    "resetLinkInvalidDesc": "Эта ссылка для сброса пароля недействительна или срок её действия истёк. Запросите новую.",
+    "requestNewLink": "Запросить новую ссылку",
+    "resetSuccessTitle": "Пароль изменён!",
+    "resetSuccessDesc": "Ваш пароль успешно изменён. Теперь вы можете войти с новым паролем.",
+    "goToLogin": "Перейти ко входу",
+    "resetPasswordSubtitle": "Придумайте надёжный новый пароль для вашего аккаунта",
+    "confirmPassword": "Подтвердите пароль",
+    "confirmPasswordPlaceholder": "Повторите новый пароль",
+    "passwordsDoNotMatch": "Пароли не совпадают",
+    "showPassword": "Показать пароль",
+    "hidePassword": "Скрыть пароль"
   },
   "customer": {
     "dashboard": "Панель заказчика",
@@ -350,7 +363,8 @@
     "newOpportunities": "Новые возможности",
     "noNewOpportunities": "Нет новых возможностей",
     "viewDetails": "Подробнее",
-    "seeAllMatches": "Смотреть все задания в ваших категориях"
+    "seeAllMatches": "Смотреть все задания в ваших категориях",
+    "last30Days": "За последние 30 дней"
   },
   "tasks": {
     "title": "Задания",
@@ -470,7 +484,11 @@
     "rejectResponseTitle": "Отклонить отклик",
     "confirmComplete": "Вы уверены, что задание выполнено? Это действие нельзя отменить.",
     "createNewTask": "Создать новое задание",
-    "noActiveTasks": "У вас пока нет активных заданий."
+    "noActiveTasks": "У вас пока нет активных заданий.",
+    "addToFavorites": "В избранное",
+    "share": "Поделиться",
+    "proMember": "PRO-УЧАСТНИК",
+    "premium": "ПРЕМИУМ"
   },
   "subscription": {
     "title": "Подписка",
@@ -586,7 +604,9 @@
     "deleteChat": "Удалить чат",
     "deleteChatConfirm": "Ваша копия переписки с {name} будет удалена. У собеседника она останется.",
     "deleteChatDone": "Чат удалён",
-    "deleteChatError": "Не удалось удалить чат"
+    "deleteChatError": "Не удалось удалить чат",
+    "sharedImage": "Отправленное изображение",
+    "imagePreview": "Предпросмотр изображения"
   },
   "filters": {
     "allCities": "Все города",
@@ -670,7 +690,9 @@
     "useTemplate": "Использовать шаблон",
     "templateTip": "Совет по использованию шаблонов",
     "templateTipDesc": "Шаблоны помогут вам быстро создать задание. После выбора шаблона вы сможете отредактировать все поля перед публикацией.",
-    "templateLoaded2": "Шаблон загружен. Заполните оставшиеся поля."
+    "templateLoaded2": "Шаблон загружен. Заполните оставшиеся поля.",
+    "charCount": "{count} / 2000 символов",
+    "photoAlt": "Фото задания"
   },
   "favorites": {
     "title": "Избранные задания",
@@ -828,7 +850,8 @@
     "featureSupportPriorityNo": "Без приоритетной поддержки",
     "featureResponsesUnlimited": "Неограниченные отклики",
     "featureBadgeVerification": "Значок верификации",
-    "featureSupportPriorityYes": "Приоритетная поддержка"
+    "featureSupportPriorityYes": "Приоритетная поддержка",
+    "proPlanName": "Про"
   },
   "categories": {
     "allTasks": "Все задания",

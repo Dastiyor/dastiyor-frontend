@@ -23,7 +23,7 @@ export async function POST(request: Request) {
         const { email, code, password } = body;
 
         if (!email || !code || !password) {
-            return NextResponse.json({ error: 'Email, code, and password are required' }, { status: 400 });
+            return NextResponse.json({ error: 'Укажите email, код и пароль' }, { status: 400 });
         }
 
         const passwordValidation = validatePassword(password);
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
 
         const user = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
         if (!user) {
-            return NextResponse.json({ error: 'Invalid or expired code.' }, { status: 400 });
+            return NextResponse.json({ error: 'Неверный или просроченный код.' }, { status: 400 });
         }
 
         const tokenValue = hashOtp(user.id, code);
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
         });
 
         if (!resetToken) {
-            return NextResponse.json({ error: 'Invalid or expired code. Request a new one.' }, { status: 400 });
+            return NextResponse.json({ error: 'Неверный или просроченный код. Запросите новый.' }, { status: 400 });
         }
 
         const hashedPassword = await bcrypt.hash(password, 12);

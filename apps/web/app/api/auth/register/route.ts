@@ -19,7 +19,7 @@ export async function POST(request: Request) {
         const { email, password, fullName, phone, role } = body;
 
         if (!password || !fullName) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+            return NextResponse.json({ error: 'Заполнены не все обязательные поля' }, { status: 400 });
         }
 
         // Mirror the checks PUT /api/profile already applies to these same

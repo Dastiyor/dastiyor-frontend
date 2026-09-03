@@ -22,7 +22,7 @@ export async function POST(request: Request) {
         const { taskId, providerId } = body; // We can accept responseId too, but providerId is direct for Schema
 
         if (!isValidId(taskId) || !isValidId(providerId)) {
-            return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
+            return NextResponse.json({ error: 'Заполнены не все поля' }, { status: 400 });
         }
 
         // 3. Verify Ownership and Task State
@@ -31,15 +31,15 @@ export async function POST(request: Request) {
         });
 
         if (!task) {
-            return NextResponse.json({ error: 'Task not found' }, { status: 404 });
+            return NextResponse.json({ error: 'Задание не найдено' }, { status: 404 });
         }
 
         if (task.userId !== currentUserId) {
-            return NextResponse.json({ error: 'Forbidden: You do not own this task' }, { status: 403 });
+            return NextResponse.json({ error: 'Доступ запрещён: это не ваше задание' }, { status: 403 });
         }
 
         if (task.status !== 'OPEN') {
-            return NextResponse.json({ error: 'Task is not open for acceptance' }, { status: 400 });
+            return NextResponse.json({ error: 'Задание недоступно для принятия' }, { status: 400 });
         }
 
         // 4. Verify the provider submitted a PENDING response to this task
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
 
         if (!providerResponse) {
             return NextResponse.json(
-                { error: 'Provider has no pending response for this task' },
+                { error: 'У исполнителя нет отклика в ожидании на это задание' },
                 { status: 400 }
             );
         }
@@ -86,7 +86,7 @@ export async function POST(request: Request) {
             });
         } catch (e) {
             if (e instanceof Error && e.message === 'TASK_NOT_OPEN') {
-                return NextResponse.json({ error: 'Task is not open for acceptance' }, { status: 400 });
+                return NextResponse.json({ error: 'Задание недоступно для принятия' }, { status: 400 });
             }
             throw e;
         }

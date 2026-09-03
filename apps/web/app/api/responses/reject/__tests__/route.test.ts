@@ -43,7 +43,7 @@ describe('/api/responses/reject', () => {
         const data = await response.json();
 
         expect(response.status).toBe(400);
-        expect(data.error).toBe('Response ID is required');
+        expect(data.error).toBe('Не указан ID отклика');
     });
 
     it('should return 404 if response not found', async () => {
@@ -58,7 +58,7 @@ describe('/api/responses/reject', () => {
         const data = await response.json();
 
         expect(response.status).toBe(404);
-        expect(data.error).toBe('Response not found');
+        expect(data.error).toBe('Отклик не найден');
     });
 
     it('should return 403 if user is not task owner', async () => {
@@ -79,7 +79,7 @@ describe('/api/responses/reject', () => {
         const data = await response.json();
 
         expect(response.status).toBe(403);
-        expect(data.error).toContain('Only task owner');
+        expect(data.error).toContain('Отклонять отклики может только автор задания');
     });
 
     it('should return 400 if response is not PENDING', async () => {
@@ -100,7 +100,7 @@ describe('/api/responses/reject', () => {
         const data = await response.json();
 
         expect(response.status).toBe(400);
-        expect(data.error).toContain('Only pending');
+        expect(data.error).toContain('Отклонить можно только отклики в ожидании');
     });
 
     it('should reject response and notify provider', async () => {

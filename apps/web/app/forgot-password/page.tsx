@@ -79,12 +79,12 @@ export default function ForgotPasswordPage() {
 
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <label style={{ fontWeight: '500', fontSize: '0.9rem' }}>Email</label>
+                    <label style={{ fontWeight: '500', fontSize: '0.9rem' }}>{t('auth.emailLabel')}</label>
                     <input
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        placeholder="your@email.com"
+                        placeholder={t('auth.emailPlaceholder')}
                         required
                         style={{
                             padding: '12px 16px',

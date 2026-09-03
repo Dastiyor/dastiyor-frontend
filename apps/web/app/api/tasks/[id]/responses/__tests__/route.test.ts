@@ -64,7 +64,7 @@ describe('/api/tasks/[id]/responses', () => {
         const data = await response.json();
 
         expect(response.status).toBe(404);
-        expect(data.error).toBe('Task not found');
+        expect(data.error).toBe('Задание не найдено');
     });
 
     it('returns 403 when user does not own the task', async () => {

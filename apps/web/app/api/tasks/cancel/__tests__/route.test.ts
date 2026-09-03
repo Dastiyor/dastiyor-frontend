@@ -43,7 +43,7 @@ describe('/api/tasks/cancel', () => {
         const data = await response.json();
 
         expect(response.status).toBe(400);
-        expect(data.error).toBe('Task ID is required');
+        expect(data.error).toBe('Не указан ID задания');
     });
 
     it('should return 404 if task not found', async () => {
@@ -58,7 +58,7 @@ describe('/api/tasks/cancel', () => {
         const data = await response.json();
 
         expect(response.status).toBe(404);
-        expect(data.error).toBe('Task not found');
+        expect(data.error).toBe('Задание не найдено');
     });
 
     it('should return 403 if user is not task owner', async () => {
@@ -77,7 +77,7 @@ describe('/api/tasks/cancel', () => {
         const data = await response.json();
 
         expect(response.status).toBe(403);
-        expect(data.error).toContain('Only task owner');
+        expect(data.error).toContain('Отменить задание может только его автор');
     });
 
     it('should return 400 if task is not OPEN', async () => {
@@ -96,7 +96,7 @@ describe('/api/tasks/cancel', () => {
         const data = await response.json();
 
         expect(response.status).toBe(400);
-        expect(data.error).toContain('Only open tasks');
+        expect(data.error).toContain('Отменить можно только открытые задания');
     });
 
     it('should cancel task and set status to CANCELLED', async () => {

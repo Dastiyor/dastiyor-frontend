@@ -11,7 +11,7 @@ export async function POST(request: Request) {
 
         if (!phone || !code) {
             return NextResponse.json(
-                { error: 'Phone and code are required' },
+                { error: 'Укажите номер телефона и код' },
                 { status: 400 }
             );
         }
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
         const phoneLimit = await checkRateLimit(`otp:${normalizedPhone}`, 'sms');
         if (!phoneLimit.allowed) {
             return NextResponse.json(
-                { error: 'Too many verification attempts. Try again in 15 minutes.' },
+                { error: 'Слишком много попыток подтверждения. Попробуйте через 15 минут.' },
                 { status: 429 }
             );
         }
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
 
         if (!validCode) {
             return NextResponse.json(
-                { error: 'Invalid or expired code' },
+                { error: 'Неверный или просроченный код' },
                 { status: 400 }
             );
         }

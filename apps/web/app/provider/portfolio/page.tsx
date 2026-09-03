@@ -76,17 +76,6 @@ export default async function ProviderPortfolioPage() {
                     </p>
                 </div>
 
-                <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '32px', border: '1px solid var(--border)', marginBottom: '32px' }}>
-                    <h2 className="heading-md" style={{ marginBottom: '16px' }}>{t('provider.uploadPhotos')}</h2>
-                    <p style={{ color: 'var(--text-light)', marginBottom: '24px', fontSize: '0.95rem' }}>
-                        {t('provider.uploadPhotosDesc')}
-                    </p>
-                    {/* <PortfolioGallery userId={user.id} initialItems={portfolioItems} /> */}
-                    <div className="p-4 border border-dashed rounded-lg text-center text-gray-500">
-                        Portfolio Gallery Component Missing
-                    </div>
-                </div>
-
                 {/* Portfolio from completed tasks */}
                 {portfolioItems.length > 0 && (
                     <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '32px', border: '1px solid var(--border)' }}>

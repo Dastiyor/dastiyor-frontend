@@ -41,7 +41,7 @@ describe('/api/tasks/favorite', () => {
             const data = await response.json();
 
             expect(response.status).toBe(400);
-            expect(data.error).toBe('Task ID is required');
+            expect(data.error).toBe('Не указан ID задания');
         });
 
         it('should return isFavorite true when task is favorited', async () => {
@@ -96,7 +96,7 @@ describe('/api/tasks/favorite', () => {
             const data = await response.json();
 
             expect(response.status).toBe(400);
-            expect(data.error).toBe('Task ID is required');
+            expect(data.error).toBe('Не указан ID задания');
         });
 
         it('should add favorite when not already favorited', async () => {

@@ -1,6 +1,22 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
+// ponytail: global-error replaces the root layout, so I18nProvider is gone and
+// `t` is unavailable. Three strings inlined rather than pulling both locale
+// JSONs (~128KB) into the crash bundle.
+const STRINGS = {
+    ru: {
+        title: 'Что-то пошло не так',
+        body: 'Произошла критическая ошибка. Попробуйте перезагрузить страницу.',
+        reload: 'Перезагрузить',
+    },
+    tj: {
+        title: 'Хатогӣ рух дод',
+        body: 'Хатогии ҷиддӣ рух дод. Лутфан саҳифаро аз нав бор кунед.',
+        reload: 'Аз нав бор кардан',
+    },
+} as const;
 
 export default function GlobalError({
     error,
@@ -9,9 +25,17 @@ export default function GlobalError({
     error: Error & { digest?: string };
     reset: () => void;
 }) {
+    const [locale, setLocale] = useState<keyof typeof STRINGS>('ru');
+
     useEffect(() => {
         console.error(error);
     }, [error]);
+
+    useEffect(() => {
+        if (document.cookie.includes('dastiyor_locale=tj')) setLocale('tj');
+    }, []);
+
+    const s = STRINGS[locale];
 
     return (
         <html>
@@ -28,10 +52,10 @@ export default function GlobalError({
                     backgroundColor: '#f9fafb',
                 }}>
                     <h2 style={{ fontSize: '1.5rem', fontWeight: '700', color: '#111827' }}>
-                        Something went wrong
+                        {s.title}
                     </h2>
                     <p style={{ color: '#6b7280', maxWidth: '400px' }}>
-                        A critical error occurred. Please try reloading the page.
+                        {s.body}
                     </p>
                     <button
                         onClick={reset}
@@ -46,7 +70,7 @@ export default function GlobalError({
                             cursor: 'pointer',
                         }}
                     >
-                        Reload
+                        {s.reload}
                     </button>
                 </div>
             </body>

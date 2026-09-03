@@ -19,7 +19,7 @@ export async function GET(
             select: { userId: true },
         });
 
-        if (!task) return NextResponse.json({ error: 'Task not found' }, { status: 404 });
+        if (!task) return NextResponse.json({ error: 'Задание не найдено' }, { status: 404 });
         if (task.userId !== payload.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
         const responses = await prisma.response.findMany({

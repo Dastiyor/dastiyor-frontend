@@ -89,7 +89,7 @@ describe('TaskCard', () => {
 
         render(<TaskCard task={mockTask} />);
 
-        const favoriteButton = screen.getByRole('button', { name: /favorite/i });
+        const favoriteButton = screen.getByRole('button', { name: /В избранное/i });
         fireEvent.click(favoriteButton);
 
         await waitFor(() => {
@@ -136,7 +136,7 @@ describe('TaskCard', () => {
         });
 
         await waitFor(() => {
-            const shareButton = screen.getByRole('button', { name: /share/i });
+            const shareButton = screen.getByRole('button', { name: /Поделиться/i });
             expect(shareButton).toBeInTheDocument();
         });
     });

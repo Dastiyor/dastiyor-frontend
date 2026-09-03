@@ -4,10 +4,12 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { validatePassword, checkPasswordStrength } from '@/lib/validation';
+import { useTranslation } from '@/lib/i18n';
 
 function ResetPasswordForm() {
     const searchParams = useSearchParams();
     const router = useRouter();
+    const { t } = useTranslation();
     const token = searchParams.get('token');
 
     const [password, setPassword] = useState('');
@@ -46,12 +48,12 @@ function ResetPasswordForm() {
 
         const { valid, error: validationError } = validatePassword(password);
         if (!valid) {
-            setError(validationError || 'Password too weak');
+            setError(validationError || t('auth.passwordHint'));
             return;
         }
 
         if (password !== confirmPassword) {
-            setError('Passwords do not match');
+            setError(t('auth.passwordsDoNotMatch'));
             return;
         }
 
@@ -69,10 +71,10 @@ function ResetPasswordForm() {
             if (res.ok) {
                 setSuccess(true);
             } else {
-                setError(data.error || 'Something went wrong');
+                setError(data.error || t('common.somethingWentWrong'));
             }
         } catch (err) {
-            setError('Network error. Please try again.');
+            setError(t('auth.networkError'));
         } finally {
             setLoading(false);
         }
@@ -94,7 +96,7 @@ function ResetPasswordForm() {
                     textAlign: 'center'
                 }}>
                     <div style={{ fontSize: '2rem', marginBottom: '16px' }}>⏳</div>
-                    <p>Validating reset link...</p>
+                    <p>{t('auth.validatingResetLink')}</p>
                 </div>
             </div>
         );
@@ -121,13 +123,13 @@ function ResetPasswordForm() {
                 }}>
                     <div style={{ fontSize: '4rem', marginBottom: '24px' }}>❌</div>
                     <h1 style={{ fontSize: '1.8rem', fontWeight: '700', marginBottom: '16px' }}>
-                        Invalid or Expired Link
+                        {t('auth.resetLinkInvalidTitle')}
                     </h1>
                     <p style={{ color: 'var(--text-light)', marginBottom: '32px', lineHeight: '1.6' }}>
-                        This password reset link is invalid or has expired. Please request a new one.
+                        {t('auth.resetLinkInvalidDesc')}
                     </p>
                     <Link href="/forgot-password" className="btn btn-primary">
-                        Request New Link
+                        {t('auth.requestNewLink')}
                     </Link>
                 </div>
             </div>
@@ -155,13 +157,13 @@ function ResetPasswordForm() {
                 }}>
                     <div style={{ fontSize: '4rem', marginBottom: '24px' }}>✅</div>
                     <h1 style={{ fontSize: '1.8rem', fontWeight: '700', marginBottom: '16px' }}>
-                        Password Reset!
+                        {t('auth.resetSuccessTitle')}
                     </h1>
                     <p style={{ color: 'var(--text-light)', marginBottom: '32px', lineHeight: '1.6' }}>
-                        Your password has been successfully reset. You can now log in with your new password.
+                        {t('auth.resetSuccessDesc')}
                     </p>
                     <Link href="/login" className="btn btn-primary">
-                        Go to Login
+                        {t('auth.goToLogin')}
                     </Link>
                 </div>
             </div>
@@ -197,14 +199,14 @@ function ResetPasswordForm() {
                 </div>
 
                 <h1 style={{ fontSize: '1.8rem', fontWeight: '700', marginBottom: '8px', textAlign: 'center' }}>
-                    Reset Your Password
+                    {t('auth.resetPassword')}
                 </h1>
                 <p style={{
                     color: 'var(--text-light)',
                     textAlign: 'center',
                     marginBottom: '32px'
                 }}>
-                    Choose a strong new password for your account
+                    {t('auth.resetPasswordSubtitle')}
                 </p>
 
                 {error && (
@@ -227,7 +229,7 @@ function ResetPasswordForm() {
                             marginBottom: '8px',
                             fontWeight: '500'
                         }}>
-                            New Password
+                            {t('auth.newPassword')}
                         </label>
                         <input
                             type="password"
@@ -247,7 +249,7 @@ function ResetPasswordForm() {
                                 const { isStrong, feedback } = checkPasswordStrength(password);
                                 setPasswordFeedback(isStrong ? [] : feedback);
                             }}
-                            placeholder="Min 8 characters, uppercase, lowercase, number"
+                            placeholder={t('auth.passwordHint')}
                             required
                             minLength={8}
                             style={{
@@ -266,7 +268,7 @@ function ResetPasswordForm() {
                             </ul>
                         )}
                         {password.length >= 8 && passwordFeedback.length === 0 && (
-                            <span style={{ display: 'block', marginTop: '6px', fontSize: '0.85rem', color: '#059669', fontWeight: '500' }}>✓ Password meets requirements</span>
+                            <span style={{ display: 'block', marginTop: '6px', fontSize: '0.85rem', color: '#059669', fontWeight: '500' }}>✓ {t('auth.passwordStrong')}</span>
                         )}
                     </div>
 
@@ -276,13 +278,13 @@ function ResetPasswordForm() {
                             marginBottom: '8px',
                             fontWeight: '500'
                         }}>
-                            Confirm Password
+                            {t('auth.confirmPassword')}
                         </label>
                         <input
                             type="password"
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
-                            placeholder="Confirm new password"
+                            placeholder={t('auth.confirmPasswordPlaceholder')}
                             required
                             style={{
                                 width: '100%',
@@ -304,7 +306,7 @@ function ResetPasswordForm() {
                             fontSize: '1rem'
                         }}
                     >
-                        {loading ? 'Resetting...' : 'Reset Password'}
+                        {loading ? t('auth.resetting') : t('auth.resetPasswordBtn')}
                     </button>
                 </form>
             </div>
@@ -313,6 +315,8 @@ function ResetPasswordForm() {
 }
 
 export default function ResetPasswordPage() {
+    const { t } = useTranslation();
+
     return (
         <Suspense fallback={
             <div style={{
@@ -328,7 +332,7 @@ export default function ResetPasswordPage() {
                     padding: '48px',
                     textAlign: 'center'
                 }}>
-                    <p>Loading...</p>
+                    <p>{t('common.loading')}</p>
                 </div>
             </div>
         }>

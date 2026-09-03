@@ -44,7 +44,7 @@ export default function TasksFeed() {
             const qs = buildQueryString(searchParams, pageNum);
             const res = await fetch(`/api/tasks?${qs}`, { signal });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'Failed to load');
+            if (!res.ok) throw new Error(data.error || t('common.somethingWentWrong'));
             const list: Task[] = data.tasks || [];
             const pagination = data.pagination || {};
             setTasks(prev => {

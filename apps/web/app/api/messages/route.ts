@@ -28,7 +28,7 @@ export async function GET(request: Request) {
             : 50;
 
         if (!otherId) {
-            return NextResponse.json({ error: 'Missing userId parameter' }, { status: 400 });
+            return NextResponse.json({ error: 'Не указан параметр userId' }, { status: 400 });
         }
 
         // Get messages between these two users (optionally filtered by task).
@@ -97,36 +97,36 @@ export async function POST(request: Request) {
         const { receiverId, content, taskId, imageUrl } = body;
 
         if (!receiverId || typeof receiverId !== 'string') {
-            return NextResponse.json({ error: 'Missing receiverId' }, { status: 400 });
+            return NextResponse.json({ error: 'Не указан получатель' }, { status: 400 });
         }
         if (taskId !== undefined && taskId !== null && typeof taskId !== 'string') {
-            return NextResponse.json({ error: 'Invalid taskId' }, { status: 400 });
+            return NextResponse.json({ error: 'Некорректный ID задания' }, { status: 400 });
         }
 
         // Must have either content or image
         if (!content && !imageUrl) {
-            return NextResponse.json({ error: 'Message must have content or image' }, { status: 400 });
+            return NextResponse.json({ error: 'Сообщение должно содержать текст или изображение' }, { status: 400 });
         }
 
         if (content !== undefined && content !== null && typeof content !== 'string') {
-            return NextResponse.json({ error: 'Message content must be text' }, { status: 400 });
+            return NextResponse.json({ error: 'Текст сообщения должен быть строкой' }, { status: 400 });
         }
 
         if (content && content.length > 2000) {
-            return NextResponse.json({ error: 'Message must not exceed 2000 characters' }, { status: 400 });
+            return NextResponse.json({ error: 'Сообщение не должно превышать 2000 символов' }, { status: 400 });
         }
 
         if (receiverId === senderId) {
-            return NextResponse.json({ error: 'Cannot message yourself' }, { status: 400 });
+            return NextResponse.json({ error: 'Нельзя написать самому себе' }, { status: 400 });
         }
 
         // Validate imageUrl is an https URL if provided (prevents JS URIs or data URIs)
         if (imageUrl !== undefined && imageUrl !== null) {
             if (typeof imageUrl !== 'string' || !imageUrl.startsWith('https://')) {
-                return NextResponse.json({ error: 'Invalid image URL' }, { status: 400 });
+                return NextResponse.json({ error: 'Некорректная ссылка на изображение' }, { status: 400 });
             }
             if (imageUrl.length > 2000) {
-                return NextResponse.json({ error: 'Image URL too long' }, { status: 400 });
+                return NextResponse.json({ error: 'Ссылка на изображение слишком длинная' }, { status: 400 });
             }
         }
 
@@ -137,7 +137,7 @@ export async function POST(request: Request) {
             select: { id: true },
         });
         if (!receiverExists) {
-            return NextResponse.json({ error: 'Recipient not found' }, { status: 404 });
+            return NextResponse.json({ error: 'Получатель не найден' }, { status: 404 });
         }
 
         // Same reasoning as the receiver check: a stale taskId -- the client had
@@ -149,7 +149,7 @@ export async function POST(request: Request) {
                 select: { id: true },
             });
             if (!taskExists) {
-                return NextResponse.json({ error: 'Task not found' }, { status: 404 });
+                return NextResponse.json({ error: 'Задание не найдено' }, { status: 404 });
             }
         }
 
@@ -157,7 +157,7 @@ export async function POST(request: Request) {
 
         // Reject if sanitizer stripped content to empty (e.g. whitespace-only input)
         if (!sanitizedContent && !imageUrl) {
-            return NextResponse.json({ error: 'Message must have content or image' }, { status: 400 });
+            return NextResponse.json({ error: 'Сообщение должно содержать текст или изображение' }, { status: 400 });
         }
 
         // Create the message

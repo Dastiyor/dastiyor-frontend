@@ -55,7 +55,7 @@ describe('/api/profile', () => {
             const data = await response.json();
 
             expect(response.status).toBe(404);
-            expect(data.error).toBe('User not found');
+            expect(data.error).toBe('Пользователь не найден');
         });
 
         it('returns user profile on success', async () => {
@@ -102,7 +102,7 @@ describe('/api/profile', () => {
             const data = await response.json();
 
             expect(response.status).toBe(400);
-            expect(data.error).toBe('Name must be at least 2 characters');
+            expect(data.error).toBe('Имя должно содержать минимум 2 символа');
         });
 
         it('returns 400 when fullName is single character', async () => {
@@ -110,7 +110,7 @@ describe('/api/profile', () => {
             const data = await response.json();
 
             expect(response.status).toBe(400);
-            expect(data.error).toBe('Name must be at least 2 characters');
+            expect(data.error).toBe('Имя должно содержать минимум 2 символа');
         });
 
         it('returns 400 when fullName is only whitespace', async () => {
@@ -118,7 +118,7 @@ describe('/api/profile', () => {
             const data = await response.json();
 
             expect(response.status).toBe(400);
-            expect(data.error).toBe('Name must be at least 2 characters');
+            expect(data.error).toBe('Имя должно содержать минимум 2 символа');
         });
 
         it('updates profile and returns updated user', async () => {
@@ -229,7 +229,7 @@ describe('/api/profile', () => {
                 const data = await response.json();
 
                 expect(response.status).toBe(400);
-                expect(data.error).toBe('Enter your current password to confirm email change');
+                expect(data.error).toBe('Введите текущий пароль, чтобы подтвердить смену email');
             });
 
             it('returns 400 when currentPassword is wrong', async () => {
@@ -244,7 +244,7 @@ describe('/api/profile', () => {
                 const data = await response.json();
 
                 expect(response.status).toBe(400);
-                expect(data.error).toBe('Current password is incorrect');
+                expect(data.error).toBe('Текущий пароль неверен');
             });
 
             it('returns 400 when account has no password (social sign-in)', async () => {
@@ -259,7 +259,7 @@ describe('/api/profile', () => {
                 const data = await response.json();
 
                 expect(response.status).toBe(400);
-                expect(data.error).toBe('This account uses social sign-in and cannot change email this way');
+                expect(data.error).toBe('Этот аккаунт использует вход через соцсети — email так изменить нельзя');
             });
 
             it('returns 409 when email already taken by another user', async () => {
@@ -275,7 +275,7 @@ describe('/api/profile', () => {
                 const data = await response.json();
 
                 expect(response.status).toBe(409);
-                expect(data.error).toBe('This email is already in use');
+                expect(data.error).toBe('Этот email уже используется');
             });
 
             it('updates email when currentPassword is correct', async () => {

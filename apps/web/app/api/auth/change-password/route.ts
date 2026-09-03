@@ -15,7 +15,7 @@ export async function POST(request: Request) {
         const { currentPassword, newPassword } = await request.json();
 
         if (!currentPassword || !newPassword) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+            return NextResponse.json({ error: 'Заполнены не все обязательные поля' }, { status: 400 });
         }
 
         const pwCheck = validatePassword(newPassword);
@@ -25,16 +25,16 @@ export async function POST(request: Request) {
 
         const user = await prisma.user.findUnique({ where: { id: payload.id as string } });
         if (!user) {
-            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+            return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });
         }
 
         if (!user.password) {
-            return NextResponse.json({ error: 'This account uses Google or Apple sign in and has no password' }, { status: 400 });
+            return NextResponse.json({ error: 'Этот аккаунт использует вход через Google или Apple и не имеет пароля' }, { status: 400 });
         }
 
         const isValid = await bcrypt.compare(currentPassword, user.password);
         if (!isValid) {
-            return NextResponse.json({ error: 'Current password is incorrect' }, { status: 400 });
+            return NextResponse.json({ error: 'Текущий пароль неверен' }, { status: 400 });
         }
 
         const hashed = await bcrypt.hash(newPassword, 12);

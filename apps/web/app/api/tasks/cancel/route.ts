@@ -18,7 +18,7 @@ export async function POST(request: Request) {
         const { taskId } = body;
 
         if (!isValidId(taskId)) {
-            return NextResponse.json({ error: 'Task ID is required' }, { status: 400 });
+            return NextResponse.json({ error: 'Не указан ID задания' }, { status: 400 });
         }
 
         // Get the task
@@ -27,18 +27,18 @@ export async function POST(request: Request) {
         });
 
         if (!task) {
-            return NextResponse.json({ error: 'Task not found' }, { status: 404 });
+            return NextResponse.json({ error: 'Задание не найдено' }, { status: 404 });
         }
 
         // Verify the user is the task owner
         if (task.userId !== userId) {
-            return NextResponse.json({ error: 'Only task owner can cancel' }, { status: 403 });
+            return NextResponse.json({ error: 'Отменить задание может только его автор' }, { status: 403 });
         }
 
         // Can only cancel OPEN tasks (not in progress or completed)
         if (task.status !== 'OPEN') {
             return NextResponse.json({
-                error: 'Only open tasks can be cancelled. Tasks in progress or completed cannot be cancelled.'
+                error: 'Отменить можно только открытые задания. Задания в работе или завершённые отменить нельзя.'
             }, { status: 400 });
         }
 

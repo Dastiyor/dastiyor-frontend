@@ -13,14 +13,14 @@ export async function POST(request: Request) {
 
         if (!phone) {
             return NextResponse.json(
-                { error: 'Phone number is required' },
+                { error: 'Укажите номер телефона' },
                 { status: 400 }
             );
         }
 
         if (!isValidPhone(String(phone))) {
             return NextResponse.json(
-                { error: 'Invalid phone format. Use +992XXXXXXXXX' },
+                { error: 'Неверный формат номера. Используйте +992XXXXXXXXX' },
                 { status: 400 }
             );
         }
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
         const phoneLimit = await checkRateLimit(normalizedPhone, 'sms');
         if (!phoneLimit.allowed) {
             return NextResponse.json(
-                { error: 'Too many SMS requests. Please try again in 15 minutes.' },
+                { error: 'Слишком много запросов SMS. Попробуйте через 15 минут.' },
                 { status: 429 }
             );
         }
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
 
         if (!sent) {
             return NextResponse.json(
-                { error: 'Failed to send SMS' },
+                { error: 'Не удалось отправить SMS' },
                 { status: 500 }
             );
         }

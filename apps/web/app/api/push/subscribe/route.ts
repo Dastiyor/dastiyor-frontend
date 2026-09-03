@@ -14,7 +14,7 @@ export async function POST(request: Request) {
         const { endpoint, keys } = body;
 
         if (!endpoint || !keys?.p256dh || !keys?.auth) {
-            return NextResponse.json({ error: 'Invalid subscription data' }, { status: 400 });
+            return NextResponse.json({ error: 'Некорректные данные подписки' }, { status: 400 });
         }
 
         await prisma.pushSubscription.upsert({
@@ -50,7 +50,7 @@ export async function DELETE(request: Request) {
         const { endpoint } = body;
 
         if (!endpoint) {
-            return NextResponse.json({ error: 'Endpoint required' }, { status: 400 });
+            return NextResponse.json({ error: 'Требуется endpoint' }, { status: 400 });
         }
 
         await prisma.pushSubscription.deleteMany({

@@ -10,12 +10,12 @@ export async function POST(request: Request) {
         const { identityToken, email, fullName, role } = await request.json();
 
         if (!identityToken) {
-            return NextResponse.json({ error: 'Identity token required' }, { status: 400 });
+            return NextResponse.json({ error: 'Требуется identity token' }, { status: 400 });
         }
 
         const bundleId = process.env.APPLE_BUNDLE_ID;
         if (!bundleId) {
-            return NextResponse.json({ error: 'Apple Sign In not configured' }, { status: 503 });
+            return NextResponse.json({ error: 'Вход через Apple не настроен' }, { status: 503 });
         }
 
         const { payload } = await jwtVerify(identityToken, appleJWKS, {
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
         const appleEmail = (payload.email as string | undefined) || email;
 
         if (!appleUserId || !appleEmail) {
-            return NextResponse.json({ error: 'Incomplete Apple profile' }, { status: 401 });
+            return NextResponse.json({ error: 'Неполный профиль Apple' }, { status: 401 });
         }
 
         const name = fullName || appleEmail.split('@')[0];

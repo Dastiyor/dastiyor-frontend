@@ -49,7 +49,7 @@ describe('/api/messages', () => {
             const data = await response.json();
 
             expect(response.status).toBe(400);
-            expect(data.error).toBe('Missing userId parameter');
+            expect(data.error).toBe('Не указан параметр userId');
         });
 
         it('should fetch messages between two users', async () => {
@@ -144,7 +144,7 @@ describe('/api/messages', () => {
             const data = await response.json();
 
             expect(response.status).toBe(400);
-            expect(data.error).toBe('Missing receiverId');
+            expect(data.error).toBe('Не указан получатель');
         });
 
         it('should return 400 if message has no content or image', async () => {
@@ -159,7 +159,7 @@ describe('/api/messages', () => {
             const data = await response.json();
 
             expect(response.status).toBe(400);
-            expect(data.error).toBe('Message must have content or image');
+            expect(data.error).toBe('Сообщение должно содержать текст или изображение');
         });
 
         it('should return 400 if trying to message yourself', async () => {
@@ -175,7 +175,7 @@ describe('/api/messages', () => {
             const data = await response.json();
 
             expect(response.status).toBe(400);
-            expect(data.error).toBe('Cannot message yourself');
+            expect(data.error).toBe('Нельзя написать самому себе');
         });
 
         it('should create a message successfully', async () => {

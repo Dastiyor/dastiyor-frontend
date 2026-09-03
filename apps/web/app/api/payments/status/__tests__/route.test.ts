@@ -49,7 +49,7 @@ describe('/api/payments/status', () => {
         const data = await response.json();
 
         expect(response.status).toBe(400);
-        expect(data.error).toBe('Missing orderId');
+        expect(data.error).toBe('Не указан orderId');
     });
 
     it('returns 404 when payment not found', async () => {
@@ -59,7 +59,7 @@ describe('/api/payments/status', () => {
         const data = await response.json();
 
         expect(response.status).toBe(404);
-        expect(data.error).toBe('Payment not found');
+        expect(data.error).toBe('Платёж не найден');
     });
 
     it('returns 403 when payment belongs to different user', async () => {

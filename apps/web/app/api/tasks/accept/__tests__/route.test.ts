@@ -46,7 +46,7 @@ describe('/api/tasks/accept', () => {
         });
         const res1 = await POST(req1);
         expect(res1.status).toBe(400);
-        expect((await res1.json()).error).toBe('Missing fields');
+        expect((await res1.json()).error).toBe('Заполнены не все поля');
 
         const req2 = new NextRequest('http://localhost/api/tasks/accept', {
             method: 'POST',
@@ -68,7 +68,7 @@ describe('/api/tasks/accept', () => {
         const data = await response.json();
 
         expect(response.status).toBe(404);
-        expect(data.error).toBe('Task not found');
+        expect(data.error).toBe('Задание не найдено');
     });
 
     it('should return 403 if user does not own the task', async () => {
@@ -87,7 +87,7 @@ describe('/api/tasks/accept', () => {
         const data = await response.json();
 
         expect(response.status).toBe(403);
-        expect(data.error).toContain('do not own');
+        expect(data.error).toContain('это не ваше задание');
     });
 
     it('should accept offer and update task status to IN_PROGRESS', async () => {

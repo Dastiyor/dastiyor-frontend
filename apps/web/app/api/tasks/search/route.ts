@@ -16,7 +16,7 @@ export async function GET(request: Request) {
         const skip = (page - 1) * limit;
 
         if (!query || query.trim().length < 2) {
-            return NextResponse.json({ error: 'Search query must be at least 2 characters' }, { status: 400 });
+            return NextResponse.json({ error: 'Поисковый запрос должен содержать минимум 2 символа' }, { status: 400 });
         }
 
         const where: Prisma.TaskWhereInput = {
@@ -85,7 +85,7 @@ export async function GET(request: Request) {
 
     } catch {
         return NextResponse.json(
-            { error: 'Search failed' },
+            { error: 'Не удалось выполнить поиск' },
             { status: 500 }
         );
     }

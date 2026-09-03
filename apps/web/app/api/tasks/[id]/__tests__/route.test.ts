@@ -31,7 +31,7 @@ describe('/api/tasks/[id]', () => {
         const data = await response.json();
 
         expect(response.status).toBe(404);
-        expect(data.error).toBe('Task not found');
+        expect(data.error).toBe('Задание не найдено');
     });
 
     it('returns task with all fields when found', async () => {

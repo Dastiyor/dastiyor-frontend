@@ -68,14 +68,15 @@ export function checkPasswordStrength(password: string): {
 /** Validate password for registration and reset: min 8 chars, at least one letter and one number. */
 export function validatePassword(password: string): { valid: boolean; error?: string } {
     if (!password || password.length < 8) {
-        return { valid: false, error: 'Password must be at least 8 characters' };
+        return { valid: false, error: 'Пароль должен содержать минимум 8 символов' };
     }
     if (password.length > 70) {
-        return { valid: false, error: 'Password must not exceed 70 characters' };
+        return { valid: false, error: 'Пароль не должен превышать 70 символов' };
     }
-    const { isStrong } = checkPasswordStrength(password);
+    // Reuse the per-rule feedback rather than a second wording of the same rules.
+    const { isStrong, feedback } = checkPasswordStrength(password);
     if (!isStrong) {
-        return { valid: false, error: 'Use at least one uppercase letter, one lowercase letter, and one number' };
+        return { valid: false, error: feedback.join('. ') };
     }
     return { valid: true };
 }

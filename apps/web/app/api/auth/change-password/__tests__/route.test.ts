@@ -46,7 +46,7 @@ describe('/api/auth/change-password', () => {
         const data = await response.json();
 
         expect(response.status).toBe(400);
-        expect(data.error).toBe('Missing required fields');
+        expect(data.error).toBe('Заполнены не все обязательные поля');
     });
 
     it('returns 400 when newPassword is missing', async () => {
@@ -54,7 +54,7 @@ describe('/api/auth/change-password', () => {
         const data = await response.json();
 
         expect(response.status).toBe(400);
-        expect(data.error).toBe('Missing required fields');
+        expect(data.error).toBe('Заполнены не все обязательные поля');
     });
 
     it('returns 400 when new password is shorter than 8 characters', async () => {
@@ -62,7 +62,7 @@ describe('/api/auth/change-password', () => {
         const data = await response.json();
 
         expect(response.status).toBe(400);
-        expect(data.error).toBe('Password must be at least 8 characters');
+        expect(data.error).toBe('Пароль должен содержать минимум 8 символов');
     });
 
     it('returns 404 when user not found in DB', async () => {
@@ -72,7 +72,7 @@ describe('/api/auth/change-password', () => {
         const data = await response.json();
 
         expect(response.status).toBe(404);
-        expect(data.error).toBe('User not found');
+        expect(data.error).toBe('Пользователь не найден');
     });
 
     it('returns 400 when user has no password (OAuth account)', async () => {
@@ -85,7 +85,7 @@ describe('/api/auth/change-password', () => {
         const data = await response.json();
 
         expect(response.status).toBe(400);
-        expect(data.error).toContain('Google or Apple');
+        expect(data.error).toContain('через Google или Apple');
     });
 
     it('returns 400 when current password is incorrect', async () => {
@@ -99,7 +99,7 @@ describe('/api/auth/change-password', () => {
         const data = await response.json();
 
         expect(response.status).toBe(400);
-        expect(data.error).toBe('Current password is incorrect');
+        expect(data.error).toBe('Текущий пароль неверен');
     });
 
     it('returns 200 and updates password on success', async () => {

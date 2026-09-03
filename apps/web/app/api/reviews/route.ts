@@ -12,7 +12,7 @@ export async function GET(request: Request) {
         const userId = searchParams.get('userId');
 
         if (!userId) {
-            return NextResponse.json({ error: 'Missing userId parameter' }, { status: 400 });
+            return NextResponse.json({ error: 'Не указан параметр userId' }, { status: 400 });
         }
 
         const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
@@ -80,20 +80,20 @@ export async function POST(request: Request) {
         const { taskId, rating, comment } = body;
 
         if (!isValidId(taskId) || !rating) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+            return NextResponse.json({ error: 'Заполнены не все обязательные поля' }, { status: 400 });
         }
 
         const ratingNum = Number(rating);
         if (!Number.isInteger(ratingNum) || ratingNum < 1 || ratingNum > 5) {
-            return NextResponse.json({ error: 'Rating must be an integer between 1 and 5' }, { status: 400 });
+            return NextResponse.json({ error: 'Оценка должна быть целым числом от 1 до 5' }, { status: 400 });
         }
 
         if (comment !== undefined && comment !== null) {
             if (typeof comment !== 'string') {
-                return NextResponse.json({ error: 'Comment must be a string' }, { status: 400 });
+                return NextResponse.json({ error: 'Комментарий должен быть текстом' }, { status: 400 });
             }
             if (comment.length > 1000) {
-                return NextResponse.json({ error: 'Comment must not exceed 1000 characters' }, { status: 400 });
+                return NextResponse.json({ error: 'Комментарий не должен превышать 1000 символов' }, { status: 400 });
             }
         }
 
@@ -104,17 +104,17 @@ export async function POST(request: Request) {
         });
 
         if (!task) {
-            return NextResponse.json({ error: 'Task not found' }, { status: 404 });
+            return NextResponse.json({ error: 'Задание не найдено' }, { status: 404 });
         }
 
         // Verify the reviewer is the task owner
         if (task.userId !== reviewerId) {
-            return NextResponse.json({ error: 'Only task owner can leave a review' }, { status: 403 });
+            return NextResponse.json({ error: 'Оставить отзыв может только автор задания' }, { status: 403 });
         }
 
         // Verify task is completed
         if (task.status !== 'COMPLETED') {
-            return NextResponse.json({ error: 'Task must be completed before reviewing' }, { status: 400 });
+            return NextResponse.json({ error: 'Оставить отзыв можно только после завершения задания' }, { status: 400 });
         }
 
         // Verify there's an assigned provider
@@ -122,18 +122,18 @@ export async function POST(request: Request) {
         // /api/responses: never let a review point at its own author.
         if (task.assignedUserId === reviewerId) {
             return NextResponse.json(
-                { error: 'Cannot review yourself' },
+                { error: 'Нельзя оставить отзыв самому себе' },
                 { status: 403 }
             );
         }
 
         if (!task.assignedUserId) {
-            return NextResponse.json({ error: 'No provider assigned to this task' }, { status: 400 });
+            return NextResponse.json({ error: 'На это задание не назначен исполнитель' }, { status: 400 });
         }
 
         // Check if review already exists
         if (task.review) {
-            return NextResponse.json({ error: 'Review already exists for this task' }, { status: 400 });
+            return NextResponse.json({ error: 'Отзыв на это задание уже оставлен' }, { status: 400 });
         }
 
         // Create the review

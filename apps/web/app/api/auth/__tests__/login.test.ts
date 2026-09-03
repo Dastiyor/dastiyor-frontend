@@ -35,7 +35,7 @@ describe('/api/auth/login', () => {
         const data = await response.json();
 
         expect(response.status).toBe(400);
-        expect(data.error).toBe('Email/phone and password are required');
+        expect(data.error).toBe('Укажите email или телефон и пароль');
     });
 
     it('should return 401 for invalid credentials', async () => {

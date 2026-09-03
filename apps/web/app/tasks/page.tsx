@@ -139,7 +139,7 @@ export default async function TasksPage({ searchParams }: Props) {
                                 border: '1px solid rgba(37, 99, 235, 0.2)',
                                 transition: 'background-color 0.2s'
                             }}>
-                                <span style={{ fontSize: '1rem' }}>✓</span> PRO MEMBER
+                                <span style={{ fontSize: '1rem' }}>✓</span> {t('tasks.proMember')}
                             </Link>
                         )}
                         <TaskSortSelect defaultValue={sort || 'newest'} />

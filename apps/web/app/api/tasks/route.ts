@@ -138,7 +138,7 @@ export async function POST(request: Request) {
             select: { password: true, googleId: true, appleId: true, phoneVerified: true },
         });
         if (!author) {
-            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+            return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });
         }
         if (needsPhoneVerification(author)) {
             return NextResponse.json(

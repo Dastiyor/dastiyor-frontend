@@ -45,7 +45,7 @@ export async function POST(request: Request) {
     try {
         // Subscriptions are temporarily hidden — see lib/features.ts
         if (!SUBSCRIPTIONS_ENABLED) {
-            return NextResponse.json({ error: 'Subscriptions are not available' }, { status: 404 });
+            return NextResponse.json({ error: 'Подписки недоступны' }, { status: 404 });
         }
 
         const payload = await requireAuth(request);
@@ -58,7 +58,7 @@ export async function POST(request: Request) {
         const { plan } = body;
 
         if (!plan || !isValidPlan(plan)) {
-            return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
+            return NextResponse.json({ error: 'Неверный тариф' }, { status: 400 });
         }
 
         const planConfig = PLANS[plan];
@@ -142,7 +142,7 @@ export async function DELETE(request: Request) {
         });
 
         if (!subscription) {
-            return NextResponse.json({ error: 'No subscription found' }, { status: 404 });
+            return NextResponse.json({ error: 'Подписка не найдена' }, { status: 404 });
         }
 
         // Don't delete, just mark as inactive (subscription continues until end date)

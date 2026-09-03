@@ -309,7 +309,7 @@ export default function ChatInterface({ currentUserId }: Props) {
                                         <div style={{ marginBottom: msg.content ? '8px' : 0 }}>
                                             <img
                                                 src={msg.imageUrl}
-                                                alt="Shared image"
+                                                alt={t('chat.sharedImage')}
                                                 style={{
                                                     maxWidth: '100%',
                                                     maxHeight: '300px',
@@ -358,7 +358,7 @@ export default function ChatInterface({ currentUserId }: Props) {
                     <div style={{ position: 'relative', display: 'inline-block' }}>
                         <img
                             src={imagePreview}
-                            alt="Preview"
+                            alt={t('chat.imagePreview')}
                             style={{
                                 maxHeight: '100px',
                                 borderRadius: '8px'

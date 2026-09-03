@@ -25,9 +25,18 @@ export default function NotificationBell() {
     useEffect(() => {
         fetchNotifications();
 
-        // Poll every 30 seconds
-        const interval = setInterval(fetchNotifications, 30000);
-        return () => clearInterval(interval);
+        // Poll every 30 seconds, but only while someone is looking — a hidden
+        // tab racked up billed function calls for nobody.
+        const poll = () => {
+            if (document.visibilityState === 'visible') fetchNotifications();
+        };
+        const interval = setInterval(poll, 30000);
+        // Catch up on return instead of waiting out the interval.
+        document.addEventListener('visibilitychange', poll);
+        return () => {
+            clearInterval(interval);
+            document.removeEventListener('visibilitychange', poll);
+        };
     }, []);
 
     useEffect(() => {

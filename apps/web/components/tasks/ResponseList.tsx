@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from '@/components/ui/Toast';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useTranslation } from '@/lib/i18n';
+import { CheckCircle } from 'lucide-react';
 
 type ResponseItem = {
     id: string;
@@ -39,6 +40,8 @@ export default function ResponseList({ taskId, responses, currentUserId, current
 
     const isOwner = currentUserId === taskOwnerId;
     const canRespond = currentUserId && !isOwner && taskStatus === 'OPEN' && currentUserRole === 'PROVIDER';
+    // The server rejects a second response, so hide the form once ours is in the list.
+    const hasResponded = !!currentUserId && responses.some((r) => r.userId === currentUserId);
     const isTaskOpen = taskStatus === 'OPEN';
     const isTaskInProgress = taskStatus === 'IN_PROGRESS';
 
@@ -301,8 +304,26 @@ export default function ResponseList({ taskId, responses, currentUserId, current
                     )}
                 </div>
 
+                {canRespond && hasResponded && (
+                    <div style={{
+                        marginTop: '40px',
+                        padding: '16px 20px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        borderRadius: '12px',
+                        border: '1px solid #22c55e',
+                        backgroundColor: '#f0fdf4',
+                        color: '#15803d',
+                        fontWeight: '600'
+                    }}>
+                        <CheckCircle size={18} />
+                        {t('tasks.alreadyResponded')}
+                    </div>
+                )}
+
                 {/* Response Form */}
-                {canRespond && (
+                {canRespond && !hasResponded && (
                     <div style={{ marginTop: '40px', paddingTop: '40px', borderTop: '1px solid var(--border)' }}>
                         <h3 className="heading-md" style={{ marginBottom: '24px' }}>{t('tasks.sendResponseHeading')}</h3>
                         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

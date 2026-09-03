@@ -275,4 +275,23 @@ describe('/api/responses', () => {
         expect(response.status).toBe(403);
         expect(prismaMock.response.create).not.toHaveBeenCalled();
     });
+
+    it('rejects a duplicate response with a localised, coded error', async () => {
+        prismaMock.user.findUnique.mockResolvedValue({
+            id: mockUserId, role: 'PROVIDER', password: 'x', googleId: null, appleId: null, phoneVerified: true,
+        } as never);
+        prismaMock.response.findFirst.mockResolvedValue({ id: 'existing-1' } as never);
+
+        const request = new NextRequest('http://localhost/api/responses', {
+            method: 'POST',
+            body: JSON.stringify({ taskId: 'task-1', message: 'a second offer here', price: 100 }),
+        });
+        const response = await POST(request);
+        const data = await response.json();
+
+        expect(response.status).toBe(409);
+        expect(data.code).toBe('DUPLICATE_RESPONSE');
+        expect(data.error).toBe('Вы уже откликнулись на это задание');
+        expect(prismaMock.response.create).not.toHaveBeenCalled();
+    });
 });

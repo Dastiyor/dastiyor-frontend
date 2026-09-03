@@ -369,7 +369,7 @@ export default function CreateTaskPage() {
                                                 fontWeight: '600', cursor: 'pointer'
                                             }}>{t('createTask.fixedPrice')}</button>
                                         <button
-                                            onClick={() => setFormData({ ...formData, budget: 'negotiable' })}
+                                            onClick={() => setFormData({ ...formData, budget: 'negotiable', amount: '' })}
                                             style={{
                                                 flex: 1, padding: '10px', borderRadius: '8px',
                                                 border: formData.budget === 'negotiable' ? '2px solid #3B82F6' : '1px solid #D1D5DB',
@@ -387,7 +387,12 @@ export default function CreateTaskPage() {
                                         value={formData.amount}
                                         onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                                         disabled={formData.budget === 'negotiable'}
-                                        style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #D1D5DB', outline: 'none' }}
+                                        style={{
+                                            width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #D1D5DB', outline: 'none',
+                                            backgroundColor: formData.budget === 'negotiable' ? '#F3F4F6' : 'white',
+                                            color: formData.budget === 'negotiable' ? '#9CA3AF' : 'inherit',
+                                            cursor: formData.budget === 'negotiable' ? 'not-allowed' : 'auto',
+                                        }}
                                     />
                                 </div>
                             </div>

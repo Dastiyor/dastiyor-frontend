@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { toast } from '@/components/ui/Toast';
 import { useTranslation } from '@/lib/i18n';
@@ -22,8 +22,14 @@ type Props = {
     currentUserId: string;
 };
 
+// ponytail: plain polling, not SSE/websockets. 5s was five DB round trips per
+// open screen every few seconds; 15s is fine for this app's message volume.
+// Move to SSE if chat ever needs sub-second delivery.
+const POLL_MS = 15000;
+
 export default function ChatInterface({ currentUserId }: Props) {
     const searchParams = useSearchParams();
+    const router = useRouter();
     const { t } = useTranslation();
     const partnerId = searchParams.get('userId');
     const taskId = searchParams.get('taskId');
@@ -40,13 +46,39 @@ export default function ChatInterface({ currentUserId }: Props) {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        if (partnerId) {
-            fetchMessages();
-            // Poll for new messages every 5 seconds
-            const interval = setInterval(fetchMessages, 5000);
-            return () => clearInterval(interval);
-        }
+        if (!partnerId) return;
+        fetchMessages();
+
+        // A hidden tab is nobody reading, so don't bill a function call for it.
+        const poll = () => {
+            if (document.visibilityState === 'visible') fetchMessages();
+        };
+        const interval = setInterval(poll, POLL_MS);
+        // Same handler on visibilitychange so returning to the tab catches up
+        // immediately instead of waiting out the interval.
+        document.addEventListener('visibilitychange', poll);
+        return () => {
+            clearInterval(interval);
+            document.removeEventListener('visibilitychange', poll);
+        };
     }, [partnerId, taskId]);
+
+    // The header name used to be read off the first message from the other
+    // side, so a deep-linked conversation with no messages yet -- or one where
+    // only our own message exists -- sat on "Загрузка..." and a "?" avatar
+    // forever. Ask the API for the counterpart instead.
+    useEffect(() => {
+        if (!partnerId) return;
+        let cancelled = false;
+        setPartnerName('');
+        fetch(`/api/users/${partnerId}`)
+            .then(res => (res.ok ? res.json() : null))
+            .then(data => {
+                if (!cancelled && data?.user?.fullName) setPartnerName(data.user.fullName);
+            })
+            .catch(() => {});
+        return () => { cancelled = true; };
+    }, [partnerId]);
 
     useEffect(() => {
         scrollToBottom();
@@ -69,16 +101,6 @@ export default function ChatInterface({ currentUserId }: Props) {
 
             if (data.messages) {
                 setMessages(data.messages);
-                // Get partner name from first message
-                if (data.messages.length > 0) {
-                    const firstMsg = data.messages[0];
-                    const partner = firstMsg.sender.id === currentUserId
-                        ? null
-                        : firstMsg.sender;
-                    if (partner) {
-                        setPartnerName(partner.fullName);
-                    }
-                }
             }
         } catch (error) {
             console.error('Failed to fetch messages:', error);
@@ -174,6 +196,10 @@ export default function ChatInterface({ currentUserId }: Props) {
                 setNewMessage('');
                 removeSelectedImage();
                 fetchMessages();
+                // The conversation sidebar is server-rendered by the messages
+                // page, so a first message to a brand-new conversation left it
+                // reading "Диалоги (0)" until a full reload. Re-render it.
+                router.refresh();
             }
         } catch (error) {
             console.error('Failed to send message:', error);

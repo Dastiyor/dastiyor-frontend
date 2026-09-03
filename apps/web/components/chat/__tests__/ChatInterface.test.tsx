@@ -5,8 +5,10 @@ import ChatInterface from '../ChatInterface';
 
 // Mock next/navigation
 const mockSearchParams = new URLSearchParams();
+const mockRefresh = jest.fn();
 jest.mock('next/navigation', () => ({
     useSearchParams: jest.fn(),
+    useRouter: () => ({ refresh: mockRefresh }),
 }));
 
 // Mock toast
@@ -50,12 +52,28 @@ describe('ChatInterface', () => {
         },
     ];
 
+    // The component now hits three endpoints (messages GET, messages POST,
+    // /api/users/:id for the header name), so route the mock by URL instead of
+    // by call order.
+    const mockApi = (messages: unknown[] = [], partner: unknown = { id: mockPartnerId, fullName: 'Test User' }) => {
+        (global.fetch as jest.Mock).mockImplementation((url: string, init?: RequestInit) => {
+            if (url.startsWith('/api/users/')) {
+                return Promise.resolve({ ok: !!partner, json: async () => ({ user: partner }) });
+            }
+            if (url === '/api/upload') {
+                return Promise.resolve({ ok: true, json: async () => ({ url: 'https://example.com/image.jpg' }) });
+            }
+            if (init?.method === 'POST') {
+                return Promise.resolve({ ok: true, json: async () => ({ message: { id: 'msg-3' } }) });
+            }
+            return Promise.resolve({ ok: true, json: async () => ({ messages }) });
+        });
+    };
+
     beforeEach(() => {
         jest.clearAllMocks();
         (useSearchParams as jest.Mock).mockReturnValue(mockSearchParams);
-        (global.fetch as jest.Mock).mockResolvedValue({
-            json: jest.fn().mockResolvedValue({ messages: [] }),
-        });
+        mockApi();
     });
 
     it('should display empty state when no partner selected', () => {
@@ -71,11 +89,9 @@ describe('ChatInterface', () => {
         mockSearchParams.set('userId', mockPartnerId);
         (useSearchParams as jest.Mock).mockReturnValue(mockSearchParams);
 
-        (global.fetch as jest.Mock).mockResolvedValue({
-            json: jest.fn().mockResolvedValue({ messages: mockMessages }),
-        });
+        mockApi(mockMessages);
 
-        const { container } = render(<ChatInterface currentUserId={mockCurrentUserId} />);
+        render(<ChatInterface currentUserId={mockCurrentUserId} />);
 
         await waitFor(() => {
             expect(global.fetch).toHaveBeenCalledWith(
@@ -87,15 +103,6 @@ describe('ChatInterface', () => {
     it('should send a message', async () => {
         mockSearchParams.set('userId', mockPartnerId);
         (useSearchParams as jest.Mock).mockReturnValue(mockSearchParams);
-
-        (global.fetch as jest.Mock)
-            .mockResolvedValueOnce({
-                json: jest.fn().mockResolvedValue({ messages: [] }),
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: jest.fn().mockResolvedValue({ message: { id: 'msg-3' } }),
-            });
 
         render(<ChatInterface currentUserId={mockCurrentUserId} />);
 
@@ -125,20 +132,6 @@ describe('ChatInterface', () => {
         (useSearchParams as jest.Mock).mockReturnValue(mockSearchParams);
 
         const mockFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
-        const mockImageUrl = 'https://example.com/image.jpg';
-
-        (global.fetch as jest.Mock)
-            .mockResolvedValueOnce({
-                json: jest.fn().mockResolvedValue({ messages: [] }),
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: jest.fn().mockResolvedValue({ url: mockImageUrl }),
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: jest.fn().mockResolvedValue({ message: { id: 'msg-3' } }),
-            });
 
         render(<ChatInterface currentUserId={mockCurrentUserId} />);
 
@@ -173,10 +166,6 @@ describe('ChatInterface', () => {
         mockSearchParams.set('userId', mockPartnerId);
         (useSearchParams as jest.Mock).mockReturnValue(mockSearchParams);
 
-        (global.fetch as jest.Mock).mockResolvedValue({
-            json: jest.fn().mockResolvedValue({ messages: [] }),
-        });
-
         render(<ChatInterface currentUserId={mockCurrentUserId} />);
 
         const mockFile = new File(['test'], 'test.pdf', { type: 'application/pdf' });
@@ -193,29 +182,71 @@ describe('ChatInterface', () => {
         }
     });
 
-    it.skip('should display partner name in header', async () => {
-        // Partner name is derived from first message sender; async timing can be flaky in jsdom
+    it('should resolve the partner name for a deep-linked empty conversation', async () => {
         mockSearchParams.set('userId', mockPartnerId);
         (useSearchParams as jest.Mock).mockReturnValue(mockSearchParams);
 
-        (global.fetch as jest.Mock).mockResolvedValue({
-            json: jest.fn().mockResolvedValue({ messages: mockMessages }),
-        });
+        // No messages at all — the name has to come from /api/users/:id.
+        mockApi([]);
 
         render(<ChatInterface currentUserId={mockCurrentUserId} />);
 
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenCalledWith(`/api/users/${mockPartnerId}`);
+        });
         await waitFor(() => {
             expect(screen.getByText('Test User')).toBeInTheDocument();
         }, { timeout: 3000 });
     });
 
-    it('should disable send button when message is empty and no image', async () => {
+    it('should refresh the server-rendered conversation list after sending', async () => {
         mockSearchParams.set('userId', mockPartnerId);
         (useSearchParams as jest.Mock).mockReturnValue(mockSearchParams);
 
-        (global.fetch as jest.Mock).mockResolvedValue({
-            json: jest.fn().mockResolvedValue({ messages: [] }),
+        render(<ChatInterface currentUserId={mockCurrentUserId} />);
+
+        await waitFor(() => {
+            expect(screen.getByPlaceholderText('Введите сообщение...')).toBeInTheDocument();
         });
+
+        fireEvent.change(screen.getByPlaceholderText('Введите сообщение...'), { target: { value: 'Test message' } });
+        fireEvent.click(screen.getByText('Отправить'));
+
+        await waitFor(() => {
+            expect(mockRefresh).toHaveBeenCalled();
+        }, { timeout: 3000 });
+    });
+
+    it('should not poll while the tab is hidden', async () => {
+        jest.useFakeTimers();
+        try {
+            mockSearchParams.set('userId', mockPartnerId);
+            (useSearchParams as jest.Mock).mockReturnValue(mockSearchParams);
+
+            render(<ChatInterface currentUserId={mockCurrentUserId} />);
+
+            const messageCalls = () =>
+                (global.fetch as jest.Mock).mock.calls.filter(
+                    ([url]: [string]) => url.startsWith('/api/messages')
+                ).length;
+
+            const afterMount = messageCalls();
+
+            Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
+            jest.advanceTimersByTime(60000);
+            expect(messageCalls()).toBe(afterMount);
+
+            Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true });
+            jest.advanceTimersByTime(15000);
+            expect(messageCalls()).toBeGreaterThan(afterMount);
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
+    it('should disable send button when message is empty and no image', async () => {
+        mockSearchParams.set('userId', mockPartnerId);
+        (useSearchParams as jest.Mock).mockReturnValue(mockSearchParams);
 
         render(<ChatInterface currentUserId={mockCurrentUserId} />);
 

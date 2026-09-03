@@ -127,7 +127,7 @@ export async function POST(request: Request) {
         });
         if (existingResponse) {
             return NextResponse.json(
-                { error: 'You have already submitted a response for this task' },
+                { error: 'Вы уже откликнулись на это задание', code: 'DUPLICATE_RESPONSE' },
                 { status: 409 }
             );
         }

@@ -76,7 +76,10 @@ function RegisterContent() {
     );
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
-    const [passwordFeedback, setPasswordFeedback] = useState<string[]>([]);
+    const [password, setPassword] = useState('');
+    // An empty field is neither strong nor broken, so it gets no verdict at all.
+    const passwordCheck = password ? checkPasswordStrength(password) : null;
+    const passwordFeedback = passwordCheck && !passwordCheck.isStrong ? passwordCheck.feedback : [];
     const [showPassword, setShowPassword] = useState(false);
     const [phoneLocal, setPhoneLocal] = useState('');
     const router = useRouter();
@@ -96,13 +99,11 @@ function RegisterContent() {
         e.preventDefault();
         setIsLoading(true);
         setError('');
-        setPasswordFeedback([]);
 
         const formData = new FormData(e.currentTarget);
-        const password = String(formData.get('password') || '');
-        const { isStrong, feedback } = checkPasswordStrength(password);
-        if (!isStrong || password.length < 8) {
-            setPasswordFeedback(feedback.length ? feedback : ['Password must be at least 8 characters']);
+        if (!passwordCheck?.isStrong) {
+            // passwordFeedback is derived from `password`, so the list under the
+            // field is already showing exactly what is missing.
             setIsLoading(false);
             return;
         }
@@ -375,18 +376,8 @@ function RegisterContent() {
                             placeholder={t('auth.passwordHint')}
                             required
                             minLength={8}
-                            onChange={(e) => {
-                                const p = e.target.value;
-                                if (!p) { setPasswordFeedback([]); return; }
-                                const { isStrong, feedback } = checkPasswordStrength(p);
-                                setPasswordFeedback(isStrong ? [] : feedback);
-                            }}
-                            onBlur={(e) => {
-                                const p = e.target.value;
-                                if (!p) return;
-                                const { isStrong, feedback } = checkPasswordStrength(p);
-                                setPasswordFeedback(isStrong ? [] : feedback);
-                            }}
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
                             style={{
                                 width: '100%',
                                 padding: '12px 44px 12px 16px',
@@ -435,11 +426,11 @@ function RegisterContent() {
                                 <li key={i}>{msg}</li>
                             ))}
                         </ul>
-                    ) : (
+                    ) : password ? (
                         <span style={{ fontSize: '0.8rem', color: '#059669', fontWeight: '500' }}>
                             ✓ {t('auth.passwordStrong')}
                         </span>
-                    )}
+                    ) : null}
                 </div>
 
                 <button

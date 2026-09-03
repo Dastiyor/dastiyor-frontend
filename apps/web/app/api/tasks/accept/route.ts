@@ -96,14 +96,15 @@ export async function POST(request: Request) {
         // Send email notification to provider (non-blocking)
         const provider = await prisma.user.findUnique({
             where: { id: providerId },
-            select: { email: true }
+            select: { email: true, locale: true }
         });
         if (provider?.email) {
             const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dastiyor.com';
             sendOfferAcceptedNotification(
                 provider.email,
                 task.title,
-                `${baseUrl}/tasks/${taskId}`
+                `${baseUrl}/tasks/${taskId}`,
+                provider?.locale,
             ).catch(err => console.error('Email notification error:', err));
         }
 

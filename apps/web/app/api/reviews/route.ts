@@ -155,7 +155,7 @@ export async function POST(request: Request) {
         // Send email notification to reviewed provider (non-blocking)
         const reviewed = await prisma.user.findUnique({
             where: { id: task.assignedUserId },
-            select: { email: true }
+            select: { email: true, locale: true }
         });
         if (reviewed?.email) {
             const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dastiyor.com';
@@ -165,7 +165,8 @@ export async function POST(request: Request) {
                 task.title,
                 ratingNum,
                 (comment as string | undefined) || null,
-                `${baseUrl}/provider/profile`
+                `${baseUrl}/provider/profile`,
+                reviewed?.locale,
             ).catch(err => console.error('Email notification error:', err));
         }
 

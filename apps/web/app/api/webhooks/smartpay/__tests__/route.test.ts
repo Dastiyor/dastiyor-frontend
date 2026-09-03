@@ -199,8 +199,9 @@ describe('/api/webhooks/smartpay', () => {
                 99,
                 'Подписка Базовый',
                 'ORDER-001',
-                'sp_tx_123'
-            );
+                'sp_tx_123',
+            undefined,
+        );
         });
 
         it('stores transactionId and paymentMethod on payment record', async () => {

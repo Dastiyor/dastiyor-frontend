@@ -34,7 +34,7 @@ export async function POST(request: Request) {
         // Find the payment record by our order ID
         const payment = await prisma.payment.findUnique({
             where: { smartpayOrderId: callbackData.orderId },
-            include: { user: { select: { email: true, fullName: true } } }
+            include: { user: { select: { email: true, fullName: true, locale: true } } }
         });
 
         if (!payment) {
@@ -123,7 +123,8 @@ export async function POST(request: Request) {
                     payment.amount,
                     payment.description,
                     callbackData.orderId,
-                    callbackData.transactionId
+                    callbackData.transactionId,
+                    payment.user.locale
                 ).catch(err => console.error('Receipt email error:', err));
             }
 

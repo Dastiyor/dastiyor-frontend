@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { notificationStrings } from '@/lib/notifications/strings';
 import { isValidId } from '@/lib/validation';
 import { sendOfferAcceptedNotification } from '@/lib/notifications/email';
 import { logAction, getRequestIP } from '@/lib/audit';
@@ -53,6 +54,10 @@ export async function POST(request: Request) {
             );
         }
 
+        const providerStrings = notificationStrings(
+            (await prisma.user.findUnique({ where: { id: providerId }, select: { locale: true } }))?.locale
+        );
+
         // 5. Atomically update task + accept response + notify — all or nothing.
         //    Guarded claim: the task transition only wins if it's still OPEN, so two
         //    concurrent accepts for different providers can't both commit.
@@ -73,8 +78,8 @@ export async function POST(request: Request) {
                     data: {
                         userId: providerId,
                         type: 'OFFER_ACCEPTED',
-                        title: 'Отклик принят!',
-                        message: `Вас выбрали исполнителем задания "${task.title}". Свяжитесь с заказчиком.`,
+                        title: providerStrings.acceptedTitle,
+                        message: providerStrings.acceptedBody(task.title),
                         link: `/tasks/${taskId}`,
                     },
                 });
@@ -104,8 +109,8 @@ export async function POST(request: Request) {
 
         // Web push notification to provider (non-blocking)
         sendPushNotification(providerId, {
-            title: 'Отклик принят!',
-            body: `Вас выбрали исполнителем задания "${task.title}"`,
+            title: providerStrings.acceptedTitle,
+            body: providerStrings.acceptedBody(task.title),
             url: `/tasks/${taskId}`,
         }).catch(() => {});
 

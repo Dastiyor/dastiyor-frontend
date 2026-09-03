@@ -48,11 +48,12 @@ jest.mock('@expo/vector-icons', () => ({
 
 // Mock api-client callbacks (prevent module-level side effects)
 jest.mock('@/lib/api-client', () => ({
+  // Resolve rather than returning undefined: callers chain .catch() on these.
   api: {
-    get: jest.fn(),
-    post: jest.fn(),
-    put: jest.fn(),
-    del: jest.fn(),
+    get: jest.fn().mockResolvedValue(undefined),
+    post: jest.fn().mockResolvedValue(undefined),
+    put: jest.fn().mockResolvedValue(undefined),
+    del: jest.fn().mockResolvedValue(undefined),
   },
   setOnUnauthorized: jest.fn(),
   setOnNetworkError: jest.fn(),

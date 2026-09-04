@@ -19,6 +19,7 @@ import { useKeyboardAwareScroll } from '@/lib/useKeyboardAwareScroll';
 import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useToast } from '@/contexts/ToastContext';
 
 const STARS = [1, 2, 3, 4, 5];
 
@@ -29,6 +30,7 @@ export default function ReviewScreen() {
   const insets = useSafeAreaInsets();
   const keyboardOffset = useKeyboardOffset();
   const kbScroll = useKeyboardAwareScroll();
+  const toast = useToast();
   const rv = t.review;
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
@@ -39,7 +41,10 @@ export default function ReviewScreen() {
     setLoading(true);
     try {
       await api.post('/api/reviews', { taskId, rating, comment: comment.trim() || undefined });
-      Alert.alert(rv.thanks, rv.published, [{ text: t.common.ok, onPress: () => goBack() }]);
+      // Same reason as respond/[id]: this modal sits over the polling task/[id]
+      // screen, and dismissing from inside an Alert callback can strand it.
+      toast.show(rv.published, 'success');
+      goBack();
     } catch (e) {
       Alert.alert(t.common.error, (e as Error).message);
     } finally {

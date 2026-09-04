@@ -22,6 +22,7 @@ import { api } from '@/lib/api-client';
 import { track, AnalyticsEvent } from '@/lib/analytics';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useToast } from '@/contexts/ToastContext';
 
 export default function RespondScreen() {
   const { id: taskId, title } = useLocalSearchParams<{ id: string; title: string }>();
@@ -30,6 +31,7 @@ export default function RespondScreen() {
   const insets = useSafeAreaInsets();
   const keyboardOffset = useKeyboardOffset();
   const kbScroll = useKeyboardAwareScroll();
+  const toast = useToast();
   const r = t.respond;
   const [message, setMessage] = useState('');
   const [price, setPrice] = useState('');
@@ -44,7 +46,15 @@ export default function RespondScreen() {
     try {
       await api.post('/api/responses', { taskId, message: message.trim(), price: Number(price), estimatedTime: estimatedTime.trim() || undefined });
       track(AnalyticsEvent.ResponseSubmitted, { taskId: String(taskId), price: Number(price) });
-      Alert.alert(t.common.done, r.sent, [{ text: t.common.ok, onPress: () => goBack() }]);
+      // Confirm with a toast and leave immediately, rather than dismissing from
+      // inside an Alert callback. This screen is a modal over task/[id], which
+      // polls every TASK_POLL_MS; a tick landing while an alert is presented
+      // re-renders the screen underneath it, and on iOS that leaves the view
+      // hierarchy unresponsive -- the modal stops dismissing and back goes dead.
+      // Same failure the busyRef guard in task/[id].tsx was added for; no alert
+      // here means there is nothing to re-render underneath.
+      toast.show(r.sent, 'success');
+      goBack();
     } catch (e) {
       const err = e as { code?: string; message: string };
       const msg = err.message ?? '';

@@ -6,7 +6,7 @@ import { PlusCircle, Clock, CheckCircle, MessageSquare } from 'lucide-react';
 import { getServerTranslation } from '@/lib/i18n/server';
 
 export default async function CustomerDashboardPage() {
-    const { t } = await getServerTranslation();
+    const { t, locale } = await getServerTranslation();
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 
@@ -151,7 +151,7 @@ export default async function CustomerDashboardPage() {
                                             </span>
                                         </td>
                                         <td style={{ padding: '14px 0', color: '#64748B', fontSize: '0.9rem' }}>
-                                            {new Date(task.createdAt).toLocaleDateString()}
+                                            {new Date(task.createdAt).toLocaleDateString(locale === 'tj' ? 'tg-TJ' : 'ru-RU')}
                                         </td>
                                         <td style={{ padding: '14px 0', color: '#64748B', fontSize: '0.9rem' }}>
                                             {t('customer.offersCount', { count: task._count.responses })}

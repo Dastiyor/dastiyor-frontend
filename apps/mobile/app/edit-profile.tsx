@@ -9,7 +9,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { goBack } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,6 +20,7 @@ import { Avatar } from '@/components/Avatar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { Alert } from '@/lib/dialog';
 
 
 interface ProfileData { fullName: string; phone: string; bio: string; skills: string; avatar: string | null; }

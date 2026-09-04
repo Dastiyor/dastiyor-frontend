@@ -7,7 +7,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  Alert,
   ScrollView,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -19,6 +18,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { LogoWordmark } from '@/components/Logo';
 import { PasswordInput } from '@/components/PasswordInput';
 import { passwordStrength } from '@/lib/validation';
+import { Alert } from '@/lib/dialog';
 
 export default function ResetPasswordScreen() {
   const { t } = useLanguage();

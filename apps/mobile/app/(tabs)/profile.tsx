@@ -4,7 +4,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Alert,
   Switch,
   ActivityIndicator,
 } from 'react-native';
@@ -19,6 +18,7 @@ import { useNotifPrefs } from '@/contexts/NotifPrefsContext';
 import { Avatar } from '@/components/Avatar';
 import { openPrivacyPolicy, openTermsOfService } from '@/lib/legal';
 import { LOCALE_NAMES, type Locale } from '@/lib/i18n';
+import { Alert } from '@/lib/dialog';
 
 const LOCALES: Locale[] = ['ru', 'tj', 'en'];
 
@@ -244,6 +244,16 @@ export default function ProfileScreen() {
             label={p.changePassword}
             onPress={() => router.push('/change-password')}
           />
+          {/* Providers had no way to see the reviews customers leave them --
+              only other people could, through the public profile. */}
+          {user.role === 'PROVIDER' ? (
+            <RowItem
+              icon="star-outline"
+              iconColor="#F59E0B"
+              label={p.myReviews}
+              onPress={() => router.push({ pathname: '/provider/[id]', params: { id: user.id, name: user.fullName } })}
+            />
+          ) : null}
         </View>
 
         {/* Phone */}

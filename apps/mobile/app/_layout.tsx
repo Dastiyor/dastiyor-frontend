@@ -10,6 +10,7 @@ import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
 import { NotifPrefsProvider } from '@/contexts/NotifPrefsContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { OfflineBanner } from '@/components/OfflineBanner';
+import { DialogHost } from '@/lib/dialog';
 import { initErrorReporting } from '@/lib/errorReporting';
 import { initAnalytics, track, AnalyticsEvent } from '@/lib/analytics';
 import { initNotificationHandlers } from '@/lib/notifications-handler';
@@ -68,6 +69,7 @@ export default function RootLayout() {
           <ThemedStack />
           <StatusBar style="auto" />
           <OfflineBanner />
+          <DialogHost />
         </AuthProvider>
         </NotifPrefsProvider>
         </ToastProvider>

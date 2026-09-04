@@ -203,6 +203,10 @@ export default function ResponseList({ taskId, responses, currentUserId, current
                         const isRejected = response.status === 'REJECTED';
                         const isPending = response.status === 'PENDING';
                         const isOtherAccepted = !isTaskOpen && !isAccepted;
+                        // Chatting is for deciding (task still open) or for the
+                        // provider actually doing the job — not for the bids
+                        // that lost.
+                        const canMessage = isTaskOpen || isAccepted;
 
                         return (
                             <div key={response.id} style={{
@@ -246,7 +250,7 @@ export default function ResponseList({ taskId, responses, currentUserId, current
                                     {response.message}
                                 </p>
 
-                                {isOwner && (
+                                {isOwner && canMessage && (
                                     <Link
                                         href={`${messagesBasePath}?userId=${response.userId}&taskId=${taskId}`}
                                         className="btn"

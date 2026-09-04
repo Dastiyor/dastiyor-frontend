@@ -9,8 +9,8 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
-  Alert,
   Linking,
+  Keyboard,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { goBack } from '@/lib/nav';
@@ -23,6 +23,7 @@ import { track, AnalyticsEvent } from '@/lib/analytics';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useToast } from '@/contexts/ToastContext';
+import { Alert } from '@/lib/dialog';
 
 export default function RespondScreen() {
   const { id: taskId, title } = useLocalSearchParams<{ id: string; title: string }>();
@@ -39,6 +40,9 @@ export default function RespondScreen() {
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit() {
+    // Down before the request, not after it -- the keyboard's hide animation
+    // then finishes well before goBack() tears the modal down. See lib/nav.ts.
+    Keyboard.dismiss();
     if (!message.trim()) { Alert.alert(t.common.error, r.errMsg); return; }
     if (!price.trim() || isNaN(Number(price)) || Number(price) <= 0) { Alert.alert(t.common.error, r.errPrice); return; }
     setLoading(true);

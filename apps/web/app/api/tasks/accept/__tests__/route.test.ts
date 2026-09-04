@@ -145,4 +145,37 @@ describe('/api/tasks/accept', () => {
         expect(response.status).toBe(500);
         expect(data.error).toBe('Internal Server Error');
     });
+    it('rejects the other pending bids when one is accepted', async () => {
+        const mockTask = { id: 'task-1', userId: mockUserId, title: 'Test Task', status: 'OPEN' };
+        const mockPendingResponse = { id: 'resp-1', taskId: 'task-1', userId: 'provider-1', status: 'PENDING' };
+
+        (prismaMock.task.findUnique as jest.Mock)
+            .mockResolvedValueOnce(mockTask)
+            .mockResolvedValueOnce({ ...mockTask, status: 'IN_PROGRESS', assignedUserId: 'provider-1' });
+        (prismaMock.response.findFirst as jest.Mock).mockResolvedValue(mockPendingResponse);
+        (prismaMock.user.findUnique as jest.Mock).mockResolvedValue({ locale: 'ru' });
+        (prismaMock.$transaction as jest.Mock).mockImplementation(async (fn: (tx: typeof prismaMock) => Promise<unknown>) => {
+            (prismaMock.task.updateMany as jest.Mock).mockResolvedValue({ count: 1 });
+            (prismaMock.response.update as jest.Mock).mockResolvedValue(mockPendingResponse);
+            (prismaMock.response.updateMany as jest.Mock).mockResolvedValue({ count: 2 });
+            (prismaMock.notification.create as jest.Mock).mockResolvedValue({});
+            return fn(prismaMock);
+        });
+
+        const response = await POST(new NextRequest('http://localhost/api/tasks/accept', {
+            method: 'POST',
+            body: JSON.stringify({ taskId: 'task-1', providerId: 'provider-1' }),
+        }));
+
+        expect(response.status).toBe(200);
+        // The winner is flipped to ACCEPTED first, so this sweep can't catch it.
+        expect(prismaMock.response.update).toHaveBeenCalledWith({
+            where: { id: 'resp-1' },
+            data: { status: 'ACCEPTED' },
+        });
+        expect(prismaMock.response.updateMany).toHaveBeenCalledWith({
+            where: { taskId: 'task-1', status: 'PENDING' },
+            data: { status: 'REJECTED' },
+        });
+    });
 });

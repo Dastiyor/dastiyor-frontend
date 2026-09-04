@@ -8,7 +8,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  Alert,
   ScrollView,
 } from 'react-native';
 import { Link, router } from 'expo-router';
@@ -21,10 +20,12 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Haptics from 'expo-haptics';
+import { GoogleIcon } from '@/components/GoogleIcon';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { LogoWordmark } from '@/components/Logo';
+import { Alert } from '@/lib/dialog';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -161,7 +162,10 @@ export default function LoginScreen() {
             {googleLoading ? (
               <ActivityIndicator color={colors.text} />
             ) : (
-              <Text style={[styles.oauthBtnText, { color: colors.text }]}>{L.googleBtn}</Text>
+              <>
+                <GoogleIcon />
+                <Text style={[styles.oauthBtnText, { color: colors.text }]}>{L.googleBtn}</Text>
+              </>
             )}
           </TouchableOpacity>
         )}
@@ -244,7 +248,7 @@ const styles = StyleSheet.create({
   inner: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, width: '100%', maxWidth: 520, alignSelf: 'center' },
   subtitle: { fontSize: 16, textAlign: 'center', marginBottom: 28 },
   oauthBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
     borderWidth: 1, borderRadius: 14,
     padding: 14, marginBottom: 10,
   },

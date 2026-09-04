@@ -9,7 +9,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  Alert,
   Linking,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -24,6 +23,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import type { ThemeColors } from '@/contexts/ThemeContext';
 import { track, AnalyticsEvent } from '@/lib/analytics';
 import { useConfig } from '@/lib/useConfig';
+import { Alert } from '@/lib/dialog';
 
 function ChipGroup<T extends string>({
   options, value, onChange, getLabel, getValue, colors,

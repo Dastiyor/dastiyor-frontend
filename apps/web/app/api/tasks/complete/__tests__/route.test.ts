@@ -231,4 +231,30 @@ describe('/api/tasks/complete', () => {
             url: '/tasks/task-1',
         }));
     });
+    it('marks the accepted response COMPLETED so the provider stops seeing "Accepted"', async () => {
+        const mockTask = {
+            id: 'task-1', userId: mockUserId, title: 'Job', status: 'IN_PROGRESS',
+            assignedUserId: 'provider-1', budgetType: 'fixed', budgetAmount: '150',
+        };
+        (prismaMock.task.findUnique as jest.Mock)
+            .mockResolvedValueOnce(mockTask)
+            .mockResolvedValueOnce({ ...mockTask, status: 'COMPLETED' });
+        (prismaMock.$transaction as jest.Mock).mockImplementation(async (fn: (tx: typeof prismaMock) => Promise<unknown>) => {
+            (prismaMock.task.updateMany as jest.Mock).mockResolvedValue({ count: 1 });
+            (prismaMock.response.updateMany as jest.Mock).mockResolvedValue({ count: 1 });
+            (prismaMock.user.update as jest.Mock).mockResolvedValue({});
+            return fn(prismaMock);
+        });
+        (prismaMock.notification.create as jest.Mock).mockResolvedValue({});
+        (prismaMock.user.findUnique as jest.Mock).mockResolvedValue({ email: 'p@x.com' });
+
+        await POST(new NextRequest('http://localhost/api/tasks/complete', {
+            method: 'POST', body: JSON.stringify({ taskId: 'task-1' }),
+        }));
+
+        expect(prismaMock.response.updateMany).toHaveBeenCalledWith({
+            where: { taskId: 'task-1', userId: 'provider-1', status: 'ACCEPTED' },
+            data: { status: 'COMPLETED' },
+        });
+    });
 });

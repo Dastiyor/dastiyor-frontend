@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react';
 import {
-  Alert,
   View,
   Text,
   FlatList,
@@ -19,6 +18,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { Avatar } from '@/components/Avatar';
 import { useToast } from '@/contexts/ToastContext';
 import type { Conversation } from '@dastiyor/types';
+import { Alert } from '@/lib/dialog';
 
 export default function MessagesScreen() {
   const { t } = useLanguage();

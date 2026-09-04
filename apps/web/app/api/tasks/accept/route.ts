@@ -74,6 +74,13 @@ export async function POST(request: Request) {
                     where: { id: providerResponse.id },
                     data: { status: 'ACCEPTED' },
                 });
+                // The task can only be assigned once, so every other bid is out.
+                // Leaving them PENDING told those providers they were still in
+                // the running, and kept the customer's accept/reject buttons up.
+                await tx.response.updateMany({
+                    where: { taskId, status: 'PENDING' },
+                    data: { status: 'REJECTED' },
+                });
                 await tx.notification.create({
                     data: {
                         userId: providerId,

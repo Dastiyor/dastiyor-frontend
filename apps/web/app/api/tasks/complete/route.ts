@@ -61,6 +61,15 @@ export async function POST(request: Request) {
                 if (claim.count === 0) {
                     throw new Error('TASK_NOT_IN_PROGRESS');
                 }
+                // The provider's own list shows the response status, not the
+                // task status — without this a finished job still reads
+                // "Accepted" on their side.
+                if (task.assignedUserId) {
+                    await tx.response.updateMany({
+                        where: { taskId, userId: task.assignedUserId, status: 'ACCEPTED' },
+                        data: { status: 'COMPLETED' },
+                    });
+                }
                 if (task.assignedUserId && balanceIncrement > 0) {
                     await tx.user.update({
                         where: { id: task.assignedUserId },

@@ -8,7 +8,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  Alert,
   ScrollView,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -21,6 +20,7 @@ import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { LogoWordmark } from '@/components/Logo';
+import { Alert } from '@/lib/dialog';
 
 export default function ForgotPasswordScreen() {
   const { t } = useLanguage();

@@ -1,3 +1,4 @@
+import { Keyboard } from 'react-native';
 import { router } from 'expo-router';
 import { goBack } from '@/lib/nav';
 
@@ -23,5 +24,16 @@ describe('goBack', () => {
 
     expect(mockRouter.back).not.toHaveBeenCalled();
     expect(mockRouter.replace).toHaveBeenCalledWith('/(tabs)');
+  });
+
+  it('drops the keyboard before the transition', () => {
+    // iOS strands the screen underneath if a modal is torn down while the
+    // keyboard still holds first responder -- its back button goes dead.
+    const dismiss = jest.spyOn(Keyboard, 'dismiss');
+    (mockRouter.canGoBack as jest.Mock).mockReturnValue(true);
+
+    goBack();
+
+    expect(dismiss).toHaveBeenCalled();
   });
 });

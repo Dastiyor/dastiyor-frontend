@@ -8,7 +8,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  Alert,
   ScrollView,
 } from 'react-native';
 import { Link, router } from 'expo-router';
@@ -17,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardOffset } from '@/lib/useKeyboardOffset';
 import { useKeyboardAwareScroll } from '@/lib/useKeyboardAwareScroll';
 import { AuthBackground } from '@/components/AuthBackground';
+import { GoogleIcon } from '@/components/GoogleIcon';
 import * as storage from '@/lib/storage';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
@@ -30,6 +30,7 @@ import { LogoWordmark } from '@/components/Logo';
 import { openPrivacyPolicy, openTermsOfService } from '@/lib/legal';
 import { passwordStrength } from '@/lib/validation';
 import type { Locale } from '@/lib/i18n';
+import { Alert } from '@/lib/dialog';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -217,7 +218,7 @@ export default function RegisterScreen() {
           >
             {googleLoading
               ? <ActivityIndicator color={colors.text} />
-              : <Text style={[styles.oauthBtnText, { color: colors.text }]}>{googleBtnLabel}</Text>}
+              : <><GoogleIcon /><Text style={[styles.oauthBtnText, { color: colors.text }]}>{googleBtnLabel}</Text></>}
           </TouchableOpacity>
         )}
         {isAppleAvailable && (
@@ -373,7 +374,7 @@ const styles = StyleSheet.create({
 
   /* OAuth */
   oauthBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
     borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12,
     padding: 14, backgroundColor: '#fff', marginBottom: 10,
   },

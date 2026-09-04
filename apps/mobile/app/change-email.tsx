@@ -8,7 +8,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  Alert,
   View,
 } from 'react-native';
 import { goBack } from '@/lib/nav';
@@ -20,6 +19,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PasswordInput } from '@/components/PasswordInput';
 import { useTheme } from '@/contexts/ThemeContext';
+import { Alert } from '@/lib/dialog';
 
 interface ProfileSnapshot {
   fullName: string;

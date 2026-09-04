@@ -105,11 +105,24 @@ export default async function ProviderDashboard() {
 
     const responseStats = {
         pending: responses.filter(r => r.status === 'PENDING').length,
-        accepted: responses.filter(r => r.status === 'ACCEPTED').length,
+        accepted: responses.filter(r => r.status === 'ACCEPTED' || r.status === 'COMPLETED').length,
         rejected: responses.filter(r => r.status === 'REJECTED').length
     };
 
-    const { t, tr } = await getServerTranslation();
+    const { t, tr, locale } = await getServerTranslation();
+
+    // Was `${minutes}m ago` -- English in a Russian UI, and unbounded, so a
+    // day-old task read "1440m ago".
+    const relativeTime = (value: Date | string) => {
+        // eslint-disable-next-line react-hooks/purity
+        const mins = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 60000));
+        if (mins < 1) return t('notifications.justNow');
+        if (mins < 60) return t('notifications.minutesAgo', { count: mins });
+        const hours = Math.floor(mins / 60);
+        if (hours < 24) return t('notifications.hoursAgo', { count: hours });
+        return new Date(value).toLocaleDateString(locale === 'tj' ? 'tg-TJ' : 'ru-RU', { month: 'short', day: 'numeric' });
+    };
+
     const accentColor = 'var(--primary)';
     const accentColorLight = '#DBEAFE';
 
@@ -422,8 +435,7 @@ export default async function ProviderDashboard() {
                                                 {task.title}
                                             </div>
                                             <span style={{ fontSize: '0.7rem', color: '#94A3B8' }}>
-                                                {/* eslint-disable-next-line react-hooks/purity */}
-                                                {Math.floor((Date.now() - new Date(task.createdAt).getTime()) / 60000)}m ago
+                                                {relativeTime(task.createdAt)}
                                             </span>
                                         </div>
                                         <div style={{ fontSize: '0.75rem', color: '#64748B', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '4px' }}>

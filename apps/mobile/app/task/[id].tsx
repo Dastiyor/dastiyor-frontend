@@ -6,7 +6,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   AppState,
   RefreshControl,
 } from 'react-native';
@@ -21,6 +20,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { timeAgo } from '@/lib/timeAgo';
 import { TASK_POLL_MS } from '@/lib/constants';
 import type { TaskDetail, TaskResponse, MyResponse } from '@dastiyor/types';
+import { Alert } from '@/lib/dialog';
 
 export default function TaskDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -299,14 +299,18 @@ export default function TaskDetailScreen() {
                       </View>
                     ) : null}
                   </View>
-                  <TouchableOpacity
-                    style={styles.messageBtn}
-                    onPress={() => router.push({ pathname: '/chat/[partnerId]', params: { partnerId: r.provider.id, partnerName: r.provider.fullName, taskId: task.id } })}
-                    accessibilityRole="button"
-                  >
-                    <Ionicons name="chatbubble-outline" size={15} color="#2563EB" />
-                    <Text style={styles.messageBtnText}>{t.provider.chat}</Text>
-                  </TouchableOpacity>
+                  {/* Chatting is for deciding (task still open) or for the
+                      provider actually doing the job -- not for bids that lost. */}
+                  {task.status === 'OPEN' || r.status === 'ACCEPTED' || r.status === 'COMPLETED' ? (
+                    <TouchableOpacity
+                      style={styles.messageBtn}
+                      onPress={() => router.push({ pathname: '/chat/[partnerId]', params: { partnerId: r.provider.id, partnerName: r.provider.fullName, taskId: task.id } })}
+                      accessibilityRole="button"
+                    >
+                      <Ionicons name="chatbubble-outline" size={15} color="#2563EB" />
+                      <Text style={styles.messageBtnText}>{t.provider.chat}</Text>
+                    </TouchableOpacity>
+                  ) : null}
                   {r.status === 'PENDING' && task.status === 'OPEN' ? (
                     <View style={styles.responseActions}>
                       <TouchableOpacity style={[styles.rejectBtn, busy && styles.btnBusy]} onPress={() => handleReject(r)} disabled={!!actionLoading}>

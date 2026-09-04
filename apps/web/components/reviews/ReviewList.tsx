@@ -36,7 +36,10 @@ function getReviewPlural(count: number, t: (key: string) => string): string {
 }
 
 export default async function ReviewList({ reviews, stats }: Props) {
-    const { t } = await getServerTranslation();
+    const { t, locale } = await getServerTranslation();
+    // Server-rendered: without an explicit locale this formats in the server's,
+    // which on Vercel is en-US/UTC -- a wrong day for anyone near midnight.
+    const dateLocale = locale === 'tj' ? 'tg-TJ' : 'ru-RU';
     const renderStars = (rating: number) => {
         return (
             <span style={{ color: '#fbbf24' }}>
@@ -155,7 +158,7 @@ export default async function ReviewList({ reviews, stats }: Props) {
                                     </div>
                                 </div>
                                 <div style={{ textAlign: 'right', color: 'var(--text-light)', fontSize: '0.9rem' }}>
-                                    {new Date(review.createdAt).toLocaleDateString()}
+                                    {new Date(review.createdAt).toLocaleDateString(dateLocale)}
                                 </div>
                             </div>
 

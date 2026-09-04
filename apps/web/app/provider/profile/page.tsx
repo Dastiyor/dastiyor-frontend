@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { User, Mail, Phone, MapPin, Star, Calendar, Edit, Briefcase } from 'lucide-react';
 import { getServerTranslation } from '@/lib/i18n/server';
+import ReviewList from '@/components/reviews/ReviewList';
 
 export default async function ProfilePage() {
     const { t, locale } = await getServerTranslation();
@@ -34,8 +35,12 @@ export default async function ProfilePage() {
     // Get stats
     const [reviews, completedTasks, activeTasks] = await Promise.all([
         prisma.review.findMany({
-            where: { reviewedId: user.id },
-            select: { rating: true }
+            where: { reviewedId: user.id, hidden: false },
+            orderBy: { createdAt: 'desc' },
+            include: {
+                reviewer: { select: { id: true, fullName: true } },
+                task: { select: { id: true, title: true, category: true } },
+            },
         }),
         prisma.task.count({
             where: { assignedUserId: user.id, status: 'COMPLETED' }
@@ -47,6 +52,13 @@ export default async function ProfilePage() {
 
     const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);
     const averageRating = reviews.length > 0 ? (totalRating / reviews.length).toFixed(1) : '0.0';
+    const breakdown: Record<number, number> = {
+        5: reviews.filter(r => r.rating === 5).length,
+        4: reviews.filter(r => r.rating === 4).length,
+        3: reviews.filter(r => r.rating === 3).length,
+        2: reviews.filter(r => r.rating === 2).length,
+        1: reviews.filter(r => r.rating === 1).length,
+    };
 
     const accentColor = 'var(--primary)';
     const dateLocale = locale === 'tj' ? 'tg-TJ' : 'ru-RU';
@@ -187,6 +199,18 @@ export default async function ProfilePage() {
                     </div>
                 </div>
             )}
+            {/* Reviews -- the rating counter alone gave no way to read what
+                customers actually wrote. */}
+            <div style={{ marginTop: '24px' }}>
+                <h3 style={{ fontSize: '1rem', fontWeight: '700', color: '#1E293B', marginBottom: '16px' }}>
+                    {t('reviews_page.reviewsTitle')} ({reviews.length})
+                </h3>
+                <ReviewList
+                    reviews={reviews}
+                    stats={{ totalReviews: reviews.length, averageRating: Number(averageRating), breakdown }}
+                />
+            </div>
+
             <style>{`
                 @media (max-width: 640px) {
                     .prov-profile-stats { grid-template-columns: repeat(2, 1fr) !important; }

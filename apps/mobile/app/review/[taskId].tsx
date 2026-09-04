@@ -9,7 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  Alert,
+  Keyboard,
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { goBack } from '@/lib/nav';
@@ -20,6 +20,7 @@ import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useToast } from '@/contexts/ToastContext';
+import { Alert } from '@/lib/dialog';
 
 const STARS = [1, 2, 3, 4, 5];
 
@@ -37,6 +38,8 @@ export default function ReviewScreen() {
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit() {
+    // Down before the request, not after it -- see lib/nav.ts.
+    Keyboard.dismiss();
     if (rating === 0) { Alert.alert(t.common.error, rv.errRating); return; }
     setLoading(true);
     try {

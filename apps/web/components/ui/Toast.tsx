@@ -164,18 +164,3 @@ export const toast = {
     info: (message: string, duration?: number) => showToast(message, 'info', duration),
     warning: (message: string, duration?: number) => showToast(message, 'warning', duration),
 };
-
-// Confirmation dialog replacement
-export function confirmAction(
-    message: string,
-    onConfirm: () => void,
-    onCancel?: () => void
-): void {
-    if (typeof window !== 'undefined' && window.confirm) {
-        if (window.confirm(message)) {
-            onConfirm();
-        } else {
-            onCancel?.();
-        }
-    }
-}

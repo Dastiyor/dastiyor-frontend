@@ -48,7 +48,7 @@ export default async function MyResponsesPage() {
     const stats = {
         total: responses.length,
         pending: responses.filter(r => r.status === 'PENDING').length,
-        accepted: responses.filter(r => r.status === 'ACCEPTED').length,
+        accepted: responses.filter(r => r.status === 'ACCEPTED' || r.status === 'COMPLETED').length,
         rejected: responses.filter(r => r.status === 'REJECTED').length,
     };
 
@@ -57,6 +57,8 @@ export default async function MyResponsesPage() {
 
     const getStatusInfo = (status: string) => {
         switch (status) {
+            case 'COMPLETED':
+                return { text: t('provider.completedStatus'), color: '#475569', bg: '#E2E8F0', icon: <CheckCircle size={16} color="#475569" /> };
             case 'ACCEPTED':
                 return { text: t('provider.accepted'), color: '#10B981', bg: '#D1FAE5', icon: <CheckCircle size={16} color="#10B981" /> };
             case 'REJECTED':

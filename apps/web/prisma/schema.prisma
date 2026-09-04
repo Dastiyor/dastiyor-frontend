@@ -123,7 +123,7 @@ model Response {
   price         String
   priceNum      Int? // Numeric price (TJS) for sorting/filtering
   estimatedTime String? // Estimated completion time (e.g., "2 hours", "1 day")
-  status        String   @default("PENDING") // PENDING, ACCEPTED, REJECTED
+  status        String   @default("PENDING") // PENDING, ACCEPTED, REJECTED, COMPLETED
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

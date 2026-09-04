@@ -7,7 +7,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  Alert,
 } from 'react-native';
 import { goBack } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -18,6 +17,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { PasswordInput } from '@/components/PasswordInput';
 import { useTheme } from '@/contexts/ThemeContext';
 import { passwordStrength } from '@/lib/validation';
+import { Alert } from '@/lib/dialog';
 
 export default function ChangePasswordScreen() {
   const { t } = useLanguage();

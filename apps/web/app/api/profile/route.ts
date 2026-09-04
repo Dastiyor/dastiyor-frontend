@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { logAction, getRequestIP } from '@/lib/audit';
 import { requireAuth } from '@/lib/require-auth';
-import { sanitizeString } from '@/lib/validation';
+import { sanitizeString, isValidPhone, normalizePhone } from '@/lib/validation';
 import { isSafeAvatarUrl } from '@/lib/avatar-url';
 
 // GET - Get current user profile
@@ -98,6 +98,57 @@ export async function PUT(request: Request) {
             newEmail = trimmed;
         }
 
+        // A phone set here gets the same rules as one set through the OTP flow.
+        // It used to be written raw: no format check, and no check that another
+        // account already had it. `phone` is a login identifier -- login resolves
+        // it with findFirst -- so two accounts sharing a number makes which one
+        // you reach arbitrary.
+        //
+        // Changing the number also clears phoneVerified. Verification belongs to
+        // a specific number, and only POST /api/auth/verify-phone can grant it;
+        // without this, verifying one number and then editing to another would
+        // carry the verified flag onto a number nobody confirmed. Re-saving the
+        // same number leaves the flag alone, so an unrelated profile edit does
+        // not force someone to verify again.
+        let phoneUpdate: { phone: string | null; phoneVerified?: boolean } | undefined;
+        if (phone !== undefined) {
+            const rawPhone = typeof phone === 'string' ? phone.trim() : '';
+
+            if (rawPhone === '') {
+                phoneUpdate = { phone: null, phoneVerified: false };
+            } else {
+                if (!isValidPhone(rawPhone)) {
+                    return NextResponse.json(
+                        { error: 'Неверный формат номера. Используйте +992XXXXXXXXX' },
+                        { status: 400 }
+                    );
+                }
+
+                const normalized = normalizePhone(rawPhone);
+
+                const phoneOwner = await prisma.user.findFirst({
+                    where: { phone: normalized, NOT: { id: payload.id as string } },
+                    select: { id: true },
+                });
+                if (phoneOwner) {
+                    return NextResponse.json(
+                        { error: 'Этот номер телефона уже используется другим аккаунтом' },
+                        { status: 409 }
+                    );
+                }
+
+                const current = await prisma.user.findUnique({
+                    where: { id: payload.id as string },
+                    select: { phone: true },
+                });
+                phoneUpdate = {
+                    phone: normalized,
+                    // undefined leaves the column untouched when nothing changed.
+                    phoneVerified: current?.phone === normalized ? undefined : false,
+                };
+            }
+        }
+
         // Avatar must live on storage we control -- an arbitrary https host would
         // be fetched by everyone who views this profile.
         let safeAvatar: string | null = null;
@@ -117,7 +168,7 @@ export async function PUT(request: Request) {
                 // number, and since phone-registered users log in with it, that
                 // locked them out of their own account for good. Send an explicit
                 // empty string to clear a field on purpose.
-                ...(phone !== undefined ? { phone: phone?.trim() || null } : {}),
+                ...(phoneUpdate ?? {}),
                 ...(bio !== undefined ? { bio: bio ? sanitizeString(bio.trim()) : null } : {}),
                 ...(skills !== undefined ? { skills: skills ? sanitizeString(skills.trim()) : null } : {}),
                 ...(avatar !== undefined ? { avatar: safeAvatar } : {}),

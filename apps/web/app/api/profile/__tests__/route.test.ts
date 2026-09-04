@@ -162,6 +162,71 @@ describe('/api/profile', () => {
             expect(updateCall.data.bio).toBeNull();
         });
 
+        describe('phone', () => {
+            it('rejects a malformed number', async () => {
+                const response = await PUT(makeRequest({ fullName: 'Ali', phone: '12345' }));
+
+                expect(response.status).toBe(400);
+                expect(prismaMock.user.update).not.toHaveBeenCalled();
+            });
+
+            it('rejects a number another account already owns', async () => {
+                (prismaMock.user.findFirst as jest.Mock).mockResolvedValue({ id: 'someone-else' });
+
+                const response = await PUT(makeRequest({ fullName: 'Ali', phone: '+992901234567' }));
+                const data = await response.json();
+
+                // phone is a login identifier, resolved with findFirst -- duplicates
+                // make it arbitrary which account a phone login reaches.
+                expect(response.status).toBe(409);
+                expect(data.error).toContain('уже используется другим аккаунтом');
+                expect(prismaMock.user.update).not.toHaveBeenCalled();
+            });
+
+            it('normalizes a local 9-digit number to E.164', async () => {
+                (prismaMock.user.findFirst as jest.Mock).mockResolvedValue(null);
+                (prismaMock.user.findUnique as jest.Mock).mockResolvedValue({ phone: null });
+                prismaMock.user.update.mockResolvedValue(mockUser as any);
+
+                await PUT(makeRequest({ fullName: 'Ali', phone: '901234567' }));
+
+                expect(prismaMock.user.update.mock.calls[0][0].data.phone).toBe('+992901234567');
+            });
+
+            it('clears phoneVerified when the number changes', async () => {
+                (prismaMock.user.findFirst as jest.Mock).mockResolvedValue(null);
+                (prismaMock.user.findUnique as jest.Mock).mockResolvedValue({ phone: '+992900000000' });
+                prismaMock.user.update.mockResolvedValue(mockUser as any);
+
+                await PUT(makeRequest({ fullName: 'Ali', phone: '+992901234567' }));
+
+                // Verification belongs to a specific number; only the OTP route grants it.
+                expect(prismaMock.user.update.mock.calls[0][0].data.phoneVerified).toBe(false);
+            });
+
+            it('leaves phoneVerified alone when the same number is re-saved', async () => {
+                (prismaMock.user.findFirst as jest.Mock).mockResolvedValue(null);
+                (prismaMock.user.findUnique as jest.Mock).mockResolvedValue({ phone: '+992901234567' });
+                prismaMock.user.update.mockResolvedValue(mockUser as any);
+
+                // An unrelated profile edit resubmits the existing number; that must
+                // not force the user to verify again.
+                await PUT(makeRequest({ fullName: 'Ali', phone: '+992901234567' }));
+
+                expect(prismaMock.user.update.mock.calls[0][0].data.phoneVerified).toBeUndefined();
+            });
+
+            it('clears phoneVerified when the number is removed', async () => {
+                prismaMock.user.update.mockResolvedValue(mockUser as any);
+
+                await PUT(makeRequest({ fullName: 'Ali', phone: '' }));
+
+                const data = prismaMock.user.update.mock.calls[0][0].data;
+                expect(data.phone).toBeNull();
+                expect(data.phoneVerified).toBe(false);
+            });
+        });
+
         it('leaves phone, bio and skills untouched when omitted', async () => {
             prismaMock.user.update.mockResolvedValue(mockUser as any);
 

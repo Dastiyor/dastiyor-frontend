@@ -39,6 +39,7 @@ describe('/api/responses', () => {
         (prismaMock.user.findUnique as jest.Mock).mockResolvedValue({
             id: mockUserId,
             role: 'PROVIDER',
+            phoneVerified: true,
         });
         (prismaMock.subscription.findUnique as jest.Mock).mockResolvedValue({
             isActive: true,
@@ -149,6 +150,25 @@ describe('/api/responses', () => {
             expect(response.status).toBe(403);
             expect(data.error).toContain('Откликаться на задания могут только исполнители');
             expect(data.code).toBe('PROVIDER_REQUIRED');
+        });
+
+        it('should return 403 if the provider has not verified a phone number', async () => {
+            (prismaMock.user.findUnique as jest.Mock).mockResolvedValue({
+                id: mockUserId,
+                role: 'PROVIDER',
+                phoneVerified: false,
+            });
+
+            const request = new NextRequest('http://localhost/api/responses', {
+                method: 'POST',
+                body: JSON.stringify({ taskId: 'task-1', message: 'I can help', price: '500' }),
+            });
+
+            const response = await POST(request);
+            const data = await response.json();
+
+            expect(response.status).toBe(403);
+            expect(data.code).toBe('PHONE_VERIFICATION_REQUIRED');
         });
 
         it.skip('should return 403 if provider has no active subscription', async () => {

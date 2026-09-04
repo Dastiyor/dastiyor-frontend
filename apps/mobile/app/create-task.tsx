@@ -10,7 +10,9 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  Linking,
 } from 'react-native';
+import { router } from 'expo-router';
 import { goBack } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardOffset } from '@/lib/useKeyboardOffset';
@@ -123,7 +125,11 @@ export default function CreateTaskScreen() {
       const err = e as { code?: string; message: string };
       const msg = err.message ?? '';
       if (err.code === 'PHONE_VERIFICATION_REQUIRED' || msg.includes('PHONE_VERIFICATION')) {
-        Alert.alert(t.phoneVerify.required, t.phoneVerify.message);
+        Alert.alert(t.phoneVerify.required, t.phoneVerify.message, [
+          { text: t.common.cancel, style: 'cancel' },
+          { text: t.phoneVerify.openWebsite, onPress: () => { Linking.openURL('https://www.dastiyor.com/verify-phone').catch(() => {}); } },
+          { text: t.phoneVerify.verifyNow, onPress: () => router.push('/verify-phone?returnTo=/create-task') },
+        ]);
       } else {
         Alert.alert(t.common.error, msg);
       }

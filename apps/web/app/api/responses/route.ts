@@ -44,7 +44,7 @@ export async function POST(request: Request) {
             );
         }
 
-        // OAuth registrants must verify a phone number before responding to tasks
+        // Every user must verify a phone number before responding to tasks
         if (needsPhoneVerification(user)) {
             return NextResponse.json(
                 { error: 'Подтвердите номер телефона, чтобы откликаться на задания', code: PHONE_VERIFICATION_REQUIRED },

@@ -1,20 +1,16 @@
 /**
- * Verified-phone gate for OAuth registrants.
+ * Verified-phone gate.
  *
- * Users who registered via Google/Apple have no password and no phone number on file.
- * Before they can post or accept tasks they must add and verify a phone number
- * (via /verify-phone → POST /api/auth/verify-phone).
+ * Every user must verify a phone number by SMS before they can post a task or
+ * respond to one. `phoneVerified` is set in exactly one place --
+ * POST /api/auth/verify-phone, after a valid OTP -- so a number typed into the
+ * profile form is deliberately not enough.
  *
- * Password-based accounts already provide a phone at registration and are unaffected.
+ * Clients route to the verify flow on the PHONE_VERIFICATION_REQUIRED code:
+ * /verify-phone on web, the verify-phone screen on mobile.
  */
-export function needsPhoneVerification(user: {
-    password: string | null;
-    googleId: string | null;
-    appleId: string | null;
-    phoneVerified: boolean;
-}): boolean {
-    const isOAuthOnly = !user.password && (Boolean(user.googleId) || Boolean(user.appleId));
-    return isOAuthOnly && !user.phoneVerified;
+export function needsPhoneVerification(user: { phoneVerified: boolean }): boolean {
+    return !user.phoneVerified;
 }
 
 /** Machine-readable code returned to clients so they can route to the verify-phone flow. */

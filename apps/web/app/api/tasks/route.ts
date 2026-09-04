@@ -132,10 +132,10 @@ export async function POST(request: Request) {
             return rateLimitExceededResponse(rateLimitCheck.resetIn);
         }
 
-        // OAuth registrants must verify a phone number before posting tasks
+        // Every user must verify a phone number before posting tasks
         const author = await prisma.user.findUnique({
             where: { id: payload.id as string },
-            select: { password: true, googleId: true, appleId: true, phoneVerified: true },
+            select: { phoneVerified: true },
         });
         if (!author) {
             return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });

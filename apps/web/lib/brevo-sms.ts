@@ -36,7 +36,12 @@ export const sendSMS = async ({ recipient, body }: SendSMSParams) => {
     const smsName = process.env.BREVO_SMS_SENDER || 'Dastiyor';
 
     try {
-        const response = await client.transactionalSms.sendTransacSms({
+        // sendAsyncTransactionalSms -> POST /v3/transactionalSMS/send, the documented
+        // endpoint. Do NOT switch to sendTransacSms: despite the friendlier name it
+        // posts to /v3/transactionalSMS/sms, which answers every request with
+        // 400 "No sms related addons are found for the given organization" -- an
+        // error about the endpoint, not about the account.
+        const response = await client.transactionalSms.sendAsyncTransactionalSms({
             sender: smsName,
             recipient: recipient,
             content: body,
@@ -44,11 +49,8 @@ export const sendSMS = async ({ recipient, body }: SendSMSParams) => {
             unicodeEnabled: true,
         } as unknown as Parameters<typeof client.transactionalSms.sendTransacSms>[0]); // 'content' is required by the API but missing from SDK types
 
-        console.log('Brevo SMS sent successfully:', {
-            messageId: response.messageId,
-            reference: response.reference,
-            remainingCredits: response.remainingCredits,
-        });
+        // /transactionalSMS/send returns messageId only -- no reference or credit count.
+        console.log('Brevo SMS sent successfully:', { messageId: response.messageId });
 
         return response;
     } catch (error) {

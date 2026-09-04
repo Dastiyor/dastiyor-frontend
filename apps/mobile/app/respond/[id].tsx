@@ -10,8 +10,9 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Linking,
 } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { goBack } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardOffset } from '@/lib/useKeyboardOffset';
@@ -49,7 +50,11 @@ export default function RespondScreen() {
       const msg = err.message ?? '';
       // Prefer the typed error code; fall back to legacy string matching.
       if (err.code === 'PHONE_VERIFICATION_REQUIRED' || msg.includes('PHONE_VERIFICATION')) {
-        Alert.alert(t.phoneVerify.required, t.phoneVerify.message);
+        Alert.alert(t.phoneVerify.required, t.phoneVerify.message, [
+          { text: t.common.cancel, style: 'cancel' },
+          { text: t.phoneVerify.openWebsite, onPress: () => { Linking.openURL('https://www.dastiyor.com/verify-phone').catch(() => {}); } },
+          { text: t.phoneVerify.verifyNow, onPress: () => router.push('/verify-phone') },
+        ]);
       } else if (
         err.code === 'SUBSCRIPTION_REQUIRED' ||
         msg.includes('subscription') || msg.includes('SUBSCRIPTION') || msg.includes('подписк')

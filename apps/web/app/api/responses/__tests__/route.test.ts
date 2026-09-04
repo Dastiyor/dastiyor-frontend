@@ -54,6 +54,7 @@ describe('/api/responses', () => {
 
     afterEach(() => {
         delete process.env.SUBSCRIPTION_GATE_ENABLED;
+        delete process.env.PHONE_VERIFICATION_ENABLED;
     });
 
     // GET responses lives at /api/tasks/[id]/responses — tested in tasks/[id]/responses/__tests__/route.test.ts
@@ -153,6 +154,8 @@ describe('/api/responses', () => {
         });
 
         it('should return 403 if the provider has not verified a phone number', async () => {
+            // The gate is off by default; this asserts the behaviour when it is on.
+            process.env.PHONE_VERIFICATION_ENABLED = 'true';
             (prismaMock.user.findUnique as jest.Mock).mockResolvedValue({
                 id: mockUserId,
                 role: 'PROVIDER',

@@ -27,6 +27,22 @@ export async function POST(request: Request) {
 
         const normalizedPhone = normalizePhone(String(phone));
 
+        // One designated number gets a fixed code and no SMS. App Store and Play
+        // reviewers cannot receive a Tajik SMS, so store review needs this either
+        // way; it also unblocks QA while SMS credits are pending.
+        //
+        // This does NOT weaken verification: /api/auth/verify-phone still requires
+        // the stored code, unexpired and unused, and still refuses a number owned
+        // by another account. All this changes is where the code comes from and
+        // that no SMS is sent, for one number. Inert unless BOTH env vars are set.
+        // Point SMS_TEST_PHONE at a number the team controls, never a real user's,
+        // and unset both once SMS delivery is proven.
+        const testPhone = process.env.SMS_TEST_PHONE;
+        const testCode = process.env.SMS_TEST_CODE;
+        const isTestPhone =
+            Boolean(testPhone) && Boolean(testCode) &&
+            normalizedPhone === normalizePhone(testPhone as string);
+
         // 1. IP-based rate limiting
         const clientIP = getClientIP(request);
         const ipLimit = await checkRateLimit(clientIP, 'auth');
@@ -34,17 +50,20 @@ export async function POST(request: Request) {
             return rateLimitExceededResponse(ipLimit.resetIn);
         }
 
-        // 2. Phone-based SMS rate limiting
-        const phoneLimit = await checkRateLimit(normalizedPhone, 'sms');
-        if (!phoneLimit.allowed) {
-            return NextResponse.json(
-                { error: 'Слишком много запросов SMS. Попробуйте через 15 минут.' },
-                { status: 429 }
-            );
+        // 2. Phone-based SMS rate limiting. The test number sends no SMS, and this
+        // limit exists to cap SMS spend, so applying it there only blocks retesting.
+        if (!isTestPhone) {
+            const phoneLimit = await checkRateLimit(normalizedPhone, 'sms');
+            if (!phoneLimit.allowed) {
+                return NextResponse.json(
+                    { error: 'Слишком много запросов SMS. Попробуйте через 15 минут.' },
+                    { status: 429 }
+                );
+            }
         }
 
         // Generate 6-digit code
-        const code = crypto.randomInt(100000, 999999).toString();
+        const code = isTestPhone ? (testCode as string) : crypto.randomInt(100000, 999999).toString();
         const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
         // Delete existing codes for this phone/type to prevent clutter
@@ -56,14 +75,16 @@ export async function POST(request: Request) {
             data: { phone: normalizedPhone, code, type, expiresAt }
         });
 
-        // Send SMS
-        const sent = await sendVerificationCode(normalizedPhone, code);
+        // Send SMS -- skipped for the test number, whose code is already known.
+        if (!isTestPhone) {
+            const sent = await sendVerificationCode(normalizedPhone, code);
 
-        if (!sent) {
-            return NextResponse.json(
-                { error: 'Не удалось отправить SMS' },
-                { status: 500 }
-            );
+            if (!sent) {
+                return NextResponse.json(
+                    { error: 'Не удалось отправить SMS' },
+                    { status: 500 }
+                );
+            }
         }
 
         return NextResponse.json({ success: true, message: 'OTP sent successfully' });

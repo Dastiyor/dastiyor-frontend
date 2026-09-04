@@ -10,3 +10,20 @@
  */
 export const SUBSCRIPTIONS_ENABLED =
     process.env.NEXT_PUBLIC_SUBSCRIPTIONS_ENABLED === 'true';
+
+/**
+ * Verified-phone gate, off by default — every OTP costs money and the per-SMS
+ * economics are unsettled.
+ *
+ * While off, nobody is asked to verify and posting/responding work as before.
+ * The whole flow stays live and reachable behind it: /verify-phone on web, the
+ * verify-phone screen on mobile, /api/auth/verify-send and /api/auth/verify-phone.
+ * Don't delete any of it as dead code.
+ *
+ * Set PHONE_VERIFICATION_ENABLED=true to require a verified phone before posting
+ * a task or responding to one. Read at call time rather than module load so the
+ * value can be flipped per environment and asserted in tests.
+ */
+export function isPhoneVerificationEnabled(): boolean {
+    return process.env.PHONE_VERIFICATION_ENABLED === 'true';
+}

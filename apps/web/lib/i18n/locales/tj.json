@@ -465,7 +465,7 @@
     "sendResponseHeading": "Фиристодани ҷавоб",
     "yourPriceLabel": "Нархи шумо (сом.)",
     "estimatedTimeLabel": "Вақти тахминии иҷро (ихтиёрӣ)",
-    "estimatedTimePlaceholder": "масалан: 2 соат, 1 рӯз, 3-5 рӯз",
+    "estimatedTimeNone": "Нишон дода нашудааст",
     "responseMessagePlaceholder": "Тавсиф кунед, чаро шумо барои ин вазифа мувофиқед...",
     "submitOffer": "Фиристодани пешниҳод",
     "responding": "Фиристода мешавад...",

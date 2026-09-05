@@ -2,7 +2,9 @@ export type UserRole = 'CUSTOMER' | 'PROVIDER' | 'ADMIN';
 
 export type TaskStatus = 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
 
-export type ResponseStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED';
+// COMPLETED is set when the customer finishes the task, so the provider's
+// own list stops reading 'Accepted' for a job that is already done.
+export type ResponseStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'COMPLETED';
 
 export interface ApiUser {
   id: string;

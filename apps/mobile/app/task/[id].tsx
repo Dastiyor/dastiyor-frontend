@@ -297,7 +297,7 @@ export default function TaskDetailScreen() {
                     {r.estimatedTime ? (
                       <View style={styles.metaItem}>
                         <Ionicons name="time-outline" size={13} color={colors.textSecondary} />
-                        <Text style={[styles.responseTime, { color: colors.textSecondary }]}>{r.estimatedTime}</Text>
+                        <Text style={[styles.responseTime, { color: colors.textSecondary }]}>{tr(r.estimatedTime)}</Text>
                       </View>
                     ) : null}
                   </View>
@@ -378,7 +378,7 @@ export default function TaskDetailScreen() {
 
         {isOwner && task.status === 'COMPLETED' && !task.hasReview ? (
           <TouchableOpacity style={styles.reviewBtn} onPress={() => {
-            const accepted = responses.find((r) => r.status === 'ACCEPTED');
+            const accepted = responses.find((r) => r.status === 'ACCEPTED' || r.status === 'COMPLETED');
             if (!accepted) {
               Alert.alert(t.common.error, tk.noResponses);
               return;
@@ -409,7 +409,7 @@ export default function TaskDetailScreen() {
               {myResponse.estimatedTime ? (
                 <View style={styles.metaItem}>
                   <Ionicons name="time-outline" size={13} color={colors.textSecondary} />
-                  <Text style={[styles.responseTime, { color: colors.textSecondary }]}>{myResponse.estimatedTime}</Text>
+                  <Text style={[styles.responseTime, { color: colors.textSecondary }]}>{tr(myResponse.estimatedTime)}</Text>
                 </View>
               ) : null}
             </View>

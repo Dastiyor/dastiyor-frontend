@@ -34,6 +34,14 @@ const TJ: Record<string, string> = {
     'Вахш': 'Вахш',
     'Онлайн': 'Онлайн',
     'Договорная': 'Шартнома',
+    // Response durations (lib/config-fallback.ts ESTIMATED_TIMES).
+    'До 1 часа': 'То 1 соат',
+    '1-2 часа': '1-2 соат',
+    '2-4 часа': '2-4 соат',
+    'До 1 дня': 'То 1 рӯз',
+    '1-2 дня': '1-2 рӯз',
+    '3-5 дней': '3-5 рӯз',
+    'Более недели': 'Зиёда аз як ҳафта',
 };
 
 const MAPS: Record<Locale, Record<string, string>> = { ru: {}, tj: TJ };

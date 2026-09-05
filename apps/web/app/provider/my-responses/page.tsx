@@ -171,7 +171,7 @@ export default async function MyResponsesPage() {
                                                 {response.estimatedTime && (
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                                         <Clock size={14} />
-                                                        <span>{response.estimatedTime}</span>
+                                                        <span>{tr(response.estimatedTime)}</span>
                                                     </div>
                                                 )}
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -206,7 +206,7 @@ export default async function MyResponsesPage() {
                                             >
                                                 {t('provider.viewTask')}
                                             </Link>
-                                            {response.status === 'ACCEPTED' && (
+                                            {(response.status === 'ACCEPTED' || response.status === 'COMPLETED') && (
                                                 <Link
                                                     href={`/provider/messages?userId=${response.task.userId}&taskId=${response.taskId}`}
                                                     style={{

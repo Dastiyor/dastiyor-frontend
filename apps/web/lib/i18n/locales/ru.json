@@ -465,7 +465,7 @@
     "sendResponseHeading": "Отправить отклик",
     "yourPriceLabel": "Ваша цена (с.)",
     "estimatedTimeLabel": "Примерное время выполнения (опционально)",
-    "estimatedTimePlaceholder": "например: 2 часа, 1 день, 3-5 дней",
+    "estimatedTimeNone": "Не указано",
     "responseMessagePlaceholder": "Опишите, почему вы подходите для этой задачи...",
     "submitOffer": "Отправить предложение",
     "responding": "Отправка...",

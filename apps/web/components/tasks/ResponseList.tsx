@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from '@/components/ui/Toast';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useTranslation } from '@/lib/i18n';
+import { ESTIMATED_TIMES } from '@/lib/config-fallback';
 import { CheckCircle } from 'lucide-react';
 
 type ResponseItem = {
@@ -32,7 +33,7 @@ type ResponseListProps = {
 export default function ResponseList({ taskId, responses, currentUserId, currentUserRole, taskOwnerId, assignedUserId, taskStatus, messagesBasePath = '/messages' }: ResponseListProps) {
     const router = useRouter();
     const { confirm, Dialog } = useConfirm();
-    const { t } = useTranslation();
+    const { t, tr } = useTranslation();
     const [submitting, setSubmitting] = useState(false);
     const [acceptingId, setAcceptingId] = useState<string | null>(null);
     const [rejectingId, setRejectingId] = useState<string | null>(null);
@@ -243,7 +244,7 @@ export default function ResponseList({ taskId, responses, currentUserId, current
                                         {isRejected && <div style={{ color: '#ef4444', fontSize: '0.8rem', fontWeight: 'bold' }}>{t('tasks.rejected')}</div>}
                                         {response.estimatedTime && (
                                             <div style={{ fontSize: '0.75rem', color: 'var(--text-light)', marginTop: '4px' }}>
-                                                ⏱ {response.estimatedTime}
+                                                ⏱ {tr(response.estimatedTime)}
                                             </div>
                                         )}
                                     </div>
@@ -346,12 +347,16 @@ export default function ResponseList({ taskId, responses, currentUserId, current
                             </div>
                             <div>
                                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>{t('tasks.estimatedTimeLabel')}</label>
-                                <input
+                                <select
                                     name="estimatedTime"
-                                    type="text"
-                                    placeholder={t('tasks.estimatedTimePlaceholder')}
-                                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}
-                                />
+                                    defaultValue=""
+                                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)', backgroundColor: 'var(--white)' }}
+                                >
+                                    <option value="">{t('tasks.estimatedTimeNone')}</option>
+                                    {ESTIMATED_TIMES.map((d) => (
+                                        <option key={d} value={d}>{tr(d)}</option>
+                                    ))}
+                                </select>
                             </div>
                             <div>
                                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>{t('tasks.yourMessage')}</label>

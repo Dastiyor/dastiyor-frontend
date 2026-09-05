@@ -22,13 +22,16 @@ import { api } from '@/lib/api-client';
 import { track, AnalyticsEvent } from '@/lib/analytics';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useConfig } from '@/lib/useConfig';
+import { ChipGroup } from '@/components/ChipGroup';
 import { useToast } from '@/contexts/ToastContext';
 import { Alert } from '@/lib/dialog';
 
 export default function RespondScreen() {
   const { id: taskId, title } = useLocalSearchParams<{ id: string; title: string }>();
-  const { t } = useLanguage();
+  const { t, tr } = useLanguage();
   const { colors } = useTheme();
+  const { config } = useConfig();
   const insets = useSafeAreaInsets();
   const keyboardOffset = useKeyboardOffset();
   const kbScroll = useKeyboardAwareScroll();
@@ -48,7 +51,7 @@ export default function RespondScreen() {
     setLoading(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     try {
-      await api.post('/api/responses', { taskId, message: message.trim(), price: Number(price), estimatedTime: estimatedTime.trim() || undefined });
+      await api.post('/api/responses', { taskId, message: message.trim(), price: Number(price), estimatedTime: estimatedTime || undefined });
       track(AnalyticsEvent.ResponseSubmitted, { taskId: String(taskId), price: Number(price) });
       // Confirm with a toast and leave immediately, rather than dismissing from
       // inside an Alert callback. This screen is a modal over task/[id], which
@@ -102,7 +105,14 @@ export default function RespondScreen() {
         <TextInput style={inputStyle} placeholder={r.pricePh} placeholderTextColor={colors.textTertiary} value={price} onChangeText={setPrice} keyboardType="numeric" maxLength={10} />
 
         <Text style={[styles.label, { color: colors.text }]}>{r.timeLabel}</Text>
-        <TextInput style={inputStyle} placeholder={r.timePh} placeholderTextColor={colors.textTertiary} value={estimatedTime} onChangeText={setEstimatedTime} maxLength={100} />
+        {/* Canonical Russian goes to the API; the chip label is display-only. */}
+        <ChipGroup
+          options={['', ...config.estimatedTimes]}
+          value={estimatedTime}
+          onChange={setEstimatedTime}
+          getLabel={(o) => (o === '' ? r.timeNone : tr(o as string))}
+          colors={colors}
+        />
 
         <TouchableOpacity style={[styles.button, loading && styles.buttonDisabled]} onPress={handleSubmit} disabled={loading} accessibilityLabel={r.btn} accessibilityRole="button">
           {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{r.btn}</Text>}

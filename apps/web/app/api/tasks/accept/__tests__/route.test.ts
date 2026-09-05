@@ -145,8 +145,8 @@ describe('/api/tasks/accept', () => {
         expect(response.status).toBe(500);
         expect(data.error).toBe('Internal Server Error');
     });
-    it('rejects the other pending bids when one is accepted', async () => {
-        const mockTask = { id: 'task-1', userId: mockUserId, title: 'Test Task', status: 'OPEN' };
+    it('leaves the other pending bids alone so the customer can still switch', async () => {
+        const mockTask = { id: 'task-1', userId: mockUserId, title: 'Test Task', status: 'OPEN', assignedUserId: null };
         const mockPendingResponse = { id: 'resp-1', taskId: 'task-1', userId: 'provider-1', status: 'PENDING' };
 
         (prismaMock.task.findUnique as jest.Mock)
@@ -157,7 +157,7 @@ describe('/api/tasks/accept', () => {
         (prismaMock.$transaction as jest.Mock).mockImplementation(async (fn: (tx: typeof prismaMock) => Promise<unknown>) => {
             (prismaMock.task.updateMany as jest.Mock).mockResolvedValue({ count: 1 });
             (prismaMock.response.update as jest.Mock).mockResolvedValue(mockPendingResponse);
-            (prismaMock.response.updateMany as jest.Mock).mockResolvedValue({ count: 2 });
+            (prismaMock.response.updateMany as jest.Mock).mockResolvedValue({ count: 0 });
             (prismaMock.notification.create as jest.Mock).mockResolvedValue({});
             return fn(prismaMock);
         });
@@ -168,14 +168,67 @@ describe('/api/tasks/accept', () => {
         }));
 
         expect(response.status).toBe(200);
-        // The winner is flipped to ACCEPTED first, so this sweep can't catch it.
         expect(prismaMock.response.update).toHaveBeenCalledWith({
             where: { id: 'resp-1' },
             data: { status: 'ACCEPTED' },
         });
-        expect(prismaMock.response.updateMany).toHaveBeenCalledWith({
-            where: { taskId: 'task-1', status: 'PENDING' },
-            data: { status: 'REJECTED' },
+        // Nothing swept the losing bids to REJECTED.
+        expect(prismaMock.response.updateMany).not.toHaveBeenCalled();
+    });
+
+    it('swaps the provider on an in-progress task and frees the old one', async () => {
+        const mockTask = {
+            id: 'task-1', userId: mockUserId, title: 'Test Task',
+            status: 'IN_PROGRESS', assignedUserId: 'provider-1',
+        };
+        const mockPendingResponse = { id: 'resp-2', taskId: 'task-1', userId: 'provider-2', status: 'PENDING' };
+
+        (prismaMock.task.findUnique as jest.Mock)
+            .mockResolvedValueOnce(mockTask)
+            .mockResolvedValueOnce({ ...mockTask, assignedUserId: 'provider-2' });
+        (prismaMock.response.findFirst as jest.Mock).mockResolvedValue(mockPendingResponse);
+        (prismaMock.user.findUnique as jest.Mock).mockResolvedValue({ locale: 'ru' });
+        (prismaMock.$transaction as jest.Mock).mockImplementation(async (fn: (tx: typeof prismaMock) => Promise<unknown>) => {
+            (prismaMock.task.updateMany as jest.Mock).mockResolvedValue({ count: 1 });
+            (prismaMock.response.update as jest.Mock).mockResolvedValue(mockPendingResponse);
+            (prismaMock.response.updateMany as jest.Mock).mockResolvedValue({ count: 1 });
+            (prismaMock.notification.create as jest.Mock).mockResolvedValue({});
+            return fn(prismaMock);
         });
+
+        const response = await POST(new NextRequest('http://localhost/api/tasks/accept', {
+            method: 'POST',
+            body: JSON.stringify({ taskId: 'task-1', providerId: 'provider-2' }),
+        }));
+
+        expect(response.status).toBe(200);
+        // Optimistic guard: the claim only wins against the row we read.
+        expect(prismaMock.task.updateMany).toHaveBeenCalledWith({
+            where: { id: 'task-1', status: 'IN_PROGRESS', assignedUserId: 'provider-1' },
+            data: { status: 'IN_PROGRESS', assignedUserId: 'provider-2' },
+        });
+        expect(prismaMock.response.updateMany).toHaveBeenCalledWith({
+            where: { taskId: 'task-1', userId: 'provider-1', status: 'ACCEPTED' },
+            data: { status: 'PENDING' },
+        });
+        expect(prismaMock.response.update).toHaveBeenCalledWith({
+            where: { id: 'resp-2' },
+            data: { status: 'ACCEPTED' },
+        });
+    });
+
+    it('rejects re-accepting the provider already assigned', async () => {
+        (prismaMock.task.findUnique as jest.Mock).mockResolvedValue({
+            id: 'task-1', userId: mockUserId, title: 'Test Task',
+            status: 'IN_PROGRESS', assignedUserId: 'provider-1',
+        });
+
+        const response = await POST(new NextRequest('http://localhost/api/tasks/accept', {
+            method: 'POST',
+            body: JSON.stringify({ taskId: 'task-1', providerId: 'provider-1' }),
+        }));
+
+        expect(response.status).toBe(400);
+        expect((await response.json()).error).toContain('уже назначен');
     });
 });

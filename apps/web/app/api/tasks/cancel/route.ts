@@ -53,6 +53,13 @@ export async function POST(request: Request) {
             where: { taskId, status: 'PENDING' },
             include: { user: { select: { email: true, locale: true } } }
         });
+
+        // A cancelled task is finished too: without this the bids sit at
+        // "under review" in the providers' lists forever.
+        await prisma.response.updateMany({
+            where: { taskId, status: 'PENDING' },
+            data: { status: 'REJECTED' }
+        });
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dastiyor.com';
         for (const resp of pendingResponses) {
             if (resp.user?.email) {

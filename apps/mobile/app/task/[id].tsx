@@ -151,10 +151,12 @@ export default function TaskDetailScreen() {
   }
 
   async function handleAccept(response: TaskResponse) {
+    const swapping = task?.status === 'IN_PROGRESS';
     confirmThen(
-      tk.confirmAccept,
-      tk.confirmAcceptMsg.replace('{name}', response.provider.fullName).replace('{price}', String(response.price)),
-      tk.accept,
+      swapping ? tk.switchProvider : tk.confirmAccept,
+      (swapping ? tk.confirmSwitchMsg : tk.confirmAcceptMsg)
+        .replace('{name}', response.provider.fullName).replace('{price}', String(response.price)),
+      swapping ? tk.switchProvider : tk.accept,
       async () => {
         setActionLoading(response.id);
         try {
@@ -299,25 +301,23 @@ export default function TaskDetailScreen() {
                       </View>
                     ) : null}
                   </View>
-                  {/* Chatting is for deciding (task still open) or for the
-                      provider actually doing the job -- not for bids that lost. */}
-                  {task.status === 'OPEN' || r.status === 'ACCEPTED' || r.status === 'COMPLETED' ? (
-                    <TouchableOpacity
-                      style={styles.messageBtn}
-                      onPress={() => router.push({ pathname: '/chat/[partnerId]', params: { partnerId: r.provider.id, partnerName: r.provider.fullName, taskId: task.id } })}
-                      accessibilityRole="button"
-                    >
-                      <Ionicons name="chatbubble-outline" size={15} color="#2563EB" />
-                      <Text style={styles.messageBtnText}>{t.provider.chat}</Text>
-                    </TouchableOpacity>
-                  ) : null}
-                  {r.status === 'PENDING' && task.status === 'OPEN' ? (
+                  <TouchableOpacity
+                    style={styles.messageBtn}
+                    onPress={() => router.push({ pathname: '/chat/[partnerId]', params: { partnerId: r.provider.id, partnerName: r.provider.fullName, taskId: task.id } })}
+                    accessibilityRole="button"
+                  >
+                    <Ionicons name="chatbubble-outline" size={15} color="#2563EB" />
+                    <Text style={styles.messageBtnText}>{t.provider.chat}</Text>
+                  </TouchableOpacity>
+                  {/* Accepting leaves the other bids PENDING on purpose, so
+                      a provider who falls through mid-job can be swapped out. */}
+                  {r.status === 'PENDING' && (task.status === 'OPEN' || task.status === 'IN_PROGRESS') ? (
                     <View style={styles.responseActions}>
                       <TouchableOpacity style={[styles.rejectBtn, busy && styles.btnBusy]} onPress={() => handleReject(r)} disabled={!!actionLoading}>
                         {busy ? <ActivityIndicator size="small" color="#EF4444" /> : <Text style={styles.rejectBtnText}>{tk.reject}</Text>}
                       </TouchableOpacity>
                       <TouchableOpacity style={[styles.acceptBtn, busy && styles.btnBusy]} onPress={() => handleAccept(r)} disabled={!!actionLoading}>
-                        {busy ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.acceptBtnText}>{tk.accept}</Text>}
+                        {busy ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.acceptBtnText}>{task.status === 'IN_PROGRESS' ? tk.switchProvider : tk.accept}</Text>}
                       </TouchableOpacity>
                     </View>
                   ) : null}

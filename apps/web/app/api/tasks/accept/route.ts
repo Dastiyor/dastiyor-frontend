@@ -38,8 +38,15 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Доступ запрещён: это не ваше задание' }, { status: 403 });
         }
 
-        if (task.status !== 'OPEN') {
+        // IN_PROGRESS is allowed on purpose: the losing bids are left PENDING so
+        // the customer can switch providers if the chosen one falls through
+        // mid-job. Only a finished task closes the choice.
+        if (task.status !== 'OPEN' && task.status !== 'IN_PROGRESS') {
             return NextResponse.json({ error: 'Задание недоступно для принятия' }, { status: 400 });
+        }
+
+        if (task.assignedUserId === providerId) {
+            return NextResponse.json({ error: 'Этот исполнитель уже назначен' }, { status: 400 });
         }
 
         // 4. Verify the provider submitted a PENDING response to this task
@@ -59,27 +66,29 @@ export async function POST(request: Request) {
         );
 
         // 5. Atomically update task + accept response + notify — all or nothing.
-        //    Guarded claim: the task transition only wins if it's still OPEN, so two
-        //    concurrent accepts for different providers can't both commit.
+        //    Guarded claim on the status and assignee we just read, so two
+        //    concurrent accepts can't both commit and a stale client can't
+        //    clobber a newer choice.
         try {
             await prisma.$transaction(async (tx) => {
                 const claim = await tx.task.updateMany({
-                    where: { id: taskId, status: 'OPEN' },
+                    where: { id: taskId, status: task.status, assignedUserId: task.assignedUserId },
                     data: { status: 'IN_PROGRESS', assignedUserId: providerId },
                 });
                 if (claim.count === 0) {
                     throw new Error('TASK_NOT_OPEN');
                 }
+                // Replacing someone puts them back in the pool rather than out
+                // of it — same reason the losing bids are left alone.
+                if (task.assignedUserId) {
+                    await tx.response.updateMany({
+                        where: { taskId, userId: task.assignedUserId, status: 'ACCEPTED' },
+                        data: { status: 'PENDING' },
+                    });
+                }
                 await tx.response.update({
                     where: { id: providerResponse.id },
                     data: { status: 'ACCEPTED' },
-                });
-                // The task can only be assigned once, so every other bid is out.
-                // Leaving them PENDING told those providers they were still in
-                // the running, and kept the customer's accept/reject buttons up.
-                await tx.response.updateMany({
-                    where: { taskId, status: 'PENDING' },
-                    data: { status: 'REJECTED' },
                 });
                 await tx.notification.create({
                     data: {

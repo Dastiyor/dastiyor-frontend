@@ -70,6 +70,13 @@ export async function POST(request: Request) {
                         data: { status: 'COMPLETED' },
                     });
                 }
+                // Accepting deliberately leaves the other bids PENDING so the
+                // customer can still switch providers. The job being done is
+                // what finally closes that option.
+                await tx.response.updateMany({
+                    where: { taskId, status: 'PENDING' },
+                    data: { status: 'REJECTED' },
+                });
                 if (task.assignedUserId && balanceIncrement > 0) {
                     await tx.user.update({
                         where: { id: task.assignedUserId },

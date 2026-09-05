@@ -87,8 +87,8 @@ export default function ResponseList({ taskId, responses, currentUserId, current
 
     async function handleAccept(providerId: string) {
         const confirmed = await confirm(
-            t('tasks.confirmAcceptOffer'),
-            t('tasks.acceptOffer'),
+            isTaskInProgress ? t('tasks.confirmSwitchProvider') : t('tasks.confirmAcceptOffer'),
+            isTaskInProgress ? t('tasks.switchProvider') : t('tasks.acceptOffer'),
             'info'
         );
         if (!confirmed) return;
@@ -202,11 +202,13 @@ export default function ResponseList({ taskId, responses, currentUserId, current
                         const isAccepted = assignedUserId === response.userId;
                         const isRejected = response.status === 'REJECTED';
                         const isPending = response.status === 'PENDING';
-                        const isOtherAccepted = !isTaskOpen && !isAccepted;
-                        // Chatting is for deciding (task still open) or for the
-                        // provider actually doing the job — not for the bids
-                        // that lost.
-                        const canMessage = isTaskOpen || isAccepted;
+                        // The reserve bids stay live while the job runs, so they
+                        // are only dimmed once the task itself is finished.
+                        const isOtherAccepted = !isTaskOpen && !isTaskInProgress && !isAccepted;
+                        // Accepting leaves the other bids PENDING on purpose: if
+                        // the chosen provider falls through mid-job the customer
+                        // can still switch to one of them.
+                        const canChoose = isPending && (isTaskOpen || isTaskInProgress);
 
                         return (
                             <div key={response.id} style={{
@@ -250,7 +252,7 @@ export default function ResponseList({ taskId, responses, currentUserId, current
                                     {response.message}
                                 </p>
 
-                                {isOwner && canMessage && (
+                                {isOwner && (
                                     <Link
                                         href={`${messagesBasePath}?userId=${response.userId}&taskId=${taskId}`}
                                         className="btn"
@@ -271,7 +273,7 @@ export default function ResponseList({ taskId, responses, currentUserId, current
                                     </Link>
                                 )}
 
-                                {isOwner && isTaskOpen && isPending && (
+                                {isOwner && canChoose && (
                                     <div style={{ display: 'flex', gap: '12px' }}>
                                         <button
                                             onClick={() => handleAccept(response.userId)}
@@ -279,7 +281,9 @@ export default function ResponseList({ taskId, responses, currentUserId, current
                                             disabled={acceptingId !== null}
                                             style={{ fontSize: '0.9rem', padding: '8px 16px' }}
                                         >
-                                            {acceptingId === response.userId ? t('tasks.accepting') : t('tasks.acceptOffer')}
+                                            {acceptingId === response.userId
+                                                ? t('tasks.accepting')
+                                                : isTaskInProgress ? t('tasks.switchProvider') : t('tasks.acceptOffer')}
                                         </button>
                                         <button
                                             onClick={() => handleReject(response.id)}

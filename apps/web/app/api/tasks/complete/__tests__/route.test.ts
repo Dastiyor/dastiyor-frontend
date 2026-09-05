@@ -256,5 +256,10 @@ describe('/api/tasks/complete', () => {
             where: { taskId: 'task-1', userId: 'provider-1', status: 'ACCEPTED' },
             data: { status: 'COMPLETED' },
         });
+        // Accepting kept the reserve bids PENDING; finishing the job closes them.
+        expect(prismaMock.response.updateMany).toHaveBeenCalledWith({
+            where: { taskId: 'task-1', status: 'PENDING' },
+            data: { status: 'REJECTED' },
+        });
     });
 });

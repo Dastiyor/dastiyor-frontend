@@ -239,6 +239,10 @@ model Notification {
   type      String // 'TASK_UPDATE', 'NEW_MESSAGE', 'NEW_OFFER', 'OFFER_ACCEPTED', 'SYSTEM'
   title     String
   message   String
+  // JSON ingredients (task title, provider, price, credited) so the read path
+  // can rebuild title/message in the reader's current language. Null on rows
+  // written before this column, which keep their stored text.
+  params    String?
   link      String? // URL to redirect to
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())

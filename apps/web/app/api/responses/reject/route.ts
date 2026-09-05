@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { notificationStrings } from '@/lib/notifications/strings';
+import { notificationStrings, notificationParams } from '@/lib/notifications/strings';
 import { sendPushNotification } from '@/lib/web-push';
 import { isValidId } from '@/lib/validation';
 import { sendOfferRejectedNotification } from '@/lib/notifications/email';
@@ -61,6 +61,7 @@ export async function POST(request: Request) {
                 type: 'OFFER_REJECTED',
                 title: providerStrings.rejectedTitle,
                 message: providerStrings.rejectedBody(response.task.title),
+                params: notificationParams({ task: response.task.title }),
                 link: `/tasks/${response.taskId}`
             }
         });

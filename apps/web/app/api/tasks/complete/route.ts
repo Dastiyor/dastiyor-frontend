@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { notificationStrings } from '@/lib/notifications/strings';
+import { notificationStrings, notificationParams } from '@/lib/notifications/strings';
 import { sendPushNotification } from '@/lib/web-push';
 import { isValidId } from '@/lib/validation';
 import { sendTaskCompletedNotification } from '@/lib/notifications/email';
@@ -104,6 +104,7 @@ export async function POST(request: Request) {
                     type: 'TASK_COMPLETED',
                     title: providerStrings.completedTitle,
                     message: providerStrings.completedBody(task.title, balanceIncrement),
+                    params: notificationParams({ task: task.title, credited: balanceIncrement }),
                     link: `/tasks/${taskId}`
                 }
             });

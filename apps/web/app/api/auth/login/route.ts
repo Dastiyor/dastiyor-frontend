@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { persistRequestLocale } from '@/lib/persist-locale';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { signJWT } from '@/lib/auth';
@@ -114,6 +115,10 @@ export async function POST(request: Request) {
             },
             { status: 200 }
         );
+
+        // Sign-in is where a language chosen while signed out reaches the account.
+        await persistRequestLocale(request, user.id, user.locale)
+            .catch(err => console.error('Locale persist error:', err));
 
         logAction({
             action: 'LOGIN',

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/require-auth';
+import { renderNotification } from '@/lib/notifications/strings';
 
 export async function GET(request: Request) {
     try {
@@ -12,7 +13,7 @@ export async function GET(request: Request) {
         const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
         const skip = (page - 1) * limit;
 
-        const [notifications, unreadCount, total] = await Promise.all([
+        const [notifications, unreadCount, total, reader] = await Promise.all([
             prisma.notification.findMany({
                 where: { userId: payload.id as string },
                 orderBy: { createdAt: 'desc' },
@@ -25,10 +26,23 @@ export async function GET(request: Request) {
             prisma.notification.count({
                 where: { userId: payload.id as string },
             }),
+            prisma.user.findUnique({
+                where: { id: payload.id as string },
+                select: { locale: true },
+            }),
         ]);
 
+        // Rebuild the text in whatever language the reader is on now. It was
+        // written in the language they used when the event fired, which is why
+        // switching the app language left the list untouched. Rows saved before
+        // `params` existed have none, so they keep their stored text.
+        const localized = notifications.map((n) => {
+            const rendered = renderNotification(n.type, n.params, reader?.locale);
+            return rendered ? { ...n, ...rendered } : n;
+        });
+
         return NextResponse.json({
-            notifications,
+            notifications: localized,
             unreadCount,
             pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
         });

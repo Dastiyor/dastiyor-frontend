@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { notificationStrings } from '@/lib/notifications/strings';
+import { notificationStrings, notificationParams } from '@/lib/notifications/strings';
 import { isValidId } from '@/lib/validation';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 import { logAction, getRequestIP } from '@/lib/audit';
@@ -155,6 +155,7 @@ export async function POST(request: Request) {
                 type: 'NEW_OFFER',
                 title: ownerStrings.newResponseTitle,
                 message: ownerStrings.newResponseBody(user.fullName || 'Исполнитель', String(price), task.title),
+                params: notificationParams({ provider: user.fullName || 'Исполнитель', price: String(price), task: task.title }),
                 link: `/tasks/${taskId}`
             }
         });

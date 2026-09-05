@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { persistRequestLocale } from '@/lib/persist-locale';
 import { upsertOAuthUser, oauthCookieOptions } from '@/lib/oauth';
 import { getClientIP } from '@/lib/rate-limit';
 import { cookies } from 'next/headers';
@@ -76,6 +77,10 @@ export async function GET(request: Request) {
             role,
             ipAddress: getClientIP(request),
         });
+
+        // Sign-in is where a language chosen while signed out reaches the account.
+        await persistRequestLocale(request, user.id, user.locale)
+            .catch(err => console.error('Locale persist error:', err));
 
         const dashboard = user.role === 'PROVIDER' ? '/provider' : '/customer';
         const response = NextResponse.redirect(`${appUrl}${dashboard}`);

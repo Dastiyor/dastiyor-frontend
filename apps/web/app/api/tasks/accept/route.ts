@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { notificationStrings } from '@/lib/notifications/strings';
+import { notificationStrings, notificationParams } from '@/lib/notifications/strings';
 import { isValidId } from '@/lib/validation';
 import { sendOfferAcceptedNotification } from '@/lib/notifications/email';
 import { logAction, getRequestIP } from '@/lib/audit';
@@ -96,6 +96,7 @@ export async function POST(request: Request) {
                         type: 'OFFER_ACCEPTED',
                         title: providerStrings.acceptedTitle,
                         message: providerStrings.acceptedBody(task.title),
+                        params: notificationParams({ task: task.title }),
                         link: `/tasks/${taskId}`,
                     },
                 });

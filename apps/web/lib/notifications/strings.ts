@@ -64,3 +64,57 @@ const STRINGS: Record<NotificationLocale, Strings> = {
 export function notificationStrings(locale: string | null | undefined): Strings {
     return STRINGS[asLocale(locale)];
 }
+
+/**
+ * Notification text is written once, at the moment someone else's action fires
+ * it -- so it froze in whatever language the recipient was using back then, and
+ * switching the app language did nothing to the list. The ingredients are stored
+ * alongside it in `Notification.params` so the read path can rebuild the text in
+ * the reader's current language instead.
+ *
+ * Rows written before that column existed have no params: they keep the text
+ * they were saved with.
+ */
+export type NotificationParams = {
+    task?: string;
+    provider?: string;
+    price?: string;
+    credited?: number;
+};
+
+export function notificationParams(params: NotificationParams): string {
+    return JSON.stringify(params);
+}
+
+export function renderNotification(
+    type: string,
+    params: string | null | undefined,
+    locale: string | null | undefined,
+): { title: string; message: string } | null {
+    if (!params) return null;
+
+    let p: NotificationParams;
+    try {
+        p = JSON.parse(params) as NotificationParams;
+    } catch {
+        return null;
+    }
+
+    const s = notificationStrings(locale);
+    switch (type) {
+        case 'NEW_OFFER':
+            if (!p.provider || !p.price || !p.task) return null;
+            return { title: s.newResponseTitle, message: s.newResponseBody(p.provider, p.price, p.task) };
+        case 'OFFER_ACCEPTED':
+            if (!p.task) return null;
+            return { title: s.acceptedTitle, message: s.acceptedBody(p.task) };
+        case 'TASK_COMPLETED':
+            if (!p.task) return null;
+            return { title: s.completedTitle, message: s.completedBody(p.task, p.credited ?? 0) };
+        case 'OFFER_REJECTED':
+            if (!p.task) return null;
+            return { title: s.rejectedTitle, message: s.rejectedBody(p.task) };
+        default:
+            return null;
+    }
+}

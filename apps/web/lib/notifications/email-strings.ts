@@ -235,3 +235,35 @@ const ALL: Record<NotificationLocale, Templates> = { ru, tj, en };
 export function emailStrings(locale: string | null | undefined): Templates {
     return ALL[asLocale(locale)];
 }
+
+/**
+ * Shared header/footer chrome. Was hardcoded Russian in emailLayout(), so an
+ * otherwise-English email still ended with a Russian tagline and disclaimer.
+ * `lang` feeds the <html lang> attribute (screen readers, Gmail translation).
+ */
+type Chrome = { lang: string; tagline: string; needHelp: string; automated: string };
+
+const CHROME: Record<NotificationLocale, Chrome> = {
+    ru: {
+        lang: 'ru',
+        tagline: 'Dastiyor — онлайн-маркетплейс услуг в Таджикистане.',
+        needHelp: 'Нужна помощь?',
+        automated: 'Это автоматическое письмо — отвечать на него не нужно.',
+    },
+    tj: {
+        lang: 'tg',
+        tagline: 'Dastiyor — бозори онлайни хизматрасонӣ дар Тоҷикистон.',
+        needHelp: 'Кӯмак лозим аст?',
+        automated: 'Ин номаи худкор аст — ба он ҷавоб додан лозим нест.',
+    },
+    en: {
+        lang: 'en',
+        tagline: 'Dastiyor — the online services marketplace in Tajikistan.',
+        needHelp: 'Need help?',
+        automated: 'This is an automated email — no need to reply.',
+    },
+};
+
+export function emailChrome(locale: string | null | undefined): Chrome {
+    return CHROME[asLocale(locale)];
+}

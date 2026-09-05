@@ -5,6 +5,7 @@ import { api, setOnUnauthorized } from '@/lib/api-client';
 import { registerForPushNotifications, unregisterPushNotifications } from '@/lib/push';
 import { setUser as setErrorUser } from '@/lib/errorReporting';
 import { track, identify, reset as resetAnalytics, AnalyticsEvent } from '@/lib/analytics';
+import { syncStoredLocale } from '@/contexts/LanguageContext';
 import type { ApiUser } from '@dastiyor/types';
 
 const PUSH_TOKEN_KEY = 'expo_push_token';
@@ -95,6 +96,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     identify(res.user.id, { role: res.user.role });
     track(event, { method, role: res.user.role });
     syncPushRegistration();
+    // The language is usually picked on the login screen -- signed out, where
+    // there is no token to sync it with. Push it now, or the account keeps a
+    // stale locale and every notification and email arrives in it.
+    syncStoredLocale().catch(() => {});
   }
 
   async function login(identifier: string, password: string) {

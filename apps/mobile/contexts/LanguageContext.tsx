@@ -17,8 +17,8 @@ const LanguageContext = createContext<LanguageState | null>(null);
 const STORAGE_KEY = 'app_locale';
 
 /**
- * Mirror the choice to the server, which builds notifications for events other
- * users trigger and so cannot read it off the request.
+ * Mirror the choice to the server, which builds notifications and emails for
+ * events other users trigger and so cannot read it off the request.
  *
  * Only when signed in: a 401 from this endpoint would trip the session-expired
  * handler and bounce a guest to the login screen on launch.
@@ -27,6 +27,22 @@ async function syncLocale(locale: Locale) {
   const token = await storage.getItem('auth_token').catch(() => null);
   if (!token) return;
   await api.put('/api/profile/locale', { locale }).catch(() => {});
+}
+
+/**
+ * Push the stored language to the account that just signed in.
+ *
+ * Picking a language happens on the login screen, i.e. signed out, where
+ * syncLocale has no token to send. Without this the account kept whatever
+ * locale it was last left with -- so notifications and emails arrived in the
+ * wrong language no matter what the app was set to. Called from AuthContext
+ * after every sign-in path.
+ */
+export async function syncStoredLocale() {
+  const stored = await storage.getItem(STORAGE_KEY).catch(() => null);
+  if (stored === 'ru' || stored === 'tj' || stored === 'en') {
+    await syncLocale(stored);
+  }
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { persistRequestLocale } from '@/lib/persist-locale';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { signJWT } from '@/lib/auth';
@@ -118,9 +119,15 @@ export async function POST(request: Request) {
             path: '/',
         });
 
+        // Before the welcome email: a language picked on the way in lives in a
+        // cookie, not on the brand-new account, which would otherwise be greeted
+        // in the default language.
+        const locale = await persistRequestLocale(request, user.id, user.locale)
+            .catch(err => { console.error('Locale persist error:', err); return user.locale; });
+
         // Only send welcome email if a real email address was given
         if (email) {
-            sendWelcomeEmail(resolvedEmail, user.fullName, user.role, user.locale)
+            sendWelcomeEmail(resolvedEmail, user.fullName, user.role, locale)
                 .catch(err => console.error('Welcome email error:', err));
         }
 

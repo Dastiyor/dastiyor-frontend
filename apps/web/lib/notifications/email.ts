@@ -1,4 +1,4 @@
-import { emailStrings } from './email-strings';
+import { emailStrings, emailChrome } from './email-strings';
 /**
  * Email Notification Service
  *
@@ -70,18 +70,21 @@ interface LayoutOptions {
     cta?: { label: string; url: string; color?: string };
     /** Hidden preheader text shown in the inbox preview line. */
     preview?: string;
+    /** Recipient's language; drives the footer and the <html lang> attribute. */
+    locale?: string | null;
 }
 
 /** Wrap inner content in the shared header/body/footer shell. */
-function emailLayout({ heading, body, cta, preview }: LayoutOptions): string {
+function emailLayout({ heading, body, cta, preview, locale }: LayoutOptions): string {
     const year = new Date().getFullYear();
+    const chrome = emailChrome(locale);
     const ctaHtml = cta ? button(cta.label, cta.url, cta.color) : '';
     const previewHtml = preview
         ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all;">${esc(preview)}</div>`
         : '';
 
     return `<!DOCTYPE html>
-<html lang="ru">
+<html lang="${chrome.lang}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -109,9 +112,9 @@ function emailLayout({ heading, body, cta, preview }: LayoutOptions): string {
           </tr>
           <tr>
             <td style="padding:24px 32px;background:#f9fafb;border-top:1px solid #eef0f2;color:#9ca3af;font-size:12px;line-height:1.6;">
-              <p style="margin:0 0 4px;">Dastiyor — онлайн-маркетплейс услуг в Таджикистане.</p>
-              <p style="margin:0 0 4px;">Нужна помощь? <a href="mailto:${SUPPORT_EMAIL}" style="color:${BRAND.primary};text-decoration:none;">${SUPPORT_EMAIL}</a></p>
-              <p style="margin:8px 0 0;color:#c4c8cf;">© ${year} Dastiyor. Это автоматическое письмо — отвечать на него не нужно.</p>
+              <p style="margin:0 0 4px;">${esc(chrome.tagline)}</p>
+              <p style="margin:0 0 4px;">${esc(chrome.needHelp)} <a href="mailto:${SUPPORT_EMAIL}" style="color:${BRAND.primary};text-decoration:none;">${SUPPORT_EMAIL}</a></p>
+              <p style="margin:8px 0 0;color:#c4c8cf;">© ${year} Dastiyor. ${esc(chrome.automated)}</p>
             </td>
           </tr>
         </table>
@@ -197,6 +200,7 @@ export async function sendPasswordResetEmail(
         html: emailLayout({
             heading: t.heading,
             preview: t.preview(a),
+            locale,
             body: t.body(a).map((line) => p(esc(line))).join(''),
             cta: { label: t.cta, url: resetLink },
         }),
@@ -217,6 +221,7 @@ export async function sendPasswordResetCodeEmail(
         html: emailLayout({
             heading: t.heading,
             preview: t.preview(a),
+            locale,
             body: t.body(a).map((line) => p(esc(line))).join(''),
         }),
         text: t.text(a),
@@ -239,6 +244,7 @@ export async function sendTaskResponseNotification(
         html: emailLayout({
             heading: t.heading,
             preview: t.preview(a),
+            locale,
             body: t.body(a).map((line) => p(esc(line))).join(''),
             cta: { label: t.cta, url: taskLink },
         }),
@@ -260,6 +266,7 @@ export async function sendOfferAcceptedNotification(
         html: emailLayout({
             heading: t.heading,
             preview: t.preview(a),
+            locale,
             body: t.body(a).map((line) => p(esc(line))).join(''),
             cta: { label: t.cta, url: taskLink, color: BRAND.success },
         }),
@@ -282,6 +289,7 @@ export async function sendTaskCompletedNotification(
         html: emailLayout({
             heading: t.heading,
             preview: t.preview(a),
+            locale,
             body: t.body(a).map((line) => p(esc(line))).join(''),
             cta: { label: t.cta, url: taskLink, color: BRAND.success },
         }),
@@ -303,6 +311,7 @@ export async function sendOfferRejectedNotification(
         html: emailLayout({
             heading: t.heading,
             preview: t.preview(a),
+            locale,
             body: t.body(a).map((line) => p(esc(line))).join(''),
             cta: { label: t.cta, url: taskLink },
         }),
@@ -325,6 +334,7 @@ export async function sendNewMessageNotification(
         html: emailLayout({
             heading: t.heading,
             preview: t.preview(a),
+            locale,
             body: t.body(a).map((line) => p(esc(line))).join(''),
             cta: { label: t.cta, url: chatLink },
         }),
@@ -349,6 +359,7 @@ export async function sendNewReviewNotification(
         html: emailLayout({
             heading: t.heading,
             preview: t.preview(a),
+            locale,
             body: t.body(a).map((line) => p(esc(line))).join(''),
             cta: { label: t.cta, url: profileLink },
         }),
@@ -371,6 +382,7 @@ export async function sendWelcomeEmail(
         html: emailLayout({
             heading: t.heading,
             preview: t.preview(a),
+            locale,
             body: t.body(a).map((line) => p(esc(line))).join(''),
             cta: { label: t.cta, url: dashboardUrl },
         }),
@@ -395,6 +407,7 @@ export async function sendPaymentReceiptEmail(
         html: emailLayout({
             heading: t.heading,
             preview: t.preview(a),
+            locale,
             body: t.body(a).map((line) => p(esc(line))).join(''),
             cta: { label: t.cta, url: `${APP_URL}/profile` },
         }),
@@ -416,6 +429,7 @@ export async function sendTaskCancelledNotification(
         html: emailLayout({
             heading: t.heading,
             preview: t.preview(a),
+            locale,
             body: t.body(a).map((line) => p(esc(line))).join(''),
             cta: { label: t.cta, url: taskLink },
         }),

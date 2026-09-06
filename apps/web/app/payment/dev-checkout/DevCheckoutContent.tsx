@@ -3,6 +3,7 @@
 import { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useTranslation } from '@/lib/i18n';
+import { formatMoney } from '@/lib/format-budget';
 
 function DevCheckoutContent() {
     const { t } = useTranslation();
@@ -75,7 +76,7 @@ function DevCheckoutContent() {
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <span style={{ color: '#6b7280' }}>{t('payment.amountLabel')}</span>
-                        <span style={{ fontWeight: '700', fontSize: '1.3rem' }}>{amount} TJS</span>
+                        <span style={{ fontWeight: '700', fontSize: '1.3rem' }}>{formatMoney(amount)} TJS</span>
                     </div>
                 </div>
 

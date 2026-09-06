@@ -7,6 +7,7 @@ import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useTranslation } from '@/lib/i18n';
 import { ESTIMATED_TIMES } from '@/lib/config-fallback';
 import { CheckCircle } from 'lucide-react';
+import { formatMoney } from '@/lib/format-budget';
 
 type ResponseItem = {
     id: string;
@@ -33,7 +34,7 @@ type ResponseListProps = {
 export default function ResponseList({ taskId, responses, currentUserId, currentUserRole, taskOwnerId, assignedUserId, taskStatus, messagesBasePath = '/messages' }: ResponseListProps) {
     const router = useRouter();
     const { confirm, Dialog } = useConfirm();
-    const { t, tr } = useTranslation();
+    const { t, tr, tError } = useTranslation();
     const [submitting, setSubmitting] = useState(false);
     const [acceptingId, setAcceptingId] = useState<string | null>(null);
     const [rejectingId, setRejectingId] = useState<string | null>(null);
@@ -72,12 +73,12 @@ export default function ResponseList({ taskId, responses, currentUserId, current
                 setTimeout(() => window.location.reload(), 1000);
             } else if (json.code === 'PHONE_VERIFICATION_REQUIRED') {
                 // OAuth registrants must verify a phone before responding
-                toast.warning(json.error);
+                toast.warning(tError(json.error));
                 setTimeout(() => {
                     window.location.href = '/verify-phone?redirect=' + encodeURIComponent(window.location.pathname);
                 }, 800);
             } else {
-                toast.error(json.error || t('tasks.responseError'));
+                toast.error(tError(json.error) || t('tasks.responseError'));
             }
         } catch (err) {
             toast.error(t('tasks.responseErrorGeneric'));
@@ -136,7 +137,7 @@ export default function ResponseList({ taskId, responses, currentUserId, current
                 setTimeout(() => window.location.reload(), 1000);
             } else {
                 const json = await res.json();
-                toast.error(json.error || t('tasks.responseRejectedError'));
+                toast.error(tError(json.error) || t('tasks.responseRejectedError'));
             }
         } catch (err) {
             toast.error(t('tasks.responseRejectedError'));
@@ -239,7 +240,7 @@ export default function ResponseList({ taskId, responses, currentUserId, current
                                         </div>
                                     </div>
                                     <div style={{ textAlign: 'right' }}>
-                                        <div style={{ fontWeight: '700', color: 'var(--primary)' }}>{response.price} TJS</div>
+                                        <div style={{ fontWeight: '700', color: 'var(--primary)' }}>{formatMoney(response.price)} TJS</div>
                                         {isAccepted && <div style={{ color: '#22c55e', fontSize: '0.8rem', fontWeight: 'bold' }}>{t('tasks.accepted')}</div>}
                                         {isRejected && <div style={{ color: '#ef4444', fontSize: '0.8rem', fontWeight: 'bold' }}>{t('tasks.rejected')}</div>}
                                         {response.estimatedTime && (

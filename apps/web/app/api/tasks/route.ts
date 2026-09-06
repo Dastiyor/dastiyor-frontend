@@ -132,14 +132,25 @@ export async function POST(request: Request) {
             return rateLimitExceededResponse(rateLimitCheck.resetIn);
         }
 
-        // Every user must verify a phone number before posting tasks
         const author = await prisma.user.findUnique({
             where: { id: payload.id as string },
-            select: { phoneVerified: true },
+            select: { role: true, phoneVerified: true },
         });
         if (!author) {
             return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });
         }
+
+        // Only customers post tasks. The mobile and web UIs hide the entry point
+        // for providers, but nothing stopped a direct API call, and the task then
+        // showed up in the public feed. Mirrors PROVIDER_REQUIRED in POST /api/responses.
+        if (author.role !== 'CUSTOMER') {
+            return NextResponse.json(
+                { error: 'Публиковать задания могут только заказчики', code: 'CUSTOMER_REQUIRED' },
+                { status: 403 }
+            );
+        }
+
+        // Every user must verify a phone number before posting tasks
         if (needsPhoneVerification(author)) {
             return NextResponse.json(
                 { error: 'Подтвердите номер телефона, чтобы публиковать задания', code: PHONE_VERIFICATION_REQUIRED },

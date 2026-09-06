@@ -7,7 +7,7 @@ import { useTranslation } from '@/lib/i18n';
 import { CATEGORIES, CITIES } from '@/lib/config-fallback';
 
 export default function CreateTaskPage() {
-    const { t, tr } = useTranslation();
+    const { t, tr, tError } = useTranslation();
     const router = useRouter();
     const [uploading, setUploading] = useState(false);
     const [authChecked, setAuthChecked] = useState(false);
@@ -150,11 +150,11 @@ export default function CreateTaskPage() {
                 const errorData = await res.json();
                 // OAuth registrants must verify a phone before posting
                 if (errorData.code === 'PHONE_VERIFICATION_REQUIRED') {
-                    toast.warning(errorData.error);
+                    toast.warning(tError(errorData.error));
                     router.push('/verify-phone?redirect=/create-task');
                     return;
                 }
-                throw new Error(errorData.error || t('createTask.createFailed'));
+                throw new Error(tError(errorData.error) || t('createTask.createFailed'));
             }
 
             const json = await res.json();

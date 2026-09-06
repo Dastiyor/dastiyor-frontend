@@ -2,9 +2,10 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
-import { validatePassword } from '@/lib/validation';
+import { validatePassword, isValidPhone, normalizePhone } from '@/lib/validation';
 import { logAction, getRequestIP } from '@/lib/audit';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
+import { consumeOtp } from '@/lib/otp';
 
 function hashOtp(userId: string, code: string): string {
     return `mobile:${userId}:` + crypto
@@ -13,6 +14,13 @@ function hashOtp(userId: string, code: string): string {
         .digest('hex');
 }
 
+const INVALID_CODE = { error: 'Неверный или просроченный код. Запросите новый.' };
+
+/**
+ * Completes the code-based reset started by forgot-password/mobile. `identifier`
+ * is whatever the user asked for the code with — a phone number (SMS code) or an
+ * email (emailed code). Older clients send `email`.
+ */
 export async function POST(request: Request) {
     const clientIP = getClientIP(request);
     const rateLimit = await checkRateLimit(clientIP, 'auth');
@@ -20,10 +28,11 @@ export async function POST(request: Request) {
 
     try {
         const body = await request.json();
-        const { email, code, password } = body;
+        const { code, password } = body;
+        const identifier = String(body.identifier ?? body.email ?? '').trim();
 
-        if (!email || !code || !password) {
-            return NextResponse.json({ error: 'Укажите email, код и пароль' }, { status: 400 });
+        if (!identifier || !code || !password) {
+            return NextResponse.json({ error: 'Укажите email или телефон, код и пароль' }, { status: 400 });
         }
 
         const passwordValidation = validatePassword(password);
@@ -31,23 +40,47 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: passwordValidation.error }, { status: 400 });
         }
 
-        const user = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
-        if (!user) {
-            return NextResponse.json({ error: 'Неверный или просроченный код.' }, { status: 400 });
+        const byPhone = isValidPhone(identifier);
+        const phone = byPhone ? normalizePhone(identifier) : null;
+
+        // Cap code guessing per number/account, not just per IP
+        const attemptLimit = await checkRateLimit(
+            `reset:${phone ?? identifier.toLowerCase()}`,
+            'sms'
+        );
+        if (!attemptLimit.allowed) {
+            return NextResponse.json(
+                { error: 'Слишком много попыток. Попробуйте через 15 минут.' },
+                { status: 429 }
+            );
         }
 
-        const tokenValue = hashOtp(user.id, code);
-        const resetToken = await prisma.passwordReset.findFirst({
-            where: {
-                token: tokenValue,
-                userId: user.id,
-                used: false,
-                expiresAt: { gt: new Date() },
-            },
-        });
+        const user = phone
+            ? await prisma.user.findFirst({ where: { phone } })
+            : await prisma.user.findUnique({ where: { email: identifier.toLowerCase() } });
 
-        if (!resetToken) {
-            return NextResponse.json({ error: 'Неверный или просроченный код. Запросите новый.' }, { status: 400 });
+        if (!user) {
+            return NextResponse.json(INVALID_CODE, { status: 400 });
+        }
+
+        // Phone codes live in VerificationCode (same store the phone-verification
+        // flow uses); emailed codes live in PasswordReset. Burn whichever applies
+        // before touching the password.
+        let resetTokenId: string | null = null;
+        if (phone) {
+            const ok = await consumeOtp(phone, String(code), 'RESET_PASSWORD');
+            if (!ok) return NextResponse.json(INVALID_CODE, { status: 400 });
+        } else {
+            const resetToken = await prisma.passwordReset.findFirst({
+                where: {
+                    token: hashOtp(user.id, code),
+                    userId: user.id,
+                    used: false,
+                    expiresAt: { gt: new Date() },
+                },
+            });
+            if (!resetToken) return NextResponse.json(INVALID_CODE, { status: 400 });
+            resetTokenId = resetToken.id;
         }
 
         const hashedPassword = await bcrypt.hash(password, 12);
@@ -58,7 +91,9 @@ export async function POST(request: Request) {
                 where: { id: user.id },
                 data: { password: hashedPassword, tokenVersion: { increment: 1 } },
             }),
-            prisma.passwordReset.update({ where: { id: resetToken.id }, data: { used: true } }),
+            ...(resetTokenId
+                ? [prisma.passwordReset.update({ where: { id: resetTokenId }, data: { used: true } })]
+                : []),
         ]);
 
         logAction({
@@ -66,6 +101,7 @@ export async function POST(request: Request) {
             userId: user.id,
             entity: 'User',
             entityId: user.id,
+            details: { via: phone ? 'sms' : 'email' },
             ipAddress: getRequestIP(request),
         });
 

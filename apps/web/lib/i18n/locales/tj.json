@@ -196,7 +196,7 @@
     "resetLinkSent": "Агар аккаунт бо ин суроға мавҷуд бошад, мо истиноди барқарорсозиро фиристодем.",
     "linkValid": "Истинод 1 соат амал мекунад. Мактуб нагирифтед? Папкаи «Спам»-ро тафтиш кунед.",
     "tryAgain": "Дубора кӯшиш кунед",
-    "forgotPasswordSubtitleShort": "Email-ро ворид кунед — мо истиноди барқарорсозиро мефиристем.",
+    "forgotPasswordSubtitleShort": "Email ё рақами телефонро ворид кунед — мо истинод ё рамз мефиристем.",
     "networkError": "Хатои шабака. Дубора кӯшиш кунед.",
     "continueWithGoogle": "Тавассути Google идома диҳед",
     "continueWithApple": "Тавассути Apple идома диҳед",
@@ -228,7 +228,9 @@
     "confirmPasswordPlaceholder": "Рамзи навро такрор кунед",
     "passwordsDoNotMatch": "Рамзҳо мувофиқат намекунанд",
     "showPassword": "Намоиши рамз",
-    "hidePassword": "Пинҳон кардани рамз"
+    "hidePassword": "Пинҳон кардани рамз",
+    "forgotPasswordIdentifierLabel": "Email ё рақами телефон",
+    "forgotPasswordIdentifierPlaceholder": "name@example.com ё +992XXXXXXXXX"
   },
   "customer": {
     "dashboard": "Панели фармоишгар",

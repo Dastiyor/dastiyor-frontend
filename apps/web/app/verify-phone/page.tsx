@@ -8,7 +8,7 @@ import { useTranslation } from '@/lib/i18n';
 function VerifyPhoneContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { t } = useTranslation();
+    const { t, tError } = useTranslation();
 
     const rawRedirect = searchParams.get('redirect') || '/';
     // Only allow same-site relative redirects
@@ -34,7 +34,7 @@ function VerifyPhoneContent() {
                 body: JSON.stringify({ phone: fullPhone, type: 'PHONE_VERIFY' }),
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error || t('auth.oauthFailed'));
+            if (!res.ok) throw new Error(tError(data.error) || t('auth.oauthFailed'));
             setStep('code');
         } catch (err) {
             setError(err instanceof Error ? err.message : String(err));
@@ -55,7 +55,7 @@ function VerifyPhoneContent() {
                 body: JSON.stringify({ phone: fullPhone, code }),
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error || t('auth.oauthFailed'));
+            if (!res.ok) throw new Error(tError(data.error) || t('auth.oauthFailed'));
             // Full reload so server components pick up the verified state
             window.location.href = redirectTo;
         } catch (err) {

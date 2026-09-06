@@ -1,14 +1,17 @@
 import { NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { persistRequestLocale } from '@/lib/persist-locale';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { signJWT } from '@/lib/auth';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
-import { validatePassword, isValidPhone, normalizePhone, sanitizeString } from '@/lib/validation';
+import { validatePassword, isValidPhone, normalizePhone, sanitizeString, PLACEHOLDER_EMAIL_DOMAIN } from '@/lib/validation';
 import { sendWelcomeEmail } from '@/lib/notifications/email';
 import { logAction, getRequestIP } from '@/lib/audit';
 
 export async function POST(request: Request) {
+    // Read in the catch, which cannot see inside the try's scope
+    let phoneOnlySignup = false;
     try {
         const clientIP = getClientIP(request);
         const rateLimit = await checkRateLimit(clientIP, 'auth');
@@ -62,11 +65,12 @@ export async function POST(request: Request) {
         }
 
         const normalizedPhone = phone ? normalizePhone(String(phone)) : null;
+        phoneOnlySignup = !email;
 
         // Generate placeholder email for phone-only registrations
         const resolvedEmail = email
             ? String(email).trim().toLowerCase()
-            : `phone_${normalizedPhone!.replace(/\+/g, '')}@phone.dastiyor.local`;
+            : `phone_${normalizedPhone!.replace(/\+/g, '')}${PLACEHOLDER_EMAIL_DOMAIN}`;
 
         // Duplicate checks
         if (email) {
@@ -143,6 +147,27 @@ export async function POST(request: Request) {
         return response;
 
     } catch (error) {
+        // The duplicate checks above are a read-then-write, so two concurrent
+        // signups for the same contact both pass them and the unique index
+        // rejects the loser. Data is fine either way; return the same 400 the
+        // sequential path returns instead of a bare 500.
+        //
+        // The index that fires is always `email`: `phone` carries no unique
+        // constraint, and a phone-only signup collides on the placeholder
+        // address derived from the number. So the message follows what the
+        // caller actually supplied.
+        // ponytail: leaves the phone column unconstrained -- add @unique(phone)
+        // and a migration if duplicate numbers ever show up on mixed signups.
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+            return NextResponse.json(
+                {
+                    error: phoneOnlySignup
+                        ? 'Пользователь с таким номером телефона уже существует'
+                        : 'Пользователь с таким email уже существует',
+                },
+                { status: 400 }
+            );
+        }
         console.error('Registration Error:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }

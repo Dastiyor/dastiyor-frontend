@@ -318,4 +318,54 @@ describe('/api/messages', () => {
             );
         });
     });
+
+    describe('task thread participation', () => {
+        const post = (body: object) =>
+            new NextRequest('http://localhost/api/messages', { method: 'POST', body: JSON.stringify(body) });
+
+        beforeEach(() => {
+            (prismaMock.user.findUnique as jest.Mock).mockResolvedValue({ id: 'user-2' });
+        });
+
+        it('rejects labelling a thread with a task neither party is part of', async () => {
+            // Task ids are public, so without this anyone could open a chat that
+            // looks like it is about the recipient's real job.
+            (prismaMock.task.findUnique as jest.Mock).mockResolvedValue({
+                userId: 'stranger-1', assignedUserId: null, responses: [],
+            });
+
+            const res = await POST(post({ receiverId: 'user-2', content: 'hi', taskId: 'task-1' }));
+            const data = await res.json();
+
+            expect(res.status).toBe(403);
+            expect(data.code).toBe('TASK_PARTICIPANT_REQUIRED');
+            expect(prismaMock.message.create).not.toHaveBeenCalled();
+        });
+
+        it('allows a provider who has bid on the task to message its author', async () => {
+            (prismaMock.task.findUnique as jest.Mock).mockResolvedValue({
+                userId: 'user-2', assignedUserId: null, responses: [{ userId: 'user-1' }],
+            });
+            (prismaMock.message.create as jest.Mock).mockResolvedValue({
+                id: 'msg-1', sender: { id: 'user-1', fullName: 'P' },
+            });
+            (prismaMock.message.findFirst as jest.Mock).mockResolvedValue(null);
+
+            const res = await POST(post({ receiverId: 'user-2', content: 'hello', taskId: 'task-1' }));
+
+            expect(res.status).toBe(201);
+        });
+
+        it('leaves task-less messages alone', async () => {
+            (prismaMock.message.create as jest.Mock).mockResolvedValue({
+                id: 'msg-1', sender: { id: 'user-1', fullName: 'P' },
+            });
+            (prismaMock.message.findFirst as jest.Mock).mockResolvedValue(null);
+
+            const res = await POST(post({ receiverId: 'user-2', content: 'hello' }));
+
+            expect(res.status).toBe(201);
+            expect(prismaMock.task.findUnique).not.toHaveBeenCalled();
+        });
+    });
 });

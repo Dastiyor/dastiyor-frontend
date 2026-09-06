@@ -14,7 +14,7 @@ import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { formatDate } from '@/lib/intl';
+import { formatDate, plural } from '@/lib/intl';
 import { Avatar } from '@/components/Avatar';
 
 interface Review {
@@ -29,6 +29,7 @@ interface Review {
 interface ProviderProfile {
   id: string;
   fullName: string;
+  avatar: string | null;
   bio: string | null;
   skills: string | null;
   role: string;
@@ -83,7 +84,7 @@ export default function ProviderProfileScreen() {
     <ScrollView style={[styles.container, { backgroundColor: colors.bg }]} contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 40 }]}>
       <View style={[styles.header, { backgroundColor: colors.surface }]}>
         <View style={styles.avatarWrap}>
-          <Avatar name={profile.fullName} size={80} />
+          <Avatar name={profile.fullName} avatarUrl={profile.avatar} size={80} />
         </View>
         <Text style={[styles.name, { color: colors.text }]}>{profile.fullName}</Text>
         <View style={styles.statsRow}>
@@ -96,7 +97,7 @@ export default function ProviderProfileScreen() {
             <Text style={[styles.statValue, { color: '#F59E0B' }]}>
               {profile.avgRating > 0 ? profile.avgRating.toFixed(1) : '—'}
             </Text>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{profile.reviewCount} {pv.reviews}</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{profile.reviewCount} {plural(profile.reviewCount, locale, pv.reviews)}</Text>
           </View>
         </View>
       </View>
@@ -133,7 +134,7 @@ export default function ProviderProfileScreen() {
       <View style={styles.reviewsSection}>
         {profile.reviews.length > 0 ? (
           <>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>{pv.reviews} ({profile.reviewCount})</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{pv.reviewsTitle} ({profile.reviewCount})</Text>
             {profile.reviews.map((r) => (
               <View key={r.id} style={[styles.reviewCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                 <View style={styles.reviewHeader}>

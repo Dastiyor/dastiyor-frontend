@@ -9,6 +9,7 @@ import tj from './locales/tj.json';
 type TranslationDict = Record<string, unknown>;
 
 import { localizeTerm } from './terms';
+import { translateApiError } from './api-errors';
 
 const translations: Record<Locale, TranslationDict> = { ru, tj };
 
@@ -18,6 +19,8 @@ interface I18nContextType {
     t: (key: string, params?: Record<string, string | number>) => string;
     /** Localize a canonical (Russian) category/city/budget value for display. */
     tr: (value: string) => string;
+    /** Localize an error message returned by the API, which is always Russian. */
+    tError: (message: string | undefined | null) => string;
 }
 
 const I18nContext = createContext<I18nContextType | null>(null);
@@ -79,8 +82,13 @@ export function I18nProvider({ children, initialLocale, isAuthenticated = false 
 
     const tr = useCallback((value: string) => localizeTerm(value, locale), [locale]);
 
+    const tError = useCallback(
+        (message: string | undefined | null) => (message ? translateApiError(message, locale) : ''),
+        [locale]
+    );
+
     return (
-        <I18nContext.Provider value={{ locale, setLocale, t, tr }}>
+        <I18nContext.Provider value={{ locale, setLocale, t, tr, tError }}>
             {children}
         </I18nContext.Provider>
     );

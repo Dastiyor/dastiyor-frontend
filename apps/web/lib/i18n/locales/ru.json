@@ -196,7 +196,7 @@
     "resetLinkSent": "Если аккаунт с этим адресом существует, мы отправили ссылку для сброса пароля.",
     "linkValid": "Ссылка действительна 1 час. Не получили письмо? Проверьте папку «Спам» или попробуйте ещё раз.",
     "tryAgain": "Попробовать снова",
-    "forgotPasswordSubtitleShort": "Введите email — мы отправим ссылку для сброса.",
+    "forgotPasswordSubtitleShort": "Введите email или номер телефона — мы отправим ссылку или код.",
     "networkError": "Ошибка сети. Попробуйте ещё раз.",
     "continueWithGoogle": "Продолжить с Google",
     "continueWithApple": "Продолжить с Apple",
@@ -228,7 +228,9 @@
     "confirmPasswordPlaceholder": "Повторите новый пароль",
     "passwordsDoNotMatch": "Пароли не совпадают",
     "showPassword": "Показать пароль",
-    "hidePassword": "Скрыть пароль"
+    "hidePassword": "Скрыть пароль",
+    "forgotPasswordIdentifierLabel": "Email или номер телефона",
+    "forgotPasswordIdentifierPlaceholder": "name@example.com или +992XXXXXXXXX"
   },
   "customer": {
     "dashboard": "Панель заказчика",

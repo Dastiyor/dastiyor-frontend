@@ -74,7 +74,7 @@ type Props = {
 
 export default function SubscriptionPlans({ currentPlan }: Props) {
     const [loading, setLoading] = useState<string | null>(null);
-    const { t } = useTranslation();
+    const { t, tError } = useTranslation();
 
     const handleSubscribe = async (planId: string) => {
         setLoading(planId);
@@ -92,7 +92,7 @@ export default function SubscriptionPlans({ currentPlan }: Props) {
                 toast.success(t('subscription.redirectingToast'));
                 window.location.assign(data.paymentUrl);
             } else {
-                toast.error(data.error || t('subscription.errorTryAgain'));
+                toast.error(tError(data.error) || t('subscription.errorTryAgain'));
                 setLoading(null);
             }
         } catch {

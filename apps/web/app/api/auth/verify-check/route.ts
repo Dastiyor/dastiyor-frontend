@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 import { normalizePhone } from '@/lib/validation';
+import { consumeOtp } from '@/lib/otp';
 
 export async function POST(request: Request) {
     try {
@@ -32,29 +33,14 @@ export async function POST(request: Request) {
             );
         }
 
-        // Find valid, unused code — mark used atomically before acting on it
-        const validCode = await prisma.verificationCode.findFirst({
-            where: {
-                phone: normalizedPhone,
-                code,
-                type,
-                used: false,
-                expiresAt: { gt: new Date() }
-            }
-        });
-
-        if (!validCode) {
+        // Marks the code used before we act on it, so it cannot be replayed
+        const ok = await consumeOtp(normalizedPhone, String(code), type);
+        if (!ok) {
             return NextResponse.json(
                 { error: 'Неверный или просроченный код' },
                 { status: 400 }
             );
         }
-
-        // Mark used before any further action to prevent replay
-        await prisma.verificationCode.update({
-            where: { id: validCode.id },
-            data: { used: true },
-        });
 
         // Mark phone as verified if user exists
         const user = await prisma.user.findFirst({
@@ -67,11 +53,6 @@ export async function POST(request: Request) {
                 data: { isVerified: true }
             });
         }
-
-        // Delete the used code
-        await prisma.verificationCode.delete({
-            where: { id: validCode.id }
-        });
 
         return NextResponse.json({ success: true, message: 'Phone verified successfully' });
 

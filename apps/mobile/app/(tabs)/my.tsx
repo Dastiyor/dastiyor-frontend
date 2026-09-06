@@ -21,6 +21,7 @@ import { TaskCardSkeleton } from '@/components/Skeleton';
 import { EmptyState } from '@/components/EmptyState';
 import { useToast } from '@/contexts/ToastContext';
 import { CATEGORY_ICONS } from '@/lib/categoryIcons';
+import { formatMoney } from '@/lib/intl';
 
 const STATUS_COLORS: Record<string, { color: string; bg: string }> = {
   OPEN:        { color: '#059669', bg: '#D1FAE5' },
@@ -176,7 +177,7 @@ export default function MyScreen() {
       onPress={() => router.push(`/task/${item.task.id}`)}
       activeOpacity={0.75}
       accessibilityRole="button"
-      accessibilityLabel={`${item.task.title}, ${tr(item.task.category)}, ${item.price} TJS`}
+      accessibilityLabel={`${item.task.title}, ${tr(item.task.category)}, ${formatMoney(item.price)} TJS`}
     >
       <View style={[styles.cardIconBox, { backgroundColor: colors.iconBg }]}>
         <Ionicons name={CATEGORY_ICONS[item.task.category] ?? 'briefcase-outline'} size={22} color="#2563EB" />
@@ -195,7 +196,7 @@ export default function MyScreen() {
           </View>
         ) : null}
         <View style={styles.cardFooter}>
-          <Text style={styles.cardBudget}>{item.price} TJS</Text>
+          <Text style={styles.cardBudget}>{formatMoney(item.price)} TJS</Text>
           <Text style={[styles.cardMeta, { color: colors.textTertiary }]}>{timeAgo(item.createdAt, locale)}</Text>
         </View>
       </View>

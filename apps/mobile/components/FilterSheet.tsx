@@ -109,7 +109,7 @@ export function FilterSheet({ visible, filters, onChange, onApply, onClose, cate
                   onPress={() => set('urgency', u.value)}
                 >
                   <Text style={[styles.chipText, { color: colors.textSecondary }, active && styles.chipTextActive]}>
-                    {t.urgencyOptions[u.key]}
+                    {u.key === 'all' ? t.all : globalT.urgency[u.key]}
                   </Text>
                 </TouchableOpacity>
               );

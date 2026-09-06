@@ -25,7 +25,7 @@ export default function ResetPasswordScreen() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const rp = t.resetPassword;
-  const { email } = useLocalSearchParams<{ email: string }>();
+  const { identifier } = useLocalSearchParams<{ identifier: string }>();
   const [code, setCode] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -50,7 +50,7 @@ export default function ResetPasswordScreen() {
     setLoading(true);
     try {
       await api.post('/api/auth/reset-password/mobile', {
-        email: email ?? '',
+        identifier: identifier ?? '',
         code: code.trim(),
         password,
       });

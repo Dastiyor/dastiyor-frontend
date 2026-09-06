@@ -83,7 +83,7 @@ function RegisterContent() {
     const [showPassword, setShowPassword] = useState(false);
     const [phoneLocal, setPhoneLocal] = useState('');
     const router = useRouter();
-    const { t } = useTranslation();
+    const { t, tError } = useTranslation();
 
     useEffect(() => {
         fetch('/api/auth/me').then(res => {
@@ -125,7 +125,7 @@ function RegisterContent() {
 
             if (!res.ok) {
                 const json = await res.json();
-                throw new Error(json.error || t('common.somethingWentWrong'));
+                throw new Error(tError(json.error) || t('common.somethingWentWrong'));
             }
 
             // Use full page reload to ensure server components refresh

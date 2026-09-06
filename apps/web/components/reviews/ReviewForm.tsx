@@ -11,7 +11,7 @@ type Props = {
 };
 
 export default function ReviewForm({ taskId, providerName, onReviewSubmitted }: Props) {
-    const { t } = useTranslation();
+    const { t, tError } = useTranslation();
     const [rating, setRating] = useState(0);
     const [hoveredRating, setHoveredRating] = useState(0);
     const [comment, setComment] = useState('');
@@ -39,7 +39,7 @@ export default function ReviewForm({ taskId, providerName, onReviewSubmitted }: 
                 onReviewSubmitted?.();
             } else {
                 const data = await res.json();
-                toast.error(data.error || t('reviews.genericError'));
+                toast.error(tError(data.error) || t('reviews.genericError'));
             }
         } catch (error) {
             toast.error(t('reviews.genericError'));

@@ -19,7 +19,7 @@ function EyeIcon({ open }: { open: boolean }) {
 }
 
 function OAuthButtons({ role }: { role?: string }) {
-    const { t } = useTranslation();
+    const { t, tError } = useTranslation();
     const roleParam = role ? `?role=${role}` : '';
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -63,7 +63,7 @@ function OAuthButtons({ role }: { role?: string }) {
 }
 
 function OAuthDivider() {
-    const { t } = useTranslation();
+    const { t, tError } = useTranslation();
     return (
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '4px 0' }}>
             <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--border)' }} />
@@ -79,7 +79,7 @@ function LoginContent() {
     const [showPassword, setShowPassword] = useState(false);
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { t } = useTranslation();
+    const { t, tError } = useTranslation();
 
     const rawRedirect = searchParams.get('redirect') || '';
     // Validate redirect to prevent open redirect attacks — only allow same-origin paths
@@ -118,7 +118,7 @@ function LoginContent() {
 
             if (!res.ok) {
                 const json = await res.json();
-                throw new Error(json.error || t('common.somethingWentWrong'));
+                throw new Error(tError(json.error) || t('common.somethingWentWrong'));
             }
 
             const profileRes = await fetch('/api/profile');

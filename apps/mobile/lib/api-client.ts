@@ -1,4 +1,6 @@
 import * as storage from '@/lib/storage';
+import type { Locale } from '@/lib/i18n';
+import { translateServerError } from '@/lib/serverErrors';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? 'https://www.dastiyor.com';
 const REQUEST_TIMEOUT_MS = 15_000;
@@ -25,19 +27,30 @@ let _onUnauthorized: (() => void) | null = null;
 let _onNetworkError: (() => void) | null = null;
 let _onNetworkRecovered: (() => void) | null = null;
 
+// The API answers in Russian, so the display language has to reach this module.
+// LanguageProvider pushes it here; 'ru' until then, which is the API's own text.
+let _locale: Locale = 'ru';
+export function setApiLocale(locale: Locale) { _locale = locale; }
+
 export function setOnUnauthorized(cb: () => void) { _onUnauthorized = cb; }
 export function setOnNetworkError(cb: () => void) { _onNetworkError = cb; }
 export function setOnNetworkRecovered(cb: () => void) { _onNetworkRecovered = cb; }
 
-/** Sanitize server error text before showing in UI (OWASP API3). */
-export function sanitizeApiError(status: number, serverError?: string): string {
-  if (status >= 500) return 'Ошибка сервера. Попробуйте позже.';
-  if (!serverError || typeof serverError !== 'string') return 'Ошибка запроса';
-  if (serverError.length > 200) return 'Ошибка запроса';
+/**
+ * Sanitize server error text before showing in UI (OWASP API3), then localize
+ * it. Every API error is a Russian literal, so without the second step an
+ * English or Tajik user gets a translated dialog title over a Russian body.
+ */
+export function sanitizeApiError(status: number, serverError?: string, locale: Locale = _locale): string {
+  const t = (message: string) => translateServerError(message, locale);
+
+  if (status >= 500) return t('Ошибка сервера. Попробуйте позже.');
+  if (!serverError || typeof serverError !== 'string') return t('Ошибка запроса');
+  if (serverError.length > 200) return t('Ошибка запроса');
   if (/stack|prisma|sql|internal|exception|traceback|at\s+\w+/i.test(serverError)) {
-    return 'Ошибка запроса';
+    return t('Ошибка запроса');
   }
-  return serverError;
+  return t(serverError);
 }
 
 async function getToken(): Promise<string | null> {

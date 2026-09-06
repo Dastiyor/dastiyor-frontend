@@ -21,6 +21,7 @@ import { timeAgo } from '@/lib/timeAgo';
 import { TASK_POLL_MS } from '@/lib/constants';
 import type { TaskDetail, TaskResponse, MyResponse } from '@dastiyor/types';
 import { Alert } from '@/lib/dialog';
+import { formatMoney } from '@/lib/intl';
 
 export default function TaskDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -155,7 +156,7 @@ export default function TaskDetailScreen() {
     confirmThen(
       swapping ? tk.switchProvider : tk.confirmAccept,
       (swapping ? tk.confirmSwitchMsg : tk.confirmAcceptMsg)
-        .replace('{name}', response.provider.fullName).replace('{price}', String(response.price)),
+        .replace('{name}', response.provider.fullName).replace('{price}', formatMoney(response.price)),
       swapping ? tk.switchProvider : tk.accept,
       async () => {
         setActionLoading(response.id);
@@ -293,7 +294,7 @@ export default function TaskDetailScreen() {
                   </View>
                   <Text style={[styles.responseMsg, { color: colors.textSecondary }]} numberOfLines={3}>{r.message}</Text>
                   <View style={styles.responseMeta}>
-                    <Text style={styles.responsePrice}>{r.price} TJS</Text>
+                    <Text style={styles.responsePrice}>{formatMoney(r.price)} TJS</Text>
                     {r.estimatedTime ? (
                       <View style={styles.metaItem}>
                         <Ionicons name="time-outline" size={13} color={colors.textSecondary} />
@@ -405,7 +406,7 @@ export default function TaskDetailScreen() {
             </View>
             <Text style={[styles.myResponseMsg, { color: colors.textSecondary }]}>{myResponse.message}</Text>
             <View style={styles.responseMeta}>
-              <Text style={styles.responsePrice}>{myResponse.price} TJS</Text>
+              <Text style={styles.responsePrice}>{formatMoney(myResponse.price)} TJS</Text>
               {myResponse.estimatedTime ? (
                 <View style={styles.metaItem}>
                   <Ionicons name="time-outline" size={13} color={colors.textSecondary} />

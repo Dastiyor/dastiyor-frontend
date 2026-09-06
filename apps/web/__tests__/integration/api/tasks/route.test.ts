@@ -36,10 +36,10 @@ describe('/api/tasks Route', () => {
         jest.clearAllMocks();
         (getClientIP as jest.Mock).mockReturnValue('127.0.0.1');
         (checkRateLimit as jest.Mock).mockReturnValue({ allowed: true });
-        // POST looks up the author for the OAuth phone-verification gate.
-        // A password user (not OAuth-only) passes the gate.
+        // POST looks up the author for the role check and the OAuth
+        // phone-verification gate. A CUSTOMER with a password passes both.
         prismaMock.user.findUnique.mockResolvedValue({
-            password: 'hashed', googleId: null, appleId: null, phoneVerified: true,
+            role: 'CUSTOMER', password: 'hashed', googleId: null, appleId: null, phoneVerified: true,
         } as any);
     });
 
@@ -116,6 +116,36 @@ describe('/api/tasks Route', () => {
             expect(response.status).toBe(201);
             expect(data.message).toBe('Task created successfully');
             expect(prismaMock.task.create).toHaveBeenCalled();
+        });
+
+        it('refuses to create a task for a provider', async () => {
+            // The UIs hide the entry point, but a direct API call used to land a
+            // provider-authored task in the public feed.
+            (cookies as jest.Mock).mockResolvedValue({
+                get: jest.fn().mockReturnValue({ value: 'valid-token' }),
+            });
+            (verifyJWTWithVersion as jest.Mock).mockResolvedValue({ id: 'user-id' });
+            prismaMock.user.findUnique.mockResolvedValue({
+                role: 'PROVIDER', password: 'hashed', googleId: null, appleId: null, phoneVerified: true,
+            } as any);
+
+            const request = new Request('http://localhost/api/tasks', {
+                method: 'POST',
+                body: JSON.stringify({
+                    title: 'Clean my house',
+                    description: 'Needs deep cleaning',
+                    category: 'Cleaning',
+                    budget: 'fixed',
+                    amount: '500',
+                    city: 'Dushanbe',
+                }),
+            });
+            const response = await POST(request);
+            const data = await response.json();
+
+            expect(response.status).toBe(403);
+            expect(data.code).toBe('CUSTOMER_REQUIRED');
+            expect(prismaMock.task.create).not.toHaveBeenCalled();
         });
     });
 });

@@ -174,6 +174,16 @@ describe('Validation Utilities', () => {
             expect(result.isValid).toBe(false);
             expect(result.errors.length).toBeGreaterThan(0);
         });
+
+        it('rejects a price above the money ceiling', () => {
+            // priceNum is a Postgres Int: anything past INT32_MAX used to reach
+            // Prisma and come back as a 500 with no hint about the price.
+            for (const price of ['2147483647', '999999999999']) {
+                const result = validateResponseInput({ message: 'I can help you with this', price });
+                expect(result.isValid).toBe(false);
+                expect(result.errors.join()).toContain('10,000,000');
+            }
+        });
     });
 
     describe('detectSpam', () => {

@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import { sendPasswordResetEmail } from '@/lib/notifications/email';
 import { logAction, getRequestIP } from '@/lib/audit';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
+import { isPlaceholderEmail } from '@/lib/validation';
 
 function getResetLinkBase(request: Request): string {
     const url = process.env.NEXT_PUBLIC_APP_URL;
@@ -36,8 +37,12 @@ export async function POST(request: Request) {
             where: { email: email.toLowerCase() }
         });
 
-        // Always return success to prevent email enumeration
-        if (!user) {
+        // Always return success to prevent email enumeration. A phone-only
+        // account's placeholder address is treated the same: mail cannot reach
+        // `@phone.dastiyor.local`, so there is nothing to send — those users
+        // recover by entering their phone number, which the form accepts and
+        // routes to the SMS code flow.
+        if (!user || isPlaceholderEmail(user.email)) {
             return NextResponse.json({
                 message: 'If an account exists with this email, a password reset link has been sent.'
             });

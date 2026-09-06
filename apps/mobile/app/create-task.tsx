@@ -120,7 +120,13 @@ export default function CreateTaskScreen() {
         <Text style={[styles.label, { color: colors.text }]}>{ct.budgetLabel}</Text>
         <View style={[styles.segmented, { borderColor: colors.border }]}>
           {(['fixed', 'negotiable'] as const).map((bv) => (
-            <TouchableOpacity key={bv} style={[styles.segBtn, { backgroundColor: colors.surfaceAlt }, budgetType === bv && styles.segBtnActive]} onPress={() => setBudgetType(bv)}>
+            <TouchableOpacity
+              key={bv}
+              style={[styles.segBtn, { backgroundColor: colors.surfaceAlt }, budgetType === bv && styles.segBtnActive]}
+              onPress={() => setBudgetType(bv)}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: budgetType === bv, checked: budgetType === bv }}
+            >
               <Text style={[styles.segText, { color: colors.textSecondary }, budgetType === bv && styles.segTextActive]}>
                 {bv === 'fixed' ? ct.fixed : ct.negotiable}
               </Text>

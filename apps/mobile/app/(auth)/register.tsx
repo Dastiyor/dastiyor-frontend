@@ -38,6 +38,16 @@ type Role = 'customer' | 'provider';
 
 const ROLE_ICONS = { customer: 'clipboard-outline', provider: 'construct-outline' } as const;
 
+/** Everything on the form except the password, which is never written to disk. */
+interface RegistrationDraft {
+  fullName: string;
+  phoneLocal: string;
+  role: Role;
+  legalAccepted: boolean;
+}
+
+const DRAFT_KEY = 'registration_draft';
+
 export default function RegisterScreen() {
   const { register, loginWithGoogle, loginWithApple } = useAuth();
   const { t, locale } = useLanguage();
@@ -57,6 +67,29 @@ export default function RegisterScreen() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
   const [legalAccepted, setLegalAccepted] = useState(false);
+
+  // Reading the Terms or Privacy link leaves the app; on a memory-tight device
+  // Android may kill the process while it is backgrounded, and expo-router then
+  // restores a blank form. Keep a draft of what was typed -- never the password
+  // -- and put it back. Cleared once an account is created.
+  useEffect(() => {
+    storage.getItem(DRAFT_KEY)
+      .then((raw) => {
+        if (!raw) return;
+        const draft = JSON.parse(raw) as Partial<RegistrationDraft>;
+        if (draft.fullName) setFullName(draft.fullName);
+        if (draft.phoneLocal) setPhoneLocal(draft.phoneLocal);
+        if (draft.role === 'customer' || draft.role === 'provider') setRole(draft.role);
+        if (draft.legalAccepted) setLegalAccepted(true);
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!fullName && !phoneLocal && !legalAccepted) return;
+    const draft: RegistrationDraft = { fullName, phoneLocal, role, legalAccepted };
+    storage.setItem(DRAFT_KEY, JSON.stringify(draft)).catch(() => {});
+  }, [fullName, phoneLocal, role, legalAccepted]);
 
   const googleConfigured = !!(
     process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID &&
@@ -79,6 +112,7 @@ export default function RegisterScreen() {
         loginWithGoogle(accessToken, role)
           .then(async () => {
             await storage.setItem('onboarding_done', '1');
+      await storage.deleteItem(DRAFT_KEY);
             router.replace('/(tabs)');
           })
           .catch((e) => Alert.alert(r.errRegister, (e as Error).message))
@@ -126,6 +160,7 @@ export default function RegisterScreen() {
         role,
       });
       await storage.setItem('onboarding_done', '1');
+      await storage.deleteItem(DRAFT_KEY);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       router.replace('/(tabs)');
     } catch (e) {
@@ -153,6 +188,7 @@ export default function RegisterScreen() {
         .filter(Boolean).join(' ') || undefined;
       await loginWithApple(credential.identityToken, credential.email ?? undefined, fullNameStr, role);
       await storage.setItem('onboarding_done', '1');
+      await storage.deleteItem(DRAFT_KEY);
       router.replace('/(tabs)');
     } catch (e: any) {
       if (e.code !== 'ERR_REQUEST_CANCELED') {
@@ -200,6 +236,8 @@ export default function RegisterScreen() {
               key={rv}
               style={[styles.roleBtn, { backgroundColor: colors.surface, borderColor: colors.border }, role === rv && styles.roleBtnActive]}
               onPress={() => setRole(rv)}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: role === rv, checked: role === rv }}
             >
               <Ionicons name={ROLE_ICONS[rv]} size={26} color={role === rv ? '#2563EB' : '#9CA3AF'} style={{ marginBottom: 6 }} />
               <Text style={[styles.roleBtnText, role === rv && styles.roleBtnTextActive]}>

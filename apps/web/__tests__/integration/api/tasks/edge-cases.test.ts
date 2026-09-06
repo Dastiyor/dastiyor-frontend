@@ -31,10 +31,10 @@ describe('Tasks API Edge Cases & Error Handling', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         (getClientIP as jest.Mock).mockReturnValue('127.0.0.1');
-        // POST looks up the author for the OAuth phone-verification gate.
-        // A password user (not OAuth-only) passes the gate.
+        // POST looks up the author for the role check and the OAuth
+        // phone-verification gate. A CUSTOMER with a password passes both.
         prismaMock.user.findUnique.mockResolvedValue({
-            password: 'hashed', googleId: null, appleId: null, phoneVerified: true,
+            role: 'CUSTOMER', password: 'hashed', googleId: null, appleId: null, phoneVerified: true,
         } as any);
     });
 

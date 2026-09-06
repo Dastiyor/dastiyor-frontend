@@ -19,7 +19,7 @@ type UserProfile = {
 
 export default function EditProfilePage() {
     const router = useRouter();
-    const { t } = useTranslation();
+    const { t, tError } = useTranslation();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [loading, setLoading] = useState(true);
@@ -110,7 +110,7 @@ export default function EditProfilePage() {
                 setProfile(data.user);
                 setTimeout(() => router.push('/profile'), 1500);
             } else {
-                setError(data.error || t('profileEdit.updateFailed'));
+                setError(tError(data.error) || t('profileEdit.updateFailed'));
             }
         } catch (err) {
             setError(t('reviews.genericError'));

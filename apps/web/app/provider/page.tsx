@@ -13,6 +13,7 @@ import {
     Rocket
 } from 'lucide-react';
 import { getServerTranslation } from '@/lib/i18n/server';
+import { formatMoney } from '@/lib/format-budget';
 
 export default async function ProviderDashboard() {
     const cookieStore = await cookies();
@@ -234,7 +235,7 @@ export default async function ProviderDashboard() {
                         {t('provider.totalEarned')}
                     </div>
                     <div style={{ fontSize: '1.75rem', fontWeight: '700', color: '#1E293B' }}>
-                        {user.balance.toFixed(2)} TJS
+                        {formatMoney(user.balance.toFixed(2))} TJS
                     </div>
                 </div>
             </div>
@@ -444,7 +445,7 @@ export default async function ProviderDashboard() {
                                         </div>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <div style={{ fontSize: '0.85rem', fontWeight: '600', color: accentColor }}>
-                                                {task.budgetType === 'fixed' ? `${task.budgetAmount} - ${Number(task.budgetAmount || 0) + 50} TJS` : t('common.negotiable')}
+                                                {task.budgetType === 'fixed' ? `${formatMoney(task.budgetAmount)} - ${formatMoney(Number(task.budgetAmount || 0) + 50)} TJS` : t('common.negotiable')}
                                             </div>
                                             <Link href={`/provider/tasks/${task.id}`} style={{
                                                 padding: '6px 12px',

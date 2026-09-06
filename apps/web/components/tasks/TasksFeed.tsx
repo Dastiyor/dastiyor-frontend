@@ -30,7 +30,7 @@ function buildQueryString(searchParams: URLSearchParams, pageNum: number): strin
 
 export default function TasksFeed() {
     const searchParams = useSearchParams();
-    const { t } = useTranslation();
+    const { t, tError } = useTranslation();
     const [tasks, setTasks] = useState<Task[]>([]);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
@@ -44,7 +44,7 @@ export default function TasksFeed() {
             const qs = buildQueryString(searchParams, pageNum);
             const res = await fetch(`/api/tasks?${qs}`, { signal });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.error || t('common.somethingWentWrong'));
+            if (!res.ok) throw new Error(tError(data.error) || t('common.somethingWentWrong'));
             const list: Task[] = data.tasks || [];
             const pagination = data.pagination || {};
             setTasks(prev => {

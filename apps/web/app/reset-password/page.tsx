@@ -9,7 +9,7 @@ import { useTranslation } from '@/lib/i18n';
 function ResetPasswordForm() {
     const searchParams = useSearchParams();
     const router = useRouter();
-    const { t } = useTranslation();
+    const { t, tError } = useTranslation();
     const token = searchParams.get('token');
 
     const [password, setPassword] = useState('');
@@ -71,7 +71,7 @@ function ResetPasswordForm() {
             if (res.ok) {
                 setSuccess(true);
             } else {
-                setError(data.error || t('common.somethingWentWrong'));
+                setError(tError(data.error) || t('common.somethingWentWrong'));
             }
         } catch (err) {
             setError(t('auth.networkError'));
@@ -315,7 +315,7 @@ function ResetPasswordForm() {
 }
 
 export default function ResetPasswordPage() {
-    const { t } = useTranslation();
+    const { t, tError } = useTranslation();
 
     return (
         <Suspense fallback={

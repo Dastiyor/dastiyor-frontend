@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { DollarSign, Calendar, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { getServerTranslation } from '@/lib/i18n/server';
 import { SUBSCRIPTIONS_ENABLED } from '@/lib/features';
+import { formatMoney } from '@/lib/format-budget';
 
 export default async function PaymentHistoryPage() {
     // Subscriptions are temporarily hidden — see lib/features.ts
@@ -79,7 +80,7 @@ export default async function PaymentHistoryPage() {
                     <div>
                         <div style={{ color: 'var(--text-light)', fontSize: '0.9rem', marginBottom: '8px' }}>{t('provider.totalSpent')}</div>
                         <div style={{ fontSize: '2rem', fontWeight: '700', color: 'var(--primary)' }}>
-                            {totalSpent} TJS
+                            {formatMoney(totalSpent)} TJS
                         </div>
                     </div>
                     <div>

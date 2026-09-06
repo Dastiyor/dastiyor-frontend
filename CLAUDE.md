@@ -76,6 +76,8 @@ Locales: `ru` (default) and `tj`, selected by the `dastiyor_locale` cookie. Clie
 
 Categories, cities and budget labels are stored, filtered and sent to the API as **canonical Russian strings** (served by `/api/config`). `lib/i18n/terms.ts` translates them **for display only** — never send the translated value back. That file is duplicated at `apps/mobile/lib/terms.ts` and the two must be edited together. A category with no `terms.ts` entry falls through to its Russian name rather than rendering blank, so admin-added categories are safe in Tajik.
 
+API **error** strings are the same story in reverse: every `error:` in `app/api/**` is a Russian literal, and the clients translate it at display time keyed by that Russian text — `apps/web/lib/i18n/api-errors.ts` (tj) and `apps/mobile/lib/serverErrors.ts` (en + tj), which share a Tajik column and must be edited together. Reword a server error and you must update the key; `apps/mobile/lib/__tests__/serverErrors.test.ts` fails when a key no longer appears in the route source. Unknown text falls through untranslated.
+
 ### Categories are admin-managed
 
 Categories live in the `Category` table, edited from the separate **dastiyor-admin** repo (`~/Projects/Dastiyor/dastiyor-admin`), which points at this same database. `lib/categories.ts` → `getCategories()` reads that table and falls back to the static list in `lib/config-fallback.ts` when it is empty or unreachable.

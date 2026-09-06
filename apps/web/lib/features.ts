@@ -4,7 +4,13 @@
  * Subscriptions / paid plans are hidden for now and will be re-enabled in ~1 month.
  * To bring everything back:
  *   1. Set NEXT_PUBLIC_SUBSCRIPTIONS_ENABLED=true   (shows all subscription UI + entry points)
- *   2. Set SUBSCRIPTION_GATE_ENABLED=true           (re-enables the "active subscription required" gate on responses)
+ *   2. Unset SUBSCRIPTION_GATE_ENABLED, or set it to anything but 'false'
+ *      (re-enables the "active subscription required" gate on responses)
+ *
+ * Note the asymmetry: the gate in POST /api/responses is `!== 'false'`, so it is
+ * ON unless explicitly switched off — fail-secure, and the opposite of the
+ * opt-in flag above. Deployments that want the gate down must set
+ * SUBSCRIPTION_GATE_ENABLED=false, not merely leave it unset.
  *
  * Uses the NEXT_PUBLIC_ prefix so the same constant resolves in both Server and Client Components.
  */

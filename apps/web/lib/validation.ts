@@ -1,5 +1,20 @@
 // Input validation and sanitization utilities
 
+/**
+ * Phone-only signups have no email, so registration mints
+ * `phone_992XXXXXXXXX@<this domain>`. Nothing can be delivered there — anything
+ * that mails a user has to check for it first. Shared so the address that gets
+ * written and the checks that read it cannot drift apart.
+ */
+export const PLACEHOLDER_EMAIL_DOMAIN = '@phone.dastiyor.local';
+
+/** Upper bound for any money field, well under INT32_MAX so the Int columns cannot overflow. */
+export const MAX_MONEY_TJS = 10_000_000;
+
+export function isPlaceholderEmail(email: string | null | undefined): boolean {
+    return Boolean(email?.endsWith(PLACEHOLDER_EMAIL_DOMAIN));
+}
+
 // Email validation
 export function isValidEmail(email: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -166,7 +181,7 @@ export function validateTaskInput(data: {
         const budget = parseFloat(data.budgetAmount);
         if (isNaN(budget) || budget < 0) {
             errors.push('Бюджет должен быть положительным числом');
-        } else if (budget > 10_000_000) {
+        } else if (budget > MAX_MONEY_TJS) {
             errors.push('Бюджет не может превышать 10,000,000');
         }
     }
@@ -194,6 +209,10 @@ export function validateResponseInput(data: {
         const price = parseFloat(data.price);
         if (isNaN(price) || price <= 0) {
             errors.push('Цена должна быть положительным числом');
+        } else if (price > MAX_MONEY_TJS) {
+            // Same ceiling as a task budget. Without it, anything past INT32_MAX
+            // overflowed the Postgres Int column and surfaced as a bare 500.
+            errors.push('Цена не может превышать 10,000,000');
         }
     }
 

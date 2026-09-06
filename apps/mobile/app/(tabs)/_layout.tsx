@@ -25,7 +25,10 @@ export default function TabLayout() {
   const { t } = useLanguage();
   const { colors } = useTheme();
   const { popupsEnabled } = useNotifPrefs();
-  const isCustomer = user?.role === 'CUSTOMER';
+  // Guests are shown the customer-flavoured label: signing up as a customer is
+  // the default path, and tapping it routes to registration either way. Reading
+  // this as `=== 'CUSTOMER'` left a logged-out visitor looking at "Responses".
+  const isCustomer = !user || user.role === 'CUSTOMER';
   const [unreadMessages, setUnreadMessages] = useState(0);
 
   // ponytail: account-only tabs open the dismissable auth modal for guests instead of gating the whole app.

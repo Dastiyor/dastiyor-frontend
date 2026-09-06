@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, ReactNode } from 'react';
 import * as storage from '@/lib/storage';
-import { api } from '@/lib/api-client';
+import { api, setApiLocale } from '@/lib/api-client';
 import { type Locale, type Translations, getTranslations } from '@/lib/i18n';
 import { localizeTerm } from '@/lib/terms';
 
@@ -53,6 +53,9 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       .then((val) => {
         if (val === 'ru' || val === 'tj' || val === 'en') {
           setLocaleState(val);
+          // API errors come back as Russian text; api-client translates them
+          // for display and needs the current choice to do it.
+          setApiLocale(val);
           // Covers a language picked while signed out, then signed in later.
           void syncLocale(val);
         }
@@ -62,6 +65,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   async function setLocale(next: Locale) {
     setLocaleState(next);
+    setApiLocale(next);
     await storage.setItem(STORAGE_KEY, next);
     // Notifications are built server-side for events another user triggers, so
     // the choice has to be stored there too. Best-effort: a signed-out user or

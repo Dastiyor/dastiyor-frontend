@@ -144,12 +144,31 @@ export async function POST(request: Request) {
         // a chat open on a task whose owner has since deleted their account --
         // otherwise surfaces the foreign-key violation as a bare 500.
         if (taskId) {
-            const taskExists = await prisma.task.findUnique({
+            const task = await prisma.task.findUnique({
                 where: { id: taskId },
-                select: { id: true },
+                select: {
+                    userId: true,
+                    assignedUserId: true,
+                    responses: { select: { userId: true } },
+                },
             });
-            if (!taskExists) {
+            if (!task) {
                 return NextResponse.json({ error: 'Задание не найдено' }, { status: 404 });
+            }
+
+            // A thread may only be labelled with a task by people actually
+            // involved in it: its author, its assigned provider, or a provider
+            // who has bid on it. Without this anyone could open a conversation
+            // that appears to be about the recipient's real job.
+            const participants = new Set(
+                [task.userId, task.assignedUserId, ...task.responses.map(r => r.userId)]
+                    .filter((id): id is string => Boolean(id))
+            );
+            if (!participants.has(senderId) || !participants.has(receiverId)) {
+                return NextResponse.json(
+                    { error: 'Доступ запрещён: вы не участник этого задания', code: 'TASK_PARTICIPANT_REQUIRED' },
+                    { status: 403 }
+                );
             }
         }
 

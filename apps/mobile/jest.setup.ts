@@ -58,6 +58,7 @@ jest.mock('@/lib/api-client', () => ({
   setOnUnauthorized: jest.fn(),
   setOnNetworkError: jest.fn(),
   setOnNetworkRecovered: jest.fn(),
+  setApiLocale: jest.fn(),
 }));
 
 // Mock safe-area-context to avoid native module dependency in unit tests

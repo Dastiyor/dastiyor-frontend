@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { toast } from '@/components/ui/Toast';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useTranslation } from '@/lib/i18n';
+import { formatMoney } from '@/lib/format-budget';
 
 type TaskSidebarProps = {
     task: {
@@ -27,7 +28,7 @@ export default function TaskSidebar({ task, isOwner, canRespond, isLoggedIn }: T
     const { t } = useTranslation();
 
     const budgetDisplay = task.budgetType === 'fixed'
-        ? `${task.budgetAmount || '0'} TJS`
+        ? `${formatMoney(task.budgetAmount || '0')} TJS`
         : t('common.negotiable');
 
     const budgetLabel = task.budgetType === 'fixed' ? t('tasks.fixedPrice') : t('tasks.openToOffers');

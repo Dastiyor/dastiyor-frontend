@@ -29,19 +29,22 @@ export default function ForgotPasswordScreen() {
   const keyboardOffset = useKeyboardOffset();
   const kbScroll = useKeyboardAwareScroll();
   const fp = t.forgotPassword;
-  const [email, setEmail] = useState('');
+  // Phone or email: phone-only signups have no reachable address, so the code
+  // goes out by SMS for them. The server decides which by the shape of this.
+  const [identifier, setIdentifier] = useState('');
   const [loading, setLoading] = useState(false);
 
   async function handleSend() {
-    if (!email.trim()) {
+    const value = identifier.trim();
+    if (!value) {
       Alert.alert(t.common.error, fp.errEmail);
       return;
     }
     setLoading(true);
     try {
-      await api.post('/api/auth/forgot-password/mobile', { email: email.trim().toLowerCase() });
+      await api.post('/api/auth/forgot-password/mobile', { identifier: value });
       Alert.alert(t.common.ok, fp.sent, [
-        { text: t.common.ok, onPress: () => router.push({ pathname: '/(auth)/reset-password', params: { email: email.trim().toLowerCase() } }) },
+        { text: t.common.ok, onPress: () => router.push({ pathname: '/(auth)/reset-password', params: { identifier: value } }) },
       ]);
     } catch (e) {
       Alert.alert(t.common.error, (e as Error).message);
@@ -66,11 +69,11 @@ export default function ForgotPasswordScreen() {
           style={[styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]}
           placeholder={fp.emailPh}
           placeholderTextColor={colors.textTertiary}
-          value={email}
-          onChangeText={setEmail}
+          value={identifier}
+          onChangeText={setIdentifier}
           autoCapitalize="none"
-          keyboardType="email-address"
-          autoComplete="email"
+          autoCorrect={false}
+          autoComplete="username"
           maxLength={255}
         />
 

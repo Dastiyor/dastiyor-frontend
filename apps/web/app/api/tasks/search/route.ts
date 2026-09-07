@@ -60,7 +60,7 @@ export async function GET(request: Request) {
                 where,
                 skip,
                 take: limit,
-                orderBy: { createdAt: 'desc' },
+                orderBy: [{ featured: 'desc' }, { featuredAt: { sort: 'desc', nulls: 'last' } }, { createdAt: 'desc' }],
                 include: {
                     _count: {
                         select: { responses: true }

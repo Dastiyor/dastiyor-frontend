@@ -6,6 +6,7 @@ import { formatMoney } from '@/lib/format-budget';
 type TaskInfoProps = {
     task: {
         status: string;
+        featured?: boolean;
         createdAt: string | Date;
         budgetType: string;
         budgetAmount: string | null;
@@ -36,6 +37,18 @@ export default function TaskInfo({ task }: TaskInfoProps) {
             {/* Title & Meta */}
             <div>
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap' }}>
+                    {task.featured && (
+                        <span style={{
+                            backgroundColor: '#FEF3C7',
+                            color: '#B45309',
+                            padding: '4px 12px',
+                            borderRadius: '16px',
+                            fontSize: '0.85rem',
+                            fontWeight: '700',
+                        }}>
+                            ★ {t('tasks.featured')}
+                        </span>
+                    )}
                     <span style={{
                         backgroundColor: '#e8f0fe',
                         color: 'var(--primary)',

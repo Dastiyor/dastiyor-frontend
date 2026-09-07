@@ -492,7 +492,8 @@
     "addToFavorites": "В избранное",
     "share": "Поделиться",
     "proMember": "PRO-УЧАСТНИК",
-    "premium": "ПРЕМИУМ"
+    "premium": "ПРЕМИУМ",
+    "featured": "Рекомендуем"
   },
   "subscription": {
     "title": "Подписка",

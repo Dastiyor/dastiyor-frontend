@@ -3,7 +3,7 @@ import { verifyJWT } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { MapPin, Clock, DollarSign, Users, Calendar, Filter, Search } from 'lucide-react';
+import { MapPin, Clock, DollarSign, Users, Calendar, Filter, Search, Star } from 'lucide-react';
 import { Prisma } from '@prisma/client';
 import { getServerTranslation } from '@/lib/i18n/server';
 import { formatMoney } from '@/lib/format-budget';
@@ -76,7 +76,7 @@ export default async function TaskFeedPage({
     // Get open tasks
     const tasks = await prisma.task.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy: [{ featured: 'desc' }, { featuredAt: { sort: 'desc', nulls: 'last' } }, { createdAt: 'desc' }],
         take: 50,
         include: {
             user: { select: { fullName: true, avatar: true } },
@@ -134,7 +134,8 @@ export default async function TaskFeedPage({
                                     backgroundColor: 'white',
                                     padding: '24px',
                                     borderRadius: '16px',
-                                    border: '1px solid #E2E8F0',
+                                    border: task.featured ? '1px solid #F59E0B' : '1px solid #E2E8F0',
+                                    boxShadow: task.featured ? '0 4px 16px rgba(245,158,11,0.18)' : undefined,
                                     transition: 'transform 0.2s, box-shadow 0.2s',
                                     cursor: 'pointer'
                                 }}
@@ -148,6 +149,21 @@ export default async function TaskFeedPage({
                                             >
                                                 {task.title}
                                             </Link>
+                                            {task.featured && (
+                                                <span style={{
+                                                    display: 'inline-flex',
+                                                    alignItems: 'center',
+                                                    gap: '4px',
+                                                    padding: '4px 10px',
+                                                    borderRadius: '6px',
+                                                    backgroundColor: '#FEF3C7',
+                                                    color: '#B45309',
+                                                    fontSize: '0.75rem',
+                                                    fontWeight: '700'
+                                                }}>
+                                                    <Star size={12} fill="#B45309" /> {t('tasks.featured')}
+                                                </span>
+                                            )}
                                             <span style={{
                                                 padding: '4px 10px',
                                                 borderRadius: '6px',

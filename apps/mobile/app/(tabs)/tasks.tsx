@@ -152,8 +152,18 @@ export default function TaskBrowseScreen() {
         <View style={styles.cardBody}>
           <View style={styles.cardTopRow}>
             <Text style={[styles.cardCategory, { color: colors.textTertiary }]} numberOfLines={1}>{tr(item.category)}</Text>
-            <View style={[styles.urgencyBadge, { backgroundColor: urgencyColor + '22' }]}>
-              <Text style={[styles.urgencyText, { color: urgencyColor }]}>{urgencyLabel}</Text>
+            <View style={styles.cardBadges}>
+              {item.featured ? (
+                <View style={[styles.urgencyBadge, { backgroundColor: '#F59E0B22' }]}>
+                  <Text style={[styles.urgencyText, { color: '#B45309' }]}>★ {t.home.featuredBadge}</Text>
+                </View>
+              ) : null}
+              {/* Only badge the exceptions — a feed where every card says "Normal" is noise. */}
+              {item.urgency && item.urgency !== 'normal' ? (
+                <View style={[styles.urgencyBadge, { backgroundColor: urgencyColor + '22' }]}>
+                  <Text style={[styles.urgencyText, { color: urgencyColor }]}>{urgencyLabel}</Text>
+                </View>
+              ) : null}
             </View>
           </View>
           <Text style={[styles.cardTitle, { color: colors.text }]} numberOfLines={1}>{item.title}</Text>
@@ -368,6 +378,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 6,
   },
+  cardBadges: { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 0 },
   urgencyBadge: { borderRadius: 6, paddingHorizontal: 7, paddingVertical: 2, flexShrink: 0 },
   urgencyText: { fontSize: 10, fontWeight: '700' },
   cardTitle: { fontSize: 15, fontWeight: '700', marginBottom: 3 },

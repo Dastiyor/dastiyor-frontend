@@ -40,6 +40,7 @@ export async function GET(request: Request) {
                 urgency: t.urgency,
                 postedAt: t.createdAt.toISOString(),
                 responseCount: t._count.responses,
+                featured: t.featured,
             })),
             pagination: {
                 page,

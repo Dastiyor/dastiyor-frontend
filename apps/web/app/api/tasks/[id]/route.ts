@@ -44,6 +44,7 @@ export async function GET(
             urgency: task.urgency,
             dueDate: task.dueDate,
             status: task.status,
+            featured: task.featured,
             postedAt: task.createdAt.toISOString(),
             responseCount: task._count.responses,
             customer: task.user,

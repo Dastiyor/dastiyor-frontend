@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { MapPin, Clock, MessageCircle, Zap, Heart, Share2 } from 'lucide-react';
+import { MapPin, Clock, MessageCircle, Zap, Heart, Share2, Star } from 'lucide-react';
 import { formatTaskDate } from '@/lib/format-date';
 import { toast } from '@/components/ui/Toast';
 import { useTranslation } from '@/lib/i18n';
@@ -20,6 +20,7 @@ export type Task = {
     responseCount?: number;
     status?: string;
     hasPremiumResponse?: boolean;
+    featured?: boolean;
 };
 
 const urgencyColors: Record<string, { color: string; bg: string }> = {
@@ -124,8 +125,8 @@ export default function TaskCard({ task }: { task: Task }) {
             backgroundColor: 'var(--white)',
             borderRadius: '16px',
             padding: '24px',
-            boxShadow: 'var(--shadow-sm)',
-            border: '1px solid var(--border)',
+            boxShadow: task.featured ? '0 4px 16px rgba(245,158,11,0.18)' : 'var(--shadow-sm)',
+            border: task.featured ? '1px solid #F59E0B' : '1px solid var(--border)',
             position: 'relative',
         }}>
         <div className="task-card-inner">
@@ -140,6 +141,21 @@ export default function TaskCard({ task }: { task: Task }) {
                     }}>
                         {task.title}
                     </h3>
+                    {task.featured && (
+                        <span style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            padding: '4px 10px',
+                            borderRadius: '6px',
+                            backgroundColor: '#FEF3C7',
+                            color: '#B45309',
+                            fontSize: '0.75rem',
+                            fontWeight: '700',
+                        }}>
+                            <Star size={12} fill="#B45309" /> {t('tasks.featured')}
+                        </span>
+                    )}
                     {task.category && (
                         <span style={{
                             padding: '4px 10px',

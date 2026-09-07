@@ -131,8 +131,11 @@ export default function HomeScreen() {
     setRefreshing(false);
   }
 
-  const featured = tasks.slice(0, 1);
-  const popular = tasks.slice(1);
+  // Editorially promoted tasks, capped at 3 (admin owns the flag; this is the
+  // client-side guard). The API already returns them ahead of the rest.
+  const featured = tasks.filter((task) => task.featured).slice(0, 3);
+  const featuredIds = new Set(featured.map((task) => task.id));
+  const popular = tasks.filter((task) => !featuredIds.has(task.id));
   const categories = [
     { name: t.categories.all, value: '' },
     ...config.categories.map((c) => ({ name: tr(c), value: c })),
@@ -307,9 +310,11 @@ export default function HomeScreen() {
                       <View style={styles.popBody}>
                         <View style={styles.popTopRow}>
                           <Text style={[styles.popCategory, { color: colors.textTertiary }]} numberOfLines={1}>{tr(task.category)}</Text>
-                          <View style={[styles.popBadge, { backgroundColor: urgencyColor + '22' }]}>
-                            <Text style={[styles.popBadgeText, { color: urgencyColor }]}>{urgencyLabel}</Text>
-                          </View>
+                          {task.urgency && task.urgency !== 'normal' ? (
+                            <View style={[styles.popBadge, { backgroundColor: urgencyColor + '22' }]}>
+                              <Text style={[styles.popBadgeText, { color: urgencyColor }]}>{urgencyLabel}</Text>
+                            </View>
+                          ) : null}
                         </View>
                         <Text style={[styles.popTitle, { color: colors.text }]} numberOfLines={1}>{task.title}</Text>
                         {task.description ? (

@@ -29,12 +29,14 @@ export async function GET(request: Request) {
         const minBudget = searchParams.get('minBudget');
         const maxBudget = searchParams.get('maxBudget');
         const urgency = searchParams.get('urgency');
+        const featuredOnly = searchParams.get('featured') === 'true';
         const sort = searchParams.get('sort') || 'newest';
         const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
         const limit = Math.max(1, Math.min(parseInt(searchParams.get('limit') || String(TASKS_PER_PAGE), 10), 50));
         const skip = (page - 1) * limit;
 
         const where: Prisma.TaskWhereInput = { status: 'OPEN' };
+        if (featuredOnly) where.featured = true;
         if (category) where.category = category;
         if (city) where.city = { contains: city, mode: 'insensitive' };
         if (urgency) {
@@ -65,9 +67,16 @@ export async function GET(request: Request) {
             where.AND = [...existing, budgetFilter] as Prisma.TaskWhereInput[];
         }
 
-        let orderBy: Prisma.TaskOrderByWithRelationInput | Prisma.TaskOrderByWithRelationInput[] = { createdAt: 'desc' };
-        if (sort === 'budget-high') orderBy = [{ budgetAmountNum: { sort: 'desc', nulls: 'last' } }, { createdAt: 'desc' }];
-        else if (sort === 'budget-low') orderBy = [{ budgetAmountNum: { sort: 'asc', nulls: 'last' } }, { createdAt: 'desc' }];
+        // Promoted tasks lead every feed, newest promotion first; the chosen sort
+        // orders the rest. Secondary createdAt keeps pagination stable so a
+        // featured task shown on page 1 never reappears further down.
+        const featuredFirst: Prisma.TaskOrderByWithRelationInput[] = [
+            { featured: 'desc' },
+            { featuredAt: { sort: 'desc', nulls: 'last' } },
+        ];
+        let orderBy: Prisma.TaskOrderByWithRelationInput[] = [...featuredFirst, { createdAt: 'desc' }];
+        if (sort === 'budget-high') orderBy = [...featuredFirst, { budgetAmountNum: { sort: 'desc', nulls: 'last' } }, { createdAt: 'desc' }];
+        else if (sort === 'budget-low') orderBy = [...featuredFirst, { budgetAmountNum: { sort: 'asc', nulls: 'last' } }, { createdAt: 'desc' }];
 
         const [tasksForPage, total] = await Promise.all([
             prisma.task.findMany({
@@ -98,6 +107,7 @@ export async function GET(request: Request) {
             urgency: task.urgency,
             responseCount: task._count.responses,
             status: task.status,
+            featured: task.featured,
             hasPremiumResponse: false, // TODO: Re-enable when payment gateway is ready
         }));
 

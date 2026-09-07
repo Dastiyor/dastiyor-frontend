@@ -223,6 +223,11 @@ export default function TaskDetailScreen() {
         }
       >
         <View style={styles.badgeRow}>
+          {task.featured ? (
+            <View style={[styles.badge, { backgroundColor: '#FEF3C7' }]}>
+              <Text style={[styles.badgeText, { color: '#B45309' }]}>★ {t.home.featuredBadge}</Text>
+            </View>
+          ) : null}
           {(() => {
             const ts = STATUS_BADGE[task.status];
             return ts ? (
@@ -231,9 +236,14 @@ export default function TaskDetailScreen() {
               </View>
             ) : null;
           })()}
-          <View style={[styles.badge, { backgroundColor: urgency.color + '18' }]}>
-            <Text style={[styles.badgeText, { color: urgency.color }]}>{urgency.label}</Text>
-          </View>
+          {/* "normal" is the default urgency — showing a loud amber pill next to
+              the status badge reads as a second status. Only surface the
+              non-default cases (urgent / low). */}
+          {task.urgency && task.urgency !== 'normal' ? (
+            <View style={[styles.badge, { backgroundColor: urgency.color + '18' }]}>
+              <Text style={[styles.badgeText, { color: urgency.color }]}>{urgency.label}</Text>
+            </View>
+          ) : null}
           <Text style={[styles.category, { color: colors.textSecondary }]}>{tr(task.category)}</Text>
         </View>
 

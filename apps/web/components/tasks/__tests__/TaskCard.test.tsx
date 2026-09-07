@@ -151,6 +151,26 @@ describe('TaskCard', () => {
         });
     });
 
+    it('should display the featured badge when task.featured is true', async () => {
+        const featuredTask = { ...mockTask, featured: true };
+        await act(async () => {
+            render(<TaskCard task={featuredTask} />);
+        });
+        await waitFor(() => {
+            expect(screen.getByText('Рекомендуем')).toBeInTheDocument();
+        });
+    });
+
+    it('should not display the featured badge for a normal task', async () => {
+        await act(async () => {
+            render(<TaskCard task={mockTask} />);
+        });
+        await waitFor(() => {
+            expect(screen.getByText('Test Task Title')).toBeInTheDocument();
+        });
+        expect(screen.queryByText('Рекомендуем')).not.toBeInTheDocument();
+    });
+
     it('should display View Details link', async () => {
         await act(async () => {
             render(<TaskCard task={mockTask} />);

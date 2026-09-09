@@ -3,6 +3,7 @@ import * as storage from '@/lib/storage';
 import { router } from 'expo-router';
 import { api, setOnUnauthorized } from '@/lib/api-client';
 import { registerForPushNotifications, unregisterPushNotifications } from '@/lib/push';
+import { signOutFromGoogle } from '@/lib/google-signin';
 import { setUser as setErrorUser } from '@/lib/errorReporting';
 import { track, identify, reset as resetAnalytics, AnalyticsEvent } from '@/lib/analytics';
 import { syncStoredLocale } from '@/contexts/LanguageContext';
@@ -153,6 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       /* proceed with local cleanup even if server unreachable */
     }
     await clearPushRegistration();
+    await signOutFromGoogle();
     await storage.deleteItem('auth_token');
     setUser(null);
     setErrorUser(null);
@@ -166,6 +168,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // user signed in; only clears local session once the server confirms.
     await api.del('/api/account');
     await clearPushRegistration();
+    await signOutFromGoogle();
     await storage.deleteItem('auth_token');
     setUser(null);
     setErrorUser(null);

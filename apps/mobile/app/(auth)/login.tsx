@@ -16,18 +16,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardOffset } from '@/lib/useKeyboardOffset';
 import { useKeyboardAwareScroll } from '@/lib/useKeyboardAwareScroll';
 import { Ionicons } from '@expo/vector-icons';
-import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Haptics from 'expo-haptics';
 import { GoogleIcon } from '@/components/GoogleIcon';
+import { googleConfigured, signInWithGoogle } from '@/lib/google-signin';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { LogoWordmark } from '@/components/Logo';
 import { Alert } from '@/lib/dialog';
-
-WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
   const { login, loginWithGoogle, loginWithApple } = useAuth();
@@ -44,32 +41,20 @@ export default function LoginScreen() {
   const [appleLoading, setAppleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const googleConfigured = !!(
-    process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID &&
-    (Platform.OS !== 'ios' || process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID) &&
-    (Platform.OS !== 'android' || process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID)
-  );
-
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    clientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || 'unconfigured',
-    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || 'unconfigured',
-    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID || 'unconfigured',
-    scopes: ['openid', 'email', 'profile'],
-  });
-
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const accessToken = response.authentication?.accessToken;
-      if (accessToken) {
-        setGoogleLoading(true);
-        loginWithGoogle(accessToken)
-          .then(() => router.replace('/(tabs)'))
-          .catch((e) => Alert.alert(L.errOauth, (e as Error).message))
-          .finally(() => setGoogleLoading(false));
-      }
+  async function handleGoogleLogin() {
+    if (googleLoading) return;
+    setGoogleLoading(true);
+    try {
+      const accessToken = await signInWithGoogle();
+      if (!accessToken) return;
+      await loginWithGoogle(accessToken);
+      router.replace('/(tabs)');
+    } catch (e) {
+      Alert.alert(L.errOauth, (e as Error).message);
+    } finally {
+      setGoogleLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [response]);
+  }
 
   async function handleLogin() {
     if (!identifier.trim() || !password) {
@@ -156,8 +141,8 @@ export default function LoginScreen() {
         {googleConfigured && (
           <TouchableOpacity
             style={[styles.oauthBtn, { borderColor: colors.border, backgroundColor: colors.surface }]}
-            onPress={() => promptAsync()}
-            disabled={!request || googleLoading}
+            onPress={handleGoogleLogin}
+            disabled={googleLoading}
           >
             {googleLoading ? (
               <ActivityIndicator color={colors.text} />

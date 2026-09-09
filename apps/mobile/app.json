@@ -163,6 +163,12 @@
           "project": "react-native",
           "url": "https://sentry.io/"
         }
+      ],
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.879800960695-cgt63devjbu7bunbseln8mu16a0httk0"
+        }
       ]
     ],
     "extra": {

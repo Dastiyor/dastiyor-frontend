@@ -18,11 +18,10 @@ import { useKeyboardAwareScroll } from '@/lib/useKeyboardAwareScroll';
 import { AuthBackground } from '@/components/AuthBackground';
 import { GoogleIcon } from '@/components/GoogleIcon';
 import * as storage from '@/lib/storage';
-import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
+import { googleConfigured, signInWithGoogle } from '@/lib/google-signin';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -31,8 +30,6 @@ import { openPrivacyPolicy, openTermsOfService } from '@/lib/legal';
 import { passwordStrength } from '@/lib/validation';
 import type { Locale } from '@/lib/i18n';
 import { Alert } from '@/lib/dialog';
-
-WebBrowser.maybeCompleteAuthSession();
 
 type Role = 'customer' | 'provider';
 
@@ -91,36 +88,22 @@ export default function RegisterScreen() {
     storage.setItem(DRAFT_KEY, JSON.stringify(draft)).catch(() => {});
   }, [fullName, phoneLocal, role, legalAccepted]);
 
-  const googleConfigured = !!(
-    process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID &&
-    (Platform.OS !== 'ios' || process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID) &&
-    (Platform.OS !== 'android' || process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID)
-  );
-
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    clientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || 'unconfigured',
-    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID || 'unconfigured',
-    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID || 'unconfigured',
-    scopes: ['openid', 'email', 'profile'],
-  });
-
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const accessToken = response.authentication?.accessToken;
-      if (accessToken) {
-        setGoogleLoading(true);
-        loginWithGoogle(accessToken, role)
-          .then(async () => {
-            await storage.setItem('onboarding_done', '1');
+  async function handleGoogleRegister() {
+    if (googleLoading) return;
+    setGoogleLoading(true);
+    try {
+      const accessToken = await signInWithGoogle();
+      if (!accessToken) return;
+      await loginWithGoogle(accessToken, role);
+      await storage.setItem('onboarding_done', '1');
       await storage.deleteItem(DRAFT_KEY);
-            router.replace('/(tabs)');
-          })
-          .catch((e) => Alert.alert(r.errRegister, (e as Error).message))
-          .finally(() => setGoogleLoading(false));
-      }
+      router.replace('/(tabs)');
+    } catch (e) {
+      Alert.alert(r.errRegister, (e as Error).message);
+    } finally {
+      setGoogleLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [response, role]);
+  }
 
   function handlePhoneChange(text: string) {
     const digits = text.replace(/\D/g, '').slice(0, 9);
@@ -251,8 +234,8 @@ export default function RegisterScreen() {
         {googleConfigured && (
           <TouchableOpacity
             style={[styles.oauthBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
-            onPress={() => promptAsync()}
-            disabled={!request || googleLoading}
+            onPress={handleGoogleRegister}
+            disabled={googleLoading}
           >
             {googleLoading
               ? <ActivityIndicator color={colors.text} />

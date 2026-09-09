@@ -22,6 +22,25 @@ jest.mock('expo-notifications', () => ({
 }));
 jest.mock('expo-device', () => ({ isDevice: false }));
 
+jest.mock('@react-native-google-signin/google-signin', () => ({
+  GoogleSignin: {
+    configure: jest.fn(),
+    hasPlayServices: jest.fn().mockResolvedValue(true),
+    signIn: jest.fn().mockResolvedValue({ type: 'success', data: {} }),
+    getTokens: jest.fn().mockResolvedValue({ accessToken: 'test-access-token', idToken: 'test-id-token' }),
+    signOut: jest.fn().mockResolvedValue(null),
+  },
+  isSuccessResponse: (r: { type: string }) => r.type === 'success',
+  isErrorWithCode: (e: unknown) => typeof e === 'object' && e !== null && 'code' in e,
+  statusCodes: {
+    SIGN_IN_CANCELLED: 'SIGN_IN_CANCELLED',
+    IN_PROGRESS: 'IN_PROGRESS',
+    PLAY_SERVICES_NOT_AVAILABLE: 'PLAY_SERVICES_NOT_AVAILABLE',
+    SIGN_IN_REQUIRED: 'SIGN_IN_REQUIRED',
+    NULL_PRESENTER: 'NULL_PRESENTER',
+  },
+}));
+
 // Mock expo-router
 jest.mock('expo-router', () => ({
   router: {

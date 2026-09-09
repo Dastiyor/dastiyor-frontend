@@ -86,9 +86,15 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
+  // Reads must always be fresh — a marketplace feed, an offer list or a chat
+  // that the platform HTTP cache (NSURLCache / OkHttp) serves stale looks like
+  // the app is broken. Mutations are never cacheable anyway.
+  const method = (options.method ?? 'GET').toUpperCase();
+  const noCache: RequestInit = method === 'GET' ? { cache: 'no-store' } : {};
+
   let res: Response;
   try {
-    res = await fetch(`${API_BASE}${path}`, { ...options, headers, signal: controller.signal });
+    res = await fetch(`${API_BASE}${path}`, { ...options, ...noCache, headers, signal: controller.signal });
     _onNetworkRecovered?.();
   } catch (err: unknown) {
     if ((err as { name?: string })?.name === 'AbortError') {

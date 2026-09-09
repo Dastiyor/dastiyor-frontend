@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FullWindowOverlay } from 'react-native-screens';
 import { Ionicons } from '@expo/vector-icons';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -92,13 +93,7 @@ export function DialogHost() {
     const stacked = buttons.length > 2;
 
     return (
-        <Modal
-            transparent
-            visible
-            animationType="fade"
-            statusBarTranslucent
-            onRequestClose={dismiss}
-        >
+        <DialogPortal onRequestClose={dismiss}>
             <Pressable
                 style={[styles.backdrop, { backgroundColor: isDark ? 'rgba(0,0,0,0.65)' : 'rgba(17,24,39,0.45)' }]}
                 onPress={cancelButton ? dismiss : undefined}
@@ -149,6 +144,31 @@ export function DialogHost() {
                     )}
                 </Pressable>
             </Pressable>
+        </DialogPortal>
+    );
+}
+
+/**
+ * Where the dialog is actually drawn. A plain `Modal` is rendered from the JS
+ * root; on iOS a `presentation: 'modal'` screen (respond / review / create-task
+ * / edit-profile …) is presented *above* that root, so the `Modal` lands behind
+ * it and the dialog is invisible. `FullWindowOverlay` (react-native-screens)
+ * renders into a UIWindow above everything, native modals included. On Android
+ * the plain `Modal` already stacks correctly, so it stays.
+ */
+function DialogPortal({
+    children,
+    onRequestClose,
+}: {
+    children: React.ReactNode;
+    onRequestClose: () => void;
+}) {
+    if (Platform.OS === 'ios') {
+        return <FullWindowOverlay>{children}</FullWindowOverlay>;
+    }
+    return (
+        <Modal transparent visible animationType="fade" statusBarTranslucent onRequestClose={onRequestClose}>
+            {children}
         </Modal>
     );
 }

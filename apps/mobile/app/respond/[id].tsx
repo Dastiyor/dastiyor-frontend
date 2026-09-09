@@ -41,13 +41,18 @@ export default function RespondScreen() {
   const [price, setPrice] = useState('');
   const [estimatedTime, setEstimatedTime] = useState('');
   const [loading, setLoading] = useState(false);
+  // Inline validation notice. `Alert` (lib/dialog) renders from the root and on
+  // iOS is drawn *behind* this modally-presented screen, so a user who taps
+  // Send with an empty field would otherwise get no feedback at all.
+  const [validationError, setValidationError] = useState('');
 
   async function handleSubmit() {
     // Down before the request, not after it -- the keyboard's hide animation
     // then finishes well before goBack() tears the modal down. See lib/nav.ts.
     Keyboard.dismiss();
-    if (!message.trim()) { Alert.alert(t.common.error, r.errMsg); return; }
-    if (!price.trim() || isNaN(Number(price)) || Number(price) <= 0) { Alert.alert(t.common.error, r.errPrice); return; }
+    if (!message.trim()) { setValidationError(r.errMsg); Alert.alert(t.common.error, r.errMsg); return; }
+    if (!price.trim() || isNaN(Number(price)) || Number(price) <= 0) { setValidationError(r.errPrice); Alert.alert(t.common.error, r.errPrice); return; }
+    setValidationError('');
     setLoading(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     try {
@@ -98,11 +103,11 @@ export default function RespondScreen() {
         ) : null}
 
         <Text style={[styles.label, { color: colors.text }]}>{r.offerLabel}</Text>
-        <TextInput style={[...inputStyle, styles.textareaNoMb]} placeholder={r.offerPh} placeholderTextColor={colors.textTertiary} value={message} onChangeText={setMessage} multiline numberOfLines={5} textAlignVertical="top" maxLength={1000} />
+        <TextInput style={[...inputStyle, styles.textareaNoMb]} placeholder={r.offerPh} placeholderTextColor={colors.textTertiary} value={message} onChangeText={(v) => { setMessage(v); if (validationError) setValidationError(''); }} multiline numberOfLines={5} textAlignVertical="top" maxLength={1000} />
         <Text style={styles.charCount}>{message.length}/1000</Text>
 
         <Text style={[styles.label, { color: colors.text }]}>{r.priceLabel}</Text>
-        <TextInput style={inputStyle} placeholder={r.pricePh} placeholderTextColor={colors.textTertiary} value={price} onChangeText={setPrice} keyboardType="numeric" maxLength={10} />
+        <TextInput style={inputStyle} placeholder={r.pricePh} placeholderTextColor={colors.textTertiary} value={price} onChangeText={(v) => { setPrice(v); if (validationError) setValidationError(''); }} keyboardType="numeric" maxLength={10} />
 
         <Text style={[styles.label, { color: colors.text }]}>{r.timeLabel}</Text>
         {/* Canonical Russian goes to the API; the chip label is display-only. */}
@@ -113,6 +118,10 @@ export default function RespondScreen() {
           getLabel={(o) => (o === '' ? r.timeNone : tr(o as string))}
           colors={colors}
         />
+
+        {validationError ? (
+          <Text style={styles.errorText} accessibilityRole="alert">{validationError}</Text>
+        ) : null}
 
         <TouchableOpacity style={[styles.button, loading && styles.buttonDisabled]} onPress={handleSubmit} disabled={loading} accessibilityLabel={r.btn} accessibilityRole="button">
           {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{r.btn}</Text>}
@@ -135,4 +144,5 @@ const styles = StyleSheet.create({
   button: { backgroundColor: '#2563EB', borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 8 },
   buttonDisabled: { opacity: 0.6 },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  errorText: { color: '#DC2626', fontSize: 13, fontWeight: '600', textAlign: 'center', marginBottom: 4 },
 });

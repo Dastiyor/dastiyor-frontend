@@ -15,6 +15,24 @@ export type PushPermission = 'granted' | 'denied' | 'unavailable';
 // them and Hermes can compile the release build — a variable `import()` fails
 // Hermes with "Invalid expression encountered". Guarded so the module stays safe
 // under Jest / web / a build missing a given native dep.
+/**
+ * Expo Go (SDK 53+) removed remote-push from `expo-notifications`; calling its
+ * permission/token APIs there logs a red LogBox error and can never return a
+ * usable token. Detect Expo Go so callers can skip cleanly.
+ */
+function isExpoGo(): boolean {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const Constants = require('expo-constants')?.default;
+    return (
+      Constants?.executionEnvironment === 'storeClient' ||
+      Constants?.appOwnership === 'expo'
+    );
+  } catch {
+    return false;
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function loadModule(name: string): any | null {
   try {
@@ -37,6 +55,7 @@ function loadModule(name: string): any | null {
  * (web, simulator, denied permission, or native module not installed).
  */
 export async function getExpoPushToken(): Promise<string | null> {
+  if (isExpoGo()) return null;
   const Notifications = loadModule('expo-notifications');
   const Device = loadModule('expo-device');
   if (!Notifications?.getExpoPushTokenAsync) return null;

@@ -45,6 +45,7 @@ export default function ChatScreen() {
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isAtBottomRef = useRef(true);
+  const hasLoadedRef = useRef(false);
   const pollErrorCount = useRef(0);
   const pollDelayRef = useRef(POLL_INTERVAL_MS);
   const appStateRef = useRef(AppState.currentState);
@@ -98,7 +99,17 @@ export default function ChatScreen() {
     useCallback(() => {
       pollErrorCount.current = 0;
       pollDelayRef.current = POLL_INTERVAL_MS;
-      (async () => { setLoading(true); await fetchMessages(true); setLoading(false); schedulePoll(); })();
+      (async () => {
+        // Only blank the thread for a spinner on the very first load. On every
+        // later refocus (returning from a screen, an IME/config change) refresh
+        // in the background so the already-loaded messages stay on screen
+        // instead of flashing empty.
+        if (!hasLoadedRef.current) setLoading(true);
+        await fetchMessages(true);
+        hasLoadedRef.current = true;
+        setLoading(false);
+        schedulePoll();
+      })();
 
       const sub = AppState.addEventListener('change', (next) => {
         appStateRef.current = next;

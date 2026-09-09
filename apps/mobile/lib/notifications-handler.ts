@@ -65,7 +65,27 @@ export function navigateFromNotificationData(data: NotificationData | undefined)
     }
   }
 }
+/**
+ * Expo Go (SDK 53+) stripped the remote-notifications native code out of
+ * `expo-notifications`; merely touching the module there logs a red LogBox
+ * "Console Error" on every cold start. It also can't deliver push in Expo Go
+ * anyway, so skip it entirely there and only load it in a real build.
+ */
+function isExpoGo(): boolean {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const Constants = require('expo-constants')?.default;
+    return (
+      Constants?.executionEnvironment === 'storeClient' ||
+      Constants?.appOwnership === 'expo'
+    );
+  } catch {
+    return false;
+  }
+}
+
 function loadNotificationsModule(): any | null {
+  if (isExpoGo()) return null;
   try {
     // Literal require so Metro bundles it and Hermes can compile the release build.
     // eslint-disable-next-line @typescript-eslint/no-require-imports

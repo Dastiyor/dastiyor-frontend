@@ -30,6 +30,10 @@ function ThemedStack() {
   }, []);
 
   return (
+    <>
+    {/* Follow the in-app theme, not the system one: Info.plist pins the system
+        appearance to Light, so style="auto" drew dark icons on the dark header. */}
+    <StatusBar style={isDark ? 'light' : 'dark'} />
     <Stack
       screenOptions={{
         headerStyle: { backgroundColor: colors.surface },
@@ -54,6 +58,7 @@ function ThemedStack() {
       <Stack.Screen name="edit-profile" options={{ title: nav.editProfile, presentation: 'modal' }} />
       <Stack.Screen name="verify-phone" options={{ title: nav.verifyPhone, presentation: 'modal' }} />
     </Stack>
+    </>
   );
 }
 
@@ -67,7 +72,6 @@ export default function RootLayout() {
         <NotifPrefsProvider>
         <AuthProvider>
           <ThemedStack />
-          <StatusBar style="auto" />
           <OfflineBanner />
           <DialogHost />
         </AuthProvider>

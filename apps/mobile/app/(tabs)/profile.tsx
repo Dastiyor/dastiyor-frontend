@@ -118,7 +118,7 @@ export default function ProfileScreen() {
   if (!user) {
     return (
       <View style={[styles.container, { backgroundColor: colors.bg }]}>
-        <View style={[styles.headerBar, { paddingTop: statusBarHeight + 8, backgroundColor: colors.header, borderBottomColor: colors.border }]}>
+        <View style={[styles.headerBar, { paddingTop: statusBarHeight + 4, backgroundColor: colors.header, borderBottomColor: colors.border }]}>
           <Text style={[styles.headerTitle, { color: colors.text }]}>{p.title ?? 'Profile'}</Text>
         </View>
 
@@ -210,7 +210,7 @@ export default function ProfileScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
       {/* Header bar */}
-      <View style={[styles.headerBar, { paddingTop: statusBarHeight + 8, backgroundColor: colors.header, borderBottomColor: colors.border }]}>
+      <View style={[styles.headerBar, { paddingTop: statusBarHeight + 4, backgroundColor: colors.header, borderBottomColor: colors.border }]}>
         <Text style={[styles.headerTitle, { color: colors.text }]}>{p.title ?? 'Profile'}</Text>
       </View>
 
@@ -409,10 +409,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingBottom: 14,
+    paddingBottom: 6,
     borderBottomWidth: 1,
   },
-  headerTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700' },
+  // lineHeight matches ScreenHeader's 36pt icon row so both bars are the same height
+  headerTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700', lineHeight: 36 },
 
   scroll: { padding: 16, gap: 12 },
 

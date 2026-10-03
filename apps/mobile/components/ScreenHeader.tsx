@@ -24,7 +24,7 @@ export function ScreenHeader({ title, unreadCount = 0, onNotificationsOpen, show
   const notifLabel = t.navigation.notifications;
 
   return (
-    <View style={[styles.header, { paddingTop: statusBarHeight + 8, backgroundColor: colors.header, borderBottomColor: colors.border }]}>
+    <View style={[styles.header, { paddingTop: statusBarHeight + 4, backgroundColor: colors.header, borderBottomColor: colors.border }]}>
       {showBack ? (
         <TouchableOpacity
           style={styles.iconBtn}
@@ -70,13 +70,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingBottom: 14,
+    paddingBottom: 6,
     borderBottomWidth: 1,
   },
   title: { fontSize: 17, fontWeight: '700', flex: 1, textAlign: 'center' },
-  iconBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  iconBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   notifDot: {
-    position: 'absolute', top: 2, right: 2,
+    position: 'absolute', top: 1, right: 1,
     width: 8, height: 8, borderRadius: 4, backgroundColor: '#EF4444',
   },
 });

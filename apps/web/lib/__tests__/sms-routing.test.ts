@@ -64,7 +64,7 @@ describe('SMS provider routing', () => {
     await sendVerificationCode('+992901234567', '4821');
     expect(sendPayomSMS).toHaveBeenCalledWith({
       recipient: '+992901234567',
-      template: { id: 'tpl-1', variables: { code: '4821' } },
+      template: { id: 'tpl-1', variables: { 'code-1': '4821' } },
     });
   });
 });

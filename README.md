@@ -145,7 +145,7 @@ BREVO_SMS_SENDER="Dastiyor"
 PAYOM_API_HOST="host-from-payom-cabinet"
 PAYOM_API_TOKEN="jwt-from-payom-cabinet"
 PAYOM_SENDER_NAME="Dastiyor"            # Registered sender name (Latin, ≤11 chars)
-PAYOM_OTP_TEMPLATE_ID=""                # Template with a {code} variable; required if the account is an individual (no free text)
+PAYOM_OTP_TEMPLATE_ID=""                # Template whose first variable is a "Код" ({code-1}); required for individual accounts (no free text)
 
 # Optional: Payment gateway (SmartPay TJ)
 SMARTPAY_API_URL="https://api.smartpay.tj"
@@ -340,7 +340,7 @@ See `prisma/schema.prisma` for complete schema definition.
 | `BREVO_SMS_SENDER` | SMS sender ID (default "Dastiyor") |
 | `PAYOM_API_HOST` / `PAYOM_API_TOKEN` | Payom.tj host + JWT; routes +992 SMS through Payom instead of Brevo |
 | `PAYOM_SENDER_NAME` | Registered Payom sender name (default "Dastiyor") |
-| `PAYOM_OTP_TEMPLATE_ID` | Payom template for OTP codes (variable `code`); needed for individual accounts |
+| `PAYOM_OTP_TEMPLATE_ID` | Payom template for OTP codes (variable `{code-1}`); needed for individual accounts |
 | `SMARTPAY_API_URL` | SmartPay TJ API base URL |
 | `SMARTPAY_MERCHANT_ID` | SmartPay merchant ID |
 | `SMARTPAY_SECRET_KEY` | SmartPay secret key |

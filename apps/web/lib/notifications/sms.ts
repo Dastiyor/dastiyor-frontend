@@ -62,12 +62,13 @@ export async function sendSMS(options: SMSOptions): Promise<boolean> {
 }
 
 export async function sendVerificationCode(phone: string, code: string): Promise<boolean> {
-    // The Payom template must take a `code` variable.
+    // Payom keys a template variable by its type plus position: the template's
+    // first "Код" placeholder is `{code-1}`.
     const templateId = process.env.PAYOM_OTP_TEMPLATE_ID;
     return sendSMS({
         to: phone,
         message: `Ваш код подтверждения Dastiyor: ${code}. Код действителен 10 минут.`,
-        payomTemplate: templateId ? { id: templateId, variables: { code } } : undefined,
+        payomTemplate: templateId ? { id: templateId, variables: { 'code-1': code } } : undefined,
     });
 }
 

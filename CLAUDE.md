@@ -103,7 +103,7 @@ Cities have no table and stay static in `lib/config-fallback.ts`. Seed a fresh d
 - `lib/validation.ts` — input sanitization, XSS and spam checks
 - `lib/rate-limit.ts` — Upstash Redis rate limiter with an in-memory fallback when `UPSTASH_REDIS_REST_URL`/`KV_REST_API_URL` is unset. **Only the Redis path enforces limits across serverless instances** — in-memory is a dev/CI convenience, not production protection. Presets in `RATE_LIMITS`.
 - `lib/audit.ts` — writes `ActionLog`; called fire-and-forget
-- `lib/notifications/` — Brevo email + SMS; `lib/web-push.ts` for VAPID push
+- `lib/notifications/` — Brevo email + SMS; `lib/payom-sms.ts` takes +992 SMS when `PAYOM_API_HOST`/`PAYOM_API_TOKEN` are set (Brevo otherwise); `lib/web-push.ts` for VAPID push
 - `lib/payments/smartpay.ts` — SmartPay TJ; falls back to a dev simulator when keys are absent
 - `lib/i18n/`, `lib/features.ts`, `lib/phone-gate.ts` — above
 - `lib/env-validation.ts` exports `validateEnv()` but **nothing calls it**. It is not a startup check.
@@ -118,4 +118,4 @@ Jest + React Testing Library, tests in `__tests__/` next to the source. `jest.co
 
 ### External services
 
-Supabase (required). Optional, each degrading gracefully when unset: Brevo (email/SMS), SmartPay TJ (payments), Upstash Redis (rate limiting), Vercel Blob (uploads), VAPID web push, Sentry (`sentry.{client,server}.config.ts`), PostHog (mobile analytics only). One Vercel cron: `/api/cron/expire-subscriptions` daily at 02:00.
+Supabase (required). Optional, each degrading gracefully when unset: Brevo (email/SMS), Payom.tj (SMS to +992), SmartPay TJ (payments), Upstash Redis (rate limiting), Vercel Blob (uploads), VAPID web push, Sentry (`sentry.{client,server}.config.ts`), PostHog (mobile analytics only). One Vercel cron: `/api/cron/expire-subscriptions` daily at 02:00.

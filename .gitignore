@@ -84,3 +84,6 @@ PRODUCTION_AUDIT_REPORT.md
 
 # Apple Sign In private keys (.p8) — never commit
 *.p8
+
+# Local research notes
+SMS_PROVIDER_OPTIONS.md

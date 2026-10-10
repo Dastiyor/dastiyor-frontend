@@ -32,17 +32,17 @@ import { Alert } from '@/lib/dialog';
 export default function VerifyPhoneScreen() {
   const { t } = useLanguage();
   const { colors } = useTheme();
-  const { user, refreshUser, logout } = useAuth();
-  // Google/Apple accounts are held here until they verify (see app/_layout.tsx).
-  // Read once: refreshUser() clears the flag before the success alert is answered.
-  const [forced] = useState(() => !!user?.phoneVerificationRequired);
+  const { refreshUser, logout } = useAuth();
   const insets = useSafeAreaInsets();
   const keyboardOffset = useKeyboardOffset();
   const kbScroll = useKeyboardAwareScroll();
   const vp = t.verifyPhone;
 
   // Set by whichever screen hit the gate, so we can send the user back to it.
-  const { returnTo } = useLocalSearchParams<{ returnTo?: string }>();
+  // `forced` comes from the guard in app/_layout.tsx, which holds Google/Apple
+  // accounts here until they verify.
+  const { returnTo, forced: forcedParam } = useLocalSearchParams<{ returnTo?: string; forced?: string }>();
+  const forced = forcedParam === '1';
 
   const [step, setStep] = useState<'phone' | 'code'>('phone');
   const [phone, setPhone] = useState('');

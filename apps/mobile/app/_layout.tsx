@@ -37,7 +37,7 @@ function ThemedStack() {
   const mustVerifyPhone = !!user?.phoneVerificationRequired;
   const onVerifyPhone = (segments[0] as string | undefined) === 'verify-phone';
   useEffect(() => {
-    if (mustVerifyPhone && !onVerifyPhone) router.replace('/verify-phone');
+    if (mustVerifyPhone && !onVerifyPhone) router.replace({ pathname: '/verify-phone', params: { forced: '1' } });
   }, [mustVerifyPhone, onVerifyPhone]);
 
   return (
@@ -67,7 +67,22 @@ function ThemedStack() {
       <Stack.Screen name="change-password" options={{ title: nav.changePassword }} />
       <Stack.Screen name="change-email" options={{ title: nav.changeEmail }} />
       <Stack.Screen name="edit-profile" options={{ title: nav.editProfile, presentation: 'modal' }} />
-      <Stack.Screen name="verify-phone" options={{ title: nav.verifyPhone, presentation: 'modal', gestureEnabled: !mustVerifyPhone, headerBackVisible: !mustVerifyPhone }} />
+      {/* Forced (see the guard above) it is a plain card with no way back. As a
+          modal, the replace to the tabs afterwards left them drawn inside the
+          sheet. Keyed on the route param, which unlike the user flag does not
+          change while the screen is mounted. */}
+      <Stack.Screen
+        name="verify-phone"
+        options={({ route }) => {
+          const forced = (route.params as { forced?: string } | undefined)?.forced === '1';
+          return {
+            title: nav.verifyPhone,
+            presentation: forced ? 'card' : 'modal',
+            gestureEnabled: !forced,
+            headerBackVisible: !forced,
+          };
+        }}
+      />
     </Stack>
     </>
   );

@@ -11,6 +11,7 @@ import UserMenu from '@/components/UserMenu';
 import ProviderSidebarNav from './ProviderSidebarNav';
 import ProviderMobileNav from './ProviderMobileNav';
 import { getServerTranslation } from '@/lib/i18n/server';
+import { mustVerifyPhoneFirst } from '@/lib/phone-gate';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,6 +48,10 @@ export default async function ProviderLayout({
     const tokenVersion = (payload.tv as number | undefined) ?? 0;
     if (!user || user.tokenVersion !== tokenVersion) {
         redirect('/login');
+    }
+
+    if (mustVerifyPhoneFirst(user)) {
+        redirect('/verify-phone?redirect=/provider');
     }
 
     if (user.role !== 'PROVIDER') {

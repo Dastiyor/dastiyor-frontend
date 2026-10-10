@@ -11,6 +11,7 @@ import CustomerSidebarNav from './CustomerSidebarNav';
 import CustomerMobileNav from './CustomerMobileNav';
 import UserMenu from '@/components/UserMenu';
 import { getServerTranslation } from '@/lib/i18n/server';
+import { mustVerifyPhoneFirst } from '@/lib/phone-gate';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,6 +41,10 @@ export default async function CustomerLayout({
     const tokenVersion = (payload.tv as number | undefined) ?? 0;
     if (!user || user.tokenVersion !== tokenVersion) {
         redirect('/login');
+    }
+
+    if (mustVerifyPhoneFirst(user)) {
+        redirect('/verify-phone?redirect=/customer');
     }
 
     if (user.role !== 'CUSTOMER') {

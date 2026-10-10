@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
-import { Stack } from 'expo-router';
+import { Stack, router, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
-import { AuthProvider } from '@/contexts/AuthContext';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { LanguageProvider, useLanguage } from '@/contexts/LanguageContext';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
@@ -28,6 +28,17 @@ function ThemedStack() {
   useEffect(() => {
     initNotificationHandlers().catch(() => {});
   }, []);
+
+  // A Google/Apple account has no phone until it verifies one, and the server
+  // says so on the user. Hold it on verify-phone from wherever it lands --
+  // sign-in, cold start, or backing out of the screen.
+  const { user } = useAuth();
+  const segments = useSegments();
+  const mustVerifyPhone = !!user?.phoneVerificationRequired;
+  const onVerifyPhone = (segments[0] as string | undefined) === 'verify-phone';
+  useEffect(() => {
+    if (mustVerifyPhone && !onVerifyPhone) router.replace('/verify-phone');
+  }, [mustVerifyPhone, onVerifyPhone]);
 
   return (
     <>
@@ -56,7 +67,7 @@ function ThemedStack() {
       <Stack.Screen name="change-password" options={{ title: nav.changePassword }} />
       <Stack.Screen name="change-email" options={{ title: nav.changeEmail }} />
       <Stack.Screen name="edit-profile" options={{ title: nav.editProfile, presentation: 'modal' }} />
-      <Stack.Screen name="verify-phone" options={{ title: nav.verifyPhone, presentation: 'modal' }} />
+      <Stack.Screen name="verify-phone" options={{ title: nav.verifyPhone, presentation: 'modal', gestureEnabled: !mustVerifyPhone, headerBackVisible: !mustVerifyPhone }} />
     </Stack>
     </>
   );

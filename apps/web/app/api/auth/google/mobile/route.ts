@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { upsertOAuthUser } from '@/lib/oauth';
+import { mustVerifyPhoneFirst } from '@/lib/phone-gate';
 import { getClientIP } from '@/lib/rate-limit';
 
 export async function POST(request: Request) {
@@ -35,7 +36,10 @@ export async function POST(request: Request) {
 
         return NextResponse.json({
             token,
-            user: { id: user.id, email: user.email, fullName: user.fullName, role: user.role },
+            user: {
+                id: user.id, email: user.email, fullName: user.fullName, role: user.role,
+                phoneVerificationRequired: mustVerifyPhoneFirst(user),
+            },
         });
 
     } catch (err) {

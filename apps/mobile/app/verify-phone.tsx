@@ -32,7 +32,10 @@ import { Alert } from '@/lib/dialog';
 export default function VerifyPhoneScreen() {
   const { t } = useLanguage();
   const { colors } = useTheme();
-  const { refreshUser } = useAuth();
+  const { user, refreshUser, logout } = useAuth();
+  // Google/Apple accounts are held here until they verify (see app/_layout.tsx).
+  // Read once: refreshUser() clears the flag before the success alert is answered.
+  const [forced] = useState(() => !!user?.phoneVerificationRequired);
   const insets = useSafeAreaInsets();
   const keyboardOffset = useKeyboardOffset();
   const kbScroll = useKeyboardAwareScroll();
@@ -72,6 +75,7 @@ export default function VerifyPhoneScreen() {
         text: t.common.ok,
         onPress: () => {
           if (returnTo) router.replace(returnTo as never);
+          else if (forced) router.replace('/(tabs)');
           else goBack();
         },
       }]);
@@ -155,6 +159,18 @@ export default function VerifyPhoneScreen() {
               <Text style={[styles.linkText, { color: colors.textSecondary }]}>{vp.changeNumber}</Text>
             </TouchableOpacity>
           </>
+        )}
+
+        {forced && (
+          <TouchableOpacity
+            style={styles.linkBtn}
+            onPress={logout}
+            disabled={busy}
+            accessibilityLabel={t.profile.logout}
+            accessibilityRole="button"
+          >
+            <Text style={[styles.linkText, { color: colors.textSecondary }]}>{t.profile.logout}</Text>
+          </TouchableOpacity>
         )}
       </ScrollView>
     </KeyboardAvoidingView>

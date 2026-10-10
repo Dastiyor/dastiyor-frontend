@@ -1,4 +1,4 @@
-import { needsPhoneVerification } from '../phone-gate';
+import { needsPhoneVerification, mustVerifyPhoneFirst } from '../phone-gate';
 
 describe('needsPhoneVerification', () => {
     afterEach(() => {
@@ -24,6 +24,15 @@ describe('needsPhoneVerification', () => {
         it('lets a verified user through', () => {
             expect(needsPhoneVerification({ phoneVerified: true })).toBe(false);
         });
+    });
+
+    it('always gates a Google or Apple account with no verified phone, flag or not', () => {
+        for (const user of [{ phoneVerified: false, googleId: 'g' }, { phoneVerified: false, appleId: 'a' }]) {
+            expect(mustVerifyPhoneFirst(user)).toBe(true);
+            expect(needsPhoneVerification(user)).toBe(true);
+        }
+        expect(mustVerifyPhoneFirst({ phoneVerified: true, googleId: 'g' })).toBe(false);
+        expect(mustVerifyPhoneFirst({ phoneVerified: false, googleId: null, appleId: null })).toBe(false);
     });
 
     it('treats any value other than the exact string "true" as off', () => {

@@ -91,7 +91,7 @@ describe('GET /api/auth/google/callback', () => {
         });
 
         (upsertOAuthUser as jest.Mock).mockResolvedValue({
-            user: { id: 'user-id-1', email: 'testuser@gmail.com', role: 'PROVIDER' },
+            user: { id: 'user-id-1', email: 'testuser@gmail.com', role: 'PROVIDER', googleId: 'google-sub-id', phoneVerified: false },
             token: 'mock-jwt-cookie-token',
             isNew: true,
         });
@@ -99,7 +99,8 @@ describe('GET /api/auth/google/callback', () => {
         const response = await GET(request);
 
         expect(response.status).toBe(307);
-        expect(response.headers.get('location')).toBe('http://localhost:3000/provider');
+        // A Google account with no verified phone goes to verify one first
+        expect(response.headers.get('location')).toBe('http://localhost:3000/verify-phone?redirect=/provider');
 
         expect(upsertOAuthUser).toHaveBeenCalledWith({
             provider: 'google',

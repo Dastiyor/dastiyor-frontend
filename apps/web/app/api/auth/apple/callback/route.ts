@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { persistRequestLocale } from '@/lib/persist-locale';
 import { jwtVerify, createRemoteJWKSet } from 'jose';
 import { upsertOAuthUser, oauthCookieOptions } from '@/lib/oauth';
+import { mustVerifyPhoneFirst } from '@/lib/phone-gate';
 import { getClientIP } from '@/lib/rate-limit';
 
 const APPLE_JWKS_URL = 'https://appleid.apple.com/auth/keys';
@@ -92,7 +93,8 @@ export async function POST(request: Request) {
             .catch(err => console.error('Locale persist error:', err));
 
         const dashboard = user.role === 'PROVIDER' ? '/provider' : '/customer';
-        const response = NextResponse.redirect(`${appUrl}${dashboard}`);
+        const destination = mustVerifyPhoneFirst(user) ? `/verify-phone?redirect=${dashboard}` : dashboard;
+        const response = NextResponse.redirect(`${appUrl}${destination}`);
         response.cookies.set('token', token, oauthCookieOptions());
         // Clear the CSRF nonce cookie
         response.cookies.set('oauth_state_nonce', '', { maxAge: 0, path: '/' });

@@ -83,7 +83,7 @@ describe('POST /api/auth/google/mobile', () => {
         });
 
         (upsertOAuthUser as jest.Mock).mockResolvedValue({
-            user: { id: 'user-id-999', email: 'mobileuser@gmail.com', fullName: 'Mobile User', role: 'PROVIDER' },
+            user: { id: 'user-id-999', email: 'mobileuser@gmail.com', fullName: 'Mobile User', role: 'PROVIDER', googleId: 'google-sub-999', phoneVerified: false },
             token: 'mock-jwt-mobile-token',
             isNew: false,
         });
@@ -98,6 +98,7 @@ describe('POST /api/auth/google/mobile', () => {
             email: 'mobileuser@gmail.com',
             fullName: 'Mobile User',
             role: 'PROVIDER',
+            phoneVerificationRequired: true,
         });
 
         expect(upsertOAuthUser).toHaveBeenCalledWith({

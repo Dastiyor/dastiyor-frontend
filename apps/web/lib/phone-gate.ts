@@ -12,9 +12,25 @@ import { isPhoneVerificationEnabled } from './features';
  * Clients route to the verify flow on the PHONE_VERIFICATION_REQUIRED code:
  * /verify-phone on web, the verify-phone screen on mobile.
  */
-export function needsPhoneVerification(user: { phoneVerified: boolean }): boolean {
+export function needsPhoneVerification(user: GateUser): boolean {
+    if (mustVerifyPhoneFirst(user)) return true;
     if (!isPhoneVerificationEnabled()) return false;
     return !user.phoneVerified;
+}
+
+type GateUser = { phoneVerified: boolean; googleId?: string | null; appleId?: string | null };
+
+/**
+ * Google/Apple accounts arrive with no phone at all, so they verify one before
+ * anything else -- regardless of the flag above. Password signups already prove
+ * their number in POST /api/auth/register and never hit this.
+ *
+ * This is the "stop and verify now" rule: the OAuth callbacks and both dashboard
+ * layouts redirect to /verify-phone on it, and the mobile app is told through
+ * `phoneVerificationRequired` on /api/auth/me and the OAuth mobile responses.
+ */
+export function mustVerifyPhoneFirst(user: GateUser): boolean {
+    return !user.phoneVerified && Boolean(user.googleId || user.appleId);
 }
 
 /** Machine-readable code returned to clients so they can route to the verify-phone flow. */

@@ -14,6 +14,8 @@ export interface ApiUser {
   phone?: string | null;
   avatar?: string | null;
   createdAt: string;
+  /** Google/Apple account with no verified phone yet: send to verify-phone before anything else. */
+  phoneVerificationRequired?: boolean;
 }
 
 export interface ApiTask {

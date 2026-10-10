@@ -63,7 +63,7 @@ Cookie/Bearer JWT (jose HS256, 24h) signed in `lib/auth.ts`. Users carry a `toke
 - **Dashboard layouts** (`app/customer/layout.tsx`, `app/provider/layout.tsx`) each do their own server-side check — read cookie, verify, load the user, compare `tokenVersion`, `redirect('/login')` on any failure. There is no middleware; auth lives in the layout or the route.
 - **OAuth** (`lib/oauth.ts`): matches on `googleId`/`appleId`, then falls back to matching by email and linking. The requested `role` (carried in the base64url OAuth `state` on web, in the POST body on mobile) is only honored when creating a brand-new user; an existing account keeps its stored role silently.
 - **Signup requires an SMS code**: `POST /api/auth/register` rejects a request without a phone and a valid `code` issued by `/api/auth/verify-send` (type `REGISTRATION`), and creates the user with `phoneVerified: true`. Not flag-gated. Both signup forms run send-code → enter-code → register.
-- **Phone gate** (`lib/phone-gate.ts`): OAuth-only users have no password and no phone, and must verify a phone before posting or accepting tasks. Routes return the `PHONE_VERIFICATION_REQUIRED` code so clients can route to `/verify-phone`.
+- **Phone gate** (`lib/phone-gate.ts`): Google/Apple accounts have no phone, so `mustVerifyPhoneFirst()` holds them on `/verify-phone` until they verify one — the OAuth callbacks and both dashboard layouts redirect there, and mobile obeys `phoneVerificationRequired` on `/api/auth/me` (guard in `apps/mobile/app/_layout.tsx`). Not flag-gated. Posting/responding returns the `PHONE_VERIFICATION_REQUIRED` code for those accounts always, and for any other unverified account only when `PHONE_VERIFICATION_ENABLED=true`.
 
 ### Database
 

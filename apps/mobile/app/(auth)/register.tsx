@@ -228,7 +228,10 @@ export default function RegisterScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      // The scroll area starts below the status bar and the close button, so a
+      // form taller than the screen scrolls under neither. Absolute children
+      // (background, close button) still span the full screen.
+      style={[styles.container, { paddingTop: insets.top + 52 }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <AuthBackground />
@@ -242,7 +245,7 @@ export default function RegisterScreen() {
         <Ionicons name="close" size={22} color={colors.text} />
       </TouchableOpacity>
       <ScrollView {...kbScroll}
-        contentContainerStyle={[styles.inner, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 + keyboardOffset }]}
+        contentContainerStyle={[styles.inner, { paddingTop: 8, paddingBottom: insets.bottom + 24 + keyboardOffset }]}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
       >

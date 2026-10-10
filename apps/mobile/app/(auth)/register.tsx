@@ -14,6 +14,7 @@ import { Link, router } from 'expo-router';
 import { goBack } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardOffset } from '@/lib/useKeyboardOffset';
+import { AUTH_CLOSE_SIZE, useAuthTopSpacing } from '@/lib/authLayout';
 import { useKeyboardAwareScroll } from '@/lib/useKeyboardAwareScroll';
 import { AuthBackground } from '@/components/AuthBackground';
 import { GoogleIcon } from '@/components/GoogleIcon';
@@ -52,6 +53,7 @@ export default function RegisterScreen() {
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const keyboardOffset = useKeyboardOffset();
+  const top = useAuthTopSpacing({ closeButton: true, keyboardOpen: keyboardOffset > 0 });
   const kbScroll = useKeyboardAwareScroll();
   const r = t.register;
 
@@ -228,15 +230,12 @@ export default function RegisterScreen() {
 
   return (
     <KeyboardAvoidingView
-      // The scroll area starts below the status bar and the close button, so a
-      // form taller than the screen scrolls under neither. Absolute children
-      // (background, close button) still span the full screen.
-      style={[styles.container, { paddingTop: insets.top + 52 }]}
+      style={[styles.container, { paddingTop: top.screenPaddingTop }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <AuthBackground />
       <TouchableOpacity
-        style={[styles.closeBtn, { top: insets.top + 8, backgroundColor: colors.surface, borderColor: colors.border }]}
+        style={[styles.closeBtn, { top: top.closeTop, backgroundColor: colors.surface, borderColor: colors.border }]}
         onPress={goBack}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         accessibilityRole="button"
@@ -245,7 +244,7 @@ export default function RegisterScreen() {
         <Ionicons name="close" size={22} color={colors.text} />
       </TouchableOpacity>
       <ScrollView {...kbScroll}
-        contentContainerStyle={[styles.inner, { paddingTop: 8, paddingBottom: insets.bottom + 24 + keyboardOffset }]}
+        contentContainerStyle={[styles.inner, { paddingTop: top.contentPaddingTop, paddingBottom: insets.bottom + 24 + keyboardOffset }]}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
       >
@@ -455,7 +454,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   closeBtn: {
     position: 'absolute', left: 16, zIndex: 10,
-    width: 40, height: 40, borderRadius: 20, borderWidth: 1,
+    width: AUTH_CLOSE_SIZE, height: AUTH_CLOSE_SIZE, borderRadius: AUTH_CLOSE_SIZE / 2, borderWidth: 1,
     alignItems: 'center', justifyContent: 'center',
   },
   inner: { flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24, width: '100%', maxWidth: 520, alignSelf: 'center' },

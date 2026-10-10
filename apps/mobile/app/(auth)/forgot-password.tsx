@@ -14,6 +14,7 @@ import { router } from 'expo-router';
 import { goBack } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardOffset } from '@/lib/useKeyboardOffset';
+import { useAuthTopSpacing } from '@/lib/authLayout';
 import { useKeyboardAwareScroll } from '@/lib/useKeyboardAwareScroll';
 import { AuthBackground } from '@/components/AuthBackground';
 import { api } from '@/lib/api-client';
@@ -27,6 +28,7 @@ export default function ForgotPasswordScreen() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const keyboardOffset = useKeyboardOffset();
+  const top = useAuthTopSpacing();
   const kbScroll = useKeyboardAwareScroll();
   const fp = t.forgotPassword;
   // Phone or email: phone-only signups have no reachable address, so the code
@@ -54,10 +56,10 @@ export default function ForgotPasswordScreen() {
   }
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={[styles.container, { paddingTop: top.screenPaddingTop }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <AuthBackground />
       <ScrollView {...kbScroll}
-        contentContainerStyle={[styles.inner, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 + keyboardOffset }]}
+        contentContainerStyle={[styles.inner, { paddingTop: top.contentPaddingTop, paddingBottom: insets.bottom + 24 + keyboardOffset }]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >

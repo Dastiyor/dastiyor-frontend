@@ -12,6 +12,7 @@ import {
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthBackground } from '@/components/AuthBackground';
+import { useAuthTopSpacing } from '@/lib/authLayout';
 import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -24,6 +25,7 @@ export default function ResetPasswordScreen() {
   const { t } = useLanguage();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const top = useAuthTopSpacing();
   const rp = t.resetPassword;
   const { identifier } = useLocalSearchParams<{ identifier: string }>();
   const [code, setCode] = useState('');
@@ -65,9 +67,9 @@ export default function ResetPasswordScreen() {
   }
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={[styles.container, { paddingTop: top.screenPaddingTop }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <AuthBackground />
-      <ScrollView contentContainerStyle={[styles.inner, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={[styles.inner, { paddingTop: top.contentPaddingTop, paddingBottom: insets.bottom + 24 }]} keyboardShouldPersistTaps="handled">
         <LogoWordmark size={30} style={{ marginBottom: 8 }} />
         <Text style={[styles.title, { color: colors.text }]}>{rp.title}</Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{rp.subtitle}</Text>

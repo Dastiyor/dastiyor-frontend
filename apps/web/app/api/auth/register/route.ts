@@ -8,6 +8,7 @@ import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/ra
 import { validatePassword, isValidPhone, normalizePhone, sanitizeString, PLACEHOLDER_EMAIL_DOMAIN } from '@/lib/validation';
 import { sendWelcomeEmail } from '@/lib/notifications/email';
 import { logAction, getRequestIP } from '@/lib/audit';
+import { consumeOtp } from '@/lib/otp';
 
 export async function POST(request: Request) {
     // Read in the catch, which cannot see inside the try's scope
@@ -20,7 +21,7 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json();
-        const { email, password, fullName, phone, role } = body;
+        const { email, password, fullName, phone, role, code } = body;
 
         if (!password || !fullName) {
             return NextResponse.json({ error: 'Заполнены не все обязательные поля' }, { status: 400 });
@@ -44,15 +45,17 @@ export async function POST(request: Request) {
             );
         }
 
-        // Need at least one contact: phone (mobile flow) or email (web flow)
-        if (!phone && !email) {
+        // A phone is mandatory, and so is proving it: the account is only
+        // created against an SMS code issued by /api/auth/verify-send for this
+        // number (checked below). Email stays optional -- the mobile form has none.
+        if (!phone) {
             return NextResponse.json(
-                { error: 'Укажите номер телефона или email' },
+                { error: 'Укажите номер телефона' },
                 { status: 400 }
             );
         }
 
-        if (phone && !isValidPhone(String(phone))) {
+        if (!isValidPhone(String(phone))) {
             return NextResponse.json(
                 { error: 'Неверный формат номера телефона. Используйте формат +992XXXXXXXXX' },
                 { status: 400 }
@@ -64,13 +67,13 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: passwordValidation.error }, { status: 400 });
         }
 
-        const normalizedPhone = phone ? normalizePhone(String(phone)) : null;
+        const normalizedPhone = normalizePhone(String(phone));
         phoneOnlySignup = !email;
 
         // Generate placeholder email for phone-only registrations
         const resolvedEmail = email
             ? String(email).trim().toLowerCase()
-            : `phone_${normalizedPhone!.replace(/\+/g, '')}${PLACEHOLDER_EMAIL_DOMAIN}`;
+            : `phone_${normalizedPhone.replace(/\+/g, '')}${PLACEHOLDER_EMAIL_DOMAIN}`;
 
         // Duplicate checks
         if (email) {
@@ -79,11 +82,25 @@ export async function POST(request: Request) {
                 return NextResponse.json({ error: 'Пользователь с таким email уже существует' }, { status: 400 });
             }
         }
-        if (normalizedPhone) {
-            const byPhone = await prisma.user.findFirst({ where: { phone: normalizedPhone } });
-            if (byPhone) {
-                return NextResponse.json({ error: 'Пользователь с таким номером телефона уже существует' }, { status: 400 });
-            }
+        const byPhone = await prisma.user.findFirst({ where: { phone: normalizedPhone } });
+        if (byPhone) {
+            return NextResponse.json({ error: 'Пользователь с таким номером телефона уже существует' }, { status: 400 });
+        }
+
+        // Last check before the write, so a rejected form never burns the code.
+        // Guesses are capped per phone as well as per IP, as in verify-check.
+        if (!code) {
+            return NextResponse.json({ error: 'Неверный или просроченный код' }, { status: 400 });
+        }
+        const codeLimit = await checkRateLimit(`otp:${normalizedPhone}`, 'sms');
+        if (!codeLimit.allowed) {
+            return NextResponse.json(
+                { error: 'Слишком много попыток подтверждения. Попробуйте через 15 минут.' },
+                { status: 429 }
+            );
+        }
+        if (!(await consumeOtp(normalizedPhone, String(code), 'REGISTRATION'))) {
+            return NextResponse.json({ error: 'Неверный или просроченный код' }, { status: 400 });
         }
 
         const hashedPassword = await bcrypt.hash(password, 12);
@@ -94,6 +111,7 @@ export async function POST(request: Request) {
                 password: hashedPassword,
                 fullName: sanitizeString(trimmedName),
                 phone: normalizedPhone,
+                phoneVerified: true,
                 role: String(role ?? '').toLowerCase() === 'provider' ? 'PROVIDER' : 'CUSTOMER',
             },
         });
@@ -140,7 +158,7 @@ export async function POST(request: Request) {
             userId: user.id,
             entity: 'User',
             entityId: user.id,
-            details: { role: user.role, hasEmail: !!email, hasPhone: !!phone },
+            details: { role: user.role, hasEmail: !!email, hasPhone: true },
             ipAddress: clientIP,
         });
 

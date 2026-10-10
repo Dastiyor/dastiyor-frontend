@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 import { isValidPhone, normalizePhone } from '@/lib/validation';
 import { issueOtp, isDesignatedTestPhone } from '@/lib/otp';
@@ -30,6 +31,21 @@ export async function POST(request: Request) {
         const ipLimit = await checkRateLimit(clientIP, 'auth');
         if (!ipLimit.allowed) {
             return rateLimitExceededResponse(ipLimit.resetIn);
+        }
+
+        // A signup code for a number that already has an account can never be
+        // used -- say so now rather than after charging for the SMS.
+        if (type === 'REGISTRATION') {
+            const existing = await prisma.user.findFirst({
+                where: { phone: normalizedPhone },
+                select: { id: true },
+            });
+            if (existing) {
+                return NextResponse.json(
+                    { error: 'Пользователь с таким номером телефона уже существует' },
+                    { status: 400 }
+                );
+            }
         }
 
         // 2. Phone-based SMS rate limiting. The test number sends no SMS, and this

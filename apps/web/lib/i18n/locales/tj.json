@@ -216,6 +216,7 @@
     "verifyPhoneCodeSent": "Рамз ба рақами {phone} фиристода шуд",
     "verifyPhoneSuccess": "Рақам тасдиқ шуд!",
     "verifyPhoneChangeNumber": "Тағйири рақам",
+    "resendCode": "Рамзро дубора фиристед",
     "validatingResetLink": "Пайванд санҷида мешавад...",
     "resetLinkInvalidTitle": "Пайванд нодуруст аст ё мӯҳлаташ гузаштааст",
     "resetLinkInvalidDesc": "Ин пайванди барқарорсозии рамз нодуруст аст ё мӯҳлаташ гузаштааст. Пайванди навро дархост кунед.",

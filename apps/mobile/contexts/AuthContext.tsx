@@ -38,6 +38,8 @@ interface RegisterData {
   password: string;
   fullName: string;
   role: 'customer' | 'provider';
+  /** SMS code from /api/auth/verify-send (type REGISTRATION) for `phone`. */
+  code: string;
 }
 
 interface AuthState {

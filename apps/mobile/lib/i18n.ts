@@ -167,6 +167,7 @@ const translations = {
       errNeedDigit: 'Add a number',
       googleBtn: 'Sign up with Google',
       orDivider: 'or',
+      resendCode: 'Send the code again',
     },
     createTask: {
       titleLabel: 'Task title *',
@@ -591,6 +592,7 @@ const translations = {
       errNeedDigit: 'Добавьте цифру',
       googleBtn: 'Зарегистрироваться с Google',
       orDivider: 'или',
+      resendCode: 'Отправить код ещё раз',
     },
     createTask: {
       titleLabel: 'Название задания *',
@@ -1014,6 +1016,7 @@ const translations = {
       errNeedDigit: 'Рақам илова кунед',
       googleBtn: 'Бақайдгирӣ бо Google',
       orDivider: 'ё инчунин',
+      resendCode: 'Рамзро дубора фиристед',
     },
     createTask: {
       titleLabel: 'Номи супориш *',

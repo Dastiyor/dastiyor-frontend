@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import { signJWT } from '@/lib/auth';
 import { sendWelcomeEmail } from '@/lib/notifications/email';
 import { getClientIP, checkRateLimit } from '@/lib/rate-limit';
+import { consumeOtp } from '@/lib/otp';
 
 jest.mock('@/lib/auth', () => ({
     signJWT: jest.fn().mockResolvedValue('mock-jwt-token'),
@@ -31,6 +32,11 @@ jest.mock('@/lib/validation', () => ({
     isValidPhone: jest.fn().mockReturnValue(true),
     normalizePhone: jest.fn((p: string) => p),
     sanitizeString: jest.fn((v: string) => v),
+    PLACEHOLDER_EMAIL_DOMAIN: '@phone.dastiyor.local',
+}));
+
+jest.mock('@/lib/otp', () => ({
+    consumeOtp: jest.fn(),
 }));
 
 jest.mock('bcryptjs', () => ({
@@ -42,6 +48,75 @@ describe('/api/auth/register Route', () => {
         jest.clearAllMocks();
         (getClientIP as jest.Mock).mockReturnValue('127.0.0.1');
         (checkRateLimit as jest.Mock).mockReturnValue({ allowed: true });
+        (consumeOtp as jest.Mock).mockResolvedValue(true);
+        prismaMock.user.findUnique.mockResolvedValue(null);
+        prismaMock.user.findFirst.mockResolvedValue(null);
+    });
+
+    const PHONE = '+992900000009';
+    const valid = { email: 'new@test.com', phone: PHONE, code: '123456', password: 'password123', fullName: 'New User', role: 'customer' };
+    const post = (body: unknown) =>
+        POST(new Request('http://localhost/api/auth/register', { method: 'POST', body: JSON.stringify(body) }));
+
+    it('rejects a signup with no phone', async () => {
+        const response = await post({ ...valid, phone: undefined });
+
+        expect(response.status).toBe(400);
+        expect(prismaMock.user.create).not.toHaveBeenCalled();
+    });
+
+    it('rejects a signup with no SMS code, without spending an attempt', async () => {
+        const response = await post({ ...valid, code: undefined });
+
+        expect(response.status).toBe(400);
+        expect(consumeOtp).not.toHaveBeenCalled();
+        expect(prismaMock.user.create).not.toHaveBeenCalled();
+    });
+
+    it('rejects a wrong or expired SMS code', async () => {
+        (consumeOtp as jest.Mock).mockResolvedValue(false);
+
+        const response = await post(valid);
+        const data = await response.json();
+
+        expect(response.status).toBe(400);
+        expect(data.error).toBe('Неверный или просроченный код');
+        expect(consumeOtp).toHaveBeenCalledWith(PHONE, '123456', 'REGISTRATION');
+        expect(prismaMock.user.create).not.toHaveBeenCalled();
+    });
+
+    it('stops code guessing once the per-phone limit is hit', async () => {
+        (checkRateLimit as jest.Mock).mockImplementation((key: string) => ({ allowed: !key.startsWith('otp:') }));
+
+        const response = await post(valid);
+
+        expect(response.status).toBe(429);
+        expect(consumeOtp).not.toHaveBeenCalled();
+    });
+
+    it('rejects a phone that already has an account before burning the code', async () => {
+        prismaMock.user.findFirst.mockResolvedValue({ id: '1' } as any);
+
+        const response = await post(valid);
+
+        expect(response.status).toBe(400);
+        expect(consumeOtp).not.toHaveBeenCalled();
+    });
+
+    it('creates a phone-only account as verified', async () => {
+        prismaMock.user.create.mockResolvedValue({ id: 'u', email: 'x', fullName: 'New User', role: 'CUSTOMER' } as any);
+
+        const response = await post({ ...valid, email: undefined });
+
+        expect(response.status).toBe(201);
+        expect(prismaMock.user.create).toHaveBeenCalledWith({
+            data: expect.objectContaining({
+                phone: PHONE,
+                phoneVerified: true,
+                email: 'phone_992900000009@phone.dastiyor.local',
+            }),
+        });
+        expect(sendWelcomeEmail).not.toHaveBeenCalled();
     });
 
     it('should return 400 if user already exists', async () => {
@@ -49,7 +124,7 @@ describe('/api/auth/register Route', () => {
 
         const request = new Request('http://localhost/api/auth/register', {
             method: 'POST',
-            body: JSON.stringify({ email: 'test@test.com', password: 'password123', fullName: 'Test' })
+            body: JSON.stringify({ ...valid, email: 'test@test.com' })
         });
 
         const response = await POST(request);
@@ -69,7 +144,7 @@ describe('/api/auth/register Route', () => {
 
         const request = new Request('http://localhost/api/auth/register', {
             method: 'POST',
-            body: JSON.stringify({ email: 'new@test.com', password: 'password123', fullName: 'New User', role: 'customer' })
+            body: JSON.stringify(valid)
         });
 
         const response = await POST(request);

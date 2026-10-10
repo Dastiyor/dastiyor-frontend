@@ -119,6 +119,7 @@ describe('AuthContext', () => {
           password: 'pass123',
           fullName: 'New User',
           role: 'customer',
+          code: '123456',
         });
       });
 

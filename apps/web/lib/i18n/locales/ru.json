@@ -216,6 +216,7 @@
     "verifyPhoneCodeSent": "Код отправлен на номер {phone}",
     "verifyPhoneSuccess": "Номер подтверждён!",
     "verifyPhoneChangeNumber": "Изменить номер",
+    "resendCode": "Отправить код ещё раз",
     "validatingResetLink": "Проверяем ссылку...",
     "resetLinkInvalidTitle": "Ссылка недействительна или истекла",
     "resetLinkInvalidDesc": "Эта ссылка для сброса пароля недействительна или срок её действия истёк. Запросите новую.",

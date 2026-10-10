@@ -22,6 +22,7 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { googleConfigured, signInWithGoogle } from '@/lib/google-signin';
+import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -64,6 +65,9 @@ export default function RegisterScreen() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
   const [legalAccepted, setLegalAccepted] = useState(false);
+  // The account is only created once the SMS code for this number comes back.
+  const [step, setStep] = useState<'form' | 'code'>('form');
+  const [code, setCode] = useState('');
 
   // Reading the Terms or Privacy link leaves the app; on a memory-tight device
   // Android may kill the process while it is backgrounded, and expo-router then
@@ -136,11 +140,45 @@ export default function RegisterScreen() {
     }
     setLoading(true);
     try {
+      await sendCode();
+      setCode('');
+      setStep('code');
+    } catch (e) {
+      Alert.alert(r.errRegister, (e as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function sendCode() {
+    return api.post('/api/auth/verify-send', { phone: `+992${phoneLocal}`, type: 'REGISTRATION' });
+  }
+
+  async function handleResend() {
+    if (loading) return;
+    setLoading(true);
+    try {
+      await sendCode();
+    } catch (e) {
+      Alert.alert(t.common.error, (e as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleVerify() {
+    if (code.length < 6) {
+      Alert.alert(t.common.error, t.verifyPhone.errCode);
+      return;
+    }
+    setLoading(true);
+    try {
       await register({
         fullName: fullName.trim(),
         phone: `+992${phoneLocal}`,
         password,
         role,
+        code,
       });
       await storage.setItem('onboarding_done', '1');
       await storage.deleteItem(DRAFT_KEY);
@@ -209,7 +247,45 @@ export default function RegisterScreen() {
         keyboardDismissMode="on-drag"
       >
         <LogoWordmark size={30} style={{ marginBottom: 6 }} />
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{r.subtitle}</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+          {step === 'code' ? t.verifyPhone.codeSent.replace('{phone}', `+992${phoneLocal}`) : r.subtitle}
+        </Text>
+
+        {step === 'code' ? (
+          <>
+            <Text style={[styles.fieldLabel, { color: colors.text }]}>{t.verifyPhone.codeLabel}</Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]}
+              placeholder={t.verifyPhone.codePlaceholder}
+              placeholderTextColor={colors.textTertiary}
+              value={code}
+              onChangeText={(v) => setCode(v.replace(/\D/g, '').slice(0, 6))}
+              keyboardType="number-pad"
+              autoComplete="sms-otp"
+              textContentType="oneTimeCode"
+              autoFocus
+              maxLength={6}
+            />
+            <TouchableOpacity
+              style={[styles.button, (loading || code.length < 6) && styles.buttonDisabled]}
+              onPress={handleVerify}
+              disabled={loading || code.length < 6}
+              accessibilityLabel={r.btn}
+              accessibilityRole="button"
+            >
+              {loading
+                ? <ActivityIndicator color="#fff" />
+                : <Text style={styles.buttonText}>{r.btn}</Text>}
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleResend} disabled={loading} accessibilityRole="button">
+              <Text style={styles.link}><Text style={styles.linkBold}>{r.resendCode}</Text></Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => { setStep('form'); setCode(''); }} disabled={loading} accessibilityRole="button">
+              <Text style={styles.link}>{t.verifyPhone.changeNumber}</Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <>
 
         {/* Role selector */}
         <Text style={[styles.fieldLabel, { color: colors.text }]}>{r.iWant}</Text>
@@ -354,17 +430,19 @@ export default function RegisterScreen() {
           style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleRegister}
           disabled={loading}
-          accessibilityLabel={r.btn}
+          accessibilityLabel={t.verifyPhone.sendCode}
           accessibilityRole="button"
         >
           {loading
             ? <ActivityIndicator color="#fff" />
-            : <Text style={styles.buttonText}>{r.btn}</Text>}
+            : <Text style={styles.buttonText}>{t.verifyPhone.sendCode}</Text>}
         </TouchableOpacity>
 
         <Link href="/(auth)/login" style={styles.link}>
           {r.hasAccount} <Text style={styles.linkBold}>{r.loginLink}</Text>
         </Link>
+          </>
+        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );

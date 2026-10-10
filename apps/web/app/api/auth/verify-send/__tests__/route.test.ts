@@ -43,6 +43,25 @@ describe('/api/auth/verify-send', () => {
         expect(stored).toMatch(/^\d{6}$/);
     });
 
+    it('refuses a signup code for a number that already has an account', async () => {
+        (prismaMock.user.findFirst as jest.Mock).mockResolvedValue({ id: 'u1' });
+
+        const response = await POST(req({ phone: '+992900000009', type: 'REGISTRATION' }));
+
+        expect(response.status).toBe(400);
+        expect(sendVerificationCode).not.toHaveBeenCalled();
+        expect(prismaMock.verificationCode.create).not.toHaveBeenCalled();
+    });
+
+    it('sends a signup code for a new number', async () => {
+        (prismaMock.user.findFirst as jest.Mock).mockResolvedValue(null);
+
+        const response = await POST(req({ phone: '+992900000009', type: 'REGISTRATION' }));
+
+        expect(response.status).toBe(200);
+        expect(sendVerificationCode).toHaveBeenCalledTimes(1);
+    });
+
     it('surfaces a 500 when the SMS provider rejects the send', async () => {
         (sendVerificationCode as jest.Mock).mockResolvedValue(false);
 

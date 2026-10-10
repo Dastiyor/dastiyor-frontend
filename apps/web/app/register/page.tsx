@@ -82,6 +82,11 @@ function RegisterContent() {
     const passwordFeedback = passwordCheck && !passwordCheck.isStrong ? passwordCheck.feedback : [];
     const [showPassword, setShowPassword] = useState(false);
     const [phoneLocal, setPhoneLocal] = useState('');
+    // The form as submitted, held while the SMS code is being entered. The
+    // account is only created once the code comes back with it.
+    const [pending, setPending] = useState<{ fullName: string; email: string; phone: string } | null>(null);
+    const [step, setStep] = useState<'form' | 'code'>('form');
+    const [code, setCode] = useState('');
     const router = useRouter();
     const { t, tError } = useTranslation();
 
@@ -95,32 +100,71 @@ function RegisterContent() {
         }).catch(() => {});
     }, [router]);
 
+    async function sendCode(phone: string) {
+        const res = await fetch('/api/auth/verify-send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone, type: 'REGISTRATION' }),
+        });
+        if (!res.ok) {
+            const json = await res.json();
+            throw new Error(tError(json.error) || t('common.somethingWentWrong'));
+        }
+    }
+
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        setIsLoading(true);
+        if (isLoading) return;
         setError('');
 
         const formData = new FormData(e.currentTarget);
-        if (!passwordCheck?.isStrong) {
-            // passwordFeedback is derived from `password`, so the list under the
-            // field is already showing exactly what is missing.
-            setIsLoading(false);
-            return;
-        }
+        // passwordFeedback is derived from `password`, so the list under the
+        // field is already showing exactly what is missing.
+        if (!passwordCheck?.isStrong) return;
 
         const data = {
-            fullName: formData.get('fullName'),
-            email: formData.get('email'),
-            phone: formData.get('phone'),
-            password,
-            role
+            fullName: String(formData.get('fullName') ?? ''),
+            email: String(formData.get('email') ?? ''),
+            phone: `+992${phoneLocal}`,
         };
+
+        setIsLoading(true);
+        try {
+            await sendCode(data.phone);
+            setPending(data);
+            setCode('');
+            setStep('code');
+        } catch (err) {
+            setError(err instanceof Error ? err.message : String(err));
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+    async function handleResend() {
+        if (isLoading || !pending) return;
+        setError('');
+        setIsLoading(true);
+        try {
+            await sendCode(pending.phone);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : String(err));
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+    async function handleVerify(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault();
+        if (isLoading || !pending) return;
+        setError('');
+        setIsLoading(true);
 
         try {
             const res = await fetch('/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
+                body: JSON.stringify({ ...pending, password, role, code }),
             });
 
             if (!res.ok) {
@@ -133,7 +177,6 @@ function RegisterContent() {
             window.location.href = '/';
         } catch (err) {
             setError(err instanceof Error ? err.message : String(err));
-        } finally {
             setIsLoading(false);
         }
     }
@@ -278,6 +321,61 @@ function RegisterContent() {
                 </div>
             )}
 
+            {step === 'code' && pending ? (
+                <form onSubmit={handleVerify} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <p style={{ color: 'var(--text-light)', fontSize: '0.9rem', margin: 0 }}>
+                        {t('auth.verifyPhoneCodeSent', { phone: pending.phone })}
+                    </p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <label htmlFor="reg-code" style={{ fontWeight: '500', fontSize: '0.9rem' }}>
+                            {t('auth.verifyPhoneCodeLabel')}
+                        </label>
+                        <input
+                            id="reg-code"
+                            type="text"
+                            inputMode="numeric"
+                            autoComplete="one-time-code"
+                            autoFocus
+                            placeholder={t('auth.verifyPhoneCodePlaceholder')}
+                            required
+                            value={code}
+                            onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                            style={{
+                                padding: '12px 16px',
+                                borderRadius: '8px',
+                                border: '1px solid var(--border)',
+                                fontSize: '1rem',
+                                outline: 'none',
+                            }}
+                        />
+                    </div>
+                    <button
+                        type="submit"
+                        disabled={isLoading || code.length < 6}
+                        className="btn btn-primary"
+                        style={{ width: '100%', opacity: isLoading || code.length < 6 ? 0.7 : 1 }}
+                    >
+                        {isLoading ? t('auth.creatingAccount') : t('auth.createAccount')}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleResend}
+                        disabled={isLoading}
+                        style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '0.9rem', cursor: 'pointer' }}
+                    >
+                        {t('auth.resendCode')}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => { setStep('form'); setCode(''); setError(''); }}
+                        disabled={isLoading}
+                        style={{ background: 'none', border: 'none', color: 'var(--text-light)', fontSize: '0.9rem', cursor: 'pointer' }}
+                    >
+                        {t('auth.verifyPhoneChangeNumber')}
+                    </button>
+                </form>
+            ) : (
+            <>
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <label htmlFor="reg-fullName" style={{ fontWeight: '500', fontSize: '0.9rem' }}>{t('auth.fullName')}</label>
@@ -286,6 +384,7 @@ function RegisterContent() {
                         name="fullName"
                         type="text"
                         placeholder={t('auth.fullNamePlaceholder')}
+                        defaultValue={pending?.fullName}
                         required
                         maxLength={100}
                         style={{
@@ -305,6 +404,7 @@ function RegisterContent() {
                         name="email"
                         type="email"
                         placeholder={t('auth.emailPlaceholder')}
+                        defaultValue={pending?.email}
                         required
                         maxLength={254}
                         style={{
@@ -344,7 +444,10 @@ function RegisterContent() {
                         <input
                             id="reg-phone"
                             type="tel"
+                            inputMode="numeric"
                             placeholder="XX XXX XXXX"
+                            required
+                            minLength={9}
                             maxLength={9}
                             value={phoneLocal}
                             onChange={(e) => setPhoneLocal(e.target.value.replace(/\D/g, '').slice(0, 9))}
@@ -357,11 +460,6 @@ function RegisterContent() {
                                 backgroundColor: 'transparent',
                                 minWidth: 0,
                             }}
-                        />
-                        <input
-                            type="hidden"
-                            name="phone"
-                            value={phoneLocal ? `+992${phoneLocal}` : ''}
                         />
                     </div>
                 </div>
@@ -439,7 +537,7 @@ function RegisterContent() {
                     className="btn btn-primary"
                     style={{ width: '100%', marginTop: '8px', opacity: isLoading ? 0.7 : 1 }}
                 >
-                    {isLoading ? t('auth.creatingAccount') : t('auth.createAccount')}
+                    {isLoading ? t('auth.verifyPhoneSending') : t('auth.verifyPhoneSendCode')}
                 </button>
             </form>
 
@@ -449,6 +547,8 @@ function RegisterContent() {
                     <OAuthButtons role={role ?? 'customer'} />
                 </div>
             </div>
+            </>
+            )}
 
             <div style={{ marginTop: '20px', textAlign: 'center', fontSize: '0.95rem' }}>
                 {t('auth.haveAccount')}{' '}

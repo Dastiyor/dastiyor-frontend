@@ -60,7 +60,7 @@ CI (`.github/workflows/`) runs `tsc --noEmit` → `lint` → `test` → `build` 
 Cookie/Bearer JWT (jose HS256, 24h) signed in `lib/auth.ts`. Users carry a `tokenVersion` column; logout and password change bump it, so signature validity alone is not enough.
 
 - **API routes** should use `requireAuth(request)` from `lib/require-auth.ts` — it handles Bearer *and* cookie, and calls `verifyJWTWithVersion` to reject revoked tokens. Roughly half the routes still call `verifyJWT` directly and skip the revocation check; prefer `requireAuth` in new code and when touching an old route.
-- **Dashboard layouts** (`app/customer/layout.tsx`, `app/provider/layout.tsx`) each do their own server-side check — read cookie, verify, load the user, compare `tokenVersion`, `redirect('/login')` on any failure. There is no middleware; auth lives in the layout or the route.
+- **Dashboard layouts** (`app/customer/layout.tsx`, `app/provider/layout.tsx`) each do their own server-side check — read cookie, verify, load the user, compare `tokenVersion`, `redirect('/login')` on any failure. `middleware.ts` only sets the CSP and security headers; auth lives in the layout or the route.
 - **OAuth** (`lib/oauth.ts`): matches on `googleId`/`appleId`, then falls back to matching by email and linking. The requested `role` (carried in the base64url OAuth `state` on web, in the POST body on mobile) is only honored when creating a brand-new user; an existing account keeps its stored role silently.
 - **Signup requires an SMS code**: `POST /api/auth/register` rejects a request without a phone and a valid `code` issued by `/api/auth/verify-send` (type `REGISTRATION`), and creates the user with `phoneVerified: true`. Not flag-gated. Both signup forms run send-code → enter-code → register.
 - **Phone gate** (`lib/phone-gate.ts`): Google/Apple accounts have no phone, so `mustVerifyPhoneFirst()` holds them on `/verify-phone` until they verify one — the OAuth callbacks and both dashboard layouts redirect there, and mobile obeys `phoneVerificationRequired` on `/api/auth/me` (guard in `apps/mobile/app/_layout.tsx`). Not flag-gated. Posting/responding returns the `PHONE_VERIFICATION_REQUIRED` code for those accounts always, and for any other unverified account only when `PHONE_VERIFICATION_ENABLED=true`.
@@ -92,6 +92,14 @@ The footer's Contacts column comes from `SystemSetting['company']`, a JSON blob 
 The logo and favicon inputs on that admin page are inert — bare `<input type="file">` with no handler. They save nothing, so there is no image field to read.
 
 Cities have no table and stay static in `lib/config-fallback.ts`. Seed a fresh database with `prisma/seed-categories.ts`. Note `/api/config` has `revalidate = 3600` and mobile caches for 10 minutes, so a newly added category can take up to an hour to appear.
+
+### Before hydration
+
+On a slow phone the server-rendered page is visible for seconds before React attaches, and people use it. Three rules, each pinned by `e2e/smoke/before-hydration.spec.ts`:
+
+- A form that is in the server-rendered HTML takes `method="post"` and disables its submit button with `useHydrated()` (`lib/useHydrated.ts`). Without a handler the browser submits natively as a GET, and the fields — the login password — land in the URL.
+- A controlled input that is in the server-rendered HTML passes a ref to `useAdoptTypedValue()`. Text typed or autofilled before hydration stays in the field but never reaches state, so the field looks filled in while validation and submit see it empty.
+- The language switcher is a link to `GET /api/locale?set=<locale>` (sets the cookie, redirects back to the referring page), upgraded to an in-place switch on click. Keep it a link.
 
 ### Feature flags
 
@@ -132,6 +140,9 @@ E2E_ALLOW_WRITES=1 pnpm --filter @dastiyor/web exec playwright test e2e/flows/si
 - `apps/web/.env.e2e` (gitignored) with its own `POSTGRES_PRISMA_URL` / `POSTGRES_URL_NON_POOLING` replaces the local Postgres. `E2E_SHARED_DB=1` runs the flows on the `.env` database on purpose — test tasks are then visible in the live feed, web and mobile, until teardown.
 - The `@embedded-postgres/*` platform packages need their install script; they are listed in `pnpm.onlyBuiltDependencies` in the root `package.json`. Postgres will not start without it.
 - A new migration is exercised from scratch by every `test:e2e:all` run, so one that only applies on top of existing data fails there first.
+- **Google and Apple are stand-ins on a writing run.** The OAuth routes call the providers from the server at fixed URLs, so the server is started with `NODE_OPTIONS=--require e2e/support/fake-providers.js`, which answers Google's token/userinfo endpoints and Apple's signing-keys URL and passes everything else through. `e2e/support/providers.ts` makes the matching tokens (`googleToken()`, `appleIdToken()`). Nothing in `app/` or `lib/` knows about it. The real consent screens are not covered.
+- A writing run also pins the launch configuration (`WRITE_RUN_ENV` in `e2e/support/env.ts`): subscriptions off, response gate off, test SmartPay and cron secrets. Paid-plan purchase is therefore tested as *closed*; the webhook and the expiry cron are tested directly.
+- `e2e/flows/mobile-api.spec.ts` walks the mobile app's journey over Bearer tokens (`mobileSession()`). The native screens are not driven by anything.
 - Test accounts are created with `createUser()` in `e2e/support/db.ts`, always under `@e2e.dastiyor.test`. `purgeE2EData()` deletes by that email domain and nothing else; do not widen it to match on phone or name.
 - Each test sends its own `x-forwarded-for` (`e2e/support/test.ts`) so the in-memory rate limiter does not make tests fail each other. Use `open()` from the same file before typing into a form: input typed before hydration is discarded.
 - Selectors are the Russian UI strings and the `id`s on the auth forms. Rewording a label or an API error in `ru.json` / `app/api/**` can fail a spec.

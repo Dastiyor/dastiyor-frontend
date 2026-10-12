@@ -23,6 +23,8 @@ const eslintConfig = defineConfig([
       "**/*.test.{ts,tsx,js,jsx}",
       "jest.setup.js",
       "jest.config.js",
+      // Preloaded with --require, so it has to be CommonJS.
+      "e2e/support/fake-providers.js",
     ],
     rules: {
       "@typescript-eslint/no-explicit-any": "off",

@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
-import { E2E_SMS_CODE, E2E_SMS_PHONE, loadE2EEnv, usesLocalDatabase } from './e2e/support/env';
+import path from 'path';
+import { E2E_SMS_CODE, E2E_SMS_PHONE, loadE2EEnv, usesLocalDatabase, WRITE_RUN_ENV } from './e2e/support/env';
+import { APPLE_KEY_FILE, OAUTH_ENV } from './e2e/support/providers';
 
 loadE2EEnv();
 
@@ -83,6 +85,18 @@ export default defineConfig({
                 // In-memory rate limiting, so limits reset with the server.
                 UPSTASH_REDIS_REST_URL: '',
                 KV_REST_API_URL: '',
+                ...(allowWrites
+                    ? {
+                        ...WRITE_RUN_ENV,
+                        ...OAUTH_ENV,
+                        // Google and Apple are played by e2e/support/fake-providers.js.
+                        E2E_APPLE_KEY_FILE: APPLE_KEY_FILE,
+                        NODE_OPTIONS: [
+                            process.env.NODE_OPTIONS,
+                            `--require ${path.resolve(__dirname, 'e2e/support/fake-providers.js')}`,
+                        ].filter(Boolean).join(' '),
+                    }
+                    : {}),
             },
         },
 });

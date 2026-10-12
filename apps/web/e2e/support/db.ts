@@ -32,7 +32,7 @@ export function e2eTag() {
  */
 export async function createUser(
     role: E2EUser['role'],
-    overrides: { fullName?: string; phoneVerified?: boolean; googleId?: string; appleId?: string } = {},
+    overrides: { fullName?: string; phoneVerified?: boolean; googleId?: string; appleId?: string; subscription?: boolean } = {},
 ): Promise<E2EUser> {
     const fullName = overrides.fullName ?? (role === 'PROVIDER' ? 'E2E Исполнитель' : 'E2E Заказчик');
     const email = e2eEmail(role.toLowerCase());
@@ -51,7 +51,7 @@ export async function createUser(
             appleId: overrides.appleId,
             // POST /api/responses asks for an active subscription unless
             // SUBSCRIPTION_GATE_ENABLED=false; give providers one either way.
-            ...(role === 'PROVIDER'
+            ...(role === 'PROVIDER' && overrides.subscription !== false
                 ? { subscription: { create: { plan: 'standard', endDate: new Date(Date.now() + 30 * 864e5) } } }
                 : {}),
         },

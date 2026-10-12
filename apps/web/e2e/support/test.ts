@@ -1,4 +1,4 @@
-import { test as base, expect, type Browser, type BrowserContext, type Page } from '@playwright/test';
+import { test as base, expect, request as apiRequest, type APIRequestContext, type Browser, type BrowserContext, type Page } from '@playwright/test';
 import { createHash } from 'crypto';
 import type { E2EUser } from './db';
 
@@ -57,3 +57,22 @@ export async function open(page: Page, url: string) {
     await page.goto(url);
     await page.waitForLoadState('networkidle');
 }
+
+/**
+ * A client like the mobile app: no cookies, a Bearer token from the login
+ * route on every request. Dispose it when the test is done.
+ */
+export async function mobileSession(baseURL: string, user: E2EUser): Promise<APIRequestContext> {
+    const ip = ipFor(`mobile:${user.id}:${Date.now()}`);
+    const anonymous = await apiRequest.newContext({ baseURL, extraHTTPHeaders: { 'x-forwarded-for': ip } });
+    // The app signs in with the phone number, not the email.
+    const res = await anonymous.post('/api/auth/login', { data: { identifier: user.phone, password: user.password } });
+    expect(res.status(), `mobile login as ${user.phone}`).toBe(200);
+    const { token } = await res.json();
+    await anonymous.dispose();
+    return apiRequest.newContext({
+        baseURL,
+        extraHTTPHeaders: { Authorization: `Bearer ${token}`, 'x-forwarded-for': ip },
+    });
+}
+

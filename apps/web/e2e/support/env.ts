@@ -75,3 +75,18 @@ export const E2E_SMS_CODE = process.env.E2E_SMS_CODE ?? '424242';
 
 /** Title of the open task global setup seeds for the feed specs. */
 export const E2E_SEED_TASK = 'E2E-SEED Собрать шкаф-купе';
+
+/**
+ * Server settings for a run that writes, on top of the ones every run gets.
+ * The two subscription flags are pinned to what production launches with, so
+ * the flows test that configuration whatever a developer's .env says.
+ */
+export const WRITE_RUN_ENV = {
+    NEXT_PUBLIC_SUBSCRIPTIONS_ENABLED: 'false',
+    SUBSCRIPTION_GATE_ENABLED: 'false',
+    // Test credentials, so the payment webhook checks real signatures.
+    SMARTPAY_MERCHANT_ID: 'e2e-merchant',
+    SMARTPAY_SECRET_KEY: 'e2e-smartpay-secret',
+    CRON_SECRET: 'e2e-cron-secret',
+};
+

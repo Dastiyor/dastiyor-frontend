@@ -1,9 +1,11 @@
 import { createTask, createUser, prisma, purgeE2EData } from './support/db';
+import { createAppleSigningKey } from './support/providers';
 import { assertWritesAllowedHere, E2E_EMAIL_DOMAIN, E2E_SEED_TASK, E2E_SMS_PHONE } from './support/env';
 
 /** Clears whatever an interrupted run left behind, checks the signup number is free, and seeds one task. */
 export default async function globalSetup() {
     assertWritesAllowedHere();
+    createAppleSigningKey();
     const removed = await purgeE2EData();
     if (removed) console.log(`[e2e] removed ${removed} leftover test account(s)`);
 

@@ -1,6 +1,7 @@
 import { test, expect, open } from '../support/test';
 import { e2eEmail, prisma } from '../support/db';
 import { E2E_PASSWORD, E2E_SMS_CODE, E2E_SMS_PHONE } from '../support/env';
+import { googleToken, oauthIdentity } from '../support/providers';
 import type { Page } from '@playwright/test';
 
 // One designated number receives a fixed code and no SMS, so these share it and
@@ -11,6 +12,7 @@ test.describe.configure({ mode: 'serial' });
 const LOCAL_PHONE = E2E_SMS_PHONE.replace(/^\+992/, '');
 const NEW_PASSWORD = 'E2e-N3w-Passw0rd!';
 let customerEmail: string;
+let providerEmail: string;
 
 async function fillSignupForm(page: Page, role: 'customer' | 'provider', email: string) {
     await open(page, `/register?type=${role}`);
@@ -78,7 +80,7 @@ test('a provider signs up and lands in the provider dashboard', async ({ page })
     await prisma.actionLog.deleteMany({ where: { user: { email: customerEmail } } });
     await prisma.user.delete({ where: { email: customerEmail } });
 
-    const email = e2eEmail('signup-provider');
+    const email = providerEmail = e2eEmail('signup-provider');
     await fillSignupForm(page, 'provider', email);
     await page.locator('#reg-code').fill(E2E_SMS_CODE);
     await page.getByRole('button', { name: 'Создать аккаунт' }).click();
@@ -90,3 +92,32 @@ test('a provider signs up and lands in the provider dashboard', async ({ page })
     await page.goto('/provider');
     await expect(page).toHaveURL(/\/provider$/);
 });
+
+test('a Google sign-up verifies a phone and only then reaches the dashboard', async ({ page }) => {
+    // Frees the designated number once more.
+    await prisma.actionLog.deleteMany({ where: { user: { email: providerEmail } } });
+    await prisma.user.delete({ where: { email: providerEmail } });
+
+    const identity = oauthIdentity('google-verify');
+    const start = await page.request.get('/api/auth/google?role=customer', { maxRedirects: 0 });
+    const state = new URL(start.headers()['location']).searchParams.get('state')!;
+    await page.goto(`/api/auth/google/callback?code=${encodeURIComponent(googleToken(identity))}&state=${encodeURIComponent(state)}`);
+    await expect(page).toHaveURL(/\/verify-phone\?redirect=(%2F|\/)customer$/);
+    await page.waitForLoadState('networkidle');
+
+    await page.locator('#vp-phone').fill(LOCAL_PHONE);
+    await page.getByRole('button', { name: 'Отправить код' }).click();
+
+    await page.locator('#vp-code').fill('000000');
+    await page.getByRole('button', { name: 'Подтвердить', exact: true }).click();
+    await expect(page.getByText('Неверный или просроченный код')).toBeVisible();
+
+    await page.locator('#vp-code').fill(E2E_SMS_CODE);
+    await page.getByRole('button', { name: 'Подтвердить', exact: true }).click();
+    // By pathname: the verify-phone URL itself ends in "/customer".
+    await page.waitForURL(url => url.pathname === '/customer');
+
+    const user = await prisma.user.findUniqueOrThrow({ where: { email: identity.email } });
+    expect(user).toMatchObject({ phone: E2E_SMS_PHONE, phoneVerified: true, googleId: identity.sub });
+});
+

@@ -144,7 +144,8 @@ export async function POST(request: Request) {
 
         const author = await prisma.user.findUnique({
             where: { id: payload.id as string },
-            select: { role: true, phoneVerified: true },
+            // googleId/appleId are what the gate keys on for OAuth accounts
+            select: { role: true, phoneVerified: true, googleId: true, appleId: true },
         });
         if (!author) {
             return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });

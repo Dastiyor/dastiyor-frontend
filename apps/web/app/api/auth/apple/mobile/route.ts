@@ -19,10 +19,16 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Вход через Apple не настроен' }, { status: 503 });
         }
 
-        const { payload } = await jwtVerify(identityToken, appleJWKS, {
+        // A token that fails verification is the caller's problem, not ours:
+        // 401, as the Google route answers, rather than falling into the 500 below.
+        const verified = await jwtVerify(identityToken, appleJWKS, {
             issuer: 'https://appleid.apple.com',
             audience: bundleId,
-        });
+        }).catch(() => null);
+        if (!verified) {
+            return NextResponse.json({ error: 'Недействительный токен Apple' }, { status: 401 });
+        }
+        const { payload } = verified;
 
         const appleUserId = payload.sub as string;
         const appleEmail = (payload.email as string | undefined) || email;

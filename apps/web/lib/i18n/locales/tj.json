@@ -601,7 +601,7 @@
     "startConversation": "Паём фиристед, то суҳбат оғоз шавад!",
     "attachPhoto": "Расм замима кунед",
     "invalidImageType": "Файли тасвирро интихоб кунед (JPEG, PNG, GIF ё WebP)",
-    "imageTooLarge": "Тасвир бояд аз 5MB камтар бошад",
+    "imageTooLarge": "Тасвир бояд аз 4MB камтар бошад",
     "imageUploadError": "Тасвирро бор кардан мумкин набуд",
     "conversations": "Суҳбатҳо",
     "noConversations": "Ҳоло паём нест",

@@ -11,7 +11,9 @@ const TYPE_TO_EXT: Record<string, string> = {
     'image/gif': 'gif',
     'image/webp': 'webp',
 };
-const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+// Vercel refuses a request body over 4.5 MB before this route ever runs, so a
+// higher limit here only turns a readable error into a bare 413.
+const MAX_SIZE = 4 * 1024 * 1024;
 
 export async function POST(request: Request) {
     try {
@@ -36,7 +38,7 @@ export async function POST(request: Request) {
 
         if (file.size > MAX_SIZE) {
             return NextResponse.json(
-                { error: 'Файл слишком большой. Максимальный размер — 5 МБ.' },
+                { error: 'Файл слишком большой. Максимальный размер — 4 МБ.' },
                 { status: 400 }
             );
         }

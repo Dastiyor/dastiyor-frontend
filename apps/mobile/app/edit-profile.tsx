@@ -65,7 +65,7 @@ export default function EditProfileScreen() {
       mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1],
-      // /api/upload rejects anything over 5MB; a square avatar needs nothing more.
+      // /api/upload rejects anything over 4MB; a square avatar needs nothing more.
       quality: 0.7,
     });
     if (picked.canceled) return;

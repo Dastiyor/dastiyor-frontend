@@ -50,18 +50,21 @@ export async function POST(request: Request) {
             .find(c => c.startsWith('oauth_state_nonce='))
             ?.split('=')[1];
 
+        // Same rule as the Google callback: no state, an unreadable state, a
+        // missing cookie or a nonce that does not match all mean this sign-in
+        // was not started from this browser. Checking only when both happened
+        // to be present let a forged POST carrying someone else's Apple token
+        // sign the visitor in to that person's account.
         let role = 'customer';
-        if (state) {
-            try {
-                const parsed = JSON.parse(Buffer.from(state, 'base64url').toString());
-                role = parsed.role || 'customer';
-
-                // CSRF check: verify nonce matches what we stored in the cookie
-                if (storedNonce && parsed.nonce && parsed.nonce !== storedNonce) {
-                    console.error('Apple OAuth: state nonce mismatch — possible CSRF');
-                    return NextResponse.redirect(`${appUrl}/login?error=oauth_failed`);
-                }
-            } catch { /* ignore malformed state */ }
+        try {
+            const parsed = JSON.parse(Buffer.from(state || '', 'base64url').toString());
+            role = parsed.role || 'customer';
+            if (!storedNonce || !parsed.nonce || parsed.nonce !== storedNonce) {
+                console.error('Apple OAuth: state nonce mismatch — possible CSRF');
+                return NextResponse.redirect(`${appUrl}/login?error=oauth_failed`);
+            }
+        } catch {
+            return NextResponse.redirect(`${appUrl}/login?error=oauth_failed`);
         }
 
         // Cryptographically verify the Apple id_token signature via JWKS

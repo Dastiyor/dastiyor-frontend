@@ -601,7 +601,7 @@
     "startConversation": "Отправьте сообщение, чтобы начать диалог!",
     "attachPhoto": "Прикрепить фото",
     "invalidImageType": "Выберите файл изображения (JPEG, PNG, GIF или WebP)",
-    "imageTooLarge": "Изображение должно быть меньше 5MB",
+    "imageTooLarge": "Изображение должно быть меньше 4MB",
     "imageUploadError": "Не удалось загрузить изображение",
     "conversations": "Диалоги",
     "noConversations": "Пока нет сообщений",

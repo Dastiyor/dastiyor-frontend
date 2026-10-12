@@ -18,6 +18,10 @@
       "@types/react-dom": "19.1.5"
     },
     "onlyBuiltDependencies": [
+      "@embedded-postgres/darwin-arm64",
+      "@embedded-postgres/darwin-x64",
+      "@embedded-postgres/linux-arm64",
+      "@embedded-postgres/linux-x64",
       "@prisma/client",
       "@prisma/engines",
       "msw",

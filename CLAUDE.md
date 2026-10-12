@@ -115,7 +115,26 @@ CSS Modules (`*.module.css`) + inline styles. No Tailwind. Font: Manrope. Icons:
 
 ### Testing
 
-Jest + React Testing Library, tests in `__tests__/` next to the source. `jest.config.js` un-ignores ESM packages (`jose`, `@upstash/*`) through a pnpm-aware `transformIgnorePatterns`, and maps `@upstash/*` to hand-written mocks in `__mocks__/`. There is no Playwright/E2E setup (it was removed). Mobile uses `jest-expo` with `@testing-library/react-native`.
+Jest + React Testing Library, tests in `__tests__/` next to the source. `jest.config.js` un-ignores ESM packages (`jose`, `@upstash/*`) through a pnpm-aware `transformIgnorePatterns`, and maps `@upstash/*` to hand-written mocks in `__mocks__/`. Mobile uses `jest-expo` with `@testing-library/react-native`.
+
+### E2E (Playwright)
+
+`apps/web/e2e/`, config in `apps/web/playwright.config.ts`. Not in CI. Playwright starts its own server on port 3200 with `SMS_TEST_PHONE`/`SMS_TEST_CODE` set and the Brevo/Payom keys blanked, so no run can send a real SMS or email.
+
+```bash
+pnpm --filter @dastiyor/web test:e2e        # smoke + smoke-mobile: read-only, against the database in .env
+pnpm --filter @dastiyor/web test:e2e:all    # + flows (signup, sessions, task lifecycle, rules, account), on a local Postgres
+E2E_ALLOW_WRITES=1 pnpm --filter @dastiyor/web exec playwright test e2e/flows/signup.spec.ts   # one flow file
+```
+
+- **`e2e/smoke/` never writes.** Every request in it is one the server rejects before touching the database or sending anything. Keep it that way — it is what runs against the shared Supabase database.
+- **`e2e/flows/` writes**, so it only exists as a project when `E2E_ALLOW_WRITES=1`. That flag also moves the whole run onto a throwaway Postgres: `e2e/support/start-server.mjs` (the `webServer` command) starts `embedded-postgres` on port 54329, applies `prisma/migrations`, then runs `next dev` against it. The data directory is `node_modules/.cache/e2e-postgres`, wiped at the start of every run. `loadE2EEnv()` in `e2e/support/env.ts` decides this and hands the same URL to the tests' own Prisma client.
+- `apps/web/.env.e2e` (gitignored) with its own `POSTGRES_PRISMA_URL` / `POSTGRES_URL_NON_POOLING` replaces the local Postgres. `E2E_SHARED_DB=1` runs the flows on the `.env` database on purpose — test tasks are then visible in the live feed, web and mobile, until teardown.
+- The `@embedded-postgres/*` platform packages need their install script; they are listed in `pnpm.onlyBuiltDependencies` in the root `package.json`. Postgres will not start without it.
+- A new migration is exercised from scratch by every `test:e2e:all` run, so one that only applies on top of existing data fails there first.
+- Test accounts are created with `createUser()` in `e2e/support/db.ts`, always under `@e2e.dastiyor.test`. `purgeE2EData()` deletes by that email domain and nothing else; do not widen it to match on phone or name.
+- Each test sends its own `x-forwarded-for` (`e2e/support/test.ts`) so the in-memory rate limiter does not make tests fail each other. Use `open()` from the same file before typing into a form: input typed before hydration is discarded.
+- Selectors are the Russian UI strings and the `id`s on the auth forms. Rewording a label or an API error in `ru.json` / `app/api/**` can fail a spec.
 
 ### External services
 

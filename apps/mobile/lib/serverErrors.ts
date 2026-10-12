@@ -30,6 +30,7 @@ const ERRORS: Record<string, readonly [en: string, tj: string]> = {
     'Неверный формат номера. Используйте +992XXXXXXXXX': ['Invalid number format. Use +992XXXXXXXXX', 'Формати рақам нодуруст. +992XXXXXXXXX-ро истифода баред'],
     'Пользователь с таким email уже существует': ['An account with this email already exists', 'Корбар бо ин email аллакай мавҷуд аст'],
     'Пользователь с таким номером телефона уже существует': ['An account with this phone number already exists', 'Корбар бо ин рақами телефон аллакай мавҷуд аст'],
+    'Пользователь с таким номером телефона не найден': ['No account found with this phone number', 'Корбар бо ин рақами телефон ёфт нашуд'],
     'Пользователь не найден': ['User not found', 'Корбар ёфт нашуд'],
     'Этот аккаунт использует вход через Google или Apple и не имеет пароля': ['This account signs in with Google or Apple and has no password', 'Ин ҳисоб тавассути Google ё Apple ворид мешавад ва парол надорад'],
     'Этот аккаунт использует вход через Google. Нажмите кнопку ниже.': ['This account signs in with Google. Use the button below.', 'Ин ҳисоб тавассути Google ворид мешавад. Тугмаи поёнро истифода баред.'],

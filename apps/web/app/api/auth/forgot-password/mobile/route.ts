@@ -29,7 +29,10 @@ export async function POST(request: Request) {
     const rateLimit = await checkRateLimit(clientIP, 'auth');
     if (!rateLimit.allowed) return rateLimitExceededResponse(rateLimit.resetIn);
 
-    // Identical for hit and miss, so no path here enumerates accounts
+    // Identical for hit and miss on the email path. The phone path says outright
+    // when a number is unregistered: signup (`verify-send`) already answers that
+    // question for anyone who asks, so hiding it here protected nothing and left
+    // the user typing a new password for a code that was never sent.
     const genericOk = () =>
         NextResponse.json({ message: 'If an account exists, a code has been sent.' });
     const smsThrottled = () =>
@@ -38,8 +41,7 @@ export async function POST(request: Request) {
             { status: 429 }
         );
 
-    // Caps SMS spend per number. Must run before the account lookup on the phone
-    // path, or a throttled reply would tell an attacker the account exists.
+    // Caps SMS spend per number
     async function smsAllowed(phone: string): Promise<boolean> {
         if (isDesignatedTestPhone(phone)) return true;
         return (await checkRateLimit(phone, 'sms')).allowed;
@@ -67,10 +69,17 @@ export async function POST(request: Request) {
 
         if (isValidPhone(identifier)) {
             const phone = normalizePhone(identifier);
-            if (!(await smsAllowed(phone))) return smsThrottled();
 
             const user = await prisma.user.findFirst({ where: { phone }, select: { id: true } });
-            if (user) await sendSmsCode(user.id, phone);
+            if (!user) {
+                return NextResponse.json(
+                    { error: 'Пользователь с таким номером телефона не найден' },
+                    { status: 404 }
+                );
+            }
+
+            if (!(await smsAllowed(phone))) return smsThrottled();
+            await sendSmsCode(user.id, phone);
 
             return genericOk();
         }

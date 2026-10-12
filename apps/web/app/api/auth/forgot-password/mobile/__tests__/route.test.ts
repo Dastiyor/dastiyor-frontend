@@ -61,15 +61,27 @@ describe('phone account recovery', () => {
         expect(sendPasswordResetCodeEmail).not.toHaveBeenCalled();
     });
 
-    it('says the same thing for an unknown phone, and sends nothing', async () => {
+    it('rejects an unregistered phone, and sends nothing', async () => {
         (prismaMock.user.findFirst as jest.Mock).mockResolvedValue(null);
 
         const response = await POST(forgot({ identifier: PHONE }));
         const data = await response.json();
 
+        expect(response.status).toBe(404);
+        expect(data.error).toBe('Пользователь с таким номером телефона не найден');
+        expect(sendVerificationCode).not.toHaveBeenCalled();
+        expect(prismaMock.verificationCode.create).not.toHaveBeenCalled();
+    });
+
+    it('still says the same thing for an unknown email', async () => {
+        (prismaMock.user.findUnique as jest.Mock).mockResolvedValue(null);
+
+        const response = await POST(forgot({ identifier: 'nobody@example.com' }));
+        const data = await response.json();
+
         expect(response.status).toBe(200);
         expect(data.message).toContain('If an account exists');
-        expect(sendVerificationCode).not.toHaveBeenCalled();
+        expect(sendPasswordResetCodeEmail).not.toHaveBeenCalled();
     });
 
     it('still emails a code for an account with a real address', async () => {

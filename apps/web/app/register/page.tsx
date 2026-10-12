@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import AuthLayout from '@/components/auth/AuthLayout';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { checkPasswordStrength } from '@/lib/validation';
 import { useTranslation } from '@/lib/i18n';
+import { useAdoptTypedValue, useHydrated } from '@/lib/useHydrated';
 
 function OAuthButtons({ role }: { role?: string }) {
     const { t } = useTranslation();
@@ -82,6 +83,11 @@ function RegisterContent() {
     const passwordFeedback = passwordCheck && !passwordCheck.isStrong ? passwordCheck.feedback : [];
     const [showPassword, setShowPassword] = useState(false);
     const [phoneLocal, setPhoneLocal] = useState('');
+    const hydrated = useHydrated();
+    const phoneRef = useRef<HTMLInputElement>(null);
+    const passwordRef = useRef<HTMLInputElement>(null);
+    useAdoptTypedValue(phoneRef, value => setPhoneLocal(value.replace(/\D/g, '').slice(0, 9)));
+    useAdoptTypedValue(passwordRef, setPassword);
     // The form as submitted, held while the SMS code is being entered. The
     // account is only created once the code comes back with it.
     const [pending, setPending] = useState<{ fullName: string; email: string; phone: string } | null>(null);
@@ -376,7 +382,7 @@ function RegisterContent() {
                 </form>
             ) : (
             <>
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <form method="post" onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <label htmlFor="reg-fullName" style={{ fontWeight: '500', fontSize: '0.9rem' }}>{t('auth.fullName')}</label>
                     <input
@@ -443,6 +449,7 @@ function RegisterContent() {
                         </div>
                         <input
                             id="reg-phone"
+                            ref={phoneRef}
                             type="tel"
                             inputMode="numeric"
                             placeholder="XX XXX XXXX"
@@ -469,6 +476,7 @@ function RegisterContent() {
                     <div style={{ position: 'relative' }}>
                         <input
                             id="reg-password"
+                            ref={passwordRef}
                             name="password"
                             type={showPassword ? 'text' : 'password'}
                             placeholder={t('auth.passwordHint')}
@@ -533,7 +541,7 @@ function RegisterContent() {
 
                 <button
                     type="submit"
-                    disabled={isLoading}
+                    disabled={!hydrated || isLoading}
                     className="btn btn-primary"
                     style={{ width: '100%', marginTop: '8px', opacity: isLoading ? 0.7 : 1 }}
                 >

@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import Link from 'next/link';
 import AuthLayout from '@/components/auth/AuthLayout';
 import { useTranslation } from '@/lib/i18n';
+import { useAdoptTypedValue, useHydrated } from '@/lib/useHydrated';
 
 /** Same shape the login form accepts, so anything you can log in with you can recover with. */
 function looksLikePhone(value: string): boolean {
@@ -14,6 +15,9 @@ function looksLikePhone(value: string): boolean {
 export default function ForgotPasswordPage() {
     const { t, tError } = useTranslation();
     const [identifier, setIdentifier] = useState('');
+    const hydrated = useHydrated();
+    const identifierRef = useRef<HTMLInputElement>(null);
+    useAdoptTypedValue(identifierRef, setIdentifier);
     const [loading, setLoading] = useState(false);
     // 'ask' → 'sent' for an email link; 'ask' → 'code' → 'done' for a phone,
     // whose accounts have no reachable address to mail a link to.
@@ -218,13 +222,14 @@ export default function ForgotPasswordPage() {
         <AuthLayout title={t('auth.forgotPasswordTitle')} subtitle={t('auth.forgotPasswordSubtitleShort')}>
             {errorBox}
 
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <form method="post" onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <label htmlFor="fp-identifier" style={{ fontWeight: '500', fontSize: '0.9rem' }}>
                         {t('auth.forgotPasswordIdentifierLabel')}
                     </label>
                     <input
                         id="fp-identifier"
+                        ref={identifierRef}
                         type="text"
                         autoComplete="username"
                         value={identifier}
@@ -237,7 +242,7 @@ export default function ForgotPasswordPage() {
 
                 <button
                     type="submit"
-                    disabled={loading}
+                    disabled={!hydrated || loading}
                     className="btn btn-primary"
                     style={{ width: '100%', opacity: loading ? 0.7 : 1 }}
                 >

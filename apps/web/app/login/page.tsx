@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import AuthLayout from '@/components/auth/AuthLayout';
 import { useTranslation } from '@/lib/i18n';
+import { useHydrated } from '@/lib/useHydrated';
 
 function EyeIcon({ open }: { open: boolean }) {
     return open ? (
@@ -77,6 +78,7 @@ function LoginContent() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const hydrated = useHydrated();
     const router = useRouter();
     const searchParams = useSearchParams();
     const { t, tError } = useTranslation();
@@ -168,7 +170,7 @@ function LoginContent() {
             <OAuthButtons />
             <OAuthDivider />
 
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <form method="post" onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <label htmlFor="login-email" style={{ fontWeight: '500', fontSize: '0.9rem' }}>{t('auth.emailLabel')}</label>
                     <input
@@ -238,7 +240,7 @@ function LoginContent() {
 
                 <button
                     type="submit"
-                    disabled={isLoading}
+                    disabled={!hydrated || isLoading}
                     className="btn btn-primary"
                     style={{ width: '100%', marginTop: '8px', opacity: isLoading ? 0.7 : 1 }}
                 >

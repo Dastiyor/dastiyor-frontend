@@ -1,9 +1,10 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import AuthLayout from '@/components/auth/AuthLayout';
 import { useTranslation } from '@/lib/i18n';
+import { useAdoptTypedValue } from '@/lib/useHydrated';
 
 function VerifyPhoneContent() {
     const router = useRouter();
@@ -16,6 +17,8 @@ function VerifyPhoneContent() {
 
     const [step, setStep] = useState<'phone' | 'code'>('phone');
     const [phoneLocal, setPhoneLocal] = useState('');
+    const phoneRef = useRef<HTMLInputElement>(null);
+    useAdoptTypedValue(phoneRef, value => setPhoneLocal(value.replace(/\D/g, '').slice(0, 9)));
     const [code, setCode] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -105,6 +108,7 @@ function VerifyPhoneContent() {
                             </div>
                             <input
                                 id="vp-phone"
+                                ref={phoneRef}
                                 type="tel"
                                 inputMode="numeric"
                                 placeholder="XX XXX XXXX"

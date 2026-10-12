@@ -4,14 +4,14 @@ test('the switcher flips the site to Tajik and the choice survives a reload', as
     await open(page, '/tasks');
     await expect(page.getByRole('heading', { name: 'Найти задания' })).toBeVisible();
 
-    await page.getByRole('button', { name: 'Тоҷикӣ' }).click();
+    await page.getByRole('link', { name: 'Тоҷикӣ' }).click();
     await expect(page.getByRole('heading', { name: 'Ёфтани вазифаҳо' })).toBeVisible();
 
     await page.reload();
     await expect(page.locator('html')).toHaveAttribute('lang', 'tj');
     await expect(page.getByRole('heading', { name: 'Ёфтани вазифаҳо' })).toBeVisible();
 
-    await page.getByRole('button', { name: 'Русский' }).click();
+    await page.getByRole('link', { name: 'Русский' }).click();
     await expect(page.getByRole('heading', { name: 'Найти задания' })).toBeVisible();
 });
 
@@ -22,7 +22,7 @@ test('the locale cookie is honoured on the first server render', async ({ browse
 
     await open(page, '/');
     await expect(page.locator('html')).toHaveAttribute('lang', 'tj');
-    await expect(page.getByRole('button', { name: 'Русский' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Русский' })).toBeVisible();
     await context.close();
 });
 

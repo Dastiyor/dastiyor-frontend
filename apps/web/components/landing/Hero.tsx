@@ -1,14 +1,17 @@
 'use client';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Search } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
+import { useAdoptTypedValue } from '@/lib/useHydrated';
 
 export default function Hero() {
     const { t } = useTranslation();
     const router = useRouter();
     const [searchQuery, setSearchQuery] = useState('');
+    const searchRef = useRef<HTMLInputElement>(null);
+    useAdoptTypedValue(searchRef, setSearchQuery);
 
     const handleSearch = () => {
         const q = searchQuery.trim();
@@ -85,6 +88,7 @@ export default function Hero() {
                         <Search size={24} color="#9CA3AF" />
                     </div>
                     <input
+                        ref={searchRef}
                         type="text"
                         placeholder={t('hero.searchPlaceholder')}
                         value={searchQuery}

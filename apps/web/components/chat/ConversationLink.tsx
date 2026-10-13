@@ -119,7 +119,8 @@ export default function ConversationLink({ conversation: conv, basePath }: Conve
                 {conv.lastMessage}
             </div>
             <div style={{ fontSize: '0.8rem', color: '#9ca3af', marginTop: '4px' }}>
-                {new Date(conv.lastMessageAt).toLocaleDateString()}
+                {/* A fixed locale: the browser's would differ from the server's and break hydration. */}
+                {new Date(conv.lastMessageAt).toLocaleDateString('ru-RU')}
             </div>
         </Link>
         <Dialog />

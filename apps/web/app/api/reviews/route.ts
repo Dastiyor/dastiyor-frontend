@@ -15,8 +15,8 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'Не указан параметр userId' }, { status: 400 });
         }
 
-        const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
-        const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
+        const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
+        const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20', 10) || 20));
 
         // Fetch page of reviews + aggregate stats in parallel — aggregate covers ALL reviews, not just this page
         const reviewFilter = { reviewedId: userId, hidden: false };

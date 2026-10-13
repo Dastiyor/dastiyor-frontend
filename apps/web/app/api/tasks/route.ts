@@ -26,13 +26,16 @@ export async function GET(request: Request) {
         const category = searchParams.get('category');
         const query = searchParams.get('query');
         const city = searchParams.get('city');
-        const minBudget = searchParams.get('minBudget');
-        const maxBudget = searchParams.get('maxBudget');
+        // A budget bound that is not a number is no bound at all.
+        const minBudget = Number.isNaN(parseInt(searchParams.get('minBudget') ?? '', 10)) ? null : searchParams.get('minBudget');
+        const maxBudget = Number.isNaN(parseInt(searchParams.get('maxBudget') ?? '', 10)) ? null : searchParams.get('maxBudget');
         const urgency = searchParams.get('urgency');
         const featuredOnly = searchParams.get('featured') === 'true';
         const sort = searchParams.get('sort') || 'newest';
-        const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
-        const limit = Math.max(1, Math.min(parseInt(searchParams.get('limit') || String(TASKS_PER_PAGE), 10), 50));
+        // `|| default`: parseInt of a non-number is NaN, which Math.max/min pass
+        // straight through to Prisma's skip/take, and that is a 500.
+        const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
+        const limit = Math.max(1, Math.min(parseInt(searchParams.get('limit') || String(TASKS_PER_PAGE), 10) || TASKS_PER_PAGE, 50));
         const skip = (page - 1) * limit;
 
         const where: Prisma.TaskWhereInput = { status: 'OPEN' };

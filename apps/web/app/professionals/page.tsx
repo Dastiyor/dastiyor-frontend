@@ -66,7 +66,7 @@ export default async function ProfessionalsPage() {
                                 </div>
 
                                 <div style={{ display: 'flex', gap: '12px', fontSize: '0.9rem', color: 'var(--text-light)', marginBottom: '24px' }}>
-                                    <span>{t('professionals.memberSince')} {new Date(pro.createdAt).toLocaleDateString()}</span>
+                                    <span>{t('professionals.memberSince')} {new Date(pro.createdAt).toLocaleDateString('ru-RU')}</span>
                                     <span>•</span>
                                     <span>Душанбе</span>
                                 </div>

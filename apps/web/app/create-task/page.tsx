@@ -55,20 +55,6 @@ export default function CreateTaskPage() {
 
     // Load draft or template on mount
     useEffect(() => {
-        // Check for template first
-        const template = sessionStorage.getItem('task_template');
-        if (template) {
-            try {
-                const templateData = JSON.parse(template);
-                setFormData(prev => ({ ...prev, ...templateData }));
-                sessionStorage.removeItem('task_template');
-                toast.info(t('createTask.templateLoaded'));
-            } catch (e) {
-                // Invalid template, ignore
-            }
-        }
-        
-        // Then check for draft
         const savedDraft = localStorage.getItem(DRAFT_KEY);
         if (savedDraft) {
             try {
@@ -78,6 +64,19 @@ export default function CreateTaskPage() {
             } catch (e) {
                 // Invalid draft, ignore
             }
+        }
+
+        // A template chosen on /create-task/template arrives in the URL. Applied
+        // after the draft, so picking a template is not undone by an old draft.
+        const params = new URLSearchParams(window.location.search);
+        const template: { title?: string; description?: string; category?: string } = {};
+        for (const field of ['title', 'description', 'category'] as const) {
+            const value = params.get(field);
+            if (value) template[field] = value;
+        }
+        if (Object.keys(template).length) {
+            setFormData(prev => ({ ...prev, ...template }));
+            toast.info(t('createTask.templateLoaded'));
         }
     }, []);
 

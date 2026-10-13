@@ -14,8 +14,8 @@ export async function GET(request: Request) {
         }
 
         const url = new URL(request.url);
-        const page = Math.max(1, parseInt(url.searchParams.get('page') ?? '1', 10));
-        const limit = Math.min(MAX_LIMIT, Math.max(1, parseInt(url.searchParams.get('limit') ?? String(DEFAULT_LIMIT), 10)));
+        const page = Math.max(1, parseInt(url.searchParams.get('page') ?? '1', 10) || 1);
+        const limit = Math.min(MAX_LIMIT, Math.max(1, parseInt(url.searchParams.get('limit') ?? String(DEFAULT_LIMIT), 10) || DEFAULT_LIMIT));
         const skip = (page - 1) * limit;
 
         const [tasks, total] = await Promise.all([

@@ -49,7 +49,10 @@ export async function POST(request: Request) {
         await prisma.$transaction([
             prisma.user.update({
                 where: { id: resetToken.userId },
-                data: { password: hashedPassword }
+                // Bumping tokenVersion signs out every existing session, as the
+                // SMS reset and change-password already do. Without it, whoever
+                // prompted the reset — a stolen session, say — stayed signed in.
+                data: { password: hashedPassword, tokenVersion: { increment: 1 } }
             }),
             prisma.passwordReset.update({
                 where: { id: resetToken.id },

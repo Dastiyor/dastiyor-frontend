@@ -215,7 +215,7 @@ export default async function ProfilePage() {
                             </div>
                             <div>
                                 <label style={{ display: 'block', color: 'var(--text-light)', marginBottom: '4px', fontSize: '0.9rem' }}>{t('profile.memberSinceLabel')}</label>
-                                <div style={{ fontSize: '1.1rem', fontWeight: '500' }}>{new Date(user.createdAt).toLocaleDateString()}</div>
+                                <div style={{ fontSize: '1.1rem', fontWeight: '500' }}>{new Date(user.createdAt).toLocaleDateString('ru-RU')}</div>
                             </div>
                         </div>
                     </div>

@@ -72,7 +72,7 @@ export default async function SubscriptionPage() {
                                 </h3>
                             </div>
                             <p style={{ color: '#15803d' }}>
-                                {t('subscriptionPage.activeUntil')} {new Date(currentSubscription.endDate).toLocaleDateString()}
+                                {t('subscriptionPage.activeUntil')} {new Date(currentSubscription.endDate).toLocaleDateString('ru-RU')}
                             </p>
                         </div>
                         <div style={{ textAlign: 'right' }}>

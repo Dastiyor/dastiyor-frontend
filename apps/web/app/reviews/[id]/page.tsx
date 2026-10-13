@@ -92,7 +92,7 @@ export default async function UserReviewsPage({ params }: Props) {
                         <div style={{ display: 'flex', gap: '16px', color: 'var(--text-light)' }}>
                             <span>{user.role === 'PROVIDER' ? t('reviews_page.provider') : t('reviews_page.customer')}</span>
                             <span>•</span>
-                            <span>{t('reviews_page.memberSince')} {new Date(user.createdAt).toLocaleDateString()}</span>
+                            <span>{t('reviews_page.memberSince')} {new Date(user.createdAt).toLocaleDateString('ru-RU')}</span>
                             <span>•</span>
                             <span>{user._count.assignedTasks} {t('reviews_page.tasksDone')}</span>
                         </div>

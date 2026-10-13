@@ -77,7 +77,7 @@ export default async function MyTasksPage() {
                                             {task.status}
                                         </span>
                                         <span style={{ color: 'var(--text-light)', fontSize: '0.9rem' }}>
-                                            {new Date(task.createdAt).toLocaleDateString()}
+                                            {new Date(task.createdAt).toLocaleDateString('ru-RU')}
                                         </span>
                                     </div>
                                     <Link href={`/tasks/${task.id}`} style={{ textDecoration: 'none' }}>

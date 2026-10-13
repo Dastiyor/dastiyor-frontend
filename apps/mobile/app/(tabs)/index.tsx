@@ -417,7 +417,7 @@ const styles = StyleSheet.create({
 
   /* Featured card */
   featCard: {
-    borderRadius: 20, padding: 18, marginHorizontal: 20,
+    borderRadius: 20, padding: 18, marginHorizontal: 20, marginBottom: 12,
     minHeight: 190, justifyContent: 'space-between',
   },
   featCardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },

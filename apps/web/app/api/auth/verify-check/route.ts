@@ -1,6 +1,5 @@
 
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 import { normalizePhone } from '@/lib/validation';
 import { consumeOtp } from '@/lib/otp';
@@ -40,18 +39,6 @@ export async function POST(request: Request) {
                 { error: 'Неверный или просроченный код' },
                 { status: 400 }
             );
-        }
-
-        // Mark phone as verified if user exists
-        const user = await prisma.user.findFirst({
-            where: { phone: normalizedPhone }
-        });
-
-        if (user) {
-            await prisma.user.update({
-                where: { id: user.id },
-                data: { isVerified: true }
-            });
         }
 
         return NextResponse.json({ success: true, message: 'Phone verified successfully' });

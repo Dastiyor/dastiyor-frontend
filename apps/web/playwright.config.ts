@@ -52,6 +52,28 @@ export default defineConfig({
             testMatch: /responsive\.spec\.ts/,
             use: { ...devices['Pixel 7'] },
         },
+        // The same read-only checks in Firefox and Safari's engine. The flows
+        // stay on Chromium: they share one SMS test number and one database.
+        {
+            name: 'smoke-firefox',
+            testDir: './e2e/smoke',
+            testIgnore: /responsive\.spec\.ts/,
+            fullyParallel: true,
+            use: { ...devices['Desktop Firefox'] },
+        },
+        {
+            name: 'smoke-safari',
+            testDir: './e2e/smoke',
+            testIgnore: /responsive\.spec\.ts/,
+            fullyParallel: true,
+            use: { ...devices['Desktop Safari'] },
+        },
+        {
+            name: 'smoke-iphone',
+            testDir: './e2e/smoke',
+            testMatch: /responsive\.spec\.ts/,
+            use: { ...devices['iPhone 14'] },
+        },
         ...(allowWrites
             ? [{
                 name: 'flows',

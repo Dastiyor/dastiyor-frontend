@@ -7,7 +7,7 @@ const PAGES = [
     '/', '/tasks', '/how-it-works', '/professionals', '/help', '/safety', '/privacy', '/terms',
     '/mobile-app', '/login', '/register', '/register?type=customer', '/register?type=provider',
     '/forgot-password', '/delete-account', '/access-denied', '/login?error=oauth_failed',
-    '/this-page-does-not-exist',
+    '/this-page-does-not-exist', '/maintenance',
 ];
 
 for (const locale of ['ru', 'tj'] as const) {

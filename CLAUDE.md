@@ -130,11 +130,12 @@ Jest + React Testing Library, tests in `__tests__/` next to the source. `jest.co
 `apps/web/e2e/`, config in `apps/web/playwright.config.ts`. Not in CI. Playwright starts its own server on port 3200 with `SMS_TEST_PHONE`/`SMS_TEST_CODE` set and the Brevo/Payom keys blanked, so no run can send a real SMS or email.
 
 ```bash
-pnpm --filter @dastiyor/web test:e2e        # smoke + smoke-mobile: read-only, against the database in .env
+pnpm --filter @dastiyor/web test:e2e        # smoke, read-only, in Chromium, Firefox and WebKit: against the database in .env
 pnpm --filter @dastiyor/web test:e2e:all    # + flows (signup, sessions, task lifecycle, rules, account), on a local Postgres
 E2E_ALLOW_WRITES=1 pnpm --filter @dastiyor/web exec playwright test e2e/flows/signup.spec.ts   # one flow file
 ```
 
+- **Three browsers, smoke only.** `smoke`, `smoke-firefox` and `smoke-safari` run the same files; `smoke-mobile` (Pixel 7) and `smoke-iphone` run `responsive.spec.ts`. A new machine needs `pnpm --filter @dastiyor/web exec playwright install` once. The flows run in Chromium only — they share one SMS test number and one database, so they cannot run in three browsers side by side. `--project=smoke` narrows a run to one browser.
 - **`e2e/smoke/` never writes.** Every request in it is one the server rejects before touching the database or sending anything. Keep it that way — it is what runs against the shared Supabase database.
 - **`e2e/flows/` writes**, so it only exists as a project when `E2E_ALLOW_WRITES=1`. That flag also moves the whole run onto a throwaway Postgres: `e2e/support/start-server.mjs` (the `webServer` command) starts `embedded-postgres` on port 54329, applies `prisma/migrations`, then runs `next dev` against it. The data directory is `node_modules/.cache/e2e-postgres`, wiped at the start of every run. `loadE2EEnv()` in `e2e/support/env.ts` decides this and hands the same URL to the tests' own Prisma client.
 - `apps/web/.env.e2e` (gitignored) with its own `POSTGRES_PRISMA_URL` / `POSTGRES_URL_NON_POOLING` replaces the local Postgres. `E2E_SHARED_DB=1` runs the flows on the `.env` database on purpose — test tasks are then visible in the live feed, web and mobile, until teardown.

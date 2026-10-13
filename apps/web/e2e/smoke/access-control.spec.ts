@@ -3,6 +3,7 @@ import { test, expect } from '../support/test';
 const DASHBOARD_PAGES = [
     '/customer',
     '/customer/my-tasks',
+    '/customer/create-task',
     '/customer/messages',
     '/customer/profile',
     '/provider',

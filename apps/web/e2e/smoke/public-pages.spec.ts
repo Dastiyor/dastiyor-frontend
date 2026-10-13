@@ -14,6 +14,7 @@ const PUBLIC_PAGES = [
     '/register',
     '/forgot-password',
     '/delete-account',
+    '/maintenance',
 ];
 
 for (const path of PUBLIC_PAGES) {

@@ -1,0 +1,25 @@
+steps:
+  - launch: { ios: com.dastiyor.ios, android: com.dastiyor.app }
+  - run: store-signin-provider
+  - echo: Switch the app to Tajik on the Profile tab.
+  - tool: open-url
+    args: { url: 'dastiyor://profile' }
+  - await: { visible: { text: English } }
+  - tap: { text: Тоҷикӣ }
+  - await: { visible: { text: Профил } }
+  - echo: The provider's offer form for an open task.
+  - tool: open-url
+    args: { url: 'dastiyor://respond/demo-task-kitchen' }
+  - await: { visible: { text: 'Тавсиф диҳед чӣ тавр иҷро мекунед' } }
+  - await: { idle: true }
+  - wait: 600
+  - tap: { text: 'Тавсиф диҳед чӣ тавр иҷро мекунед' }
+  - tool: paste
+    args: { text: 'Соберу кухню за один день. Опыт 12 лет, свой инструмент, гарантия на работу.' }
+  - tap: { text: 'Масалан: 200' }
+  - tool: paste
+    args: { text: '550' }
+  - echo: The empty space beside the first field label; a tap there closes the keyboard so the whole form shows.
+  - tap: { x: 0.85, y: 0.172 }
+  - wait: 800
+  - await: { idle: true }

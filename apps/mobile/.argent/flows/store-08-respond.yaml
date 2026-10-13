@@ -1,0 +1,19 @@
+steps:
+  - launch: { ios: com.dastiyor.ios, android: com.dastiyor.app }
+  - run: store-signin-provider
+  - echo: The provider's offer form for an open task.
+  - tool: open-url
+    args: { url: 'dastiyor://respond/demo-task-kitchen' }
+  - await: { visible: { text: 'Опишите как вы выполните задание' } }
+  - await: { idle: true }
+  - wait: 600
+  - tap: { text: 'Опишите как вы выполните задание' }
+  - tool: paste
+    args: { text: 'Соберу кухню за один день. Опыт 12 лет, свой инструмент, гарантия на работу.' }
+  - tap: { text: 'Например: 200' }
+  - tool: paste
+    args: { text: '550' }
+  - echo: The empty space beside the first field label; a tap there closes the keyboard so the whole form shows.
+  - tap: { x: 0.85, y: 0.172 }
+  - wait: 800
+  - await: { idle: true }

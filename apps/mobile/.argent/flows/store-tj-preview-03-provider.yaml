@@ -1,0 +1,6 @@
+executionPrerequisite: >-
+  On the customer's open task, its offers in view.
+steps:
+  - tap: { text: Далер Шарипов }
+  - await: { visible: { text: Мадина Каримова } }
+  - wait: 2500

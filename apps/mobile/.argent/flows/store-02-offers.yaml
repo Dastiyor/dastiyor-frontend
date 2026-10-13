@@ -1,0 +1,8 @@
+steps:
+  - launch: { ios: com.dastiyor.ios, android: com.dastiyor.app }
+  - run: store-signin
+  - echo: The signed-in customer's open task with three offers (ids fixed in goldie/demo/seed.mjs).
+  - tool: open-url
+    args: { url: 'dastiyor://task/demo-task-faucet' }
+  - await: { visible: { text: Бахтиёр Одинаев } }
+  - await: { idle: true }

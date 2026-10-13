@@ -1,0 +1,12 @@
+steps:
+  - launch: { ios: com.dastiyor.ios, android: com.dastiyor.app }
+  - run: store-signin
+  - echo: Switch the app to Tajik on the Profile tab.
+  - tool: open-url
+    args: { url: 'dastiyor://profile' }
+  - await: { visible: { text: English } }
+  - tap: { text: Тоҷикӣ }
+  - await: { visible: { text: Профил } }
+  - tap: { text: 'Асосӣ, tab' }
+  - await: { visible: { text: Супоришҳои тавсияшуда } }
+  - await: { idle: true }

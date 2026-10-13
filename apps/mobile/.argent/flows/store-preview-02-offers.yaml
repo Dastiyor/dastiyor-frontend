@@ -1,0 +1,12 @@
+executionPrerequisite: >-
+  On the home feed, scrolled part-way down, signed in as the demo customer.
+steps:
+  - tap: { text: 'Мои задания, tab' }
+  - await: { visible: { text: Заменить смеситель на кухне } }
+  - wait: 1400
+  - tap: { text: Заменить смеситель на кухне }
+  - await: { visible: { text: Бахтиёр Одинаев } }
+  - wait: 1800
+  - tool: gesture-swipe
+    args: { fromX: 0.5, fromY: 0.7, toX: 0.5, toY: 0.5, durationMs: 800 }
+  - wait: 1800

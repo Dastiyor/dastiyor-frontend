@@ -1,0 +1,6 @@
+steps:
+  - launch: { ios: com.dastiyor.ios, android: com.dastiyor.app }
+  - run: store-signin
+  - tap: { text: 'Главная, tab' }
+  - await: { visible: { text: Рекомендуемые задания } }
+  - await: { idle: true }

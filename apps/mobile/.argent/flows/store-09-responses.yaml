@@ -1,0 +1,6 @@
+steps:
+  - launch: { ios: com.dastiyor.ios, android: com.dastiyor.app }
+  - run: store-signin-provider
+  - tap: { text: 'Отклики, tab' }
+  - await: { visible: { text: Установить четыре розетки } }
+  - await: { idle: true }

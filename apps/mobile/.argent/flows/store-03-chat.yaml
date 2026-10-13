@@ -1,0 +1,8 @@
+steps:
+  - launch: { ios: com.dastiyor.ios, android: com.dastiyor.app }
+  - run: store-signin
+  - echo: The chat with the provider working on the customer's task.
+  - tool: open-url
+    args: { url: 'dastiyor://chat/demo-provider?partnerName=%D0%94%D0%B0%D0%BB%D0%B5%D1%80%20%D0%A8%D0%B0%D1%80%D0%B8%D0%BF%D0%BE%D0%B2&taskId=demo-task-sockets' }
+  - await: { visible: { text: 'Спасибо, жду' } }
+  - await: { idle: true }

@@ -1,0 +1,14 @@
+executionPrerequisite: >-
+  On the Profile tab, in Russian, signed in.
+
+steps:
+  - scroll-to: { target: { text: Выйти из аккаунта } }
+  - tap: { text: Выйти из аккаунта }
+  - echo: The confirmation is a system alert; its destructive button is the bare word.
+  - await: { visible: { text: { matches: '^Выйти$' } } }
+  - tap: { text: { matches: '^Выйти$' } }
+  - echo: Signing out leaves the Profile tab, so come back to it.
+  - wait: 1500
+  - tool: open-url
+    args: { url: 'dastiyor://profile' }
+  - await: { visible: { text: 'Войти / Регистрация' }, timeout: 15000 }

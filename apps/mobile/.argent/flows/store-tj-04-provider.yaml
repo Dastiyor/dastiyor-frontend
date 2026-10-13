@@ -1,0 +1,14 @@
+steps:
+  - launch: { ios: com.dastiyor.ios, android: com.dastiyor.app }
+  - run: store-signin
+  - echo: Switch the app to Tajik on the Profile tab.
+  - tool: open-url
+    args: { url: 'dastiyor://profile' }
+  - await: { visible: { text: English } }
+  - tap: { text: Тоҷикӣ }
+  - await: { visible: { text: Профил } }
+  - echo: A verified provider's public profile, with rating and reviews.
+  - tool: open-url
+    args: { url: 'dastiyor://provider/demo-provider' }
+  - await: { visible: { text: Мадина Каримова } }
+  - await: { idle: true }

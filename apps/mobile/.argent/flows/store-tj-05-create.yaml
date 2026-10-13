@@ -1,0 +1,24 @@
+steps:
+  - launch: { ios: com.dastiyor.ios, android: com.dastiyor.app }
+  - run: store-signin
+  - echo: Switch the app to Tajik on the Profile tab.
+  - tool: open-url
+    args: { url: 'dastiyor://profile' }
+  - await: { visible: { text: English } }
+  - tap: { text: Тоҷикӣ }
+  - await: { visible: { text: Профил } }
+  - tool: open-url
+    args: { url: 'dastiyor://create-task' }
+  - await: { visible: { text: 'Мухтасар тавсиф диҳед' } }
+  - await: { idle: true }
+  - wait: 600
+  - tap: { text: 'Мухтасар тавсиф диҳед' }
+  - tool: paste
+    args: { text: 'Повесить телевизор на стену' }
+  - tap: { text: 'Муфассал тавсиф диҳед' }
+  - tool: paste
+    args: { text: 'Телевизор 55 дюймов, стена бетонная. Кронштейн есть, нужен свой инструмент.' }
+  - echo: The empty space beside the first field label; a tap there closes the keyboard so the whole form shows.
+  - tap: { x: 0.85, y: 0.172 }
+  - wait: 800
+  - await: { idle: true }

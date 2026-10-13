@@ -1,0 +1,8 @@
+executionPrerequisite: >-
+  On the provider's public profile, at the top.
+steps:
+  - echo: Chats are per task, and the profile's own button opens a new, empty one. This opens the thread about the job in progress.
+  - tool: open-url
+    args: { url: 'dastiyor://chat/demo-provider?partnerName=%D0%94%D0%B0%D0%BB%D0%B5%D1%80%20%D0%A8%D0%B0%D1%80%D0%B8%D0%BF%D0%BE%D0%B2&taskId=demo-task-sockets' }
+  - await: { visible: { text: 'Спасибо, жду' } }
+  - wait: 1500

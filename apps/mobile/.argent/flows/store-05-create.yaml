@@ -1,0 +1,18 @@
+steps:
+  - launch: { ios: com.dastiyor.ios, android: com.dastiyor.app }
+  - run: store-signin
+  - tool: open-url
+    args: { url: 'dastiyor://create-task' }
+  - await: { visible: { text: 'Кратко опишите что нужно сделать' } }
+  - await: { idle: true }
+  - wait: 600
+  - tap: { text: 'Кратко опишите что нужно сделать' }
+  - tool: paste
+    args: { text: 'Повесить телевизор на стену' }
+  - tap: { text: 'Подробно опишите задание' }
+  - tool: paste
+    args: { text: 'Телевизор 55 дюймов, стена бетонная. Кронштейн есть, нужен свой инструмент.' }
+  - echo: The empty space beside the first field label; a tap there closes the keyboard so the whole form shows.
+  - tap: { x: 0.85, y: 0.172 }
+  - wait: 800
+  - await: { idle: true }

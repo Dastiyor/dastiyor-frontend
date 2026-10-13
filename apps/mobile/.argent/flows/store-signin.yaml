@@ -1,0 +1,47 @@
+executionPrerequisite: >-
+  App just launched. Either a fresh install (onboarding showing) or a previous
+  run's session; signed in or not, in any language. Ends signed in as the demo
+  customer, in Russian.
+
+steps:
+  - echo: Android starts from cleared data and shows onboarding; iOS keeps its keychain across reinstalls and may not.
+  - when: { visible: { text: Начать } }
+    steps:
+      - tap: { text: Начать }
+  - echo: The Profile tab names the three languages the same way in every language, so it is the one screen reachable whatever the last run left selected.
+  - tool: open-url
+    args: { url: 'dastiyor://profile' }
+  - await: { visible: { text: English } }
+  - tap: { text: Русский }
+  - await: { visible: { text: Язык } }
+  - echo: A provider session left by the provider scenes is signed out first.
+  - when: { visible: { text: Далер Шарипов } }
+    steps:
+      - run: store-signout
+  - when: { visible: { text: 'Войти / Регистрация' } }
+    steps:
+      - echo: Sign in as the demo customer from goldie/demo/seed.mjs. The account exists only in the local demo database.
+      - tool: open-url
+        args: { url: 'dastiyor://login' }
+      - await: { visible: { text: Войдите в аккаунт } }
+      - echo: Let the sheet finish sliding in; a tap during the animation does not focus the field.
+      - await: { idle: true }
+      - wait: 800
+      - echo: Each input is found as the element carrying the placeholder that follows its label; the screen shifts when the keyboard opens, so positions do not hold.
+      - tap: { text: Email или телефон, after: { text: Email или телефон } }
+      - tool: keyboard
+        args: { text: 'farhod@example.com' }
+      - tap: { text: Пароль, after: { text: { matches: '^Пароль$' } } }
+      - tool: keyboard
+        args: { text: 'Demo-Passw0rd!' }
+      - echo: The keyboard covers the button; scroll-to brings it into view first.
+      - scroll-to: { target: { text: { matches: '^Войти$' } } }
+      - tap: { text: { matches: '^Войти$' } }
+      - when: { platform: ios }
+        steps:
+          - echo: iOS offers to save the password in a system sheet the app tree cannot see. "Not Now" is its left button, at these coordinates on the iPhone 17 Pro Max.
+          - wait: 4000
+          - tap: { x: 0.33, y: 0.615 }
+          - wait: 1500
+      - await: { hidden: { text: Войдите в аккаунт }, timeout: 15000 }
+  - await: { idle: true }

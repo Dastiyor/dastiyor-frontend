@@ -1,0 +1,22 @@
+{
+  "background": "linear-gradient(165deg, #1D4ED8 0%, #2563EB 45%, #4F46E5 100%)",
+  "frames": {
+    "iphone-6.9": "17-pro-blue"
+  },
+  "fontFamily": "Montserrat",
+  "order": [
+    "home",
+    "offers",
+    "chat",
+    "provider",
+    "create",
+    "my-tasks",
+    "respond",
+    "feed",
+    "responses",
+    "settings"
+  ],
+  "template": "showcase",
+  "layout": "classic",
+  "screenOnly": false
+}

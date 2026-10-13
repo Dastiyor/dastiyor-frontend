@@ -1,0 +1,6 @@
+steps:
+  - launch: { ios: com.dastiyor.ios, android: com.dastiyor.app }
+  - run: store-signin
+  - tap: { text: 'Мои задания, tab' }
+  - await: { visible: { text: Заменить смеситель на кухне } }
+  - await: { idle: true }

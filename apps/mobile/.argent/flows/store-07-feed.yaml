@@ -1,0 +1,7 @@
+steps:
+  - launch: { ios: com.dastiyor.ios, android: com.dastiyor.app }
+  - run: store-signin-provider
+  - echo: The provider's task search.
+  - tap: { text: 'Задания, tab' }
+  - await: { visible: { text: Доставить холодильник } }
+  - await: { idle: true }

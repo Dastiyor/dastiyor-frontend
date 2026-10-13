@@ -1,0 +1,11 @@
+executionPrerequisite: >-
+  App freshly restarted by goldie, settled on the home screen, signed in as the demo customer.
+steps:
+  - await: { visible: { text: Супоришҳои тавсияшуда } }
+  - wait: 1500
+  - tool: gesture-swipe
+    args: { fromX: 0.5, fromY: 0.72, toX: 0.5, toY: 0.36, durationMs: 800 }
+  - wait: 1500
+  - tool: gesture-swipe
+    args: { fromX: 0.5, fromY: 0.72, toX: 0.5, toY: 0.36, durationMs: 800 }
+  - wait: 1500

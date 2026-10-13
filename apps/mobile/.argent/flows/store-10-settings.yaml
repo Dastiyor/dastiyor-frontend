@@ -1,0 +1,11 @@
+steps:
+  - launch: { ios: com.dastiyor.ios, android: com.dastiyor.app }
+  - run: store-signin
+  - echo: The customer's Profile tab, scrolled to its settings (language, theme, notifications).
+  - tool: open-url
+    args: { url: 'dastiyor://profile' }
+  - await: { visible: { text: English } }
+  - tool: gesture-swipe
+    args: { fromX: 0.5, fromY: 0.7, toX: 0.5, toY: 0.5, durationMs: 700 }
+  - wait: 800
+  - await: { idle: true }

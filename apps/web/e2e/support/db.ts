@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, type Prisma } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { randomInt, randomUUID } from 'crypto';
 import { E2E_EMAIL_DOMAIN, E2E_PASSWORD, E2E_SMS_PHONE, loadE2EEnv } from './env';
@@ -60,18 +60,33 @@ export async function createUser(
     return { id: user.id, email, phone, fullName, password: E2E_PASSWORD, role };
 }
 
-export async function createTask(owner: E2EUser, overrides: { title?: string; status?: string } = {}) {
+export async function createTask(owner: E2EUser, overrides: Partial<Prisma.TaskUncheckedCreateInput> = {}) {
     return prisma.task.create({
         data: {
-            title: overrides.title ?? `${e2eTag()} Собрать шкаф`,
+            title: `${e2eTag()} Собрать шкаф`,
             description: 'Автоматический тест: задание создано Playwright и будет удалено.',
             category: 'Ремонт',
             city: 'Душанбе',
             budgetType: 'fixed',
             budgetAmount: '150',
             budgetAmountNum: 150,
-            status: overrides.status ?? 'OPEN',
+            status: 'OPEN',
             userId: owner.id,
+            ...overrides,
+        },
+    });
+}
+
+/** A provider's offer on a task, as POST /api/responses would have stored it. */
+export async function createResponse(taskId: string, provider: E2EUser, status = 'PENDING', price = 120) {
+    return prisma.response.create({
+        data: {
+            taskId,
+            userId: provider.id,
+            status,
+            price: String(price),
+            priceNum: price,
+            message: 'Сделаю аккуратно и в срок. Автоматический тест.',
         },
     });
 }

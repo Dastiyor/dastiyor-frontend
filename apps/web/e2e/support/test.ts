@@ -1,6 +1,7 @@
 import { test as base, expect, request as apiRequest, type APIRequestContext, type Browser, type BrowserContext, type Page } from '@playwright/test';
 import { createHash } from 'crypto';
 import type { E2EUser } from './db';
+import ru from '../../lib/i18n/locales/ru.json';
 
 /**
  * The limiter keys on the forwarded IP (5 auth calls a minute), and every local
@@ -74,5 +75,38 @@ export async function mobileSession(baseURL: string, user: E2EUser): Promise<API
         baseURL,
         extraHTTPHeaders: { Authorization: `Bearer ${token}`, 'x-forwarded-for': ip },
     });
+}
+
+/**
+ * Translation keys showing on the page instead of text. `t()` returns the key
+ * itself when neither the current language nor Russian has it, so a missing
+ * string reaches the user as, say, "customer.portal". Looks at visible text and
+ * at placeholders, titles and labels.
+ */
+export async function untranslatedKeys(page: Page): Promise<string[]> {
+    return page.evaluate((namespaces) => {
+        const isKey = (text: string) => {
+            const parts = text.trim().split('.');
+            return parts.length >= 2 && namespaces.includes(parts[0]) && parts.every(part => /^[A-Za-z0-9_]+$/.test(part));
+        };
+        const found = new Set<string>();
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+            const text = node.textContent ?? '';
+            if (isKey(text)) found.add(text.trim());
+        }
+        for (const el of document.querySelectorAll('[placeholder], [title], [aria-label], [alt]')) {
+            for (const attribute of ['placeholder', 'title', 'aria-label', 'alt']) {
+                const value = el.getAttribute(attribute);
+                if (value && isKey(value)) found.add(value.trim());
+            }
+        }
+        return [...found];
+    }, Object.keys(ru));
+}
+
+/** Puts a context in Tajik the way the switcher does, before any page is loaded. */
+export async function useTajik(context: BrowserContext, baseURL: string) {
+    await context.addCookies([{ name: 'dastiyor_locale', value: 'tj', url: baseURL }]);
 }
 

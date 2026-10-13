@@ -22,6 +22,8 @@ jest.mock('expo-notifications', () => ({
 }));
 jest.mock('expo-device', () => ({ isDevice: false }));
 
+jest.mock('expo-navigation-bar', () => ({ setStyle: jest.fn() }));
+
 jest.mock('@react-native-google-signin/google-signin', () => ({
   GoogleSignin: {
     configure: jest.fn(),

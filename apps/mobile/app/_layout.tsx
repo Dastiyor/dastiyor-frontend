@@ -1,4 +1,6 @@
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
+import * as NavigationBar from 'expo-navigation-bar';
 import { Stack, router, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
@@ -39,6 +41,15 @@ function ThemedStack() {
   useEffect(() => {
     if (mustVerifyPhone && !onVerifyPhone) router.replace({ pathname: '/verify-phone', params: { forced: '1' } });
   }, [mustVerifyPhone, onVerifyPhone]);
+
+  // Android tints its navigation bar buttons from the system appearance, not
+  // ours: with the phone in light mode and the app switched to dark, a white
+  // strip stayed under every screen. Tell it what the app is showing. The
+  // onboarding screen is white whatever the theme.
+  const onOnboarding = (segments[0] as string | undefined) === '(onboarding)';
+  useEffect(() => {
+    if (Platform.OS === 'android') NavigationBar.setStyle(isDark && !onOnboarding ? 'dark' : 'light');
+  }, [isDark, onOnboarding]);
 
   return (
     <>

@@ -17,12 +17,16 @@ const TIERS: SubscriptionTier[] = ['basic', 'standard', 'premium'];
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 50;
 
-const ORDER: Record<ProfessionalSort, Prisma.Sql> = {
-    rating: Prisma.sql`"avgRating" DESC NULLS LAST, "reviewCount" DESC`,
-    reviews: Prisma.sql`"reviewCount" DESC`,
-    completed: Prisma.sql`"completedCount" DESC`,
-    newest: Prisma.sql`u."createdAt" DESC`,
-};
+// Built per call, not at module load: Prisma.sql throws when the module is
+// merely imported in a browser-like environment (jsdom tests).
+function orderFor(sort: ProfessionalSort): Prisma.Sql {
+    switch (sort) {
+        case 'reviews': return Prisma.sql`"reviewCount" DESC`;
+        case 'completed': return Prisma.sql`"completedCount" DESC`;
+        case 'newest': return Prisma.sql`u."createdAt" DESC`;
+        default: return Prisma.sql`"avgRating" DESC NULLS LAST, "reviewCount" DESC`;
+    }
+}
 
 /** Read and clamp the query string of GET /api/professionals and the /professionals page. */
 export function parseSearchParams(params: URLSearchParams): Required<Pick<ProfessionalSearch, 'sort' | 'page' | 'limit'>> & ProfessionalSearch {
@@ -86,7 +90,7 @@ export async function searchProfessionals(search: ProfessionalSearch): Promise<P
             ) c ON c."assignedUserId" = u.id
             LEFT JOIN "Subscription" s ON s."userId" = u.id AND s."isActive" AND s."endDate" > now()
             WHERE ${where}
-            ORDER BY ${tierRank}${ORDER[sort]}, u."createdAt" DESC, u.id
+            ORDER BY ${tierRank}${orderFor(sort)}, u."createdAt" DESC, u.id
             LIMIT ${limit} OFFSET ${(page - 1) * limit}`),
         prisma.$queryRaw<{ total: number }[]>(Prisma.sql`SELECT COUNT(*)::int AS total FROM "User" u WHERE ${where}`),
     ]);

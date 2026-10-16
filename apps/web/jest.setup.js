@@ -55,8 +55,8 @@ if (typeof global.Response === 'undefined') {
   }
 }
 
-// Mock scrollIntoView for DOM elements
-Element.prototype.scrollIntoView = jest.fn()
+// Mock scrollIntoView for DOM elements (absent in @jest-environment node files)
+if (typeof Element !== 'undefined') Element.prototype.scrollIntoView = jest.fn()
 
 // Mock Next.js router
 jest.mock('next/navigation', () => ({

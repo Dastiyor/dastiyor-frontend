@@ -71,6 +71,26 @@ export interface PortfolioProject {
   order: number;
 }
 
+export type SubscriptionTier = 'basic' | 'standard' | 'premium';
+
+export type ProfessionalSort = 'rating' | 'reviews' | 'completed' | 'newest';
+
+/** A provider in /api/professionals search results. */
+export interface ProfessionalCard {
+  id: string;
+  fullName: string;
+  avatar: string | null;
+  city: string | null;
+  categories: string[];
+  experienceYears: number | null;
+  isVerified: boolean;
+  avgRating: number | null;
+  reviewCount: number;
+  completedCount: number;
+  /** null while subscriptions are switched off */
+  tier: SubscriptionTier | null;
+}
+
 export interface PaginatedResult<T> {
   items: T[];
   total: number;

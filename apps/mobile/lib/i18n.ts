@@ -44,6 +44,7 @@ const translations = {
       myTasks: 'My Tasks',
       responses: 'Responses',
       messages: 'Messages',
+      professionals: 'Pros',
       profile: 'Profile',
     },
     home: {
@@ -357,6 +358,17 @@ const translations = {
       errRating: 'Please rate',
       ratings: { 1: 'Very bad', 2: 'Bad', 3: 'OK', 4: 'Good', 5: 'Excellent!' },
     },
+    professionals: {
+      title: 'Professionals',
+      searchPh: 'Name or skill, e.g. plumber',
+      allCities: 'All cities',
+      sorts: { rating: 'Top rated', reviews: 'Most reviews', completed: 'Most jobs', newest: 'Newest' },
+      found: 'Found',
+      empty: 'No professionals found',
+      emptyHint: 'Try other filters',
+      reviews: 'reviews',
+      completed: 'jobs done',
+    },
     provider: {
       completed: 'completed',
       // [one, few, many] -- see plural() in lib/intl.ts
@@ -493,6 +505,7 @@ const translations = {
       myTasks: 'Мои задания',
       responses: 'Отклики',
       messages: 'Сообщения',
+      professionals: 'Мастера',
       profile: 'Профиль',
     },
     home: {
@@ -806,6 +819,17 @@ const translations = {
       errRating: 'Поставьте оценку',
       ratings: { 1: 'Очень плохо', 2: 'Плохо', 3: 'Нормально', 4: 'Хорошо', 5: 'Отлично!' },
     },
+    professionals: {
+      title: 'Исполнители',
+      searchPh: 'Имя или навык, например «сантехник»',
+      allCities: 'Все города',
+      sorts: { rating: 'Лучший рейтинг', reviews: 'Больше отзывов', completed: 'Больше заданий', newest: 'Новые' },
+      found: 'Найдено',
+      empty: 'Никого не нашли',
+      emptyHint: 'Попробуйте изменить фильтры',
+      reviews: 'отзывов',
+      completed: 'выполнено',
+    },
     provider: {
       completed: 'выполнено',
       reviews: ['отзыв', 'отзыва', 'отзывов'] as const,
@@ -941,6 +965,7 @@ const translations = {
       myTasks: 'Супоришҳои ман',
       responses: 'Посухҳо',
       messages: 'Паёмҳо',
+      professionals: 'Устоҳо',
       profile: 'Профил',
     },
     home: {
@@ -1253,6 +1278,17 @@ const translations = {
       published: 'Шарҳ нашр шуд',
       errRating: 'Баҳо гузоред',
       ratings: { 1: 'Хеле бад', 2: 'Бад', 3: 'Мӯътадил', 4: 'Хуб', 5: 'Олӣ!' },
+    },
+    professionals: {
+      title: 'Иҷрокунандагон',
+      searchPh: 'Ном ё малака, масалан «сантехник»',
+      allCities: 'Ҳамаи шаҳрҳо',
+      sorts: { rating: 'Рейтинги беҳтарин', reviews: 'Бештар шарҳҳо', completed: 'Бештар супоришҳо', newest: 'Навҳо' },
+      found: 'Ёфт шуд',
+      empty: 'Касе ёфт нашуд',
+      emptyHint: 'Филтрҳоро тағйир диҳед',
+      reviews: 'шарҳ',
+      completed: 'иҷро шуд',
     },
     provider: {
       completed: 'иҷрошуда',

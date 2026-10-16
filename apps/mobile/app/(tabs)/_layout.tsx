@@ -138,6 +138,13 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="professionals"
+        options={{
+          title: t.tabs.professionals,
+          tabBarIcon: TabIcon('people', 'people-outline'),
+        }}
+      />
+      <Tabs.Screen
         name="my"
         options={{
           title: isCustomer ? t.tabs.myTasks : t.tabs.responses,

@@ -21,6 +21,9 @@ model User {
   locale                String    @default("ru") // ru | tj | en — language for notifications sent to this user
   bio                   String? // Provider bio/description
   skills                String? // Comma-separated skills
+  experienceYears       Int? // Provider years of experience
+  city                  String? // Canonical Russian city name (CITIES)
+  categories            String[]  @default([]) // Canonical Russian category names
   avatar                String? // Profile image URL
   balance               Int       @default(0) // Provider earnings/balance (in TJS, whole somoni)
   role                  String    @default("CUSTOMER") // CUSTOMER, PROVIDER
@@ -68,6 +71,24 @@ model User {
   // Reports
   reportsMade    Report[] @relation("ReportReporter")
   reportsAgainst Report[] @relation("ReportTargetUser")
+
+  // Provider portfolio
+  portfolio PortfolioProject[]
+}
+
+// Provider portfolio project: a past job shown on the public profile
+model PortfolioProject {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  images      String[] @default([]) // up to 8 image URLs
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, order])
 }
 
 // Task Model

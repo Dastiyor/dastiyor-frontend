@@ -19,7 +19,7 @@ describe('GET /api/users/[id]', () => {
         mockSubscriptionsEnabled = false;
         prismaMock.user.findUnique.mockResolvedValue(user as never);
         prismaMock.task.count.mockResolvedValue(7);
-        prismaMock.review.groupBy.mockResolvedValue([
+        (prismaMock.review.groupBy as unknown as jest.Mock).mockResolvedValue([
             { rating: 5, _count: { rating: 2 } },
             { rating: 2, _count: { rating: 1 } },
         ] as never);
@@ -52,7 +52,7 @@ describe('GET /api/users/[id]', () => {
     });
 
     it('avgRating is 0 with no reviews', async () => {
-        prismaMock.review.groupBy.mockResolvedValue([] as never);
+        (prismaMock.review.groupBy as unknown as jest.Mock).mockResolvedValue([] as never);
         const { user: body } = await (await get()).json();
         expect(body).toMatchObject({ avgRating: 0, reviewCount: 0 });
     });

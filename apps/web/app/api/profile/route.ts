@@ -5,6 +5,10 @@ import { logAction, getRequestIP } from '@/lib/audit';
 import { requireAuth } from '@/lib/require-auth';
 import { sanitizeString, isValidPhone, normalizePhone } from '@/lib/validation';
 import { isSafeAvatarUrl } from '@/lib/avatar-url';
+import { getCategories } from '@/lib/categories';
+import { CITIES } from '@/lib/config-fallback';
+
+const MAX_CATEGORIES = 5;
 
 // GET - Get current user profile
 export async function GET(request: Request) {
@@ -24,6 +28,9 @@ export async function GET(request: Request) {
                 bio: true,
                 skills: true,
                 avatar: true,
+                experienceYears: true,
+                city: true,
+                categories: true,
                 role: true,
                 createdAt: true
             }
@@ -50,7 +57,7 @@ export async function PUT(request: Request) {
         }
 
         const body = await request.json();
-        const { fullName, phone, bio, skills, avatar, email, currentPassword } = body;
+        const { fullName, phone, bio, skills, avatar, email, currentPassword, experienceYears, city, categories } = body;
 
         if (!fullName || fullName.trim().length < 2) {
             return NextResponse.json({ error: 'Имя должно содержать минимум 2 символа' }, { status: 400 });
@@ -63,6 +70,28 @@ export async function PUT(request: Request) {
         }
         if (skills && skills.length > 300) {
             return NextResponse.json({ error: 'Навыки не должны превышать 300 символов' }, { status: 400 });
+        }
+
+        // Provider fields. City and categories are canonical Russian strings from
+        // the same lists the task form uses; a translated label is rejected.
+        if (experienceYears !== undefined && experienceYears !== null
+            && !(Number.isInteger(experienceYears) && experienceYears >= 0 && experienceYears <= 60)) {
+            return NextResponse.json({ error: 'Опыт должен быть от 0 до 60 лет' }, { status: 400 });
+        }
+        if (city !== undefined && city !== null && !CITIES.includes(city)) {
+            return NextResponse.json({ error: 'Неизвестный город' }, { status: 400 });
+        }
+        if (categories !== undefined) {
+            if (!Array.isArray(categories)) {
+                return NextResponse.json({ error: 'Неизвестная категория' }, { status: 400 });
+            }
+            if (categories.length > MAX_CATEGORIES) {
+                return NextResponse.json({ error: 'Выберите не больше 5 категорий' }, { status: 400 });
+            }
+            const allowed = await getCategories();
+            if (!categories.every((c: unknown) => typeof c === 'string' && allowed.includes(c))) {
+                return NextResponse.json({ error: 'Неизвестная категория' }, { status: 400 });
+            }
         }
 
         let newEmail: string | undefined;
@@ -172,6 +201,9 @@ export async function PUT(request: Request) {
                 ...(bio !== undefined ? { bio: bio ? sanitizeString(bio.trim()) : null } : {}),
                 ...(skills !== undefined ? { skills: skills ? sanitizeString(skills.trim()) : null } : {}),
                 ...(avatar !== undefined ? { avatar: safeAvatar } : {}),
+                ...(experienceYears !== undefined ? { experienceYears } : {}),
+                ...(city !== undefined ? { city } : {}),
+                ...(categories !== undefined ? { categories: Array.from(new Set<string>(categories)) } : {}),
                 ...(newEmail !== undefined ? { email: newEmail } : {}),
             },
             select: {
@@ -182,6 +214,9 @@ export async function PUT(request: Request) {
                 bio: true,
                 skills: true,
                 avatar: true,
+                experienceYears: true,
+                city: true,
+                categories: true,
                 role: true
             }
         });

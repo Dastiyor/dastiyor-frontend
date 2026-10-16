@@ -62,6 +62,15 @@ export interface TaskDetail extends FeedTask {
   customer: Pick<ApiUser, 'id' | 'fullName' | 'avatar'>;
 }
 
+/** A provider's past job, from /api/profile/portfolio and the public profile. */
+export interface PortfolioProject {
+  id: string;
+  title: string;
+  description: string | null;
+  images: string[];
+  order: number;
+}
+
 export interface PaginatedResult<T> {
   items: T[];
   total: number;

@@ -124,6 +124,19 @@ const ERRORS: Record<string, readonly [en: string, tj: string]> = {
     'Описание не должно превышать 500 символов': ['The description must not exceed 500 characters', 'Тавсиф набояд аз 500 аломат зиёд бошад'],
     'Навыки не должны превышать 300 символов': ['Skills must not exceed 300 characters', 'Малакаҳо набояд аз 300 аломат зиёд бошанд'],
     'Некорректная ссылка на фото профиля': ['Invalid profile photo link', 'Истиноди расми профил нодуруст аст'],
+
+    // --- provider profile / portfolio ---
+    'Выберите не больше 5 категорий': ['Choose up to 5 categories', 'То 5 категория интихоб кунед'],
+    'Опыт должен быть от 0 до 60 лет': ['Experience must be between 0 and 60 years', 'Таҷриба бояд аз 0 то 60 сол бошад'],
+    'Портфолио доступно только исполнителям': ['Only providers have a portfolio', 'Портфолио танҳо барои иҷрокунандагон аст'],
+    'Название проекта: от 1 до 100 символов': ['Project title: 1 to 100 characters', 'Номи лоиҳа: аз 1 то 100 аломат'],
+    'Описание проекта не должно превышать 1000 символов': ['The project description must not exceed 1000 characters', 'Тавсифи лоиҳа набояд аз 1000 аломат зиёд бошад'],
+    'Не больше 8 фотографий в проекте': ['Up to 8 photos per project', 'Дар як лоиҳа то 8 акс'],
+    'Не больше 20 проектов в портфолио': ['Up to 20 projects in a portfolio', 'Дар портфолио то 20 лоиҳа'],
+    'Некорректная ссылка на фото': ['Invalid photo link', 'Истиноди акс нодуруст аст'],
+    'Проект не найден': ['Project not found', 'Лоиҳа ёфт нашуд'],
+    'Некорректный порядок': ['Invalid order', 'Тартиби нодуруст'],
+
     'Файл не выбран': ['No file selected', 'Файл интихоб нашудааст'],
     'Файл слишком большой. Максимальный размер — 4 МБ.': ['The file is too large. The maximum size is 4 MB.', 'Файл аз ҳад калон аст. Ҳаҷми ниҳоӣ — 4 МБ.'],
     'Недопустимый тип файла. Разрешены только JPEG, PNG, GIF и WebP.': ['Unsupported file type. Only JPEG, PNG, GIF and WebP are allowed.', 'Навъи файл иҷозат дода нашудааст. Танҳо JPEG, PNG, GIF ва WebP мумкин аст.'],

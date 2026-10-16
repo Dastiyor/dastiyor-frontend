@@ -71,6 +71,15 @@ describe('/api/profile', () => {
             expect(data.user.email).toBe('ali@test.com');
         });
 
+        it('selects the provider fields', async () => {
+            prismaMock.user.findUnique.mockResolvedValue(mockUser as any);
+
+            await GET(new Request('http://localhost/api/profile'));
+
+            const { select } = prismaMock.user.findUnique.mock.calls[0][0] as any;
+            expect(select).toEqual(expect.objectContaining({ experienceYears: true, city: true, categories: true }));
+        });
+
         it('returns 500 on database error', async () => {
             prismaMock.user.findUnique.mockRejectedValue(new Error('DB error'));
 
@@ -376,6 +385,77 @@ describe('/api/profile', () => {
 
                 expect(response.status).toBe(200);
                 expect(prismaMock.user.findUnique).not.toHaveBeenCalled();
+            });
+        });
+
+        describe('provider fields', () => {
+            beforeEach(() => {
+                prismaMock.category.findMany.mockResolvedValue([]);
+                prismaMock.user.update.mockResolvedValue(mockUser as any);
+            });
+
+            it('saves experienceYears, city and categories', async () => {
+                const response = await PUT(makeRequest({
+                    fullName: 'Ali', experienceYears: 7, city: 'Худжанд', categories: ['Ремонт', 'Сантехника'],
+                }));
+
+                expect(response.status).toBe(200);
+                const { data } = prismaMock.user.update.mock.calls[0][0];
+                expect(data.experienceYears).toBe(7);
+                expect(data.city).toBe('Худжанд');
+                expect(data.categories).toEqual(['Ремонт', 'Сантехника']);
+            });
+
+            it('clears experience and city when sent as null', async () => {
+                await PUT(makeRequest({ fullName: 'Ali', experienceYears: null, city: null }));
+
+                const { data } = prismaMock.user.update.mock.calls[0][0];
+                expect(data.experienceYears).toBeNull();
+                expect(data.city).toBeNull();
+            });
+
+            it('leaves the provider fields untouched when omitted', async () => {
+                await PUT(makeRequest({ fullName: 'Ali' }));
+
+                const { data } = prismaMock.user.update.mock.calls[0][0];
+                expect(data).not.toHaveProperty('experienceYears');
+                expect(data).not.toHaveProperty('city');
+                expect(data).not.toHaveProperty('categories');
+            });
+
+            it('rejects a city not in CITIES', async () => {
+                const response = await PUT(makeRequest({ fullName: 'Ali', city: 'Москва' }));
+                const data = await response.json();
+
+                expect(response.status).toBe(400);
+                expect(data.error).toBe('Неизвестный город');
+                expect(prismaMock.user.update).not.toHaveBeenCalled();
+            });
+
+            it('rejects a Tajik category label', async () => {
+                const response = await PUT(makeRequest({ fullName: 'Ali', categories: ['Таъмир'] }));
+                const data = await response.json();
+
+                expect(response.status).toBe(400);
+                expect(data.error).toBe('Неизвестная категория');
+            });
+
+            it('rejects more than 5 categories', async () => {
+                const response = await PUT(makeRequest({
+                    fullName: 'Ali', categories: ['Ремонт', 'Уборка', 'Доставка', 'Сантехника', 'Электрик', 'Дизайн'],
+                }));
+                const data = await response.json();
+
+                expect(response.status).toBe(400);
+                expect(data.error).toBe('Выберите не больше 5 категорий');
+            });
+
+            it.each([-1, 61, 2.5, '5'])('rejects experienceYears %p', async (value) => {
+                const response = await PUT(makeRequest({ fullName: 'Ali', experienceYears: value }));
+                const data = await response.json();
+
+                expect(response.status).toBe(400);
+                expect(data.error).toBe('Опыт должен быть от 0 до 60 лет');
             });
         });
     });

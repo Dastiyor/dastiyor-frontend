@@ -36,16 +36,22 @@ export default function PortfolioManager() {
         setBusy(true);
         setError('');
         const urls: string[] = [];
-        for (const file of Array.from(files).slice(0, MAX_PHOTOS - draft.images.length)) {
-            const body = new FormData();
-            body.append('file', file);
-            const res = await fetch('/api/upload', { method: 'POST', body });
-            const data = await res.json();
-            if (res.ok) urls.push(data.url);
-            else setError(tError(data.error) || t('profileEdit.uploadFailed'));
+        try {
+            for (const file of Array.from(files).slice(0, MAX_PHOTOS - draft.images.length)) {
+                const body = new FormData();
+                body.append('file', file);
+                const res = await fetch('/api/upload', { method: 'POST', body });
+                // A too-large body is rejected by the platform with an HTML 413, so json() can throw.
+                const data = await res.json().catch(() => ({}));
+                if (res.ok && data.url) urls.push(data.url);
+                else setError(tError(data.error) || t('profileEdit.uploadFailed'));
+            }
+        } catch {
+            setError(t('profileEdit.uploadFailed'));
+        } finally {
+            setDraft(d => d && { ...d, images: [...d.images, ...urls] });
+            setBusy(false);
         }
-        setDraft(d => d && { ...d, images: [...d.images, ...urls] });
-        setBusy(false);
     };
 
     const save = async (e: React.FormEvent) => {
@@ -53,25 +59,30 @@ export default function PortfolioManager() {
         if (!draft) return;
         setBusy(true);
         setError('');
-        const res = await fetch(draft.id ? `/api/profile/portfolio/${draft.id}` : '/api/profile/portfolio', {
-            method: draft.id ? 'PUT' : 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title: draft.title, description: draft.description, images: draft.images }),
-        });
-        const data = await res.json();
-        setBusy(false);
-        if (!res.ok) {
-            setError(tError(data.error) || t('profileEdit.updateFailed'));
-            return;
+        try {
+            const res = await fetch(draft.id ? `/api/profile/portfolio/${draft.id}` : '/api/profile/portfolio', {
+                method: draft.id ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: draft.title, description: draft.description, images: draft.images }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || !data.project) {
+                setError(tError(data.error) || t('profileEdit.updateFailed'));
+                return;
+            }
+            setProjects(list => draft.id ? list.map(p => p.id === draft.id ? data.project : p) : [...list, data.project]);
+            setDraft(null);
+        } catch {
+            setError(t('profileEdit.updateFailed'));
+        } finally {
+            setBusy(false);
         }
-        setProjects(list => draft.id ? list.map(p => p.id === draft.id ? data.project : p) : [...list, data.project]);
-        setDraft(null);
     };
 
     const remove = async (id: string) => {
         setConfirmId(null);
-        const res = await fetch(`/api/profile/portfolio/${id}`, { method: 'DELETE' });
-        if (res.ok) setProjects(list => list.filter(p => p.id !== id));
+        const res = await fetch(`/api/profile/portfolio/${id}`, { method: 'DELETE' }).catch(() => null);
+        if (res?.ok) setProjects(list => list.filter(p => p.id !== id));
         else setError(t('profileEdit.updateFailed'));
     };
 

@@ -116,4 +116,30 @@ describe('PortfolioManager', () => {
         expect(await screen.findByAltText('portfolio.photo 1')).toHaveAttribute('src', BLOB);
         expect(calls('POST')[0][0]).toBe('/api/upload');
     });
+
+    it('recovers when an upload fails with a non-JSON response', async () => {
+        render(<PortfolioManager />);
+        await screen.findByText('Kitchen');
+        fetchMock.mockImplementationOnce(() => Promise.resolve({ ok: false, json: () => Promise.reject(new SyntaxError('Unexpected token <')) }));
+
+        fireEvent.click(screen.getByRole('button', { name: 'portfolio.addProject' }));
+        const file = new File(['x'], 'big.jpg', { type: 'image/jpeg' });
+        fireEvent.change(screen.getByLabelText('portfolio.addPhotos'), { target: { files: [file] } });
+
+        expect(await screen.findByText('profileEdit.uploadFailed')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'portfolio.saveProject' })).not.toBeDisabled();
+    });
+
+    it('recovers when saving hits a network error', async () => {
+        render(<PortfolioManager />);
+        await screen.findByText('Kitchen');
+        fetchMock.mockImplementationOnce(() => Promise.reject(new TypeError('Failed to fetch')));
+
+        fireEvent.click(screen.getByRole('button', { name: 'portfolio.addProject' }));
+        fireEvent.change(screen.getByLabelText('portfolio.projectTitle'), { target: { value: 'Roof' } });
+        fireEvent.click(screen.getByRole('button', { name: 'portfolio.saveProject' }));
+
+        expect(await screen.findByText('profileEdit.updateFailed')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'portfolio.saveProject' })).not.toBeDisabled();
+    });
 });

@@ -16,35 +16,15 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { formatDate, plural } from '@/lib/intl';
 import { Avatar } from '@/components/Avatar';
+import { ProviderProfileSections } from '@/components/ProviderProfileSections';
+import type { PublicProfile } from '@dastiyor/types';
 
-interface Review {
-  id: string;
-  rating: number;
-  comment: string | null;
-  createdAt: string;
-  reviewer: { id: string; fullName: string };
-  task: { id: string; title: string };
-}
-
-interface ProviderProfile {
-  id: string;
-  fullName: string;
-  avatar: string | null;
-  bio: string | null;
-  skills: string | null;
-  role: string;
-  createdAt: string;
-  completedCount: number;
-  avgRating: number;
-  reviewCount: number;
-  reviews: Review[];
-}
-
+type ProviderProfile = PublicProfile;
 
 export default function ProviderProfileScreen() {
   const { id, name } = useLocalSearchParams<{ id: string; name?: string }>();
   const { user } = useAuth();
-  const { t, locale } = useLanguage();
+  const { t, tr, locale } = useLanguage();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const pv = t.provider;
@@ -101,6 +81,8 @@ export default function ProviderProfileScreen() {
           </View>
         </View>
       </View>
+
+      <ProviderProfileSections profile={profile} labels={pv} tr={tr} locale={locale} />
 
       {profile.bio ? (
         <View style={[styles.card, { backgroundColor: colors.surface }]}>

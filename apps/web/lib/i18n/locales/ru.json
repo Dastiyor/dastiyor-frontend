@@ -951,7 +951,12 @@
     "successRate": "Успешность",
     "responses": "Откликов",
     "reviews": "Отзывов",
-    "onPlatformSince": "На платформе с"
+    "onPlatformSince": "На платформе с",
+    "experienceOne": "{n} год опыта",
+    "experienceFew": "{n} года опыта",
+    "experienceMany": "{n} лет опыта",
+    "verified": "Проверенный исполнитель",
+    "portfolio": "Портфолио"
   },
   "languageSwitcher": {
     "ru": "Русский",

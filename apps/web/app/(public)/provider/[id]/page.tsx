@@ -2,86 +2,42 @@ import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import ReviewList from '@/components/reviews/ReviewList';
-import { CheckCircle, MessageSquare, Star, Calendar, Award, TrendingUp } from 'lucide-react';
+import { CheckCircle, MessageSquare, Star, Calendar, TrendingUp, BadgeCheck, MapPin, Briefcase } from 'lucide-react';
 import { getServerTranslation } from '@/lib/i18n/server';
-import { SUBSCRIPTIONS_ENABLED } from '@/lib/features';
+import { getPublicProfile } from '@/lib/professionals';
+import TierBadge from '@/components/TierBadge';
 
 type Props = {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 };
 
 export default async function ProviderProfilePage({ params }: Props) {
     const { id } = await params;
 
-    const user = await prisma.user.findUnique({
-        where: { id },
-        select: {
-            id: true,
-            fullName: true,
-            bio: true,
-            skills: true,
-            avatar: true,
-            role: true,
-            createdAt: true,
-            subscription: {
-                select: { plan: true, isActive: true, endDate: true }
-            },
-            _count: {
-                select: {
-                    assignedTasks: true,
-                    responses: true
-                }
-            }
-        }
-    });
-
+    const user = await getPublicProfile(id, { reviewLimit: 100 });
     if (!user || user.role !== 'PROVIDER') {
         notFound();
     }
 
-    // Get detailed task statistics
-    const [completedTasks, inProgressTasks, totalAssigned] = await Promise.all([
-        prisma.task.count({ where: { assignedUserId: id, status: 'COMPLETED' } }),
-        prisma.task.count({ where: { assignedUserId: id, status: 'IN_PROGRESS' } }),
-        prisma.task.count({ where: { assignedUserId: id } })
+    const [totalAssigned, responseCount] = await Promise.all([
+        prisma.task.count({ where: { assignedUserId: id } }),
+        prisma.response.count({ where: { userId: id } }),
     ]);
-
-    // Get reviews
-    const reviews = await prisma.review.findMany({
-        where: { reviewedId: id },
-        orderBy: { createdAt: 'desc' },
-        include: {
-            reviewer: {
-                select: { id: true, fullName: true }
-            },
-            task: {
-                select: { id: true, title: true, category: true }
-            }
-        }
-    });
-
-    // Calculate stats
-    const totalRating = reviews.reduce((sum: number, r) => sum + r.rating, 0);
-    const averageRating = reviews.length > 0 ? totalRating / reviews.length : 0;
-    const breakdown = {
-        5: reviews.filter(r => r.rating === 5).length,
-        4: reviews.filter(r => r.rating === 4).length,
-        3: reviews.filter(r => r.rating === 3).length,
-        2: reviews.filter(r => r.rating === 2).length,
-        1: reviews.filter(r => r.rating === 1).length,
-    };
+    const completedTasks = user.completedCount;
+    const averageRating = user.avgRating;
+    const reviews = user.reviews;
 
     const skills = user.skills ? user.skills.split(',').map(s => s.trim()) : [];
-    const { t } = await getServerTranslation();
+    const { t, tr } = await getServerTranslation();
 
     // Calculate success rate
     const successRate = totalAssigned > 0 ? Math.round((completedTasks / totalAssigned) * 100) : 0;
 
-    // Check if premium — subscriptions are temporarily hidden (see lib/features.ts)
-    const isPremium = SUBSCRIPTIONS_ENABLED &&
-        user.subscription?.isActive &&
-        new Date(user.subscription.endDate) > new Date() &&
-        user.subscription.plan.toLowerCase() === 'premium';
+    const years = user.experienceYears;
+    const experienceKey = years == null ? null
+        : years % 10 === 1 && years % 100 !== 11 ? 'reviews_page.experienceOne'
+        : years % 10 >= 2 && years % 10 <= 4 && (years % 100 < 10 || years % 100 >= 20) ? 'reviews_page.experienceFew'
+        : 'reviews_page.experienceMany';
 
     return (
         <div style={{ backgroundColor: 'var(--secondary)', minHeight: '100vh', padding: '60px 0' }}>
@@ -96,24 +52,10 @@ export default async function ProviderProfilePage({ params }: Props) {
                     position: 'relative',
                     overflow: 'hidden'
                 }}>
-                    {/* Premium badge */}
-                    {isPremium && (
-                        <div style={{
-                            position: 'absolute',
-                            top: '20px',
-                            right: '20px',
-                            backgroundColor: '#7C3AED',
-                            color: 'white',
-                            padding: '6px 16px',
-                            borderRadius: '20px',
-                            fontSize: '0.85rem',
-                            fontWeight: '600',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px'
-                        }}>
-                            <Award size={14} />
-                            Premium
+                    {/* Paid tier badge — null while subscriptions are switched off */}
+                    {user.tier && (
+                        <div style={{ position: 'absolute', top: '20px', right: '20px' }}>
+                            <TierBadge tier={user.tier} label={t(`subscription.${user.tier}`)} />
                         </div>
                     )}
 
@@ -152,9 +94,29 @@ export default async function ProviderProfilePage({ params }: Props) {
                                     <h1 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '8px' }}>
                                         {user.fullName}
                                     </h1>
-                                    <p style={{ color: 'var(--accent)', fontWeight: '600', marginBottom: '8px' }}>
+                                    <p style={{ color: 'var(--accent)', fontWeight: '600', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                                         {t('reviews_page.provider')}
+                                        {user.isVerified && (
+                                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#059669', fontSize: '0.85rem' }}>
+                                                <BadgeCheck size={16} aria-hidden />
+                                                {t('reviews_page.verified')}
+                                            </span>
+                                        )}
                                     </p>
+                                    {(user.city || experienceKey) && (
+                                        <p style={{ color: 'var(--text)', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                                            {user.city && (
+                                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                                    <MapPin size={14} aria-hidden />{tr(user.city)}
+                                                </span>
+                                            )}
+                                            {experienceKey && (
+                                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                                    <Briefcase size={14} aria-hidden />{t(experienceKey, { n: years! })}
+                                                </span>
+                                            )}
+                                        </p>
+                                    )}
                                     <p style={{ color: 'var(--text-light)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                         <Calendar size={14} />
                                         {t('reviews_page.onPlatformSince')} {new Date(user.createdAt).toLocaleDateString('ru-RU', {
@@ -173,10 +135,24 @@ export default async function ProviderProfilePage({ params }: Props) {
                                         {'★'.repeat(Math.round(averageRating))}{'☆'.repeat(5 - Math.round(averageRating))}
                                     </div>
                                     <div style={{ fontSize: '0.85rem', color: '#92400e', marginTop: '4px' }}>
-                                        {reviews.length} {t('reviews_page.reviews')}
+                                        {user.reviewCount} {t('reviews_page.reviews')}
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Categories — label translated, link keeps the canonical value */}
+                            {user.categories.length > 0 && (
+                                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '16px' }}>
+                                    {user.categories.map(c => (
+                                        <Link key={c} href={`/professionals?category=${encodeURIComponent(c)}`} style={{
+                                            backgroundColor: '#EFF6FF', color: 'var(--primary)', padding: '6px 14px',
+                                            borderRadius: '20px', fontSize: '0.9rem', fontWeight: 600, textDecoration: 'none',
+                                        }}>
+                                            {tr(c)}
+                                        </Link>
+                                    ))}
+                                </div>
+                            )}
 
                             {/* Bio */}
                             {user.bio && (
@@ -242,31 +218,58 @@ export default async function ProviderProfilePage({ params }: Props) {
                     />
                     <StatCard
                         icon={<MessageSquare size={24} />}
-                        value={user._count.responses}
+                        value={responseCount}
                         label={t('reviews_page.responses')}
                         color="#F59E0B"
                         bgColor="#FEF3C7"
                     />
                     <StatCard
                         icon={<Star size={24} />}
-                        value={reviews.length}
+                        value={user.reviewCount}
                         label={t('reviews_page.reviews')}
                         color="#EC4899"
                         bgColor="#FCE7F3"
                     />
                 </div>
 
+                {/* Portfolio */}
+                {user.portfolio.length > 0 && (
+                    <section aria-labelledby="portfolio-title" style={{ marginBottom: '32px' }}>
+                        <h2 id="portfolio-title" className="heading-md" style={{ marginBottom: '24px' }}>
+                            {t('reviews_page.portfolio')}
+                        </h2>
+                        <div style={{ display: 'grid', gap: '20px' }}>
+                            {user.portfolio.map(p => (
+                                <div key={p.id} style={{ backgroundColor: 'white', borderRadius: '16px', padding: '20px', border: '1px solid var(--border)' }}>
+                                    <h3 style={{ fontWeight: 700, fontSize: '1.1rem' }}>{p.title}</h3>
+                                    {p.description && <p style={{ color: 'var(--text-light)', marginTop: '6px', lineHeight: 1.6 }}>{p.description}</p>}
+                                    {p.images.length > 0 && (
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '10px', marginTop: '14px' }}>
+                                            {p.images.map((src, i) => (
+                                                <a key={src + i} href={src} target="_blank" rel="noopener noreferrer">
+                                                    <img src={src} alt={`${p.title} ${i + 1}`} loading="lazy"
+                                                        style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: '10px', display: 'block' }} />
+                                                </a>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
                 {/* Reviews Section */}
                 <h2 className="heading-md" style={{ marginBottom: '24px' }}>
-                    {t('reviews_page.reviewsTitle')} ({reviews.length})
+                    {t('reviews_page.reviewsTitle')} ({user.reviewCount})
                 </h2>
 
                 <ReviewList
                     reviews={reviews}
                     stats={{
-                        totalReviews: reviews.length,
+                        totalReviews: user.reviewCount,
                         averageRating,
-                        breakdown
+                        breakdown: user.ratingBreakdown
                     }}
                 />
 

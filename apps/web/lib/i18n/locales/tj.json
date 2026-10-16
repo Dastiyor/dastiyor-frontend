@@ -951,7 +951,12 @@
     "successRate": "Муваффақият",
     "responses": "Ҷавобҳо",
     "reviews": "Баҳоҳо",
-    "onPlatformSince": "Дар платформа аз"
+    "onPlatformSince": "Дар платформа аз",
+    "experienceOne": "{n} сол таҷриба",
+    "experienceFew": "{n} сол таҷриба",
+    "experienceMany": "{n} сол таҷриба",
+    "verified": "Иҷрокунандаи тасдиқшуда",
+    "portfolio": "Портфолио"
   },
   "languageSwitcher": {
     "ru": "Русский",

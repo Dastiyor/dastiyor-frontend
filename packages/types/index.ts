@@ -91,6 +91,38 @@ export interface ProfessionalCard {
   tier: SubscriptionTier | null;
 }
 
+export interface PublicReview {
+  id: string;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+  reviewer: { id: string; fullName: string };
+  task: { id: string; title: string; category: string };
+}
+
+/** GET /api/users/[id] → { user: PublicProfile } */
+export interface PublicProfile {
+  id: string;
+  fullName: string;
+  avatar: string | null;
+  bio: string | null;
+  skills: string | null;
+  role: UserRole;
+  createdAt: string;
+  experienceYears: number | null;
+  city: string | null;
+  categories: string[];
+  isVerified: boolean;
+  completedCount: number;
+  /** 0 when there are no reviews */
+  avgRating: number;
+  reviewCount: number;
+  ratingBreakdown: Record<1 | 2 | 3 | 4 | 5, number>;
+  reviews: PublicReview[];
+  portfolio: PortfolioProject[];
+  tier: SubscriptionTier | null;
+}
+
 export interface PaginatedResult<T> {
   items: T[];
   total: number;

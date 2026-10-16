@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client';
-import type { PaginatedResult, ProfessionalCard, ProfessionalSort, SubscriptionTier } from '@dastiyor/types';
+import type { PaginatedResult, ProfessionalCard, ProfessionalSort, PublicProfile, SubscriptionTier } from '@dastiyor/types';
 import { prisma } from '@/lib/prisma';
 import { SUBSCRIPTIONS_ENABLED } from '@/lib/features';
 
@@ -106,4 +106,55 @@ export async function getActiveTier(userId: string): Promise<SubscriptionTier | 
         select: { plan: true },
     });
     return TIERS.includes(sub?.plan as SubscriptionTier) ? (sub!.plan as SubscriptionTier) : null;
+}
+
+/**
+ * Everything a public profile shows: provider fields, stats from visible
+ * reviews only, the latest reviews, portfolio and tier. Shared by
+ * GET /api/users/[id] (mobile) and the web profile page so they can't drift.
+ * Dates are Date objects here; JSON turns them into the strings PublicProfile declares.
+ */
+export async function getPublicProfile(id: string, { reviewLimit = 20 } = {}) {
+    const user = await prisma.user.findUnique({
+        where: { id },
+        select: {
+            id: true, fullName: true, avatar: true, bio: true, skills: true, role: true, createdAt: true,
+            experienceYears: true, city: true, categories: true, isVerified: true,
+        },
+    });
+    if (!user) return null;
+
+    const visible = { reviewedId: id, hidden: false };
+    const [completedCount, byRating, reviews, portfolio, tier] = await Promise.all([
+        prisma.task.count({ where: { assignedUserId: id, status: 'COMPLETED' } }),
+        prisma.review.groupBy({ by: ['rating'], where: visible, _count: { rating: true } }),
+        prisma.review.findMany({
+            where: visible,
+            select: {
+                id: true, rating: true, comment: true, createdAt: true,
+                reviewer: { select: { id: true, fullName: true } },
+                task: { select: { id: true, title: true, category: true } },
+            },
+            orderBy: { createdAt: 'desc' },
+            take: reviewLimit,
+        }),
+        prisma.portfolioProject.findMany({
+            where: { userId: id },
+            orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
+            select: { id: true, title: true, description: true, images: true, order: true },
+        }),
+        getActiveTier(id),
+    ]);
+
+    const ratingBreakdown: PublicProfile['ratingBreakdown'] = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    let reviewCount = 0;
+    let ratingSum = 0;
+    for (const { rating, _count } of byRating) {
+        if (rating in ratingBreakdown) ratingBreakdown[rating as 1 | 2 | 3 | 4 | 5] = _count.rating;
+        reviewCount += _count.rating;
+        ratingSum += rating * _count.rating;
+    }
+    const avgRating = reviewCount ? Math.round((ratingSum / reviewCount) * 10) / 10 : 0;
+
+    return { ...user, completedCount, avgRating, reviewCount, ratingBreakdown, reviews, portfolio, tier };
 }

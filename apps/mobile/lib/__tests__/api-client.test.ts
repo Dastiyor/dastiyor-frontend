@@ -139,6 +139,19 @@ describe('api-client', () => {
     });
   });
 
+  describe('api.patch', () => {
+    it('sends PATCH method with a JSON body', async () => {
+      mockFetch(200, { ok: true });
+
+      await api.patch('/api/profile/portfolio', { order: ['a'] });
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({ method: 'PATCH', body: JSON.stringify({ order: ['a'] }) })
+      );
+    });
+  });
+
   describe('api.del', () => {
     it('sends DELETE method', async () => {
       mockFetch(200, { ok: true });

@@ -4,6 +4,9 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslation } from '@/lib/i18n';
+import { CATEGORIES, CITIES } from '@/lib/config-fallback';
+
+const MAX_CATEGORIES = 5;
 
 type UserProfile = {
     id: string;
@@ -14,10 +17,13 @@ type UserProfile = {
     skills: string | null;
     avatar: string | null;
     role: string;
+    experienceYears?: number | null;
+    city?: string | null;
+    categories?: string[];
 };
 
 export default function ProviderEditProfilePage() {
-    const { t, tError } = useTranslation();
+    const { t, tr, tError } = useTranslation();
     const router = useRouter();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -35,10 +41,26 @@ export default function ProviderEditProfilePage() {
         skills: '',
         avatar: ''
     });
+    // Provider fields. City and categories hold canonical Russian values; tr() is display only.
+    const [experience, setExperience] = useState('');
+    const [city, setCity] = useState('');
+    const [categories, setCategories] = useState<string[]>([]);
+    const [categoryOptions, setCategoryOptions] = useState<string[]>(CATEGORIES);
+    const [cityOptions, setCityOptions] = useState<string[]>(CITIES);
 
     useEffect(() => {
         fetchProfile();
+        fetch('/api/config')
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data.categories)) setCategoryOptions(data.categories);
+                if (Array.isArray(data.cities)) setCityOptions(data.cities);
+            })
+            .catch(() => {});
     }, []);
+
+    const toggleCategory = (name: string) =>
+        setCategories(list => list.includes(name) ? list.filter(c => c !== name) : [...list, name]);
 
     const fetchProfile = async () => {
         try {
@@ -53,6 +75,9 @@ export default function ProviderEditProfilePage() {
                     skills: data.user.skills || '',
                     avatar: data.user.avatar || ''
                 });
+                setExperience(data.user.experienceYears != null ? String(data.user.experienceYears) : '');
+                setCity(data.user.city || '');
+                setCategories(data.user.categories || []);
             } else {
                 router.push('/login');
             }
@@ -101,7 +126,9 @@ export default function ProviderEditProfilePage() {
             const res = await fetch('/api/profile', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
+                body: JSON.stringify(profile?.role === 'PROVIDER'
+                    ? { ...formData, experienceYears: experience === '' ? null : Number(experience), city: city || null, categories }
+                    : formData)
             });
 
             const data = await res.json();
@@ -318,6 +345,67 @@ export default function ProviderEditProfilePage() {
                                         }}
                                     />
                                 </div>
+
+                                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '20px' }}>
+                                    <div style={{ flex: '1 1 160px' }}>
+                                        <label htmlFor="pe-experience" style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#1E293B' }}>
+                                            {t('profileEdit.experience')}
+                                        </label>
+                                        <input
+                                            id="pe-experience"
+                                            type="number"
+                                            min={0}
+                                            max={60}
+                                            step={1}
+                                            value={experience}
+                                            onChange={(e) => setExperience(e.target.value)}
+                                            style={{ width: '100%', padding: '14px 16px', borderRadius: '12px', border: '1px solid #E2E8F0', fontSize: '1rem' }}
+                                        />
+                                    </div>
+                                    <div style={{ flex: '1 1 200px' }}>
+                                        <label htmlFor="pe-city" style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#1E293B' }}>
+                                            {t('profileEdit.city')}
+                                        </label>
+                                        <select
+                                            id="pe-city"
+                                            value={city}
+                                            onChange={(e) => setCity(e.target.value)}
+                                            style={{ width: '100%', padding: '14px 16px', borderRadius: '12px', border: '1px solid #E2E8F0', fontSize: '1rem', background: 'white' }}
+                                        >
+                                            <option value="">{t('profileEdit.cityNone')}</option>
+                                            {cityOptions.map(c => <option key={c} value={c}>{tr(c)}</option>)}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <fieldset style={{ border: 'none', padding: 0, margin: '0 0 20px' }}>
+                                    <legend style={{ marginBottom: '8px', fontWeight: '500', color: '#1E293B' }}>
+                                        {t('profileEdit.categories')}
+                                    </legend>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                        {categoryOptions.map(c => {
+                                            const checked = categories.includes(c);
+                                            return (
+                                                <label key={c} style={{
+                                                    display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 12px',
+                                                    borderRadius: '999px', border: `1px solid ${checked ? 'var(--primary)' : '#E2E8F0'}`,
+                                                    background: checked ? '#EFF6FF' : 'white', cursor: 'pointer', fontSize: '0.9rem',
+                                                }}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={checked}
+                                                        disabled={!checked && categories.length >= MAX_CATEGORIES}
+                                                        onChange={() => toggleCategory(c)}
+                                                    />
+                                                    {tr(c)}
+                                                </label>
+                                            );
+                                        })}
+                                    </div>
+                                    <p style={{ fontSize: '0.85rem', color: '#94A3B8', marginTop: '4px' }}>
+                                        {t('profileEdit.categoriesHint')}
+                                    </p>
+                                </fieldset>
 
                                 <div style={{ marginBottom: '32px' }}>
                                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#1E293B' }}>

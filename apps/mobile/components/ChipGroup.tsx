@@ -4,12 +4,13 @@ import type { ThemeColors } from '@/contexts/ThemeContext';
 /**
  * Wrapping row of selectable pills. Extracted from create-task so the respond
  * screen can offer the same preset picker for a response's duration.
+ * Pass an array as `value` for multi-select; onChange still reports the tapped option.
  */
 export function ChipGroup<T extends string>({
   options, value, onChange, getLabel, getValue, colors,
 }: {
   options: T[] | { value: T; label: string }[];
-  value: T;
+  value: T | T[];
   onChange: (v: T) => void;
   getLabel?: (o: T | { value: T; label: string }) => string;
   getValue?: (o: T | { value: T; label: string }) => T;
@@ -20,7 +21,7 @@ export function ChipGroup<T extends string>({
       {(options as (T | { value: T; label: string })[]).map((opt) => {
         const v = getValue ? getValue(opt) : (opt as T);
         const l = getLabel ? getLabel(opt) : String(opt);
-        const active = value === v;
+        const active = Array.isArray(value) ? value.includes(v) : value === v;
         return (
           <TouchableOpacity
             key={String(v)}

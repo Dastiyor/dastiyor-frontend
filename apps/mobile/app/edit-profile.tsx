@@ -10,6 +10,8 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
+import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { goBack } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardOffset } from '@/lib/useKeyboardOffset';
@@ -21,9 +23,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Alert } from '@/lib/dialog';
+import { useConfig } from '@/lib/useConfig';
+import { ProviderFields, type ProviderFieldsValue } from '@/components/ProviderFields';
 
 
 interface ProfileData { fullName: string; phone: string; bio: string; skills: string; avatar: string | null; }
+interface ProviderProfileData { experienceYears?: number | null; city?: string | null; categories?: string[] }
 
 /** API stores the full +992XXXXXXXXX; this field edits only the 9 local digits. */
 function toLocalPhone(full: string | null | undefined): string {
@@ -33,7 +38,9 @@ function toLocalPhone(full: string | null | undefined): string {
 
 export default function EditProfileScreen() {
   const { user, refreshUser } = useAuth();
-  const { t } = useLanguage();
+  const { t, tr } = useLanguage();
+  const { config } = useConfig();
+  const isProvider = user?.role === 'PROVIDER';
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const keyboardOffset = useKeyboardOffset();
@@ -43,10 +50,18 @@ export default function EditProfileScreen() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [provider, setProvider] = useState<ProviderFieldsValue>({ experience: '', city: '', categories: [] });
 
   useEffect(() => {
-    api.get<{ user: ProfileData & { email: string } }>('/api/profile')
-      .then((res) => setForm({ fullName: res.user.fullName ?? '', phone: toLocalPhone(res.user.phone), bio: res.user.bio ?? '', skills: res.user.skills ?? '', avatar: res.user.avatar ?? null }))
+    api.get<{ user: ProfileData & ProviderProfileData & { email: string } }>('/api/profile')
+      .then((res) => {
+        setForm({ fullName: res.user.fullName ?? '', phone: toLocalPhone(res.user.phone), bio: res.user.bio ?? '', skills: res.user.skills ?? '', avatar: res.user.avatar ?? null });
+        setProvider({
+          experience: res.user.experienceYears != null ? String(res.user.experienceYears) : '',
+          city: res.user.city ?? '',
+          categories: res.user.categories ?? [],
+        });
+      })
       .catch(() => { if (user) setForm((f) => ({ ...f, fullName: user.fullName, phone: toLocalPhone(user.phone) })); })
       .finally(() => setLoading(false));
   }, []);
@@ -99,6 +114,11 @@ export default function EditProfileScreen() {
         bio: form.bio.trim() || undefined,
         skills: form.skills.trim() || undefined,
         avatar: form.avatar,
+        ...(isProvider ? {
+          experienceYears: provider.experience === '' ? null : Number(provider.experience),
+          city: provider.city || null,
+          categories: provider.categories,
+        } : {}),
       });
       await refreshUser();
       Alert.alert(ep.saved, ep.profileUpdated, [{ text: t.common.ok, onPress: () => goBack() }]);
@@ -165,6 +185,31 @@ export default function EditProfileScreen() {
         <Text style={[styles.label, { color: colors.text }]}>{ep.skills}</Text>
         <TextInput style={inputStyle} value={form.skills} onChangeText={set('skills')} placeholder={ep.skillsPh} placeholderTextColor={colors.textTertiary} maxLength={300} />
 
+        {isProvider && (
+          <>
+            <ProviderFields
+              value={provider}
+              onChange={setProvider}
+              categories={config.categories}
+              cities={config.cities}
+              tr={tr}
+              labels={{ experience: ep.experience, city: ep.city, categories: ep.categories, categoriesHint: ep.categoriesHint }}
+            />
+            <TouchableOpacity
+              style={[styles.portfolioRow, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}
+              onPress={() => router.push('/portfolio')}
+              accessibilityRole="button"
+            >
+              <Ionicons name="images-outline" size={20} color="#2563EB" />
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.label, { color: colors.text, marginBottom: 2 }]}>{ep.portfolio}</Text>
+                <Text style={{ fontSize: 12, color: colors.textSecondary }}>{ep.portfolioHint}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+            </TouchableOpacity>
+          </>
+        )}
+
         <TouchableOpacity style={[styles.btn, saving && styles.btnDisabled]} onPress={handleSave} disabled={saving} accessibilityLabel={ep.save} accessibilityRole="button">
           {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>{ep.save}</Text>}
         </TouchableOpacity>
@@ -196,6 +241,7 @@ const styles = StyleSheet.create({
   label: { fontSize: 13, fontWeight: '700', color: '#374151', marginBottom: 8 },
   input: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, padding: 14, fontSize: 15, color: '#111827', backgroundColor: '#F9FAFB', marginBottom: 20 },
   textarea: { minHeight: 100, lineHeight: 22, marginBottom: 4 },
+  portfolioRow: { flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderRadius: 12, padding: 14, marginBottom: 20 },
   charCount: { fontSize: 11, color: '#9CA3AF', textAlign: 'right', marginBottom: 20 },
   btn: { backgroundColor: '#2563EB', borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 8 },
   btnDisabled: { opacity: 0.6 },

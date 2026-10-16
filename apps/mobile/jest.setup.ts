@@ -74,6 +74,7 @@ jest.mock('@/lib/api-client', () => ({
     get: jest.fn().mockResolvedValue(undefined),
     post: jest.fn().mockResolvedValue(undefined),
     put: jest.fn().mockResolvedValue(undefined),
+    patch: jest.fn().mockResolvedValue(undefined),
     del: jest.fn().mockResolvedValue(undefined),
   },
   setOnUnauthorized: jest.fn(),

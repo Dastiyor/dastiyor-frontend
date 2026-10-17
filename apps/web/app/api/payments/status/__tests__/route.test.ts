@@ -18,7 +18,9 @@ jest.mock('@/lib/payments', () => ({
         premium: { nameRu: 'Премиум' },
     },
     isValidPlan: jest.fn((plan: string) => ['basic', 'standard', 'premium'].includes(plan)),
+    getSmartPayOrderStatus: jest.fn(async () => null),
 }));
+import { getSmartPayOrderStatus } from '@/lib/payments';
 
 const makeRequest = (orderId?: string) =>
     new Request(`http://localhost/api/payments/status${orderId ? `?orderId=${orderId}` : ''}`);
@@ -157,5 +159,38 @@ describe('/api/payments/status', () => {
 
         expect(response.status).toBe(500);
         expect(data.error).toBe('Internal Server Error');
+    });
+
+    describe('pending payment and SmartPay', () => {
+        const pending = { id: 'pay-1', userId: 'user-1', smartpayOrderId: 'ORDER-001', status: 'PENDING', plan: 'basic', amount: 99, currency: 'TJS' };
+
+        it('marks a voided invoice as FAILED', async () => {
+            prismaMock.payment.findUnique.mockResolvedValue(pending as any);
+            (getSmartPayOrderStatus as jest.Mock).mockResolvedValue('void');
+            prismaMock.payment.updateMany.mockResolvedValue({ count: 1 });
+
+            const data = await (await GET(makeRequest('ORDER-001'))).json();
+
+            expect(data.status).toBe('FAILED');
+            expect(prismaMock.payment.updateMany).toHaveBeenCalledWith({
+                where: { id: 'pay-1', status: 'PENDING' }, data: { status: 'FAILED' },
+            });
+        });
+
+        it('keeps PENDING when the invoice is open or SmartPay is unreachable', async () => {
+            prismaMock.payment.findUnique.mockResolvedValue(pending as any);
+            (getSmartPayOrderStatus as jest.Mock).mockResolvedValue(null);
+
+            const data = await (await GET(makeRequest('ORDER-001'))).json();
+
+            expect(data.status).toBe('PENDING');
+            expect(prismaMock.payment.updateMany).not.toHaveBeenCalled();
+        });
+
+        it('does not ask SmartPay about a finished payment', async () => {
+            prismaMock.payment.findUnique.mockResolvedValue({ ...pending, status: 'COMPLETED' } as any);
+            await GET(makeRequest('ORDER-001'));
+            expect(getSmartPayOrderStatus).not.toHaveBeenCalled();
+        });
     });
 });

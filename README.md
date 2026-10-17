@@ -148,9 +148,9 @@ PAYOM_SENDER_NAME="Dastiyor"            # Registered sender name (Latin, ≤11 c
 PAYOM_OTP_TEMPLATE_ID=""                # Template whose first variable is a "Код" ({code-1}); required for individual accounts (no free text)
 
 # Optional: Payment gateway (SmartPay TJ)
-SMARTPAY_API_URL="https://api.smartpay.tj"
-SMARTPAY_MERCHANT_ID="your-merchant-id"
-SMARTPAY_SECRET_KEY="your-secret-key"
+SMARTPAY_API_URL="https://sandbox.smartpay.tj/api/merchant"   # omit for production (ecomm.smartpay.tj)
+SMARTPAY_API_KEY="from SmartPay dashboard → Settings → API Keys"
+SMARTPAY_WEBHOOK_SECRET="shown once when the webhook is created"
 
 # Optional: Web push notifications (VAPID)
 VAPID_PRIVATE_KEY="your-vapid-private-key"
@@ -341,9 +341,9 @@ See `prisma/schema.prisma` for complete schema definition.
 | `PAYOM_API_HOST` / `PAYOM_API_TOKEN` | Payom.tj host + JWT; routes +992 SMS through Payom instead of Brevo |
 | `PAYOM_SENDER_NAME` | Registered Payom sender name (default "Dastiyor") |
 | `PAYOM_OTP_TEMPLATE_ID` | Payom template for OTP codes (variable `{code-1}`); needed for individual accounts |
-| `SMARTPAY_API_URL` | SmartPay TJ API base URL |
-| `SMARTPAY_MERCHANT_ID` | SmartPay merchant ID |
-| `SMARTPAY_SECRET_KEY` | SmartPay secret key |
+| `SMARTPAY_API_URL` | SmartPay merchant API base (default `https://ecomm.smartpay.tj/api/merchant`; sandbox `https://sandbox.smartpay.tj/api/merchant`) |
+| `SMARTPAY_API_KEY` | SmartPay API key (`x-app-token`) |
+| `SMARTPAY_WEBHOOK_SECRET` | HMAC secret of the dashboard webhook pointing at `/api/webhooks/smartpay` |
 | `VAPID_PRIVATE_KEY` | VAPID private key for web push |
 | `VAPID_SUBJECT` | VAPID subject (mailto: or URL) |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
@@ -377,7 +377,7 @@ npx prisma generate
 - [ ] Set `DATABASE_URL`, `POSTGRES_PRISMA_URL`, `POSTGRES_URL_NON_POOLING` for Supabase DB
 - [ ] Set `BREVO_API_KEY`, `BREVO_FROM_EMAIL`, `BREVO_FROM_NAME` for email notifications
 - [ ] Set `BREVO_SMS_SENDER` for custom SMS sender ID
-- [ ] Set `SMARTPAY_API_URL`, `SMARTPAY_MERCHANT_ID`, `SMARTPAY_SECRET_KEY` for payments
+- [ ] Set `SMARTPAY_API_KEY` and `SMARTPAY_WEBHOOK_SECRET` (create the HTTPS webhook with signature in the SmartPay dashboard) for payments
 - [ ] Set `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` for web push notifications
 - [ ] Configure cloud storage for uploads (S3/DigitalOcean Spaces)
 - [ ] Enable HTTPS

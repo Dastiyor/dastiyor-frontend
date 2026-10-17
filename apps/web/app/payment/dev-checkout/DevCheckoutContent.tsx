@@ -13,20 +13,25 @@ function DevCheckoutContent() {
     const amount = searchParams.get('amount');
     const txId = searchParams.get('txId');
 
+    // Mimics SmartPay: a webhook only for a successful payment (amount in dirams,
+    // unsigned — accepted outside production only). A failed payment sends nothing.
     const simulatePayment = async (status: 'success' | 'failed') => {
-        await fetch('/api/webhooks/smartpay', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                transaction_id: txId,
-                order_id: orderId,
-                amount: Number(amount),
-                currency: 'TJS',
-                status,
-                payment_method: 'dev_simulated',
-                signature: '',
-            }),
-        });
+        if (status === 'success') {
+            await fetch('/api/webhooks/smartpay', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    payment_date: new Date().toISOString(),
+                    amount: Number(amount) * 100,
+                    order_id: orderId,
+                    bank_id: 0,
+                    invoice_uuid: txId,
+                    payment_id: txId,
+                    bank: 'dev_simulated',
+                    signature: '',
+                }),
+            });
+        }
 
         router.push(`/payment/result?orderId=${orderId}`);
     };

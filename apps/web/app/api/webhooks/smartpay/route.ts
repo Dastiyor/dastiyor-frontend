@@ -1,52 +1,48 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyCallbackSignature, PLANS, isValidPlan } from '@/lib/payments';
-import type { SmartPayCallbackData } from '@/lib/payments';
+import { verifyWebhookSignature, PLANS, isValidPlan } from '@/lib/payments';
+import type { SmartPayWebhook } from '@/lib/payments';
 import { sendPaymentReceiptEmail } from '@/lib/notifications/email';
 
 /**
- * SmartPay Webhook Handler
+ * SmartPay payment webhook (configured in the SmartPay dashboard → Settings → Webhooks).
  *
- * Called by SmartPay server-to-server after a payment is processed.
- * This is the authoritative source of payment status — we activate
- * or fail subscriptions here, NOT on the redirect URL.
+ * SmartPay only notifies successful payments and retries for two days until it gets a
+ * 200, so every outcome we have decided on answers 200. This is the authoritative
+ * source — subscriptions are activated here, never on the return URL.
  */
 export async function POST(request: Request) {
     try {
-        const body = await request.json();
+        const body = await request.json() as SmartPayWebhook;
+        const orderId = String(body.order_id ?? '');
 
-        const callbackData: SmartPayCallbackData = {
-            transactionId: body.transaction_id || body.transactionId,
-            orderId: body.order_id || body.orderId,
-            amount: Number(body.amount),
-            currency: body.currency || 'TJS',
-            status: body.status,
-            paymentMethod: body.payment_method || body.paymentMethod,
-            signature: body.signature || '',
-        };
-
-        // Verify signature to ensure authenticity
-        if (!verifyCallbackSignature(callbackData)) {
-            console.error('[SmartPay Webhook] Invalid signature for order:', callbackData.orderId);
+        if (!verifyWebhookSignature(body)) {
+            console.error('[SmartPay Webhook] Invalid signature for order:', orderId);
             return NextResponse.json({ error: 'Invalid signature' }, { status: 403 });
         }
 
         // Find the payment record by our order ID
         const payment = await prisma.payment.findUnique({
-            where: { smartpayOrderId: callbackData.orderId },
+            where: { smartpayOrderId: orderId },
             include: { user: { select: { email: true, fullName: true, locale: true } } }
         });
 
         if (!payment) {
-            console.error('[SmartPay Webhook] Payment not found for order:', callbackData.orderId);
+            console.error('[SmartPay Webhook] Payment not found for order:', orderId);
             return NextResponse.json({ error: 'Payment not found' }, { status: 404 });
+        }
+
+        // Webhook amounts are dirams; our payment amounts are whole somoni.
+        if (Number(body.amount) !== payment.amount * 100) {
+            console.error('[SmartPay Webhook] Amount mismatch for order:', orderId, body.amount, payment.amount);
+            return NextResponse.json({ ok: false, message: 'Amount mismatch' });
         }
 
         // Idempotency: use atomic status transition to prevent double-processing
         // updateMany with status=PENDING guard ensures only one concurrent call wins
         const claimed = await prisma.payment.updateMany({
             where: { id: payment.id, status: 'PENDING' },
-            data: { status: callbackData.status === 'success' ? 'COMPLETED' : callbackData.status === 'cancelled' ? 'CANCELLED' : 'FAILED' },
+            data: { status: 'COMPLETED' },
         });
 
         if (claimed.count === 0) {
@@ -54,90 +50,78 @@ export async function POST(request: Request) {
             return NextResponse.json({ ok: true, message: 'Already processed' });
         }
 
-        if (callbackData.status === 'success') {
-            // ── Payment Successful ──────────────────────────────────────
+        const transactionId = String(body.payment_id);
+        // Update transaction metadata (status already set above)
+        await prisma.payment.update({
+            where: { id: payment.id },
+            data: {
+                transactionId,
+                paymentMethod: body.bank ?? null,
+            }
+        });
 
-            // Update transaction metadata (status already set above)
-            await prisma.payment.update({
-                where: { id: payment.id },
-                data: {
-                    transactionId: callbackData.transactionId,
-                    paymentMethod: callbackData.paymentMethod,
-                }
+        // Activate or extend subscription
+        if (payment.plan && isValidPlan(payment.plan)) {
+            const planConfig = PLANS[payment.plan];
+            const now = new Date();
+
+            const existingSub = await prisma.subscription.findUnique({
+                where: { userId: payment.userId }
             });
 
-            // Activate or extend subscription
-            if (payment.plan && isValidPlan(payment.plan)) {
-                const planConfig = PLANS[payment.plan];
-                const now = new Date();
+            let endDate = new Date();
+            if (existingSub?.isActive && new Date(existingSub.endDate) > now) {
+                endDate = new Date(existingSub.endDate);
+            }
+            endDate.setDate(endDate.getDate() + planConfig.durationDays);
 
-                const existingSub = await prisma.subscription.findUnique({
-                    where: { userId: payment.userId }
+            if (existingSub) {
+                await prisma.subscription.update({
+                    where: { userId: payment.userId },
+                    data: {
+                        plan: payment.plan,
+                        startDate: existingSub.isActive ? existingSub.startDate : now,
+                        endDate,
+                        isActive: true,
+                    }
                 });
-
-                let endDate = new Date();
-                if (existingSub?.isActive && new Date(existingSub.endDate) > now) {
-                    endDate = new Date(existingSub.endDate);
-                }
-                endDate.setDate(endDate.getDate() + planConfig.durationDays);
-
-                if (existingSub) {
-                    await prisma.subscription.update({
-                        where: { userId: payment.userId },
-                        data: {
-                            plan: payment.plan,
-                            startDate: existingSub.isActive ? existingSub.startDate : now,
-                            endDate,
-                            isActive: true,
-                        }
-                    });
-                } else {
-                    await prisma.subscription.create({
-                        data: {
-                            userId: payment.userId,
-                            plan: payment.plan,
-                            startDate: now,
-                            endDate,
-                            isActive: true,
-                        }
-                    });
-                }
-
-                // Create in-app notification
-                await prisma.notification.create({
+            } else {
+                await prisma.subscription.create({
                     data: {
                         userId: payment.userId,
-                        type: 'SYSTEM',
-                        title: 'Подписка активирована',
-                        message: `Ваша подписка "${planConfig.nameRu}" успешно активирована на ${planConfig.durationDays} дней.`,
-                        link: '/provider/subscription',
+                        plan: payment.plan,
+                        startDate: now,
+                        endDate,
+                        isActive: true,
                     }
                 });
             }
 
-            // Send receipt email (fire-and-forget)
-            if (payment.user.email) {
-                sendPaymentReceiptEmail(
-                    payment.user.email!,
-                    payment.user.fullName,
-                    payment.amount,
-                    payment.description,
-                    callbackData.orderId,
-                    callbackData.transactionId,
-                    payment.user.locale
-                ).catch(err => console.error('Receipt email error:', err));
-            }
-
-        } else {
-            // ── Payment Failed or Cancelled ─────────────────────────────
-            // Status already updated atomically above; just store transaction ID.
-            if (callbackData.transactionId) {
-                await prisma.payment.update({
-                    where: { id: payment.id },
-                    data: { transactionId: callbackData.transactionId },
-                });
-            }
+            // Create in-app notification
+            await prisma.notification.create({
+                data: {
+                    userId: payment.userId,
+                    type: 'SYSTEM',
+                    title: 'Подписка активирована',
+                    message: `Ваша подписка "${planConfig.nameRu}" успешно активирована на ${planConfig.durationDays} дней.`,
+                    link: '/provider/subscription',
+                }
+            });
         }
+
+        // Send receipt email (fire-and-forget)
+        if (payment.user.email) {
+            sendPaymentReceiptEmail(
+                payment.user.email!,
+                payment.user.fullName,
+                payment.amount,
+                payment.description,
+                orderId,
+                transactionId,
+                payment.user.locale
+            ).catch(err => console.error('Receipt email error:', err));
+        }
+
 
         // SmartPay expects a 200 OK response
         return NextResponse.json({ ok: true });

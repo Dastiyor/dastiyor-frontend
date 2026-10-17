@@ -3,7 +3,7 @@ import { prismaMock } from '../../../../../__tests__/mocks/prisma';
 import { NextRequest } from 'next/server';
 
 jest.mock('@/lib/payments', () => ({
-    verifyCallbackSignature: jest.fn(),
+    verifyWebhookSignature: jest.fn(),
     PLANS: {
         basic: { name: 'Basic', nameRu: 'Базовый', price: 99, durationDays: 7 },
         standard: { name: 'Standard', nameRu: 'Стандарт', price: 199, durationDays: 30 },
@@ -16,7 +16,7 @@ jest.mock('@/lib/notifications/email', () => ({
     sendPaymentReceiptEmail: jest.fn().mockResolvedValue(undefined),
 }));
 
-import { verifyCallbackSignature } from '@/lib/payments';
+import { verifyWebhookSignature } from '@/lib/payments';
 import { sendPaymentReceiptEmail } from '@/lib/notifications/email';
 
 const makeRequest = (body: object) =>
@@ -25,13 +25,16 @@ const makeRequest = (body: object) =>
         body: JSON.stringify(body),
     });
 
+// SmartPay's webhook: sent only for successful payments, amount in dirams.
 const validCallbackBody = {
-    transaction_id: 'sp_tx_123',
+    payment_date: '2026-01-15T14:30:00',
+    amount: 9900,
     order_id: 'ORDER-001',
-    amount: 99,
-    currency: 'TJS',
-    status: 'success',
-    payment_method: 'card',
+    bank_id: 8,
+    invoice_number: '001-000042',
+    invoice_uuid: 'inv-uuid-1',
+    payment_id: 'sp_tx_123',
+    bank: 'Алиф Банк',
     signature: 'valid-sig',
 };
 
@@ -52,12 +55,12 @@ const mockPayment = {
 describe('/api/webhooks/smartpay', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        (verifyCallbackSignature as jest.Mock).mockReturnValue(true);
+        (verifyWebhookSignature as jest.Mock).mockReturnValue(true);
     });
 
     describe('signature verification', () => {
         it('returns 403 when signature is invalid', async () => {
-            (verifyCallbackSignature as jest.Mock).mockReturnValue(false);
+            (verifyWebhookSignature as jest.Mock).mockReturnValue(false);
 
             const response = await POST(makeRequest(validCallbackBody));
             const data = await response.json();
@@ -214,71 +217,50 @@ describe('/api/webhooks/smartpay', () => {
                 expect.objectContaining({
                     data: expect.objectContaining({
                         transactionId: 'sp_tx_123',
-                        paymentMethod: 'card',
+                        paymentMethod: 'Алиф Банк',
                     }),
                 })
             );
         });
 
-        it('accepts snake_case and camelCase field names from gateway', async () => {
+        it('webhook with amount in dirams activates', async () => {
             prismaMock.subscription.findUnique.mockResolvedValue(null);
             prismaMock.subscription.create.mockResolvedValue({} as any);
 
-            const camelCaseBody = {
-                transactionId: 'sp_tx_456',
-                orderId: 'ORDER-001',
-                amount: 99,
-                currency: 'TJS',
-                status: 'success',
-                paymentMethod: 'card',
-                signature: 'valid-sig',
-            };
+            await POST(makeRequest(validCallbackBody));
 
-            const response = await POST(makeRequest(camelCaseBody));
-            expect(response.status).toBe(200);
+            expect(prismaMock.payment.updateMany).toHaveBeenCalledWith({
+                where: { id: 'pay-1', status: 'PENDING' },
+                data: { status: 'COMPLETED' },
+            });
+            expect(prismaMock.subscription.create).toHaveBeenCalled();
+        });
+
+        it('stores a numeric payment_id as a string', async () => {
+            prismaMock.subscription.findUnique.mockResolvedValue(null);
+            prismaMock.subscription.create.mockResolvedValue({} as any);
+
+            await POST(makeRequest({ ...validCallbackBody, payment_id: 78901 }));
+
+            expect(prismaMock.payment.update).toHaveBeenCalledWith(expect.objectContaining({
+                data: expect.objectContaining({ transactionId: '78901' }),
+            }));
         });
     });
 
-    describe('failed/cancelled payment', () => {
+    describe('amount check', () => {
         beforeEach(() => {
+            jest.spyOn(console, 'error').mockImplementation(() => {});
             prismaMock.payment.findUnique.mockResolvedValue(mockPayment as any);
-            prismaMock.payment.updateMany.mockResolvedValue({ count: 1 });
-            prismaMock.payment.update.mockResolvedValue({} as any);
         });
 
-        it('marks payment as FAILED for failed status', async () => {
-            const response = await POST(makeRequest({ ...validCallbackBody, status: 'failed' }));
-            const data = await response.json();
+        it('wrong amount does not activate but returns 200', async () => {
+            const response = await POST(makeRequest({ ...validCallbackBody, amount: 99 }));
 
             expect(response.status).toBe(200);
-            expect(data.ok).toBe(true);
-            expect(prismaMock.payment.updateMany).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    data: { status: 'FAILED' },
-                })
-            );
+            expect(prismaMock.payment.updateMany).not.toHaveBeenCalled();
             expect(prismaMock.subscription.create).not.toHaveBeenCalled();
-        });
-
-        it('marks payment as CANCELLED for cancelled status', async () => {
-            await POST(makeRequest({ ...validCallbackBody, status: 'cancelled' }));
-
-            expect(prismaMock.payment.updateMany).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    data: { status: 'CANCELLED' },
-                })
-            );
-            expect(prismaMock.subscription.create).not.toHaveBeenCalled();
-        });
-
-        it('stores transactionId on failed payment when provided', async () => {
-            await POST(makeRequest({ ...validCallbackBody, status: 'failed' }));
-
-            expect(prismaMock.payment.update).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    data: { transactionId: 'sp_tx_123' },
-                })
-            );
+            expect(prismaMock.subscription.update).not.toHaveBeenCalled();
         });
     });
 

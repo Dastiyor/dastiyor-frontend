@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { PLANS, isValidPlan } from '@/lib/payments';
+import { PLANS, isValidPlan, getSmartPayOrderStatus } from '@/lib/payments';
 import { requireAuth } from '@/lib/require-auth';
 
 // GET - Check payment status by orderId
@@ -31,12 +31,20 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
+        // SmartPay only sends a webhook for successful payments, so a voided (expired or
+        // cancelled) invoice is learned here. Activation stays webhook-only.
+        let status = payment.status;
+        if (status === 'PENDING' && await getSmartPayOrderStatus(orderId) === 'void') {
+            await prisma.payment.updateMany({ where: { id: payment.id, status: 'PENDING' }, data: { status: 'FAILED' } });
+            status = 'FAILED';
+        }
+
         const planName = payment.plan && isValidPlan(payment.plan)
             ? PLANS[payment.plan].nameRu
             : null;
 
         return NextResponse.json({
-            status: payment.status,
+            status,
             planName,
             amount: payment.amount,
             currency: payment.currency,

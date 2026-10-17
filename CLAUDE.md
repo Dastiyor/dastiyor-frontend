@@ -113,7 +113,7 @@ On a slow phone the server-rendered page is visible for seconds before React att
 - `lib/rate-limit.ts` — Upstash Redis rate limiter with an in-memory fallback when `UPSTASH_REDIS_REST_URL`/`KV_REST_API_URL` is unset. **Only the Redis path enforces limits across serverless instances** — in-memory is a dev/CI convenience, not production protection. Presets in `RATE_LIMITS`.
 - `lib/audit.ts` — writes `ActionLog`; called fire-and-forget
 - `lib/notifications/` — Brevo email + SMS; `lib/payom-sms.ts` takes +992 SMS when `PAYOM_API_HOST`/`PAYOM_API_TOKEN` are set (Brevo otherwise); `lib/web-push.ts` for VAPID push
-- `lib/payments/smartpay.ts` — SmartPay TJ; falls back to a dev simulator when keys are absent
+- `lib/payments/smartpay.ts` — SmartPay TJ merchant API (`SMARTPAY_API_KEY`, `SMARTPAY_WEBHOOK_SECRET`; webhook set up in the SmartPay dashboard, amounts in dirams). Falls back to a dev simulator when the key is absent, except in production, where checkout fails instead
 - `lib/i18n/`, `lib/features.ts`, `lib/phone-gate.ts` — above
 - `lib/env-validation.ts` exports `validateEnv()` but **nothing calls it**. It is not a startup check.
 

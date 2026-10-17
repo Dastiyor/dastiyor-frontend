@@ -7,8 +7,8 @@
 
 export {
     createSmartPayOrder,
-    verifyCallbackSignature,
-    checkPaymentStatus,
+    verifyWebhookSignature,
+    getSmartPayOrderStatus,
     generateOrderId,
     isSmartPayConfigured,
 } from './smartpay';
@@ -16,7 +16,8 @@ export {
 export type {
     SmartPayOrderRequest,
     SmartPayOrderResponse,
-    SmartPayCallbackData,
+    SmartPayWebhook,
+    SmartPayInvoiceStatus,
 } from './smartpay';
 
 // Plan configurations (shared between API routes)

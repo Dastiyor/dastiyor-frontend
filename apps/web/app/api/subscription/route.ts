@@ -64,10 +64,10 @@ export async function POST(request: Request) {
         const planConfig = PLANS[plan];
         const orderId = generateOrderId();
 
-        // Fetch user email/phone for SmartPay
+        // Payer phone and name prefill the SmartPay invoice
         const user = await prisma.user.findUnique({
             where: { id: userId },
-            select: { email: true, phone: true }
+            select: { phone: true, fullName: true }
         });
 
         // Create a pending payment record in our DB
@@ -88,12 +88,10 @@ export async function POST(request: Request) {
         const smartPayResult = await createSmartPayOrder({
             orderId,
             amount: planConfig.price,
-            currency: 'TJS',
             description: `Dastiyor — Подписка ${planConfig.nameRu} (${planConfig.durationDays} дн.)`,
             returnUrl: `${APP_URL}/payment/result?orderId=${orderId}`,
-            callbackUrl: `${APP_URL}/api/webhooks/smartpay`,
-            customerEmail: user?.email ?? undefined,
             customerPhone: user?.phone || undefined,
+            customerName: user?.fullName || undefined,
         });
 
         if (!smartPayResult.success) {

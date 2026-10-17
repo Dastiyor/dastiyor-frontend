@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { api, setOnUnauthorized } from '@/lib/api-client';
 import { registerForPushNotifications, unregisterPushNotifications } from '@/lib/push';
 import { signOutFromGoogle } from '@/lib/google-signin';
+import { identifyPurchases, resetPurchases } from '@/lib/purchases';
 import { setUser as setErrorUser } from '@/lib/errorReporting';
 import { track, identify, reset as resetAnalytics, AnalyticsEvent } from '@/lib/analytics';
 import { syncStoredLocale } from '@/contexts/LanguageContext';
@@ -59,6 +60,11 @@ const AuthContext = createContext<AuthState | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<ApiUser | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Store purchases are tied to our user id (no-op until the store keys are set).
+  useEffect(() => {
+    if (user?.id) identifyPurchases(user.id);
+  }, [user?.id]);
 
   useEffect(() => {
     setOnUnauthorized(async () => {
@@ -157,6 +163,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     await clearPushRegistration();
     await signOutFromGoogle();
+    await resetPurchases();
     await storage.deleteItem('auth_token');
     setUser(null);
     setErrorUser(null);
@@ -171,6 +178,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await api.del('/api/account');
     await clearPushRegistration();
     await signOutFromGoogle();
+    await resetPurchases();
     await storage.deleteItem('auth_token');
     setUser(null);
     setErrorUser(null);

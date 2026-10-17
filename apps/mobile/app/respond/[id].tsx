@@ -81,7 +81,11 @@ export default function RespondScreen() {
         err.code === 'SUBSCRIPTION_REQUIRED' ||
         msg.includes('subscription') || msg.includes('SUBSCRIPTION') || msg.includes('подписк')
       ) {
-        Alert.alert(t.subscription.required, t.subscription.message);
+        // Store rules: the plans screen (in-app purchase) is the only purchase path offered here.
+        Alert.alert(t.subscription.required, t.subscription.message,
+          config.subscriptionsEnabled && config.mobilePurchaseEnabled
+            ? [{ text: t.common.cancel, style: 'cancel' }, { text: t.subscription.viewPlans, onPress: () => router.push('/subscription') }]
+            : undefined);
       } else {
         Alert.alert(t.common.error, msg);
       }

@@ -62,6 +62,17 @@ jest.mock('expo-router', () => ({
   Link: 'Link',
 }));
 
+// Mock react-native-purchases (native billing SDK) — tests that care override this.
+jest.mock('react-native-purchases', () => ({
+  __esModule: true,
+  default: {
+    configure: jest.fn(), logIn: jest.fn().mockResolvedValue({}), logOut: jest.fn().mockResolvedValue({}),
+    isAnonymous: jest.fn().mockResolvedValue(true), getOfferings: jest.fn().mockResolvedValue({ current: null }),
+    purchasePackage: jest.fn(), restorePurchases: jest.fn(), showManageSubscriptions: jest.fn(),
+  },
+  PURCHASES_ERROR_CODE: { PURCHASE_CANCELLED_ERROR: '1' },
+}));
+
 // Mock @expo/vector-icons
 jest.mock('@expo/vector-icons', () => ({
   Ionicons: 'Ionicons',

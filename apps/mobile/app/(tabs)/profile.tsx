@@ -19,6 +19,7 @@ import { Avatar } from '@/components/Avatar';
 import { openPrivacyPolicy, openTermsOfService } from '@/lib/legal';
 import { LOCALE_NAMES, type Locale } from '@/lib/i18n';
 import { Alert } from '@/lib/dialog';
+import { useConfig } from '@/lib/useConfig';
 
 const LOCALES: Locale[] = ['ru', 'tj', 'en'];
 
@@ -76,6 +77,7 @@ function RowItem({
 
 export default function ProfileScreen() {
   const { user, loading, logout, deleteAccount } = useAuth();
+  const { config } = useConfig();
   const { locale, setLocale, t } = useLanguage();
   const { colors, isDark, toggleTheme } = useTheme();
   const { popupsEnabled, togglePopups } = useNotifPrefs();
@@ -252,6 +254,15 @@ export default function ProfileScreen() {
               iconColor="#F59E0B"
               label={p.myReviews}
               onPress={() => router.push({ pathname: '/provider/[id]', params: { id: user.id, name: user.fullName } })}
+            />
+          ) : null}
+          {/* Paid plans in the app, only once both switches are on (see /api/config). */}
+          {user.role === 'PROVIDER' && config.subscriptionsEnabled && config.mobilePurchaseEnabled ? (
+            <RowItem
+              icon="ribbon-outline"
+              iconColor="#7C3AED"
+              label={p.subscription}
+              onPress={() => router.push('/subscription')}
             />
           ) : null}
         </View>

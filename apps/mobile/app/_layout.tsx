@@ -79,6 +79,7 @@ function ThemedStack() {
       <Stack.Screen name="change-email" options={{ title: nav.changeEmail }} />
       <Stack.Screen name="edit-profile" options={{ title: nav.editProfile, presentation: 'modal' }} />
       <Stack.Screen name="portfolio" options={{ title: nav.portfolio }} />
+      <Stack.Screen name="subscription" options={{ title: nav.subscription }} />
       {/* Forced (see the guard above) it is a plain card with no way back. As a
           modal, the replace to the tabs afterwards left them drawn inside the
           sheet. Keyed on the route param, which unlike the user flag does not

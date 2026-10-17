@@ -69,7 +69,7 @@ export async function POST(request: Request) {
 
         // Fire-and-forget: the request is saved even if the email fails.
         getCompany()
-            .then(company => company.email && sendSourcingRequestEmail(company.email, created))
+            .then(company => (company.email ? sendSourcingRequestEmail(company.email, created) : false))
             .catch(err => console.error('Sourcing email error:', err));
 
         return NextResponse.json({ request: created }, { status: 201 });

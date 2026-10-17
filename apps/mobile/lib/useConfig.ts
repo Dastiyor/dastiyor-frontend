@@ -5,6 +5,8 @@ interface AppConfig {
   categories: string[];
   cities: string[];
   estimatedTimes: string[];
+  subscriptionsEnabled: boolean;
+  mobilePurchaseEnabled: boolean;
 }
 
 const FALLBACK: AppConfig = {
@@ -17,6 +19,9 @@ const FALLBACK: AppConfig = {
   estimatedTimes: [
     'До 1 часа', '1-2 часа', '2-4 часа', 'До 1 дня', '1-2 дня', '3-5 дней', 'Более недели',
   ],
+  // Off until an up-to-date server says otherwise.
+  subscriptionsEnabled: false,
+  mobilePurchaseEnabled: false,
 };
 
 const TTL_MS = 10 * 60 * 1000; // 10 minutes

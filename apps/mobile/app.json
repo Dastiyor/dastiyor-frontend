@@ -149,7 +149,7 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Dastiyor needs access to your photos so you can set a profile picture."
+          "photosPermission": "Dastiyor needs access to your photos so you can set a profile picture and add photos of your work to your portfolio."
         }
       ],
       [
@@ -172,7 +172,8 @@
         {
           "iosUrlScheme": "com.googleusercontent.apps.879800960695-cgt63devjbu7bunbseln8mu16a0httk0"
         }
-      ]
+      ],
+      "./plugins/withPodDeploymentTarget"
     ],
     "extra": {
       "eas": {

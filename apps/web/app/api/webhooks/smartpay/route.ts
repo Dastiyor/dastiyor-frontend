@@ -83,6 +83,7 @@ export async function POST(request: Request) {
                         startDate: existingSub.isActive ? existingSub.startDate : now,
                         endDate,
                         isActive: true,
+                        source: 'web',
                     }
                 });
             } else {
@@ -93,6 +94,7 @@ export async function POST(request: Request) {
                         startDate: now,
                         endDate,
                         isActive: true,
+                        source: 'web',
                     }
                 });
             }

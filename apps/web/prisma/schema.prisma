@@ -169,6 +169,7 @@ model Subscription {
   startDate DateTime @default(now())
   endDate   DateTime
   isActive  Boolean  @default(true)
+  source    String   @default("web") // 'web' (SmartPay) | 'store' (App Store / Google Play via RevenueCat)
 
   // Relationships
   userId String @unique

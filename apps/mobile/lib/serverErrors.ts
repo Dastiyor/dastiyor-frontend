@@ -155,6 +155,7 @@ const ERRORS: Record<string, readonly [en: string, tj: string]> = {
     'Неверный тариф': ['Invalid plan', 'Тарифи нодуруст'],
     'Платёж не найден': ['Payment not found', 'Пардохт ёфт нашуд'],
     'Не указан orderId': ['orderId is missing', 'orderId нишон дода нашудааст'],
+    'Не удалось проверить покупку. Попробуйте позже.': ['Could not check the purchase. Try again later.', 'Харидро санҷидан нашуд. Баъдтар кӯшиш кунед.'],
     'Не удалось создать платёж. Попробуйте позже.': ['Could not create the payment. Try again later.', 'Пардохт эҷод нашуд. Баъдтар кӯшиш кунед.'],
 
     // --- validateTaskInput / validateResponseInput / validatePassword ---

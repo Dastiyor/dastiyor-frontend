@@ -123,6 +123,7 @@ describe('/api/webhooks/smartpay', () => {
                         userId: 'user-1',
                         plan: 'basic',
                         isActive: true,
+                        source: 'web',
                     }),
                 })
             );
@@ -148,6 +149,7 @@ describe('/api/webhooks/smartpay', () => {
             const expectedMinEnd = new Date(futureEnd.getTime() + 6 * 24 * 60 * 60 * 1000);
             expect(newEndDate.getTime()).toBeGreaterThanOrEqual(expectedMinEnd.getTime());
             expect(updateCall.data.isActive).toBe(true);
+            expect(updateCall.data.source).toBe('web');
         });
 
         it('restarts expired subscription from now', async () => {

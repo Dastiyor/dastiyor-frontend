@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { PLANS, isValidPlan, createSmartPayOrder, generateOrderId } from '@/lib/payments';
 import { requireAuth } from '@/lib/require-auth';
 import { SUBSCRIPTIONS_ENABLED } from '@/lib/features';
+import { subscriptionView } from '@/lib/payments/subscription-view';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
@@ -18,21 +19,7 @@ export async function GET(request: Request) {
             where: { userId: payload.id as string }
         });
 
-        if (!subscription) {
-            return NextResponse.json({ subscription: null });
-        }
-
-        const isActive = subscription.isActive && new Date(subscription.endDate) > new Date();
-
-        return NextResponse.json({
-            subscription: {
-                ...subscription,
-                isCurrentlyActive: isActive,
-                daysRemaining: isActive
-                    ? Math.ceil((new Date(subscription.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-                    : 0
-            }
-        });
+        return NextResponse.json({ subscription: subscriptionView(subscription) });
 
     } catch (error) {
         console.error('Get Subscription Error:', error);

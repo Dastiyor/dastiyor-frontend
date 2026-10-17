@@ -22,6 +22,7 @@ export const RATE_LIMITS = {
     responses: { requests: 10,  windowMs: 60 * 1000 },           // 10/min — provider responses
     upload:    { requests: 20,  windowMs: 60 * 1000 },           // 20/min — file uploads
     sms:       { requests: 3,   windowMs: 15 * 60 * 1000 },      // 3/15min — SMS OTP
+    sourcing:  { requests: 5,   windowMs: 60 * 60 * 1000 },      // 5/hour — company sourcing requests
 } as const;
 
 export type RateLimitType = keyof typeof RATE_LIMITS;

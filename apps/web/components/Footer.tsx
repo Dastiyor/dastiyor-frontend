@@ -86,6 +86,7 @@ export default function Footer({ company = COMPANY_DEFAULTS }: { company?: Compa
                                 <li><Link href="/contractor-plans" style={{ color: '#4B5563', textDecoration: 'none', fontSize: '0.95rem' }}>{t('footer.plans')}</Link></li>
                             )}
                             <li><Link href="/mobile-app" style={{ color: '#4B5563', textDecoration: 'none', fontSize: '0.95rem' }}>{t('footer.mobileApp')}</Link></li>
+                            <li><Link href="/sourcing" style={{ color: '#4B5563', textDecoration: 'none', fontSize: '0.95rem' }}>{t('footer.sourcing')}</Link></li>
                         </ul>
                     </div>
 

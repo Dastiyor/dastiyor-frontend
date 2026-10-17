@@ -74,6 +74,9 @@ model User {
 
   // Provider portfolio
   portfolio PortfolioProject[]
+
+  // Company sourcing requests
+  sourcingRequests SourcingRequest[]
 }
 
 // Provider portfolio project: a past job shown on the public profile
@@ -402,4 +405,31 @@ model SystemSetting {
   key       String   @id
   value     String
   updatedAt DateTime @updatedAt
+}
+
+// A company asking the Dastiyor team to find professionals (paid sourcing service).
+// Managed from dastiyor-admin (Sourcing queue).
+model SourcingRequest {
+  id              String    @id @default(cuid())
+  category        String // canonical Russian category
+  city            String // canonical Russian city
+  headcount       Int
+  experienceYears Int?
+  budget          String?
+  deadline        DateTime?
+  description     String
+  contactName     String
+  contactPhone    String
+  contactEmail    String?
+  status          String    @default("NEW") // NEW, IN_PROGRESS, PROPOSED, CLOSED
+  adminNotes      String?
+  proposedIds     String[]  @default([]) // provider User ids proposed by the team
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+  @@index([userId])
 }

@@ -123,6 +123,26 @@ export interface PublicProfile {
   tier: SubscriptionTier | null;
 }
 
+export type SourcingStatus = 'NEW' | 'IN_PROGRESS' | 'PROPOSED' | 'CLOSED';
+
+/** A company's request for the team to find professionals (GET /api/sourcing). */
+export interface SourcingRequest {
+  id: string;
+  category: string;
+  city: string;
+  headcount: number;
+  experienceYears: number | null;
+  budget: string | null;
+  deadline: string | null;
+  description: string;
+  contactName: string;
+  contactPhone: string;
+  contactEmail: string | null;
+  status: SourcingStatus;
+  createdAt: string;
+  proposed: { id: string; fullName: string }[];
+}
+
 export interface PaginatedResult<T> {
   items: T[];
   total: number;

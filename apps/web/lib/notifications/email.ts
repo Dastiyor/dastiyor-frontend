@@ -436,3 +436,33 @@ export async function sendTaskCancelledNotification(
         text: t.text(a),
     });
 }
+
+/** To the Dastiyor team: a company filed a sourcing request. Internal, so Russian only. */
+export async function sendSourcingRequestEmail(
+    to: string,
+    r: { id: string; category: string; city: string; headcount: number; experienceYears: number | null; budget: string | null; deadline: Date | null; description: string; contactName: string; contactPhone: string; contactEmail: string | null },
+): Promise<boolean> {
+    const rows: [string, string][] = [
+        ['Категория', r.category],
+        ['Город', r.city],
+        ['Нужно специалистов', String(r.headcount)],
+        ['Опыт, лет', r.experienceYears != null ? String(r.experienceYears) : '—'],
+        ['Бюджет', r.budget ?? '—'],
+        ['Срок', r.deadline ? r.deadline.toISOString().slice(0, 10) : '—'],
+        ['Контакт', r.contactName],
+        ['Телефон', r.contactPhone],
+        ['Email', r.contactEmail ?? '—'],
+    ];
+    const text = [...rows.map(([k, v]) => `${k}: ${v}`), '', r.description].join('\n');
+    return sendEmail({
+        to,
+        subject: `Новый запрос на подбор: ${r.category}, ${r.city} (${r.headcount})`,
+        html: emailLayout({
+            heading: 'Новый запрос на подбор специалистов',
+            preview: `${r.contactName}: ${r.category}, ${r.city}`,
+            locale: 'ru',
+            body: rows.map(([k, v]) => p(`<strong>${esc(k)}:</strong> ${esc(v)}`)).join('') + p(esc(r.description)),
+        }),
+        text,
+    });
+}

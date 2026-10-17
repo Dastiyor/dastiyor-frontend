@@ -125,6 +125,14 @@ const ERRORS: Record<string, readonly [en: string, tj: string]> = {
     'Навыки не должны превышать 300 символов': ['Skills must not exceed 300 characters', 'Малакаҳо набояд аз 300 аломат зиёд бошанд'],
     'Некорректная ссылка на фото профиля': ['Invalid profile photo link', 'Истиноди расми профил нодуруст аст'],
 
+    // --- sourcing requests ---
+    'Укажите, сколько нужно специалистов: от 1 до 500': ['Enter how many specialists you need: 1 to 500', 'Шумораи мутахассисонро нишон диҳед: аз 1 то 500'],
+    'Бюджет не должен превышать 100 символов': ['The budget must not exceed 100 characters', 'Буҷет набояд аз 100 аломат зиёд бошад'],
+    'Укажите срок не раньше сегодняшнего дня': ['Choose a deadline from today onwards', 'Мӯҳлатро на пеш аз имрӯз интихоб кунед'],
+    'Опишите задачу: от 20 до 2000 символов': ['Describe the job: 20 to 2000 characters', 'Корро тавсиф кунед: аз 20 то 2000 аломат'],
+    'Текст похож на спам': ['The text looks like spam', 'Матн ба спам монанд аст'],
+    'Укажите имя или название компании': ['Enter a name or company name', 'Ном ё номи ширкатро нишон диҳед'],
+
     // --- provider profile / portfolio ---
     'Выберите не больше 5 категорий': ['Choose up to 5 categories', 'То 5 категория интихоб кунед'],
     'Опыт должен быть от 0 до 60 лет': ['Experience must be between 0 and 60 years', 'Таҷриба бояд аз 0 то 60 сол бошад'],

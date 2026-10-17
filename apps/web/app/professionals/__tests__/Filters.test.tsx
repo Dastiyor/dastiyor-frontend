@@ -63,4 +63,15 @@ describe('professionals Filters', () => {
         fireEvent.change(screen.getByLabelText('professionals.sortLabel'), { target: { value: 'completed' } });
         expect(lastParams().get('sort')).toBe('completed');
     });
+
+    it('works as a plain GET search before hydration', () => {
+        current = new URLSearchParams('city=%D0%A5%D1%83%D0%B4%D0%B6%D0%B0%D0%BD%D0%B4');
+        const { container } = renderFilters();
+        const form = container.querySelector('form')!;
+        expect(form).toHaveAttribute('method', 'get');
+        expect(form).toHaveAttribute('action', '/professionals');
+        const names = Array.from(form.querySelectorAll('[name]')).map(el => el.getAttribute('name'));
+        expect(names).toEqual(['q', 'category', 'city', 'sort']);
+        expect(screen.getByLabelText('professionals.city')).toHaveValue('Худжанд');
+    });
 });

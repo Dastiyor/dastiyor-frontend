@@ -51,7 +51,7 @@ export function PortfolioEditor({ labels: l }: { labels: PortfolioLabels }) {
     try {
       const urls: string[] = [];
       for (const a of picked.assets.slice(0, room)) {
-        urls.push(await uploadFile(a.uri, a.mimeType ?? 'image/jpeg', a.fileName ?? 'photo.jpg'));
+        urls.push(await uploadFile(a.uri));
       }
       setDraft((d) => d && { ...d, images: [...d.images, ...urls] });
     } catch (e) {

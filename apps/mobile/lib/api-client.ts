@@ -1,6 +1,7 @@
 import * as storage from '@/lib/storage';
 import type { Locale } from '@/lib/i18n';
 import { translateServerError } from '@/lib/serverErrors';
+import { shrinkImage } from './shrinkImage';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? 'https://www.dastiyor.com';
 const REQUEST_TIMEOUT_MS = 15_000;
@@ -127,11 +128,12 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
  * Kept out of `request()` because multipart bodies must NOT carry the JSON
  * Content-Type header -- fetch sets the multipart boundary itself.
  */
-export async function uploadFile(uri: string, mimeType: string, name: string): Promise<string> {
+/** Uploads a photo, shrunk to a JPEG first (see shrinkImage). */
+export async function uploadFile(uri: string): Promise<string> {
   const token = await getToken();
   const form = new FormData();
   // RN's FormData takes this {uri, name, type} shape, not a web File.
-  form.append('file', { uri, name, type: mimeType } as unknown as Blob);
+  form.append('file', { uri: await shrinkImage(uri), name: 'photo.jpg', type: 'image/jpeg' } as unknown as Blob);
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT_MS);

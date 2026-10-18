@@ -83,7 +83,6 @@ export default function EditProfileScreen() {
       mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1],
-      // /api/upload rejects anything over 4MB; a square avatar needs nothing more.
       quality: 0.7,
     });
     if (picked.canceled) return;
@@ -91,11 +90,7 @@ export default function EditProfileScreen() {
     const asset = picked.assets[0];
     setUploading(true);
     try {
-      const url = await uploadFile(
-        asset.uri,
-        asset.mimeType ?? 'image/jpeg',
-        asset.fileName ?? 'avatar.jpg',
-      );
+      const url = await uploadFile(asset.uri);
       setForm((f) => ({ ...f, avatar: url }));
     } catch (e) {
       Alert.alert(t.common.error, (e as Error).message || ep.photoUploadError);

@@ -13,6 +13,7 @@ jest.mock('@/lib/api-client', () => ({
 jest.mock('expo-image-picker', () => ({
   requestMediaLibraryPermissionsAsync: jest.fn(),
   launchImageLibraryAsync: jest.fn(),
+  UIImagePickerPreferredAssetRepresentationMode: { Compatible: 'compatible' },
 }));
 jest.mock('@/lib/dialog', () => ({ Alert: { alert: jest.fn() } }));
 
@@ -124,5 +125,7 @@ describe('PortfolioEditor', () => {
     expect(await findByLabelText('Photo 1')).toBeTruthy();
     expect(uploadFile).toHaveBeenCalledWith('file://1.jpg', 'image/jpeg', '1.jpg');
     expect(ImagePicker.launchImageLibraryAsync).toHaveBeenCalledWith(expect.objectContaining({ allowsMultipleSelection: true, selectionLimit: 8 }));
+    // iPhone photos are HEIC, which /api/upload refuses; iOS must hand over a JPEG instead.
+    expect(ImagePicker.launchImageLibraryAsync).toHaveBeenCalledWith(expect.objectContaining({ preferredAssetRepresentationMode: 'compatible' }));
   });
 });

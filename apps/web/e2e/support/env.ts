@@ -87,6 +87,8 @@ export const WRITE_RUN_ENV = {
     // Test credentials, so the payment webhook checks real signatures.
     SMARTPAY_MERCHANT_ID: 'e2e-merchant',
     SMARTPAY_SECRET_KEY: 'e2e-smartpay-secret',
+    // Without it the webhook skips the signature check outside production, and the forgery test proves nothing.
+    SMARTPAY_WEBHOOK_SECRET: 'e2e-smartpay-webhook-secret',
     CRON_SECRET: 'e2e-cron-secret',
 };
 

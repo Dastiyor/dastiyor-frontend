@@ -53,16 +53,28 @@ test.describe('SmartPay webhook', () => {
         });
     }
 
-    function callback(orderId: string, amount: number, status: 'success' | 'failed' | 'cancelled', secret = WRITE_RUN_ENV.SMARTPAY_SECRET_KEY) {
-        const transactionId = `e2e-tx-${randomUUID()}`;
-        const signature = createHmac('sha256', secret).update(`${transactionId}:${orderId}:${amount}:${status}`).digest('hex');
-        return { transaction_id: transactionId, order_id: orderId, amount, status, payment_method: 'visa', signature };
+    /** SmartPay's payment webhook body: amounts in dirams, HMAC over date|amount|order|bank|invoice. */
+    function callback(orderId: string, somoni: number, secret = WRITE_RUN_ENV.SMARTPAY_WEBHOOK_SECRET) {
+        const body = {
+            payment_date: new Date().toISOString(),
+            amount: somoni * 100,
+            order_id: orderId,
+            bank_id: 1,
+            invoice_uuid: randomUUID(),
+            payment_id: `e2e-tx-${randomUUID()}`,
+            bank: 'Alif',
+        };
+        const date = body.payment_date.replace('T', ' ').slice(0, 19);
+        const signature = createHmac('sha256', secret)
+            .update(`${date}|${body.amount}|${body.order_id}|${body.bank_id}|${body.invoice_uuid}`)
+            .digest('hex');
+        return { ...body, signature };
     }
 
     test('a paid callback activates the plan, once', async ({ request }) => {
         const provider = await createUser('PROVIDER', { subscription: false });
         const payment = await pendingPayment(provider);
-        const body = callback(payment.smartpayOrderId!, 99, 'success');
+        const body = callback(payment.smartpayOrderId!, 99);
 
         expect((await request.post('/api/webhooks/smartpay', { data: body })).status()).toBe(200);
         expect((await prisma.payment.findUniqueOrThrow({ where: { id: payment.id } })).status).toBe('COMPLETED');
@@ -87,12 +99,12 @@ test.describe('SmartPay webhook', () => {
         const orderId = payment.smartpayOrderId!;
 
         const forgeries = [
-            callback(orderId, 99, 'success', 'not-the-secret'),
-            { ...callback(orderId, 99, 'success'), signature: '' },
-            // Signed for a failure, replayed as a success.
-            { ...callback(orderId, 99, 'failed'), status: 'success' },
-            // Signed for another amount.
-            { ...callback(orderId, 1, 'success'), amount: 99 },
+            callback(orderId, 99, 'not-the-secret'),
+            { ...callback(orderId, 99), signature: '' },
+            // Signed for 1 somoni, replayed as 99.
+            { ...callback(orderId, 1), amount: 9900 },
+            // Signed for another order.
+            { ...callback('e2e-other-order', 99), order_id: orderId },
         ];
         for (const body of forgeries) {
             expect((await request.post('/api/webhooks/smartpay', { data: body })).status()).toBe(403);
@@ -102,18 +114,19 @@ test.describe('SmartPay webhook', () => {
         expect(await prisma.subscription.count({ where: { userId: provider.id } })).toBe(0);
     });
 
-    test('a failed payment is recorded and grants nothing', async ({ request }) => {
+    test('a payment for the wrong amount grants nothing', async ({ request }) => {
         const provider = await createUser('PROVIDER', { subscription: false });
         const payment = await pendingPayment(provider);
 
-        const res = await request.post('/api/webhooks/smartpay', { data: callback(payment.smartpayOrderId!, 99, 'failed') });
+        // Correctly signed, but SmartPay says 50 somoni were paid for a 99 somoni plan.
+        const res = await request.post('/api/webhooks/smartpay', { data: callback(payment.smartpayOrderId!, 50) });
         expect(res.status()).toBe(200);
-        expect((await prisma.payment.findUniqueOrThrow({ where: { id: payment.id } })).status).toBe('FAILED');
+        expect((await prisma.payment.findUniqueOrThrow({ where: { id: payment.id } })).status).toBe('PENDING');
         expect(await prisma.subscription.count({ where: { userId: provider.id } })).toBe(0);
     });
 
     test('a callback for an order we never created is a 404', async ({ request }) => {
-        const res = await request.post('/api/webhooks/smartpay', { data: callback('e2e-no-such-order', 99, 'success') });
+        const res = await request.post('/api/webhooks/smartpay', { data: callback('e2e-no-such-order', 99) });
         expect(res.status()).toBe(404);
     });
 

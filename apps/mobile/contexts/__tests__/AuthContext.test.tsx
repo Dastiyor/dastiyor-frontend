@@ -33,6 +33,8 @@ function renderWithAuth(action?: (auth: ReturnType<typeof useAuth>) => void) {
 describe('AuthContext', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Sign-in now also calls /api/auth/me; a value one test set must not leak into the next.
+    mockApi.get.mockReset();
     (SecureStore.getItemAsync as jest.Mock).mockResolvedValue(null);
   });
 
@@ -89,6 +91,20 @@ describe('AuthContext', () => {
 
       expect(SecureStore.setItemAsync).toHaveBeenCalledWith('auth_token', 'new-jwt');
       expect(getByTestId('user').props.children).toBe('ali@test.com');
+    });
+
+    it('loads the full profile after signing in (the login response has no phone or photo)', async () => {
+      mockApi.post.mockResolvedValue({ token: 'new-jwt', user: { id: 'u1', email: 'ali@test.com' } });
+      // /api/auth/me answers with the full record; the email differs so the test can see it landed.
+      mockApi.get.mockResolvedValueOnce({ id: 'u1', email: 'full@test.com', phone: '+992901234567' });
+
+      let authRef: ReturnType<typeof useAuth>;
+      const { getByTestId } = renderWithAuth((auth) => { authRef = auth; });
+      await waitFor(() => expect(getByTestId('loading').props.children).toBe('false'));
+      await act(async () => { await authRef!.login('ali@test.com', 'pass123'); });
+
+      expect(mockApi.get).toHaveBeenCalledWith('/api/auth/me');
+      await waitFor(() => expect(getByTestId('user').props.children).toBe('full@test.com'));
     });
 
     it('throws when API returns error', async () => {

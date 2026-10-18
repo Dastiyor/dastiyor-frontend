@@ -101,6 +101,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     method: string,
   ) {
     setUser(res.user);
+    // The sign-in responses carry only id, email, name and role; the phone, photo and
+    // phone-verification flag come from /api/auth/me, which otherwise only ran on app start.
+    refreshUser();
     setErrorUser({ id: res.user.id, role: res.user.role });
     identify(res.user.id, { role: res.user.role });
     track(event, { method, role: res.user.role });
@@ -151,7 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function refreshUser() {
     try {
       const me = await api.get<ApiUser>('/api/auth/me');
-      setUser(me);
+      if (me) setUser(me);
     } catch {}
   }
 

@@ -42,6 +42,9 @@ export function PortfolioEditor({ labels: l }: { labels: PortfolioLabels }) {
     const room = MAX_PHOTOS - draft.images.length;
     const picked = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'], allowsMultipleSelection: true, selectionLimit: room, quality: 0.7,
+      // iPhone photos are HEIC, which /api/upload refuses; this makes iOS hand over a JPEG.
+      // (The avatar picker crops, and a cropped image already comes back as JPEG.)
+      preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
     });
     if (picked.canceled) return;
     setBusy(true);

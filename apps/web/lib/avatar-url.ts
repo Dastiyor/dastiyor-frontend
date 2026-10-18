@@ -9,6 +9,11 @@
  */
 export function isSafeAvatarUrl(url: string | null | undefined): boolean {
     if (!url || typeof url !== 'string') return false;
+    // Local development: /api/upload writes into public/uploads and returns a relative
+    // link, under exactly these conditions. Never true on Vercel, where uploads go to Blob.
+    if (!process.env.BLOB_READ_WRITE_TOKEN && !process.env.VERCEL) {
+        if (/^\/uploads\/[\w-]+\.(?:jpg|jpeg|png|webp|gif)$/.test(url)) return true;
+    }
     if (!url.startsWith('https://')) return false;
     if (url.length > 2000) return false;
 

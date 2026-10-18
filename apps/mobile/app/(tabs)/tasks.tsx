@@ -1,14 +1,14 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import {
   View,
-  Text,
   FlatList,
   TouchableOpacity,
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
   ScrollView,
-  } from 'react-native';
+} from 'react-native';
+import { Text } from '@/components/AppText';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '@/components/Icon';

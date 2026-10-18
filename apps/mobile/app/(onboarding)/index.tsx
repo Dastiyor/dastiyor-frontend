@@ -1,12 +1,12 @@
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   Modal,
   Pressable,
   StatusBar,
 } from 'react-native';
+import { Text } from '@/components/AppText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Icon } from '@/components/Icon';

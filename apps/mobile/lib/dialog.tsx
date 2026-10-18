@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Keyboard, Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Keyboard, Modal, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from '@/components/AppText';
 import { FullWindowOverlay } from 'react-native-screens';
 import { Icon } from '@/components/Icon';
 import { useLanguage } from '@/contexts/LanguageContext';

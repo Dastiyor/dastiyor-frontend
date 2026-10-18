@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, StyleSheet, Image } from 'react-native';
+import { Text } from '@/components/AppText';
 import { useTheme } from '@/contexts/ThemeContext';
 import { isSafeAvatarUrl } from '@/lib/avatar-url';
 import { GradientFill } from '@/components/Premium';

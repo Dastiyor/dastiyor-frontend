@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import {
-  Text,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
@@ -9,6 +8,7 @@ import {
   ActivityIndicator,
   View,
 } from 'react-native';
+import { Text } from '@/components/AppText';
 import { goBack } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardOffset } from '@/lib/useKeyboardOffset';

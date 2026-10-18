@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useRef, useEffect, useCallback, ReactNode } from 'react';
-import { Animated, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { Animated, StyleSheet, View, TouchableOpacity } from 'react-native';
+import { Text } from '@/components/AppText';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TOAST_HIDE_DELAY_MS } from '@/lib/constants';

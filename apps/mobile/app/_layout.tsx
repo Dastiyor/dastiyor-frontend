@@ -11,6 +11,7 @@ import { ToastProvider } from '@/contexts/ToastContext';
 import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
 import { NotifPrefsProvider } from '@/contexts/NotifPrefsContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { FONT_FAMILY } from '@/components/AppText';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { DialogHost } from '@/lib/dialog';
 import { initErrorReporting } from '@/lib/errorReporting';
@@ -62,6 +63,8 @@ function ThemedStack() {
         headerTintColor: colors.text,
         headerShadowVisible: false,
         headerBackTitle: nav.back,
+        headerTitleStyle: { fontFamily: FONT_FAMILY, fontWeight: '700' },
+        headerBackTitleStyle: { fontFamily: FONT_FAMILY },
       }}
     >
       <Stack.Screen name="index" options={{ headerShown: false }} />

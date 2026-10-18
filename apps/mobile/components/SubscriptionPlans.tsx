@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { Text } from '@/components/AppText';
 import Purchases, { type PurchasesPackage } from 'react-native-purchases';
 import type { SubscriptionTier } from '@dastiyor/types';
 import { api } from '@/lib/api-client';

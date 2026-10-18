@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { Animated, View, Text, StyleSheet } from 'react-native';
+import { Animated, View, StyleSheet } from 'react-native';
+import { Text } from '@/components/AppText';
 import { Icon, type IconName } from '@/components/Icon';
 import { useTheme } from '@/contexts/ThemeContext';
 import { GradientButton, shadows } from '@/components/Premium';

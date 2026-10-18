@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, Modal, StyleSheet } from 'react-native';
+import { View, Image, TouchableOpacity, Modal, StyleSheet } from 'react-native';
+import { Text } from '@/components/AppText';
 import { Icon } from '@/components/Icon';
 import type { PublicProfile } from '@dastiyor/types';
 import type { Locale } from '@/lib/i18n';

@@ -1,7 +1,18 @@
 import { useEffect, useRef } from 'react';
 import {
-  Animated, Dimensions, Image, Linking, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View,
+  Animated,
+  Dimensions,
+  Image,
+  Linking,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import { Text } from '@/components/AppText';
 import { router } from 'expo-router';
 import Constants from 'expo-constants';
 import { Icon, type IconName } from '@/components/Icon';

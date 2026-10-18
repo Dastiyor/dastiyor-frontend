@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
+import { View, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
+import { Text } from '@/components/AppText';
 import Svg, { Path } from 'react-native-svg';
 
 /**

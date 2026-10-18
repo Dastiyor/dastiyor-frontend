@@ -1,5 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react';
-import { Animated, Platform, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
+import { Animated, Platform, StyleSheet, TouchableOpacity, View, useWindowDimensions } from 'react-native';
+import { Text } from '@/components/AppText';
 import * as Haptics from 'expo-haptics';
 import { GradientFill, PressScale } from '@/components/Premium';
 import type { Tabs } from 'expo-router';

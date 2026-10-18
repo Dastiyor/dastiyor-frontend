@@ -1,4 +1,5 @@
-import { ScrollView, Text } from 'react-native';
+import { ScrollView } from 'react-native';
+import { Text } from '@/components/AppText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PortfolioEditor } from '@/components/PortfolioEditor';
 import { useLanguage } from '@/contexts/LanguageContext';

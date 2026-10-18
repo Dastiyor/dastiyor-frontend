@@ -1,8 +1,18 @@
 import { forwardRef, useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import {
-  Animated, Platform, Pressable, StyleSheet, TextInput, View,
-  type GestureResponderEvent, type PressableProps, type StyleProp, type TextInputProps, type ViewStyle,
+  Animated,
+  Platform,
+  Pressable,
+  StyleSheet,
+  View,
+  type GestureResponderEvent,
+  type PressableProps,
+  type StyleProp,
+  type TextInputProps,
+  type TextInput as RNTextInput,
+  type ViewStyle,
 } from 'react-native';
+import { TextInput } from '@/components/AppText';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -193,7 +203,7 @@ export function useFocusGlow(onFocus?: TextInputProps['onFocus'], onBlur?: TextI
  * TextInput that lights up when focused: accent border plus a soft glow.
  * Only boxed inputs (with their own border) glow; borderless ones inside a search pill are left alone.
  */
-export const Input = forwardRef<TextInput, TextInputProps>(function Input({ style, onFocus, onBlur, ...rest }, ref) {
+export const Input = forwardRef<RNTextInput, TextInputProps>(function Input({ style, onFocus, onBlur, ...rest }, ref) {
   const { colors } = useTheme();
   const [focused, setFocused] = useState(false);
   const boxed = !!StyleSheet.flatten(style)?.borderWidth;

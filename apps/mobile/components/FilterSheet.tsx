@@ -1,12 +1,12 @@
 import {
   View,
-  Text,
   TouchableOpacity,
   StyleSheet,
   Modal,
   Pressable,
   ScrollView,
 } from 'react-native';
+import { Text } from '@/components/AppText';
 import { Icon } from '@/components/Icon';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';

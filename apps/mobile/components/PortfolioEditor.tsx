@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, TouchableOpacity, Image, StyleSheet, ActivityIndicator } from 'react-native';
+import { Text } from '@/components/AppText';
 import * as ImagePicker from 'expo-image-picker';
 import { Icon } from '@/components/Icon';
 import type { PortfolioProject } from '@dastiyor/types';

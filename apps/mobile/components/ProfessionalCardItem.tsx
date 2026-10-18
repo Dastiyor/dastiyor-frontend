@@ -1,4 +1,5 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { Text } from '@/components/AppText';
 import { router } from 'expo-router';
 import { Icon } from '@/components/Icon';
 import type { ProfessionalCard } from '@dastiyor/types';

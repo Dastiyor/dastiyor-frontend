@@ -1,13 +1,13 @@
 import { useState, useCallback, useRef } from 'react';
 import {
   View,
-  Text,
   FlatList,
   TouchableOpacity,
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
 } from 'react-native';
+import { Text } from '@/components/AppText';
 import { Icon } from '@/components/Icon';
 import { router, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';

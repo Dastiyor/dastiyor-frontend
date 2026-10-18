@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import {
   View,
-  Text,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -9,6 +8,7 @@ import {
   AppState,
   RefreshControl,
 } from 'react-native';
+import { Text } from '@/components/AppText';
 import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
 import { goBack } from '@/lib/nav';
 import { Icon } from '@/components/Icon';

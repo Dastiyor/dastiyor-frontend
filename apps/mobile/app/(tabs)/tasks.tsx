@@ -8,11 +8,10 @@ import {
   RefreshControl,
   ActivityIndicator,
   ScrollView,
-  TextInput,
-} from 'react-native';
+  } from 'react-native';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/components/Icon';
 import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -26,6 +25,7 @@ import type { FilterState } from '@/components/FilterSheet';
 import type { FeedTask } from '@dastiyor/types';
 import { useConfig } from '@/lib/useConfig';
 import { CATEGORY_ICONS } from '@/lib/categoryIcons';
+import { Input, useFocusGlow, PressScale, FadeIn, useChipStyle } from '@/components/Premium';
 
 const URGENCY_COLORS: Record<string, string> = {
   urgent: '#EF4444',
@@ -41,6 +41,8 @@ interface TasksResponse {
 export default function TaskBrowseScreen() {
   const { t, locale, tr } = useLanguage();
   const { colors } = useTheme();
+  const chipStyle = useChipStyle();
+  const searchGlow = useFocusGlow();
   const { config } = useConfig();
   const insets = useSafeAreaInsets();
   const toast = useToast();
@@ -138,15 +140,14 @@ export default function TaskBrowseScreen() {
     const iconName = CATEGORY_ICONS[item.category] ?? 'briefcase-outline';
 
     return (
-      <TouchableOpacity
+      <PressScale
         style={[styles.card, { backgroundColor: colors.surface }]}
         onPress={() => router.push(`/task/${item.id}`)}
-        activeOpacity={0.75}
         accessibilityRole="button"
         accessibilityLabel={`${item.title}, ${tr(item.category)}, ${tr(item.budget)}`}
       >
         <View style={[styles.cardIconBox, { backgroundColor: colors.iconBg }]}>
-          <Ionicons name={iconName} size={22} color="#2563EB" />
+          <Icon name={iconName} size={22} color="#2563EB" />
         </View>
 
         <View style={styles.cardBody}>
@@ -170,7 +171,7 @@ export default function TaskBrowseScreen() {
           <Text style={[styles.cardDesc, { color: colors.textSecondary }]} numberOfLines={1}>{item.description}</Text>
           {item.city ? (
             <View style={styles.cardLocation}>
-              <Ionicons name="location-outline" size={11} color={colors.textTertiary} />
+              <Icon name="location-outline" size={11} color={colors.textTertiary} />
               <Text style={[styles.cardLocationText, { color: colors.textTertiary }]}>{tr(item.city)}</Text>
             </View>
           ) : null}
@@ -179,7 +180,7 @@ export default function TaskBrowseScreen() {
             <Text style={[styles.cardMeta, { color: colors.textTertiary }]}>{timeAgo(item.postedAt, locale)}</Text>
           </View>
         </View>
-      </TouchableOpacity>
+      </PressScale>
     );
   }, [t, tr, locale, colors]);
 
@@ -193,9 +194,10 @@ export default function TaskBrowseScreen() {
       <ScreenHeader title={t.tabs.tasks} />
       {/* Search bar */}
       <View style={[styles.searchWrap, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
-        <View style={[styles.searchBar, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
-          <Ionicons name="search-outline" size={18} color={colors.textTertiary} />
-          <TextInput
+        <View style={[styles.searchBar, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }, searchGlow.style]}>
+          <Icon name="search-outline" size={18} color={colors.textTertiary} />
+          <Input
+            {...searchGlow.handlers}
             style={[styles.searchInput, { color: colors.text }]}
             placeholder={t.home.search}
             placeholderTextColor={colors.textTertiary}
@@ -210,7 +212,7 @@ export default function TaskBrowseScreen() {
               accessibilityRole="button"
               accessibilityLabel={t.common.cancel}
             >
-              <Ionicons name="close-circle" size={18} color={colors.textTertiary} />
+              <Icon name="close-circle" size={18} color={colors.textTertiary} />
             </TouchableOpacity>
           )}
           <TouchableOpacity
@@ -220,7 +222,7 @@ export default function TaskBrowseScreen() {
             accessibilityRole="button"
             accessibilityLabel={t.tabs.tasks}
           >
-            <Ionicons
+            <Icon
               name="options-outline"
               size={18}
               color={hasActiveFilters(filters) ? colors.accent : colors.textSecondary}
@@ -240,18 +242,18 @@ export default function TaskBrowseScreen() {
           {categories.map((cat) => {
             const isActive = filters.category === cat.value;
             return (
-              <TouchableOpacity
+              <PressScale
                 key={cat.value === '' ? '__all__' : cat.value}
-                style={[styles.catChip, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }, isActive && styles.catChipActive]}
+                style={[styles.catChip, chipStyle.box(isActive)]}
                 onPress={() => setFilters((prev) => ({ ...prev, category: cat.value }))}
                 accessibilityRole="button"
                 accessibilityLabel={cat.name}
                 accessibilityState={{ selected: isActive }}
               >
-                <Text style={[styles.catChipText, { color: isActive ? '#fff' : colors.text }]}>
+                <Text style={[styles.catChipText, chipStyle.text(isActive)]}>
                   {cat.name}
                 </Text>
-              </TouchableOpacity>
+              </PressScale>
             );
           })}
         </ScrollView>
@@ -278,7 +280,7 @@ export default function TaskBrowseScreen() {
         <FlatList
           data={tasks}
           keyExtractor={(item) => item.id}
-          renderItem={renderTask}
+          renderItem={(info) => <FadeIn index={info.index}>{renderTask(info)}</FadeIn>}
           contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 24 }]}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#2563EB" />}
           onEndReached={onLoadMore}
@@ -329,6 +331,7 @@ const styles = StyleSheet.create({
   catContent: {
     alignItems: 'center',
     paddingHorizontal: 16,
+    paddingVertical: 8, // room for the chips' drop shadow; ScrollView clips it
   },
   catChip: {
     paddingHorizontal: 16,
@@ -337,7 +340,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginRight: 8,
   },
-  catChipActive: { backgroundColor: '#2563EB', borderColor: '#2563EB' },
   catChipText: { fontSize: 13, color: '#374151', fontWeight: '500' },
 
   list: { padding: 16, paddingBottom: 24 },
@@ -348,11 +350,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 14,
     marginBottom: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    shadowColor: '#1E3A8A', shadowOpacity: 0.08, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 3,
   },
   cardIconBox: {
     width: 48,

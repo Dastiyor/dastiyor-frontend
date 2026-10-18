@@ -72,7 +72,12 @@ function ThemedStack() {
       <Stack.Screen name="respond/[id]" options={{ title: nav.respond, presentation: 'modal' }} />
       <Stack.Screen name="chat/[partnerId]" options={{}} />
       <Stack.Screen name="create-task" options={{ title: nav.createTask, presentation: 'modal' }} />
-      <Stack.Screen name="notifications" options={{ headerShown: false }} />
+      {/* Native headers, like every pushed screen: a headerless screen under one with a header
+          intermittently left the upper screen's back button and swipe-back dead on iOS. */}
+      <Stack.Screen name="notifications" options={{ title: nav.notifications }} />
+      <Stack.Screen name="profile" options={{ title: t.tabs.profile }} />
+      <Stack.Screen name="about" options={{ title: nav.about }} />
+      <Stack.Screen name="contact" options={{ title: nav.contact }} />
       <Stack.Screen name="review/[taskId]" options={{ title: nav.review, presentation: 'modal' }} />
       <Stack.Screen name="provider/[id]" options={{ title: nav.provider }} />
       <Stack.Screen name="change-password" options={{ title: nav.changePassword }} />

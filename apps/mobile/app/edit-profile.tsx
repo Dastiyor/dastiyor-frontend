@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
@@ -11,7 +10,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/components/Icon';
 import { goBack } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardOffset } from '@/lib/useKeyboardOffset';
@@ -25,12 +24,13 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { Alert } from '@/lib/dialog';
 import { useConfig } from '@/lib/useConfig';
 import { ProviderFields, type ProviderFieldsValue } from '@/components/ProviderFields';
+import { GradientButton, Input } from '@/components/Premium';
 
 
-interface ProfileData { fullName: string; phone: string; bio: string; skills: string; avatar: string | null; }
+interface ProfileData { fullName: string; bio: string; skills: string; avatar: string | null; }
 interface ProviderProfileData { experienceYears?: number | null; city?: string | null; categories?: string[] }
 
-/** API stores the full +992XXXXXXXXX; this field edits only the 9 local digits. */
+/** API stores the full +992XXXXXXXXX; the row shows the 9 local digits next to the +992 prefix. */
 function toLocalPhone(full: string | null | undefined): string {
   const digits = (full ?? '').replace(/\D/g, '');
   return digits.startsWith('992') ? digits.slice(3, 12) : digits.slice(-9);
@@ -46,7 +46,10 @@ export default function EditProfileScreen() {
   const keyboardOffset = useKeyboardOffset();
   const kbScroll = useKeyboardAwareScroll();
   const ep = t.editProfile;
-  const [form, setForm] = useState<ProfileData>({ fullName: '', phone: '', bio: '', skills: '', avatar: null });
+  const phone = toLocalPhone(user?.phone);
+  // Phone signups get a generated @phone.dastiyor.local address; that is not theirs to show.
+  const email = user?.email && !user.email.endsWith('@phone.dastiyor.local') ? user.email : '';
+  const [form, setForm] = useState<ProfileData>({ fullName: '', bio: '', skills: '', avatar: null });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -55,14 +58,14 @@ export default function EditProfileScreen() {
   useEffect(() => {
     api.get<{ user: ProfileData & ProviderProfileData & { email: string } }>('/api/profile')
       .then((res) => {
-        setForm({ fullName: res.user.fullName ?? '', phone: toLocalPhone(res.user.phone), bio: res.user.bio ?? '', skills: res.user.skills ?? '', avatar: res.user.avatar ?? null });
+        setForm({ fullName: res.user.fullName ?? '', bio: res.user.bio ?? '', skills: res.user.skills ?? '', avatar: res.user.avatar ?? null });
         setProvider({
           experience: res.user.experienceYears != null ? String(res.user.experienceYears) : '',
           city: res.user.city ?? '',
           categories: res.user.categories ?? [],
         });
       })
-      .catch(() => { if (user) setForm((f) => ({ ...f, fullName: user.fullName, phone: toLocalPhone(user.phone) })); })
+      .catch(() => { if (user) setForm((f) => ({ ...f, fullName: user.fullName })); })
       .finally(() => setLoading(false));
   }, []);
 
@@ -110,7 +113,6 @@ export default function EditProfileScreen() {
     try {
       await api.put('/api/profile', {
         fullName: form.fullName.trim(),
-        phone: form.phone ? `+992${form.phone}` : undefined,
         bio: form.bio.trim() || undefined,
         skills: form.skills.trim() || undefined,
         avatar: form.avatar,
@@ -154,7 +156,7 @@ export default function EditProfileScreen() {
         </View>
 
         <Text style={[styles.label, { color: colors.text }]}>{ep.fullName}</Text>
-        <TextInput style={inputStyle} value={form.fullName} onChangeText={set('fullName')} autoComplete="name" maxLength={100} />
+        <Input style={inputStyle} value={form.fullName} onChangeText={set('fullName')} autoComplete="name" maxLength={100} />
 
         <Text style={[styles.label, { color: colors.text }]}>{ep.phone}</Text>
         <View style={[styles.phoneRow, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
@@ -166,24 +168,29 @@ export default function EditProfileScreen() {
             </View>
             <Text style={styles.phonePrefixText}>+992</Text>
           </View>
-          <TextInput
-            style={[styles.phoneInput, { color: colors.text }]}
-            value={form.phone}
-            onChangeText={(v) => setForm((f) => ({ ...f, phone: v.replace(/\D/g, '').slice(0, 9) }))}
-            keyboardType="number-pad"
-            autoComplete="tel"
-            placeholder="XX XXX XXXX"
-            placeholderTextColor={colors.textTertiary}
-            maxLength={9}
-          />
+          {/* Shown, not edited: phone and email change from the Profile screen -- the phone only
+              through SMS (verify-phone), which the API enforces. */}
+          <Text style={[styles.phoneInput, { color: phone ? colors.text : colors.textTertiary }]}>{phone || '—'}</Text>
+          <Icon name="lock-closed-outline" size={18} color={colors.textTertiary} style={styles.lock} />
         </View>
 
+        {email ? (
+          <>
+            <Text style={[styles.label, { color: colors.text }]}>{ep.email}</Text>
+            <View style={[styles.phoneRow, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
+              <Text style={[styles.phoneInput, { color: colors.text }]} numberOfLines={1}>{email}</Text>
+              <Icon name="lock-closed-outline" size={18} color={colors.textTertiary} style={styles.lock} />
+            </View>
+          </>
+        ) : null}
+        <Text style={[styles.phoneHint, { color: colors.textTertiary }]}>{ep.contactHint}</Text>
+
         <Text style={[styles.label, { color: colors.text }]}>{ep.bio}</Text>
-        <TextInput style={[...inputStyle, styles.textarea]} value={form.bio} onChangeText={set('bio')} multiline textAlignVertical="top" placeholder={ep.bioPh} placeholderTextColor={colors.textTertiary} maxLength={500} />
+        <Input style={[...inputStyle, styles.textarea]} value={form.bio} onChangeText={set('bio')} multiline textAlignVertical="top" placeholder={ep.bioPh} placeholderTextColor={colors.textTertiary} maxLength={500} />
         <Text style={styles.charCount}>{form.bio.length}/500</Text>
 
         <Text style={[styles.label, { color: colors.text }]}>{ep.skills}</Text>
-        <TextInput style={inputStyle} value={form.skills} onChangeText={set('skills')} placeholder={ep.skillsPh} placeholderTextColor={colors.textTertiary} maxLength={300} />
+        <Input style={inputStyle} value={form.skills} onChangeText={set('skills')} placeholder={ep.skillsPh} placeholderTextColor={colors.textTertiary} maxLength={300} />
 
         {isProvider && (
           <>
@@ -200,19 +207,19 @@ export default function EditProfileScreen() {
               onPress={() => router.push('/portfolio')}
               accessibilityRole="button"
             >
-              <Ionicons name="images-outline" size={20} color="#2563EB" />
+              <Icon name="images-outline" size={20} color="#2563EB" />
               <View style={{ flex: 1 }}>
                 <Text style={[styles.label, { color: colors.text, marginBottom: 2 }]}>{ep.portfolio}</Text>
                 <Text style={{ fontSize: 12, color: colors.textSecondary }}>{ep.portfolioHint}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+              <Icon name="chevron-forward" size={18} color={colors.textTertiary} />
             </TouchableOpacity>
           </>
         )}
 
-        <TouchableOpacity style={[styles.btn, saving && styles.btnDisabled]} onPress={handleSave} disabled={saving} accessibilityLabel={ep.save} accessibilityRole="button">
+        <GradientButton style={[styles.btn, saving && styles.btnDisabled]} onPress={handleSave} disabled={saving} accessibilityLabel={ep.save} accessibilityRole="button">
           {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>{ep.save}</Text>}
-        </TouchableOpacity>
+        </GradientButton>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -236,6 +243,8 @@ const styles = StyleSheet.create({
   flagImg: { width: 24, height: 16, borderRadius: 2, overflow: 'hidden' },
   phonePrefixText: { fontSize: 15, fontWeight: '600', color: '#374151' },
   phoneInput: { flex: 1, padding: 14, fontSize: 15, backgroundColor: 'transparent' },
+  lock: { alignSelf: 'center', marginRight: 14 },
+  phoneHint: { fontSize: 12, marginTop: -14, marginBottom: 20 },
   link: { fontSize: 14, fontWeight: '600', color: '#2563EB' },
   linkDanger: { color: '#DC2626' },
   label: { fontSize: 13, fontWeight: '700', color: '#374151', marginBottom: 8 },

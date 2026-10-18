@@ -1,3 +1,4 @@
+import { Keyboard } from 'react-native';
 import { render, screen, fireEvent, act } from '@testing-library/react-native';
 import { Alert, DialogHost } from '@/lib/dialog';
 import { LanguageProvider } from '@/contexts/LanguageContext';
@@ -21,6 +22,16 @@ function flushFrame() {
 describe('themed Alert', () => {
   beforeEach(() => jest.useFakeTimers());
   afterEach(() => jest.useRealTimers());
+
+  it('drops the keyboard as soon as a dialog opens', () => {
+    // A modal closed from the dialog's button while a field is still first responder
+    // leaves the screen underneath with a dead header back button (iOS).
+    const dismiss = jest.spyOn(Keyboard, 'dismiss');
+    host();
+    act(() => { Alert.alert('T'); });
+    expect(dismiss).toHaveBeenCalled();
+    dismiss.mockRestore();
+  });
 
   it('renders the title, message and buttons in-app', async () => {
     host();

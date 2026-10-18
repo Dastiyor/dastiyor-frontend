@@ -2,7 +2,6 @@ import { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
@@ -21,6 +20,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useToast } from '@/contexts/ToastContext';
 import { Alert } from '@/lib/dialog';
+import { GradientButton, Input } from '@/components/Premium';
 
 const STARS = [1, 2, 3, 4, 5];
 
@@ -87,11 +87,11 @@ export default function ReviewScreen() {
         {rating > 0 ? <Text style={[styles.ratingLabel, { color: colors.text }]}>{rv.ratings[rating as keyof typeof rv.ratings]}</Text> : null}
 
         <Text style={[styles.label, { marginTop: 24, color: colors.text }]}>{rv.commentLabel}</Text>
-        <TextInput style={[styles.input, styles.textarea, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]} placeholder={rv.commentPh} placeholderTextColor={colors.textTertiary} value={comment} onChangeText={setComment} multiline textAlignVertical="top" maxLength={1000} />
+        <Input style={[styles.input, styles.textarea, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]} placeholder={rv.commentPh} placeholderTextColor={colors.textTertiary} value={comment} onChangeText={setComment} multiline textAlignVertical="top" maxLength={1000} />
 
-        <TouchableOpacity style={[styles.btn, (loading || rating === 0) && styles.btnDisabled]} onPress={handleSubmit} disabled={loading || rating === 0}>
+        <GradientButton style={[styles.btn, (loading || rating === 0) && styles.btnDisabled]} onPress={handleSubmit} disabled={loading || rating === 0}>
           {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>{rv.btn}</Text>}
-        </TouchableOpacity>
+        </GradientButton>
       </ScrollView>
     </KeyboardAvoidingView>
   );

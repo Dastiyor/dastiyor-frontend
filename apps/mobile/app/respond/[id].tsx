@@ -2,7 +2,6 @@ import { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
@@ -26,6 +25,7 @@ import { useConfig } from '@/lib/useConfig';
 import { ChipGroup } from '@/components/ChipGroup';
 import { useToast } from '@/contexts/ToastContext';
 import { Alert } from '@/lib/dialog';
+import { GradientButton, Input } from '@/components/Premium';
 
 export default function RespondScreen() {
   const { id: taskId, title } = useLocalSearchParams<{ id: string; title: string }>();
@@ -107,11 +107,11 @@ export default function RespondScreen() {
         ) : null}
 
         <Text style={[styles.label, { color: colors.text }]}>{r.offerLabel}</Text>
-        <TextInput style={[...inputStyle, styles.textareaNoMb]} placeholder={r.offerPh} placeholderTextColor={colors.textTertiary} value={message} onChangeText={(v) => { setMessage(v); if (validationError) setValidationError(''); }} multiline numberOfLines={5} textAlignVertical="top" maxLength={1000} />
+        <Input style={[...inputStyle, styles.textareaNoMb]} placeholder={r.offerPh} placeholderTextColor={colors.textTertiary} value={message} onChangeText={(v) => { setMessage(v); if (validationError) setValidationError(''); }} multiline numberOfLines={5} textAlignVertical="top" maxLength={1000} />
         <Text style={styles.charCount}>{message.length}/1000</Text>
 
         <Text style={[styles.label, { color: colors.text }]}>{r.priceLabel}</Text>
-        <TextInput style={inputStyle} placeholder={r.pricePh} placeholderTextColor={colors.textTertiary} value={price} onChangeText={(v) => { setPrice(v); if (validationError) setValidationError(''); }} keyboardType="numeric" maxLength={10} />
+        <Input style={inputStyle} placeholder={r.pricePh} placeholderTextColor={colors.textTertiary} value={price} onChangeText={(v) => { setPrice(v); if (validationError) setValidationError(''); }} keyboardType="numeric" maxLength={10} />
 
         <Text style={[styles.label, { color: colors.text }]}>{r.timeLabel}</Text>
         {/* Canonical Russian goes to the API; the chip label is display-only. */}
@@ -127,9 +127,9 @@ export default function RespondScreen() {
           <Text style={styles.errorText} accessibilityRole="alert">{validationError}</Text>
         ) : null}
 
-        <TouchableOpacity style={[styles.button, loading && styles.buttonDisabled]} onPress={handleSubmit} disabled={loading} accessibilityLabel={r.btn} accessibilityRole="button">
+        <GradientButton style={[styles.button, loading && styles.buttonDisabled]} onPress={handleSubmit} disabled={loading} accessibilityLabel={r.btn} accessibilityRole="button">
           {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{r.btn}</Text>}
-        </TouchableOpacity>
+        </GradientButton>
       </ScrollView>
     </KeyboardAvoidingView>
   );

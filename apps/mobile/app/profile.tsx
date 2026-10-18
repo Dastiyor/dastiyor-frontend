@@ -10,16 +10,16 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Constants from 'expo-constants';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon, type IconName } from '@/components/Icon';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useNotifPrefs } from '@/contexts/NotifPrefsContext';
 import { Avatar } from '@/components/Avatar';
-import { openPrivacyPolicy, openTermsOfService } from '@/lib/legal';
 import { LOCALE_NAMES, type Locale } from '@/lib/i18n';
 import { Alert } from '@/lib/dialog';
 import { useConfig } from '@/lib/useConfig';
+import { GradientButton } from '@/components/Premium';
 
 const LOCALES: Locale[] = ['ru', 'tj', 'en'];
 
@@ -29,7 +29,6 @@ const ROLE_COLORS: Record<string, { color: string; bg: string }> = {
   ADMIN:    { color: '#7C3AED', bg: 'rgba(124,58,237,0.15)' },
 };
 
-type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
 
 function RowItem({
   icon,
@@ -41,7 +40,7 @@ function RowItem({
   danger,
   rightText,
 }: {
-  icon: IoniconName;
+  icon: IconName;
   iconBg?: string;
   iconColor?: string;
   label: string;
@@ -54,7 +53,7 @@ function RowItem({
   const iconColor_ = danger ? '#EF4444' : (iconColor ?? colors.accent);
   const content = (
     <View style={[styles.rowItem, { borderBottomColor: colors.border }]}>
-      <Ionicons name={icon} size={22} color={iconColor_} style={styles.rowIcon} />
+      <Icon name={icon} size={22} color={iconColor_} style={styles.rowIcon} />
       <View style={styles.rowBody}>
         <Text style={[styles.rowLabel, { color: danger ? '#EF4444' : colors.text }]}>{label}</Text>
         {sublabel ? <Text style={[styles.rowSublabel, { color: colors.textSecondary }]}>{sublabel}</Text> : null}
@@ -62,7 +61,7 @@ function RowItem({
       {rightText ? (
         <Text style={[styles.rowRight, { color: colors.accent }]}>{rightText}</Text>
       ) : (
-        <Ionicons name="chevron-forward" size={16} color={danger ? '#EF4444' : colors.textTertiary} />
+        <Icon name="chevron-forward" size={16} color={danger ? '#EF4444' : colors.textTertiary} />
       )}
     </View>
   );
@@ -83,7 +82,6 @@ export default function ProfileScreen() {
   const { popupsEnabled, togglePopups } = useNotifPrefs();
   const insets = useSafeAreaInsets();
   const p = t.profile;
-  const statusBarHeight = insets.top;
 
   function handleLogout() {
     Alert.alert(p.logoutTitle, p.logoutMessage, [
@@ -120,9 +118,6 @@ export default function ProfileScreen() {
   if (!user) {
     return (
       <View style={[styles.container, { backgroundColor: colors.bg }]}>
-        <View style={[styles.headerBar, { paddingTop: statusBarHeight + 4, backgroundColor: colors.header, borderBottomColor: colors.border }]}>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>{p.title ?? 'Profile'}</Text>
-        </View>
 
         <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 24 }]} showsVerticalScrollIndicator={false}>
           {/* Guest card */}
@@ -137,21 +132,20 @@ export default function ProfileScreen() {
           </View>
 
           {/* Log in / Register */}
-          <TouchableOpacity
+          <GradientButton
             style={[styles.guestCtaBtn, { backgroundColor: colors.accent }]}
             onPress={() => router.push('/(auth)/register')}
-            activeOpacity={0.85}
             accessibilityRole="button"
             accessibilityLabel={p.guestCta}
           >
             <Text style={styles.guestCtaText}>{p.guestCta}</Text>
-          </TouchableOpacity>
+          </GradientButton>
 
           {/* Appearance (no account required) */}
           <View style={[styles.card, { backgroundColor: colors.surface }]}>
             {/* Language */}
             <View style={[styles.rowItem, styles.langRow, { borderBottomColor: colors.border }]}>
-              <Ionicons name="language-outline" size={22} color="#7C3AED" style={styles.rowIcon} />
+              <Icon name="language-outline" size={22} color="#7C3AED" style={styles.rowIcon} />
               <View style={styles.langBody}>
                 <Text style={[styles.rowLabel, { color: colors.text }]}>{t.settings?.language ?? 'Language'}</Text>
                 <View style={styles.pills}>
@@ -172,26 +166,12 @@ export default function ProfileScreen() {
             {/* Theme */}
             <TouchableOpacity onPress={toggleTheme} activeOpacity={0.6}>
               <View style={[styles.rowItem, { borderBottomColor: 'transparent' }]}>
-                <Ionicons name={isDark ? 'moon-outline' : 'sunny-outline'} size={22} color="#10B981" style={styles.rowIcon} />
+                <Icon name={isDark ? 'moon-outline' : 'sunny-outline'} size={22} color="#10B981" style={styles.rowIcon} />
                 <Text style={[styles.rowLabel, { color: colors.text }]}>{t.settings?.theme ?? 'Theme'}</Text>
                 <Text style={[styles.themeValue, { color: colors.textSecondary }]}>{isDark ? (t.settings?.dark ?? 'Dark') : (t.settings?.light ?? 'Light')}</Text>
-                <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
+                <Icon name="chevron-forward" size={16} color={colors.textTertiary} />
               </View>
             </TouchableOpacity>
-          </View>
-
-          {/* Legal */}
-          <View style={[styles.card, { backgroundColor: colors.surface }]}>
-            <RowItem
-              icon="document-text-outline"
-              label={t.legal.privacy}
-              onPress={() => { openPrivacyPolicy().catch(() => {}); }}
-            />
-            <RowItem
-              icon="shield-checkmark-outline"
-              label={t.legal.terms}
-              onPress={() => { openTermsOfService().catch(() => {}); }}
-            />
           </View>
 
           <Text style={[styles.versionText, { color: colors.textTertiary }]}>
@@ -211,10 +191,6 @@ export default function ProfileScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
-      {/* Header bar */}
-      <View style={[styles.headerBar, { paddingTop: statusBarHeight + 4, backgroundColor: colors.header, borderBottomColor: colors.border }]}>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>{p.title ?? 'Profile'}</Text>
-      </View>
 
       <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 24 }]} showsVerticalScrollIndicator={false}>
 
@@ -271,7 +247,7 @@ export default function ProfileScreen() {
         {user.phone ? (
           <View style={[styles.card, { backgroundColor: colors.surface }]}>
             <View style={[styles.infoSection, { borderBottomColor: colors.border }]}>
-              <Ionicons name="call-outline" size={22} color={colors.accent} style={styles.rowIcon} />
+              <Icon name="call-outline" size={22} color={colors.accent} style={styles.rowIcon} />
               <View style={styles.rowBody}>
                 <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>{p.phone}</Text>
                 <Text style={[styles.infoValue, { color: colors.text }]}>{user.phone}</Text>
@@ -280,10 +256,10 @@ export default function ProfileScreen() {
                 </Text>
               </View>
             </View>
-            <TouchableOpacity activeOpacity={0.6} onPress={() => router.push('/edit-profile')}>
+            <TouchableOpacity activeOpacity={0.6} onPress={() => router.push('/verify-phone')}>
               <View style={styles.linkRow}>
                 <Text style={[styles.linkText, { color: colors.accent }]}>{p.changePhone}</Text>
-                <Ionicons name="chevron-forward" size={16} color={colors.accent} />
+                <Icon name="chevron-forward" size={16} color={colors.accent} />
               </View>
             </TouchableOpacity>
           </View>
@@ -293,7 +269,7 @@ export default function ProfileScreen() {
         {hasRealEmail ? (
           <View style={[styles.card, { backgroundColor: colors.surface }]}>
             <View style={[styles.infoSection, { borderBottomColor: colors.border }]}>
-              <Ionicons name="mail-outline" size={22} color={colors.accent} style={styles.rowIcon} />
+              <Icon name="mail-outline" size={22} color={colors.accent} style={styles.rowIcon} />
               <View style={styles.rowBody}>
                 <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>{p.email}</Text>
                 <Text style={[styles.infoValue, { color: colors.text }]} numberOfLines={1}>{user.email}</Text>
@@ -302,7 +278,7 @@ export default function ProfileScreen() {
             <TouchableOpacity activeOpacity={0.6} onPress={() => router.push('/change-email')}>
               <View style={styles.linkRow}>
                 <Text style={[styles.linkText, { color: colors.accent }]}>{p.changeEmail}</Text>
-                <Ionicons name="chevron-forward" size={16} color={colors.accent} />
+                <Icon name="chevron-forward" size={16} color={colors.accent} />
               </View>
             </TouchableOpacity>
           </View>
@@ -322,7 +298,7 @@ export default function ProfileScreen() {
         <View style={[styles.card, { backgroundColor: colors.surface }]}>
           {/* Language */}
           <View style={[styles.rowItem, styles.langRow, { borderBottomColor: colors.border }]}>
-            <Ionicons name="language-outline" size={22} color="#7C3AED" style={styles.rowIcon} />
+            <Icon name="language-outline" size={22} color="#7C3AED" style={styles.rowIcon} />
             <View style={styles.langBody}>
               <Text style={[styles.rowLabel, { color: colors.text }]}>{t.settings?.language ?? 'Language'}</Text>
               <View style={styles.pills}>
@@ -343,15 +319,15 @@ export default function ProfileScreen() {
           {/* Theme */}
           <TouchableOpacity onPress={toggleTheme} activeOpacity={0.6}>
             <View style={[styles.rowItem, { borderBottomColor: colors.border }]}>
-              <Ionicons name={isDark ? 'moon-outline' : 'sunny-outline'} size={22} color="#10B981" style={styles.rowIcon} />
+              <Icon name={isDark ? 'moon-outline' : 'sunny-outline'} size={22} color="#10B981" style={styles.rowIcon} />
               <Text style={[styles.rowLabel, { color: colors.text }]}>{t.settings?.theme ?? 'Theme'}</Text>
               <Text style={[styles.themeValue, { color: colors.textSecondary }]}>{isDark ? (t.settings?.dark ?? 'Dark') : (t.settings?.light ?? 'Light')}</Text>
-              <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
+              <Icon name="chevron-forward" size={16} color={colors.textTertiary} />
             </View>
           </TouchableOpacity>
           {/* In-app notification popups */}
           <View style={[styles.rowItem, { borderBottomColor: 'transparent' }]}>
-            <Ionicons name="notifications-outline" size={22} color="#F59E0B" style={styles.rowIcon} />
+            <Icon name="notifications-outline" size={22} color="#F59E0B" style={styles.rowIcon} />
             <View style={styles.rowBody}>
               <Text style={[styles.rowLabel, { color: colors.text }]}>{t.settings?.notifPopups}</Text>
               <Text style={[styles.rowSublabel, { color: colors.textSecondary }]}>{t.settings?.notifPopupsHint}</Text>
@@ -363,20 +339,6 @@ export default function ProfileScreen() {
               thumbColor="#fff"
             />
           </View>
-        </View>
-
-        {/* Legal */}
-        <View style={[styles.card, { backgroundColor: colors.surface }]}>
-          <RowItem
-            icon="document-text-outline"
-            label={t.legal.privacy}
-            onPress={() => { openPrivacyPolicy().catch(() => {}); }}
-          />
-          <RowItem
-            icon="shield-checkmark-outline"
-            label={t.legal.terms}
-            onPress={() => { openTermsOfService().catch(() => {}); }}
-          />
         </View>
 
         {/* Logout */}
@@ -415,16 +377,6 @@ const styles = StyleSheet.create({
   versionText: { textAlign: 'center', fontSize: 12, marginTop: 8, marginBottom: 8 },
   guestCtaBtn: { borderRadius: 14, paddingVertical: 15, alignItems: 'center', justifyContent: 'center' },
   guestCtaText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-
-  headerBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingBottom: 6,
-    borderBottomWidth: 1,
-  },
-  // lineHeight matches ScreenHeader's 36pt icon row so both bars are the same height
-  headerTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700', lineHeight: 36 },
 
   scroll: { padding: 16, gap: 12 },
 

@@ -1,6 +1,6 @@
-import { Ionicons } from '@expo/vector-icons';
+import { type IconName } from '@/components/Icon';
 
-export const CATEGORY_ICONS: Record<string, React.ComponentProps<typeof Ionicons>['name']> = {
+export const CATEGORY_ICONS: Record<string, IconName> = {
   'Ремонт': 'construct-outline',
   'Уборка': 'sparkles-outline',
   'Доставка': 'bicycle-outline',

@@ -5,6 +5,9 @@ jest.mock('@/lib/features', () => ({
     get SUBSCRIPTIONS_ENABLED() { return mockSubscriptionsEnabled; },
 }));
 jest.mock('@/lib/categories', () => ({ getCategories: jest.fn(async () => ['Ремонт']) }));
+jest.mock('@/lib/company', () => ({
+    getCompany: jest.fn(async () => ({ name: 'Dastiyor', email: 'hi@x.tj', phone: '+992 900', supportEmail: 'help@x.tj', address: 'Душанбе' })),
+}));
 
 describe('GET /api/config', () => {
     const OLD = process.env.MOBILE_PURCHASE_ENABLED;
@@ -25,5 +28,10 @@ describe('GET /api/config', () => {
         const data = await (await GET()).json();
         expect(data.subscriptionsEnabled).toBe(true);
         expect(data.mobilePurchaseEnabled).toBe(true);
+    });
+
+    it('includes the admin-managed company contacts for the app menu', async () => {
+        const data = await (await GET()).json();
+        expect(data.company).toEqual({ name: 'Dastiyor', email: 'hi@x.tj', phone: '+992 900', supportEmail: 'help@x.tj', address: 'Душанбе' });
     });
 });

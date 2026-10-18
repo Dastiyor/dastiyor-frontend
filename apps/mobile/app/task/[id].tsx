@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
 import { goBack } from '@/lib/nav';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/components/Icon';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,6 +22,7 @@ import { TASK_POLL_MS } from '@/lib/constants';
 import type { TaskDetail, TaskResponse, MyResponse } from '@dastiyor/types';
 import { Alert } from '@/lib/dialog';
 import { formatMoney } from '@/lib/intl';
+import { GradientButton } from '@/components/Premium';
 
 export default function TaskDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -193,9 +194,9 @@ export default function TaskDetailScreen() {
     return (
       <View style={[styles.center, { backgroundColor: colors.bg, flex: 1 }]}>
         <Text style={[styles.noResponsesText, { color: colors.textSecondary }]}>{t.common.errorTitle}</Text>
-        <TouchableOpacity style={styles.respondBtn} onPress={retryLoad}>
+        <GradientButton style={styles.respondBtn} onPress={retryLoad}>
           <Text style={styles.respondBtnText}>{t.common.errorRetry}</Text>
-        </TouchableOpacity>
+        </GradientButton>
         <TouchableOpacity style={{ marginTop: 16 }} onPress={() => goBack()}>
           <Text style={{ color: colors.accent }}>{t.navigation.back}</Text>
         </TouchableOpacity>
@@ -252,16 +253,16 @@ export default function TaskDetailScreen() {
         <View style={styles.metaRow}>
           {task.city ? (
             <View style={styles.metaItem}>
-              <Ionicons name="location-outline" size={13} color={colors.textSecondary} />
+              <Icon name="location-outline" size={13} color={colors.textSecondary} />
               <Text style={[styles.meta, { color: colors.textSecondary }]}>{tr(task.city)}</Text>
             </View>
           ) : null}
           <View style={styles.metaItem}>
-            <Ionicons name="calendar-outline" size={13} color={colors.textSecondary} />
+            <Icon name="calendar-outline" size={13} color={colors.textSecondary} />
             <Text style={[styles.meta, { color: colors.textSecondary }]}>{timeAgo(task.postedAt, locale)}</Text>
           </View>
           <View style={styles.metaItem}>
-            <Ionicons name="chatbubble-outline" size={13} color={colors.textSecondary} />
+            <Icon name="chatbubble-outline" size={13} color={colors.textSecondary} />
             <Text style={[styles.meta, { color: colors.textSecondary }]}>{task.responseCount} {t.home.responses}</Text>
           </View>
         </View>
@@ -307,7 +308,7 @@ export default function TaskDetailScreen() {
                     <Text style={styles.responsePrice}>{formatMoney(r.price)} TJS</Text>
                     {r.estimatedTime ? (
                       <View style={styles.metaItem}>
-                        <Ionicons name="time-outline" size={13} color={colors.textSecondary} />
+                        <Icon name="time-outline" size={13} color={colors.textSecondary} />
                         <Text style={[styles.responseTime, { color: colors.textSecondary }]}>{tr(r.estimatedTime)}</Text>
                       </View>
                     ) : null}
@@ -317,7 +318,7 @@ export default function TaskDetailScreen() {
                     onPress={() => router.push({ pathname: '/chat/[partnerId]', params: { partnerId: r.provider.id, partnerName: r.provider.fullName, taskId: task.id } })}
                     accessibilityRole="button"
                   >
-                    <Ionicons name="chatbubble-outline" size={15} color="#2563EB" />
+                    <Icon name="chatbubble-outline" size={15} color="#2563EB" />
                     <Text style={styles.messageBtnText}>{t.provider.chat}</Text>
                   </TouchableOpacity>
                   {/* Accepting leaves the other bids PENDING on purpose, so
@@ -327,9 +328,9 @@ export default function TaskDetailScreen() {
                       <TouchableOpacity style={[styles.rejectBtn, busy && styles.btnBusy]} onPress={() => handleReject(r)} disabled={!!actionLoading}>
                         {busy ? <ActivityIndicator size="small" color="#EF4444" /> : <Text style={styles.rejectBtnText}>{tk.reject}</Text>}
                       </TouchableOpacity>
-                      <TouchableOpacity style={[styles.acceptBtn, busy && styles.btnBusy]} onPress={() => handleAccept(r)} disabled={!!actionLoading}>
+                      <GradientButton style={[styles.acceptBtn, busy && styles.btnBusy]} onPress={() => handleAccept(r)} disabled={!!actionLoading}>
                         {busy ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.acceptBtnText}>{task.status === 'IN_PROGRESS' ? tk.switchProvider : tk.accept}</Text>}
-                      </TouchableOpacity>
+                      </GradientButton>
                     </View>
                   ) : null}
                 </View>
@@ -419,7 +420,7 @@ export default function TaskDetailScreen() {
               <Text style={styles.responsePrice}>{formatMoney(myResponse.price)} TJS</Text>
               {myResponse.estimatedTime ? (
                 <View style={styles.metaItem}>
-                  <Ionicons name="time-outline" size={13} color={colors.textSecondary} />
+                  <Icon name="time-outline" size={13} color={colors.textSecondary} />
                   <Text style={[styles.responseTime, { color: colors.textSecondary }]}>{tr(myResponse.estimatedTime)}</Text>
                 </View>
               ) : null}
@@ -430,7 +431,7 @@ export default function TaskDetailScreen() {
                 onPress={() => router.push({ pathname: '/chat/[partnerId]', params: { partnerId: task.customer!.id, partnerName: task.customer!.fullName, taskId: task.id } })}
                 accessibilityRole="button"
               >
-                <Ionicons name="chatbubble-outline" size={15} color="#2563EB" />
+                <Icon name="chatbubble-outline" size={15} color="#2563EB" />
                 <Text style={styles.messageBtnText}>{t.provider.chat}</Text>
               </TouchableOpacity>
             ) : null}
@@ -440,9 +441,9 @@ export default function TaskDetailScreen() {
 
       {!isOwner && user?.role === 'PROVIDER' && task.status === 'OPEN' && !myResponse ? (
         <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border, paddingBottom: insets.bottom + 16 }]}>
-          <TouchableOpacity style={styles.respondBtn} onPress={() => router.push({ pathname: '/respond/[id]', params: { id: task.id, title: task.title } })}>
+          <GradientButton style={styles.respondBtn} onPress={() => router.push({ pathname: '/respond/[id]', params: { id: task.id, title: task.title } })}>
             <Text style={styles.respondBtnText}>{tk.respond}</Text>
-          </TouchableOpacity>
+          </GradientButton>
         </View>
       ) : null}
     </View>

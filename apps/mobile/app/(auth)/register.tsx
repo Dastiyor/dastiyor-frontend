@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
@@ -21,7 +20,7 @@ import { GoogleIcon } from '@/components/GoogleIcon';
 import * as storage from '@/lib/storage';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Haptics from 'expo-haptics';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/components/Icon';
 import { googleConfigured, signInWithGoogle } from '@/lib/google-signin';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -32,6 +31,7 @@ import { openPrivacyPolicy, openTermsOfService } from '@/lib/legal';
 import { passwordStrength } from '@/lib/validation';
 import type { Locale } from '@/lib/i18n';
 import { Alert } from '@/lib/dialog';
+import { GradientButton, Input } from '@/components/Premium';
 
 type Role = 'customer' | 'provider';
 
@@ -241,7 +241,7 @@ export default function RegisterScreen() {
         accessibilityRole="button"
         accessibilityLabel={t.common.cancel}
       >
-        <Ionicons name="close" size={22} color={colors.text} />
+        <Icon name="close" size={22} color={colors.text} />
       </TouchableOpacity>
       <ScrollView {...kbScroll}
         contentContainerStyle={[styles.inner, { paddingTop: top.contentPaddingTop, paddingBottom: insets.bottom + 24 + keyboardOffset }]}
@@ -256,7 +256,7 @@ export default function RegisterScreen() {
         {step === 'code' ? (
           <>
             <Text style={[styles.fieldLabel, { color: colors.text }]}>{t.verifyPhone.codeLabel}</Text>
-            <TextInput
+            <Input
               style={[styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]}
               placeholder={t.verifyPhone.codePlaceholder}
               placeholderTextColor={colors.textTertiary}
@@ -268,7 +268,7 @@ export default function RegisterScreen() {
               autoFocus
               maxLength={6}
             />
-            <TouchableOpacity
+            <GradientButton
               style={[styles.button, (loading || code.length < 6) && styles.buttonDisabled]}
               onPress={handleVerify}
               disabled={loading || code.length < 6}
@@ -278,7 +278,7 @@ export default function RegisterScreen() {
               {loading
                 ? <ActivityIndicator color="#fff" />
                 : <Text style={styles.buttonText}>{r.btn}</Text>}
-            </TouchableOpacity>
+            </GradientButton>
             <TouchableOpacity onPress={handleResend} disabled={loading} accessibilityRole="button">
               <Text style={styles.link}><Text style={styles.linkBold}>{r.resendCode}</Text></Text>
             </TouchableOpacity>
@@ -300,7 +300,7 @@ export default function RegisterScreen() {
               accessibilityRole="radio"
               accessibilityState={{ selected: role === rv, checked: role === rv }}
             >
-              <Ionicons name={ROLE_ICONS[rv]} size={26} color={role === rv ? '#2563EB' : '#9CA3AF'} style={{ marginBottom: 6 }} />
+              <Icon name={ROLE_ICONS[rv]} size={26} color={role === rv ? '#2563EB' : '#9CA3AF'} style={{ marginBottom: 6 }} />
               <Text style={[styles.roleBtnText, role === rv && styles.roleBtnTextActive]}>
                 {rv === 'customer' ? r.postTask : r.doTask}
               </Text>
@@ -342,7 +342,7 @@ export default function RegisterScreen() {
 
         {/* Full name */}
         <Text style={[styles.fieldLabel, { color: colors.text }]}>{r.fullName}</Text>
-        <TextInput
+        <Input
           style={[styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]}
           placeholder={r.fullNamePh}
           placeholderTextColor={colors.textTertiary}
@@ -363,7 +363,7 @@ export default function RegisterScreen() {
             </View>
             <Text style={styles.phonePrefixText}>+992</Text>
           </View>
-          <TextInput
+          <Input
             style={[styles.phoneInput, { color: colors.text }]}
             placeholder={r.phonePh}
             placeholderTextColor={colors.textTertiary}
@@ -378,7 +378,7 @@ export default function RegisterScreen() {
         {/* Password */}
         <Text style={[styles.fieldLabel, { color: colors.text }]}>{r.password}</Text>
         <View style={[styles.passwordRow, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
-          <TextInput
+          <Input
             style={[styles.passwordInput, { color: colors.text }]}
             placeholder={r.passwordHint}
             placeholderTextColor={colors.textTertiary}
@@ -393,7 +393,7 @@ export default function RegisterScreen() {
             onPress={() => setShowPassword(v => !v)}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Ionicons
+            <Icon
               name={showPassword ? 'eye-outline' : 'eye-off-outline'}
               size={20}
               color="#9CA3AF"
@@ -415,7 +415,7 @@ export default function RegisterScreen() {
           accessibilityRole="checkbox"
           accessibilityState={{ checked: legalAccepted }}
         >
-          <Ionicons name={legalAccepted ? 'checkbox' : 'square-outline'} size={22} color={legalAccepted ? colors.accent : colors.textTertiary} />
+          <Icon name={legalAccepted ? 'checkbox' : 'square-outline'} size={22} color={legalAccepted ? colors.accent : colors.textTertiary} />
           <Text style={[styles.legalText, { color: colors.textSecondary }]}>
             {t.legal.consent}{' '}
             <Text style={{ color: colors.accent }} onPress={(e) => { e.stopPropagation?.(); openTermsOfService().catch(() => {}); }}>
@@ -428,7 +428,7 @@ export default function RegisterScreen() {
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
+        <GradientButton
           style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleRegister}
           disabled={loading}
@@ -438,7 +438,7 @@ export default function RegisterScreen() {
           {loading
             ? <ActivityIndicator color="#fff" />
             : <Text style={styles.buttonText}>{t.verifyPhone.sendCode}</Text>}
-        </TouchableOpacity>
+        </GradientButton>
 
         <Link href="/(auth)/login" style={styles.link}>
           {r.hasAccount} <Text style={styles.linkBold}>{r.loginLink}</Text>

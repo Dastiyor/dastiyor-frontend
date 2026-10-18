@@ -7,6 +7,7 @@ import { Alert } from '@/lib/dialog';
 import { isUserCancel } from '@/lib/purchases';
 import { openPrivacyPolicy, openTermsOfService } from '@/lib/legal';
 import { useTheme } from '@/contexts/ThemeContext';
+import { GradientButton } from '@/components/Premium';
 
 const ORDER: SubscriptionTier[] = ['basic', 'standard', 'premium'];
 
@@ -103,9 +104,9 @@ export function SubscriptionPlans({ labels: l, storeReady }: { labels: Subscript
             <Text style={[styles.price, { color: colors.text }]}>{pkg.product.priceString}</Text>
           </View>
           {l.features[plan].map((f) => <Text key={f} style={{ color: colors.textSecondary }}>{`• ${f}`}</Text>)}
-          <TouchableOpacity style={[styles.btn, busy && { opacity: 0.6 }]} disabled={busy} onPress={() => buy(pkg)} accessibilityRole="button">
+          <GradientButton style={[styles.btn, busy && { opacity: 0.6 }]} disabled={busy} onPress={() => buy(pkg)} accessibilityRole="button">
             <Text style={styles.btnText}>{l.buy}</Text>
-          </TouchableOpacity>
+          </GradientButton>
         </View>
       ))}
 

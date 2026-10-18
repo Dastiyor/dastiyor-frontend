@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, Modal, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/components/Icon';
 import type { PublicProfile } from '@dastiyor/types';
 import type { Locale } from '@/lib/i18n';
 import { plural } from '@/lib/intl';
@@ -31,19 +31,19 @@ export function ProviderProfileSections({ profile: p, labels: l, tr, locale }: {
         <TierBadge tier={p.tier} label={p.tier ? l.tiers[p.tier] : ''} />
         {p.isVerified && (
           <View style={styles.fact}>
-            <Ionicons name="checkmark-circle" size={16} color="#059669" />
+            <Icon name="checkmark-circle" size={16} color="#059669" />
             <Text style={[styles.factText, { color: '#059669' }]}>{l.verified}</Text>
           </View>
         )}
         {p.city && (
           <View style={styles.fact}>
-            <Ionicons name="location-outline" size={15} color={colors.textSecondary} />
+            <Icon name="location-outline" size={15} color={colors.textSecondary} />
             <Text style={[styles.factText, { color: colors.textSecondary }]}>{tr(p.city)}</Text>
           </View>
         )}
         {p.experienceYears != null && (
           <View style={styles.fact}>
-            <Ionicons name="briefcase-outline" size={15} color={colors.textSecondary} />
+            <Icon name="briefcase-outline" size={15} color={colors.textSecondary} />
             <Text style={[styles.factText, { color: colors.textSecondary }]}>{`${p.experienceYears} ${plural(p.experienceYears, locale, l.years)}`}</Text>
           </View>
         )}
@@ -100,7 +100,7 @@ export function ProviderProfileSections({ profile: p, labels: l, tr, locale }: {
         <View style={styles.viewer}>
           {open && <Image source={{ uri: open.uri }} style={styles.full} resizeMode="contain" accessibilityLabel={`${open.label} full`} />}
           <TouchableOpacity style={styles.close} onPress={() => setOpen(null)} accessibilityLabel="Close" accessibilityRole="button">
-            <Ionicons name="close" size={28} color="#fff" />
+            <Icon name="close" size={28} color="#fff" />
           </TouchableOpacity>
         </View>
       </Modal>

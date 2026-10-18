@@ -35,7 +35,7 @@ describe('EmptyState', () => {
   it('renders action button when actionLabel and onAction provided', () => {
     const onAction = jest.fn();
     const { getByText } = render(
-      <EmptyState icon="add-outline" title="No tasks" actionLabel="Create Task" onAction={onAction} />,
+      <EmptyState icon="add" title="No tasks" actionLabel="Create Task" onAction={onAction} />,
       { wrapper: Wrapper }
     );
     expect(getByText('Create Task')).toBeTruthy();
@@ -43,7 +43,7 @@ describe('EmptyState', () => {
 
   it('does not render action button when actionLabel missing', () => {
     const { queryByText } = render(
-      <EmptyState icon="add-outline" title="No tasks" onAction={() => {}} />,
+      <EmptyState icon="add" title="No tasks" onAction={() => {}} />,
       { wrapper: Wrapper }
     );
     expect(queryByText('Create Task')).toBeNull();
@@ -51,7 +51,7 @@ describe('EmptyState', () => {
 
   it('does not render action button when onAction missing', () => {
     const { queryByText } = render(
-      <EmptyState icon="add-outline" title="No tasks" actionLabel="Create Task" />,
+      <EmptyState icon="add" title="No tasks" actionLabel="Create Task" />,
       { wrapper: Wrapper }
     );
     expect(queryByText('Create Task')).toBeNull();
@@ -60,7 +60,7 @@ describe('EmptyState', () => {
   it('calls onAction when button pressed', () => {
     const onAction = jest.fn();
     const { getByText } = render(
-      <EmptyState icon="add-outline" title="No tasks" actionLabel="Create Task" onAction={onAction} />,
+      <EmptyState icon="add" title="No tasks" actionLabel="Create Task" onAction={onAction} />,
       { wrapper: Wrapper }
     );
     fireEvent.press(getByText('Create Task'));

@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
@@ -16,7 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardOffset } from '@/lib/useKeyboardOffset';
 import { AUTH_CLOSE_SIZE, useAuthTopSpacing } from '@/lib/authLayout';
 import { useKeyboardAwareScroll } from '@/lib/useKeyboardAwareScroll';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/components/Icon';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Haptics from 'expo-haptics';
 import { GoogleIcon } from '@/components/GoogleIcon';
@@ -26,6 +25,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { LogoWordmark } from '@/components/Logo';
 import { Alert } from '@/lib/dialog';
+import { GradientButton, Input } from '@/components/Premium';
 
 export default function LoginScreen() {
   const { login, loginWithGoogle, loginWithApple } = useAuth();
@@ -117,7 +117,7 @@ export default function LoginScreen() {
         accessibilityRole="button"
         accessibilityLabel={t.common.cancel}
       >
-        <Ionicons name="close" size={22} color={colors.text} />
+        <Icon name="close" size={22} color={colors.text} />
       </TouchableOpacity>
       <ScrollView {...kbScroll}
         contentContainerStyle={[styles.inner, { paddingTop: top.contentPaddingTop, paddingBottom: insets.bottom + 24 + keyboardOffset }]}
@@ -166,7 +166,7 @@ export default function LoginScreen() {
         )}
 
         <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>{L.emailLabel}</Text>
-        <TextInput
+        <Input
           style={[styles.input, { backgroundColor: colors.inputBg, borderColor: identifier ? colors.inputBorder : colors.border, color: colors.text }]}
           placeholder={L.identifierPh}
           placeholderTextColor={colors.textTertiary}
@@ -180,7 +180,7 @@ export default function LoginScreen() {
 
         <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>{L.passLabel}</Text>
         <View style={[styles.passwordRow, { backgroundColor: colors.inputBg, borderColor: password ? colors.inputBorder : colors.border }]}>
-          <TextInput
+          <Input
             style={[styles.passwordInput, { color: colors.text }]}
             placeholder={L.passPh}
             placeholderTextColor={colors.textTertiary}
@@ -195,11 +195,11 @@ export default function LoginScreen() {
             onPress={() => setShowPassword(v => !v)}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Ionicons name={showPassword ? 'eye-outline' : 'eye-off-outline'} size={20} color={colors.textTertiary} />
+            <Icon name={showPassword ? 'eye-outline' : 'eye-off-outline'} size={20} color={colors.textTertiary} />
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity
+        <GradientButton
           style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleLogin}
           disabled={loading}
@@ -211,7 +211,7 @@ export default function LoginScreen() {
           ) : (
             <Text style={styles.buttonText}>{L.btn}</Text>
           )}
-        </TouchableOpacity>
+        </GradientButton>
 
         <TouchableOpacity style={styles.forgotLink} onPress={() => router.push('/(auth)/forgot-password')}>
           <Text style={[styles.forgotLinkText, { color: colors.textSecondary }]}>{t.forgotPassword.title}?</Text>

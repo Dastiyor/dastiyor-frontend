@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  TextInput,
-  TouchableOpacity,
   StyleSheet,
   ScrollView,
   KeyboardAvoidingView,
@@ -24,11 +22,13 @@ import { track, AnalyticsEvent } from '@/lib/analytics';
 import { useConfig } from '@/lib/useConfig';
 import { Alert } from '@/lib/dialog';
 import { ChipGroup } from '@/components/ChipGroup';
+import { GradientButton, Input, PressScale, useChipStyle } from '@/components/Premium';
 
 
 export default function CreateTaskScreen() {
   const { t, tr } = useLanguage();
   const { colors } = useTheme();
+  const chipStyle = useChipStyle();
   const ct = t.createTask;
   const { config } = useConfig();
   const insets = useSafeAreaInsets();
@@ -105,10 +105,10 @@ export default function CreateTaskScreen() {
     <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView {...kbScroll} contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 40 + keyboardOffset }]} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
         <Text style={[styles.label, { color: colors.text }]}>{ct.titleLabel}</Text>
-        <TextInput style={inputStyle} placeholder={ct.titlePh} placeholderTextColor={colors.textTertiary} value={title} onChangeText={setTitle} maxLength={120} />
+        <Input style={inputStyle} placeholder={ct.titlePh} placeholderTextColor={colors.textTertiary} value={title} onChangeText={setTitle} maxLength={120} />
 
         <Text style={[styles.label, { color: colors.text }]}>{ct.descLabel}</Text>
-        <TextInput style={[...inputStyle, styles.textareaNoMb]} placeholder={ct.descPh} placeholderTextColor={colors.textTertiary} value={description} onChangeText={setDescription} multiline textAlignVertical="top" maxLength={1000} />
+        <Input style={[...inputStyle, styles.textareaNoMb]} placeholder={ct.descPh} placeholderTextColor={colors.textTertiary} value={description} onChangeText={setDescription} multiline textAlignVertical="top" maxLength={1000} />
         <Text style={styles.charCount}>{description.length}/1000</Text>
 
         <Text style={[styles.label, { color: colors.text }]}>{ct.categoryLabel}</Text>
@@ -120,9 +120,9 @@ export default function CreateTaskScreen() {
         <Text style={[styles.label, { color: colors.text }]}>{ct.budgetLabel}</Text>
         <View style={[styles.segmented, { borderColor: colors.border }]}>
           {(['fixed', 'negotiable'] as const).map((bv) => (
-            <TouchableOpacity
+            <PressScale
               key={bv}
-              style={[styles.segBtn, { backgroundColor: colors.surfaceAlt }, budgetType === bv && styles.segBtnActive]}
+              style={[styles.segBtn, budgetType === bv ? chipStyle.box(true) : { backgroundColor: colors.surfaceAlt }]}
               onPress={() => setBudgetType(bv)}
               accessibilityRole="radio"
               accessibilityState={{ selected: budgetType === bv, checked: budgetType === bv }}
@@ -130,12 +130,12 @@ export default function CreateTaskScreen() {
               <Text style={[styles.segText, { color: colors.textSecondary }, budgetType === bv && styles.segTextActive]}>
                 {bv === 'fixed' ? ct.fixed : ct.negotiable}
               </Text>
-            </TouchableOpacity>
+            </PressScale>
           ))}
         </View>
 
         {budgetType === 'fixed' ? (
-          <TextInput style={[...inputStyle, { marginBottom: 20 }]} placeholder={ct.amountPh} placeholderTextColor={colors.textTertiary} value={amount} onChangeText={setAmount} keyboardType="numeric" />
+          <Input style={[...inputStyle, { marginBottom: 20 }]} placeholder={ct.amountPh} placeholderTextColor={colors.textTertiary} value={amount} onChangeText={setAmount} keyboardType="numeric" />
         ) : null}
 
         <Text style={[styles.label, { color: colors.text }]}>{ct.urgencyLabel}</Text>
@@ -149,11 +149,11 @@ export default function CreateTaskScreen() {
         />
 
         <Text style={[styles.label, { color: colors.text }]}>{ct.addressLabel}</Text>
-        <TextInput style={[...inputStyle, { marginBottom: 28 }]} placeholder={ct.addressPh} placeholderTextColor={colors.textTertiary} value={address} onChangeText={setAddress} />
+        <Input style={[...inputStyle, { marginBottom: 28 }]} placeholder={ct.addressPh} placeholderTextColor={colors.textTertiary} value={address} onChangeText={setAddress} />
 
-        <TouchableOpacity style={[styles.btn, loading && styles.btnDisabled]} onPress={handleCreate} disabled={loading} accessibilityLabel={ct.publish} accessibilityRole="button">
+        <GradientButton style={[styles.btn, loading && styles.btnDisabled]} onPress={handleCreate} disabled={loading} accessibilityLabel={ct.publish} accessibilityRole="button">
           {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>{ct.publish}</Text>}
-        </TouchableOpacity>
+        </GradientButton>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -168,7 +168,6 @@ const styles = StyleSheet.create({
   charCount: { fontSize: 11, color: '#9CA3AF', textAlign: 'right', marginBottom: 20 },
   segmented: { flexDirection: 'row', borderRadius: 12, borderWidth: 1.5, borderColor: '#E5E7EB', overflow: 'hidden', marginBottom: 14 },
   segBtn: { flex: 1, padding: 12, alignItems: 'center', backgroundColor: '#F9FAFB' },
-  segBtnActive: { backgroundColor: '#2563EB' },
   segText: { fontSize: 13, fontWeight: '600', color: '#374151' },
   segTextActive: { color: '#fff' },
   btn: { backgroundColor: '#2563EB', borderRadius: 14, padding: 16, alignItems: 'center' },

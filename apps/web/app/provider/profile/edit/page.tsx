@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import PhoneField from '@/components/ui/PhoneField';
 import { useTranslation } from '@/lib/i18n';
 import { CATEGORIES, CITIES } from '@/lib/config-fallback';
 
@@ -303,23 +304,7 @@ export default function ProviderEditProfilePage() {
 
                         {/* Phone */}
                         <div style={{ marginBottom: '20px' }}>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#1E293B' }}>
-                                {t('profile.phoneLabel')}
-                            </label>
-                            <input
-                                type="tel"
-                                value={formData.phone}
-                                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                                placeholder="+992 XXX XXX XXX"
-                                style={{
-                                    width: '100%',
-                                    padding: '14px 16px',
-                                    borderRadius: '12px',
-                                    border: '1px solid #E2E8F0',
-                                    fontSize: '1rem',
-                                    outline: 'none'
-                                }}
-                            />
+                            <PhoneField phone={formData.phone} returnTo="/provider/profile/edit" />
                         </div>
 
                         {/* Bio (for Providers) */}

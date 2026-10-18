@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Animated, StyleSheet, Text } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/components/Icon';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { setOnNetworkError, setOnNetworkRecovered } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -49,7 +49,7 @@ export function OfflineBanner() {
       ]}
       pointerEvents="none"
     >
-      <Ionicons name="cloud-offline-outline" size={16} color="#fff" />
+      <Icon name="cloud-offline-outline" size={16} color="#fff" />
       <Text style={styles.text}>{t.common.noInternet}</Text>
     </Animated.View>
   );

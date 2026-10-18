@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import { isSafeAvatarUrl } from '@/lib/avatar-url';
+import { GradientFill } from '@/components/Premium';
 
 interface Props {
   name: string;
@@ -41,6 +42,7 @@ export function Avatar({ name, size = 56, avatarUrl }: Props) {
       style={[styles.base, { width: size, height: size, borderRadius: size / 2, backgroundColor: colors.accent }]}
       accessibilityLabel={name}
     >
+      <GradientFill radius={size / 2} />
       <Text style={[styles.text, { fontSize: size * 0.36 }]}>{ini}</Text>
     </View>
   );

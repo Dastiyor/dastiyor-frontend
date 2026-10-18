@@ -1,29 +1,33 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { BackHandler, ToastAndroid, Platform, AppState } from 'react-native';
 import { Tabs, useFocusEffect, router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon, type IconName } from '@/components/Icon';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useTheme } from '@/contexts/ThemeContext';
 import { useNotifPrefs } from '@/contexts/NotifPrefsContext';
 import { api } from '@/lib/api-client';
+import { TabBar } from '@/components/TabBar';
 import { BACK_PRESS_TIMEOUT_MS, BADGE_POLL_MS } from '@/lib/constants';
 
-type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
+// Each role's main screen right after Home. Customers hire, so the task feed drops off their bar
+// (Home's search and "See all" still open it) to make room for the "+" in the middle.
+const CUSTOMER_TABS = ['index', 'professionals', 'my', 'messages'];
+const PROVIDER_TABS = ['index', 'tasks', 'my', 'messages', 'professionals'];
+
 type Conversation = { partnerId: string; partnerName: string; taskId?: string; unreadCount: number; lastMessage: string };
 
-function TabIcon(active: IoniconName, inactive: IoniconName) {
-  function Icon({ focused, color, size }: { focused: boolean; color: string; size: number }) {
-    return <Ionicons name={focused ? active : inactive} size={size} color={color} />;
+// Thin line icon at rest, solid (Iconsax "Bold") when active.
+function TabIcon(name: IconName) {
+  function TabGlyph({ focused, color, size }: { focused: boolean; color: string; size: number }) {
+    return <Icon name={name} size={size} color={color} variant={focused ? 'Bold' : 'Linear'} />;
   }
-  Icon.displayName = 'TabIcon';
-  return Icon;
+  TabGlyph.displayName = 'TabIcon';
+  return TabGlyph;
 }
 
 export default function TabLayout() {
   const { user } = useAuth();
   const { t } = useLanguage();
-  const { colors } = useTheme();
   const { popupsEnabled } = useNotifPrefs();
   // Guests are shown the customer-flavoured label: signing up as a customer is
   // the default path, and tapping it routes to registration either way. Reading
@@ -107,48 +111,44 @@ export default function TabLayout() {
 
   return (
     <Tabs
+      tabBar={(props) => (
+        <TabBar
+          {...props}
+          order={isCustomer ? CUSTOMER_TABS : PROVIDER_TABS}
+          onCreate={isCustomer ? () => router.push(user ? '/create-task' : '/(auth)/register') : undefined}
+          createLabel={t.my.createTask}
+        />
+      )}
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.accent,
-        tabBarInactiveTintColor: colors.textTertiary,
-        tabBarStyle: {
-          borderTopColor: colors.tabBorder,
-          backgroundColor: colors.tabBar,
-          elevation: 8,
-          shadowColor: '#000',
-          shadowOpacity: 0.08,
-          shadowRadius: 12,
-          shadowOffset: { width: 0, height: -2 },
-        },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: t.tabs.home,
-          tabBarIcon: TabIcon('home', 'home-outline'),
+          tabBarIcon: TabIcon('home'),
         }}
       />
       <Tabs.Screen
         name="tasks"
         options={{
           title: t.tabs.tasks,
-          tabBarIcon: TabIcon('search', 'search-outline'),
+          tabBarIcon: TabIcon('search'),
         }}
       />
       <Tabs.Screen
         name="professionals"
         options={{
           title: t.tabs.professionals,
-          tabBarIcon: TabIcon('people', 'people-outline'),
+          tabBarIcon: TabIcon('people'),
         }}
       />
       <Tabs.Screen
         name="my"
         options={{
           title: isCustomer ? t.tabs.myTasks : t.tabs.responses,
-          tabBarIcon: TabIcon('clipboard', 'clipboard-outline'),
+          tabBarIcon: TabIcon('clipboard'),
         }}
         listeners={{ tabPress: guardTabPress }}
       />
@@ -156,18 +156,10 @@ export default function TabLayout() {
         name="messages"
         options={{
           title: t.tabs.messages,
-          tabBarIcon: TabIcon('chatbubbles', 'chatbubbles-outline'),
+          tabBarIcon: TabIcon('chatbubbles'),
           tabBarBadge: unreadMessages > 0 ? unreadMessages : undefined,
-          tabBarBadgeStyle: { backgroundColor: '#EF4444', fontSize: 10 },
         }}
         listeners={{ tabPress: guardTabPress }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: t.tabs.profile,
-          tabBarIcon: TabIcon('person', 'person-outline'),
-        }}
       />
     </Tabs>
   );

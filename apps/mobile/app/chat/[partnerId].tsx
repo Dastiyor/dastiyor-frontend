@@ -3,7 +3,6 @@ import {
   View,
   Text,
   FlatList,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
@@ -27,6 +26,7 @@ import { setActiveConversation } from '@/lib/notifications-handler';
 import { useKeyboardOffset } from '@/lib/useKeyboardOffset';
 import { formatTime, formatDate } from '@/lib/intl';
 import type { ChatMessage } from '@dastiyor/types';
+import { GradientButton, Input } from '@/components/Premium';
 
 export default function ChatScreen() {
   const { partnerId, partnerName, taskId, taskTitle } = useLocalSearchParams<{ partnerId: string; partnerName: string; taskId?: string; taskTitle?: string }>();
@@ -217,9 +217,9 @@ export default function ChatScreen() {
       ) : loadError ? (
         <View style={styles.center}>
           <Text style={[styles.errorText, { color: colors.textSecondary }]}>{t.chat.loadError}</Text>
-          <TouchableOpacity style={styles.retryBtn} onPress={() => { setLoading(true); fetchMessages(true).finally(() => setLoading(false)); }}>
+          <GradientButton style={styles.retryBtn} onPress={() => { setLoading(true); fetchMessages(true).finally(() => setLoading(false)); }}>
             <Text style={styles.retryBtnText}>{t.common.errorRetry}</Text>
-          </TouchableOpacity>
+          </GradientButton>
         </View>
       ) : (
         <FlatList
@@ -235,7 +235,7 @@ export default function ChatScreen() {
       )}
 
       <View style={[styles.inputBar, { backgroundColor: colors.surface, borderTopColor: colors.border, paddingBottom: inputPaddingBottom, marginBottom: keyboardOffset }]}>
-        <TextInput
+        <Input
           style={[styles.input, { backgroundColor: colors.surfaceAlt, color: colors.text }]}
           placeholder={t.chat.placeholder}
           placeholderTextColor={colors.textTertiary}
@@ -245,9 +245,9 @@ export default function ChatScreen() {
           maxLength={2000}
           returnKeyType="default"
         />
-        <TouchableOpacity style={[styles.sendBtn, (!text.trim() || sending) && styles.sendBtnDisabled]} onPress={sendMessage} disabled={!text.trim() || sending} accessibilityRole="button" accessibilityLabel={t.chat.placeholder}>
+        <GradientButton style={[styles.sendBtn, (!text.trim() || sending) && styles.sendBtnDisabled]} onPress={sendMessage} disabled={!text.trim() || sending} accessibilityRole="button" accessibilityLabel={t.chat.placeholder}>
           {sending ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.sendIcon}>↑</Text>}
-        </TouchableOpacity>
+        </GradientButton>
       </View>
     </KeyboardAvoidingView>
   );

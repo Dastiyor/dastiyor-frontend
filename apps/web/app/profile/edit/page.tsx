@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import PhoneField from '@/components/ui/PhoneField';
 import { toast } from '@/components/ui/Toast';
 import { useTranslation } from '@/lib/i18n';
 
@@ -255,22 +256,7 @@ export default function EditProfilePage() {
 
                         {/* Phone */}
                         <div style={{ marginBottom: '20px' }}>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500' }}>
-                                {t('profile.phoneLabel')}
-                            </label>
-                            <input
-                                type="tel"
-                                value={formData.phone}
-                                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                                placeholder="+992 XXX XXX XXX"
-                                style={{
-                                    width: '100%',
-                                    padding: '14px 16px',
-                                    borderRadius: '12px',
-                                    border: '1px solid var(--border)',
-                                    fontSize: '1rem'
-                                }}
-                            />
+                            <PhoneField phone={formData.phone} returnTo="/profile/edit" />
                         </div>
 
                         {/* Bio (for Providers) */}

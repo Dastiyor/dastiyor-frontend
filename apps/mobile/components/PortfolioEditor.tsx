@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, ActivityIndicator } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/components/Icon';
 import type { PortfolioProject } from '@dastiyor/types';
 import { api, uploadFile } from '@/lib/api-client';
 import { Alert } from '@/lib/dialog';
 import { useTheme } from '@/contexts/ThemeContext';
+import { GradientButton, Input } from '@/components/Premium';
 
 const MAX_PHOTOS = 8;
 
@@ -109,22 +110,22 @@ export function PortfolioEditor({ labels: l }: { labels: PortfolioLabels }) {
       {draft ? (
         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Text style={[styles.label, { color: colors.text }]}>{l.projectTitle}</Text>
-          <TextInput accessibilityLabel={l.projectTitle} style={input} value={draft.title} maxLength={100}
+          <Input accessibilityLabel={l.projectTitle} style={input} value={draft.title} maxLength={100}
             onChangeText={(title) => setDraft({ ...draft, title })} />
           <Text style={[styles.label, { color: colors.text }]}>{l.projectDescription}</Text>
-          <TextInput accessibilityLabel={l.projectDescription} style={[...input, { minHeight: 80 }]} value={draft.description}
+          <Input accessibilityLabel={l.projectDescription} style={[...input, { minHeight: 80 }]} value={draft.description}
             multiline textAlignVertical="top" maxLength={1000} onChangeText={(description) => setDraft({ ...draft, description })} />
           <View style={styles.photos}>
             {draft.images.map((src, i) => (
               <TouchableOpacity key={src + i} onPress={() => setDraft({ ...draft, images: draft.images.filter((_, j) => j !== i) })}>
                 <Image source={{ uri: src }} style={styles.thumb} accessibilityLabel={`${l.photo} ${i + 1}`} />
-                <Ionicons name="close-circle" size={20} color="#DC2626" style={styles.thumbX} />
+                <Icon name="close-circle" size={20} color="#DC2626" style={styles.thumbX} />
               </TouchableOpacity>
             ))}
             {draft.images.length < MAX_PHOTOS && (
               <TouchableOpacity style={[styles.thumb, styles.addThumb, { borderColor: colors.border }]} onPress={addPhotos}
                 disabled={busy} accessibilityRole="button" accessibilityLabel={l.addPhotos}>
-                {busy ? <ActivityIndicator color="#2563EB" /> : <Ionicons name="images-outline" size={24} color={colors.textSecondary} />}
+                {busy ? <ActivityIndicator color="#2563EB" /> : <Icon name="images-outline" size={24} color={colors.textSecondary} />}
               </TouchableOpacity>
             )}
           </View>
@@ -132,17 +133,17 @@ export function PortfolioEditor({ labels: l }: { labels: PortfolioLabels }) {
             <TouchableOpacity style={[styles.btn, styles.btnOutline, { borderColor: colors.border }]} onPress={() => setDraft(null)} accessibilityRole="button">
               <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>{l.cancel}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.btn, (busy || !draft.title.trim()) && { opacity: 0.6 }]} onPress={save}
+            <GradientButton style={[styles.btn, (busy || !draft.title.trim()) && { opacity: 0.6 }]} onPress={save}
               disabled={busy || !draft.title.trim()} accessibilityRole="button">
               <Text style={styles.btnText}>{l.saveProject}</Text>
-            </TouchableOpacity>
+            </GradientButton>
           </View>
         </View>
       ) : (
-        <TouchableOpacity style={styles.btn} onPress={() => setDraft({ id: null, title: '', description: '', images: [] })}
+        <GradientButton style={styles.btn} onPress={() => setDraft({ id: null, title: '', description: '', images: [] })}
           disabled={projects.length >= 20} accessibilityRole="button">
           <Text style={styles.btnText}>{l.addProject}</Text>
-        </TouchableOpacity>
+        </GradientButton>
       )}
 
       {projects.length === 0 && !draft && <Text style={{ color: colors.textSecondary }}>{l.empty}</Text>}
@@ -155,17 +156,17 @@ export function PortfolioEditor({ labels: l }: { labels: PortfolioLabels }) {
               {p.description ? <Text style={{ color: colors.textSecondary, marginTop: 2 }}>{p.description}</Text> : null}
             </View>
             <TouchableOpacity style={iconBtn} disabled={i === 0} onPress={() => move(i, -1)} accessibilityLabel={l.moveUp}>
-              <Ionicons name="arrow-up" size={16} color={i === 0 ? colors.border : colors.textSecondary} />
+              <Icon name="arrow-up" size={16} color={i === 0 ? colors.border : colors.textSecondary} />
             </TouchableOpacity>
             <TouchableOpacity style={iconBtn} disabled={i === projects.length - 1} onPress={() => move(i, 1)} accessibilityLabel={l.moveDown}>
-              <Ionicons name="arrow-down" size={16} color={i === projects.length - 1 ? colors.border : colors.textSecondary} />
+              <Icon name="arrow-down" size={16} color={i === projects.length - 1 ? colors.border : colors.textSecondary} />
             </TouchableOpacity>
             <TouchableOpacity style={iconBtn} accessibilityLabel={l.edit}
               onPress={() => setDraft({ id: p.id, title: p.title, description: p.description ?? '', images: p.images })}>
-              <Ionicons name="pencil" size={16} color={colors.textSecondary} />
+              <Icon name="pencil" size={16} color={colors.textSecondary} />
             </TouchableOpacity>
             <TouchableOpacity style={iconBtn} onPress={() => remove(p.id)} accessibilityLabel={l.delete}>
-              <Ionicons name="trash-outline" size={16} color="#DC2626" />
+              <Icon name="trash-outline" size={16} color="#DC2626" />
             </TouchableOpacity>
           </View>
           {p.images.length > 0 && (

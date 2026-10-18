@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/components/Icon';
 import { LogoMark } from '@/components/Logo';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { type Locale } from '@/lib/i18n';
@@ -47,7 +47,7 @@ export default function OnboardingScreen() {
       {/* Lang picker top-right */}
       <View style={styles.topRow}>
         <TouchableOpacity style={styles.langBtn} onPress={() => setLangModal(true)} activeOpacity={0.7}>
-          <Ionicons name="globe-outline" size={16} color="#4648d4" />
+          <Icon name="globe-outline" size={16} color="#4648d4" />
           <Text style={styles.langBtnText}>{LANG_CODE[locale]}</Text>
         </TouchableOpacity>
       </View>
@@ -69,7 +69,7 @@ export default function OnboardingScreen() {
           return (
           <View key={i} style={styles.featureRow}>
             <View style={styles.featureIcon}>
-              <Ionicons name={icon} size={22} color="#4648d4" />
+              <Icon name={icon} size={22} color="#4648d4" />
             </View>
             <View style={styles.featureText}>
               <Text style={styles.featureTitle}>{f.title}</Text>
@@ -82,7 +82,7 @@ export default function OnboardingScreen() {
       {/* CTA */}
       <TouchableOpacity style={styles.cta} onPress={finish} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t.cta}>
         <Text style={styles.ctaText}>{t.cta}</Text>
-        <Ionicons name="arrow-forward" size={20} color="#ffffff" />
+        <Icon name="arrow-forward" size={20} color="#ffffff" />
       </TouchableOpacity>
 
       {/* Language modal */}
@@ -92,7 +92,7 @@ export default function OnboardingScreen() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{t.langTitle}</Text>
               <TouchableOpacity onPress={() => setLangModal(false)} hitSlop={8}>
-                <Ionicons name="close" size={22} color="#464554" />
+                <Icon name="close" size={22} color="#464554" />
               </TouchableOpacity>
             </View>
             {LANG_OPTIONS.map((opt) => {
@@ -106,7 +106,7 @@ export default function OnboardingScreen() {
                 >
                   <Text style={[styles.langOptionLabel, active && styles.langOptionLabelActive]}>{opt.label}</Text>
                   <Text style={styles.langOptionSub}>{opt.sub}</Text>
-                  {active && <Ionicons name="checkmark" size={18} color="#4648d4" style={styles.langCheck} />}
+                  {active && <Icon name="checkmark" size={18} color="#4648d4" style={styles.langCheck} />}
                 </TouchableOpacity>
               );
             })}

@@ -2,7 +2,6 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
@@ -11,7 +10,7 @@ import {
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/components/Icon';
 import { api } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -28,6 +27,7 @@ import { useConfig } from '@/lib/useConfig';
 import { useTheme } from '@/contexts/ThemeContext';
 import { CATEGORY_ICONS } from '@/lib/categoryIcons';
 import { NOTIF_POLL_MS } from '@/lib/constants';
+import { Input, useFocusGlow, PressScale, useChipStyle } from '@/components/Premium';
 
 const CARD_COLORS = ['#2563EB', '#1E293B', '#7C3AED', '#0F766E'];
 
@@ -45,6 +45,8 @@ export default function HomeScreen() {
   const { user } = useAuth();
   const { t, locale, tr } = useLanguage();
   const { colors } = useTheme();
+  const chipStyle = useChipStyle();
+  const searchGlow = useFocusGlow();
   const { config } = useConfig();
   const insets = useSafeAreaInsets();
   const toast = useToast();
@@ -158,9 +160,10 @@ export default function HomeScreen() {
         </View>
 
         {/* Search bar */}
-        <View style={[styles.searchBar, { backgroundColor: colors.surface }]}>
-          <Ionicons name="search-outline" size={18} color={colors.textTertiary} />
-          <TextInput
+        <View style={[styles.searchBar, { backgroundColor: colors.surface }, searchGlow.style]}>
+          <Icon name="search-outline" size={18} color={colors.textTertiary} />
+          <Input
+            {...searchGlow.handlers}
             style={[styles.searchInput, { color: colors.text }]}
             placeholder={t.home.search}
             placeholderTextColor={colors.textTertiary}
@@ -180,7 +183,7 @@ export default function HomeScreen() {
               accessibilityRole="button"
               accessibilityLabel={t.common.cancel}
             >
-              <Ionicons name="close-circle" size={18} color={colors.textTertiary} />
+              <Icon name="close-circle" size={18} color={colors.textTertiary} />
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
@@ -189,7 +192,7 @@ export default function HomeScreen() {
               accessibilityRole="button"
               accessibilityLabel={t.tabs.tasks}
             >
-              <Ionicons
+              <Icon
                 name="options-outline"
                 size={18}
                 color={hasActiveFilters(filters) ? colors.accent : colors.textSecondary}
@@ -206,9 +209,9 @@ export default function HomeScreen() {
             contentContainerStyle={styles.catList}
           >
             {categories.map((cat) => (
-              <TouchableOpacity
+              <PressScale
                 key={cat.value === '' ? '__all__' : cat.value}
-                style={[styles.catChip, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                style={[styles.catChip, chipStyle.box(false)]}
                 onPress={() =>
                   router.push({
                     pathname: '/(tabs)/tasks',
@@ -217,7 +220,7 @@ export default function HomeScreen() {
                 }
               >
                 <Text style={[styles.catChipText, { color: colors.text }]}>{cat.name}</Text>
-              </TouchableOpacity>
+              </PressScale>
             ))}
           </ScrollView>
         </View>
@@ -246,15 +249,14 @@ export default function HomeScreen() {
                   const iconName = CATEGORY_ICONS[task.category] ?? 'briefcase-outline';
                   const bgColor = CARD_COLORS[i % CARD_COLORS.length];
                   return (
-                    <TouchableOpacity
+                    <PressScale
                       key={task.id}
                       style={[styles.featCard, { backgroundColor: bgColor }]}
                       onPress={() => router.push(`/task/${task.id}`)}
-                      activeOpacity={0.85}
                     >
                       <View style={styles.featCardTop}>
                         <View style={styles.featIconCircle}>
-                          <Ionicons name={iconName} size={16} color="#fff" />
+                          <Icon name={iconName} size={16} color="#fff" />
                         </View>
                         <View style={styles.featBadge}>
                           <Text style={styles.featBadgeText}>
@@ -265,7 +267,7 @@ export default function HomeScreen() {
                       <Text style={styles.featTitle} numberOfLines={2}>{task.title}</Text>
                       {task.city ? (
                         <View style={styles.featLocation}>
-                          <Ionicons name="location-outline" size={11} color="rgba(255,255,255,0.75)" />
+                          <Icon name="location-outline" size={11} color="rgba(255,255,255,0.75)" />
                           <Text style={styles.featLocationText}>{tr(task.city)}</Text>
                         </View>
                       ) : null}
@@ -277,7 +279,7 @@ export default function HomeScreen() {
                           <Text style={styles.featTagText}>{tr(task.budget)}</Text>
                         </View>
                       </View>
-                    </TouchableOpacity>
+                    </PressScale>
                   );
                 })}
               </>
@@ -298,14 +300,13 @@ export default function HomeScreen() {
                   const urgencyColor = URGENCY_COLORS[task.urgency] ?? '#6B7280';
                   const urgencyLabel = t.urgency[task.urgency as keyof typeof t.urgency] ?? task.urgency;
                   return (
-                    <TouchableOpacity
+                    <PressScale
                       key={task.id}
                       style={[styles.popCard, { backgroundColor: colors.surface }]}
                       onPress={() => router.push(`/task/${task.id}`)}
-                      activeOpacity={0.75}
                     >
                       <View style={[styles.popIconBox, { backgroundColor: colors.iconBg }]}>
-                        <Ionicons name={iconName} size={22} color="#2563EB" />
+                        <Icon name={iconName} size={22} color="#2563EB" />
                       </View>
                       <View style={styles.popBody}>
                         <View style={styles.popTopRow}>
@@ -322,7 +323,7 @@ export default function HomeScreen() {
                         ) : null}
                         {task.city ? (
                           <View style={styles.popLocation}>
-                            <Ionicons name="location-outline" size={11} color={colors.textTertiary} />
+                            <Icon name="location-outline" size={11} color={colors.textTertiary} />
                             <Text style={[styles.popLocationText, { color: colors.textTertiary }]}>{tr(task.city)}</Text>
                           </View>
                         ) : null}
@@ -331,7 +332,7 @@ export default function HomeScreen() {
                           <Text style={[styles.popMeta, { color: colors.textTertiary }]}>{timeAgo(task.postedAt, locale)}</Text>
                         </View>
                       </View>
-                    </TouchableOpacity>
+                    </PressScale>
                   );
                 })}
               </>
@@ -387,7 +388,7 @@ const styles = StyleSheet.create({
 
   searchBar: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: '#fff', borderRadius: 14, marginHorizontal: 20, marginTop: 16,
+    backgroundColor: '#fff', borderRadius: 14, marginHorizontal: 20, marginTop: 16, borderWidth: 1.5, borderColor: 'transparent',
     paddingHorizontal: 14, paddingVertical: 11,
     shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2,
   },
@@ -400,6 +401,7 @@ const styles = StyleSheet.create({
   catList: {
     alignItems: 'center',
     paddingHorizontal: 20,
+    paddingVertical: 8, // room for the chips' drop shadow; ScrollView clips it
   },
   catChip: {
     paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20,
@@ -419,6 +421,7 @@ const styles = StyleSheet.create({
   featCard: {
     borderRadius: 20, padding: 18, marginHorizontal: 20, marginBottom: 12,
     minHeight: 190, justifyContent: 'space-between',
+    shadowColor: '#1E3A8A', shadowOpacity: 0.08, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 3,
   },
   featCardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
   featIconCircle: {
@@ -445,7 +448,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'flex-start',
     backgroundColor: '#fff', borderRadius: 16, padding: 14,
     marginHorizontal: 20, marginBottom: 10,
-    shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2,
+    shadowColor: '#1E3A8A', shadowOpacity: 0.08, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 3,
   },
   popIconBox: {
     width: 48, height: 48, borderRadius: 14, backgroundColor: '#EFF6FF',

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
@@ -20,6 +19,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { goBack } from '@/lib/nav';
 import { Alert } from '@/lib/dialog';
+import { GradientButton, Input } from '@/components/Premium';
 
 /**
  * Phone verification, mirroring the web /verify-phone page.
@@ -102,7 +102,7 @@ export default function VerifyPhoneScreen() {
                 </View>
                 <Text style={styles.phonePrefixText}>+992</Text>
               </View>
-              <TextInput
+              <Input
                 style={[styles.phoneInput, { color: colors.text }]}
                 value={phone}
                 onChangeText={(v) => setPhone(v.replace(/\D/g, '').slice(0, 9))}
@@ -114,7 +114,7 @@ export default function VerifyPhoneScreen() {
               />
             </View>
 
-            <TouchableOpacity
+            <GradientButton
               style={[styles.btn, (busy || phone.length < 9) && styles.btnDisabled]}
               onPress={sendCode}
               disabled={busy || phone.length < 9}
@@ -122,14 +122,14 @@ export default function VerifyPhoneScreen() {
               accessibilityRole="button"
             >
               {busy ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>{vp.sendCode}</Text>}
-            </TouchableOpacity>
+            </GradientButton>
           </>
         ) : (
           <>
             <Text style={[styles.sent, { color: colors.textSecondary }]}>{vp.codeSent.replace('{phone}', fullPhone)}</Text>
 
             <Text style={[styles.label, { color: colors.text }]}>{vp.codeLabel}</Text>
-            <TextInput
+            <Input
               style={[styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]}
               value={code}
               onChangeText={(v) => setCode(v.replace(/\D/g, '').slice(0, 6))}
@@ -139,7 +139,7 @@ export default function VerifyPhoneScreen() {
               maxLength={6}
             />
 
-            <TouchableOpacity
+            <GradientButton
               style={[styles.btn, (busy || code.length < 6) && styles.btnDisabled]}
               onPress={verifyCode}
               disabled={busy || code.length < 6}
@@ -147,7 +147,7 @@ export default function VerifyPhoneScreen() {
               accessibilityRole="button"
             >
               {busy ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>{vp.verify}</Text>}
-            </TouchableOpacity>
+            </GradientButton>
 
             <TouchableOpacity
               style={styles.linkBtn}

@@ -18,6 +18,7 @@ import { PasswordInput } from '@/components/PasswordInput';
 import { useTheme } from '@/contexts/ThemeContext';
 import { passwordStrength } from '@/lib/validation';
 import { Alert } from '@/lib/dialog';
+import { GradientButton } from '@/components/Premium';
 
 export default function ChangePasswordScreen() {
   const { t } = useLanguage();
@@ -75,9 +76,9 @@ export default function ChangePasswordScreen() {
         <Text style={[styles.label, { color: colors.text }]}>{cp.confirm}</Text>
         <PasswordInput {...share} showToggle={false} value={confirm} onChangeText={setConfirm} placeholder={cp.confirmPh} />
 
-        <TouchableOpacity style={[styles.btn, saving && styles.btnDisabled]} onPress={handleSave} disabled={saving} accessibilityLabel={cp.btn} accessibilityRole="button">
+        <GradientButton style={[styles.btn, saving && styles.btnDisabled]} onPress={handleSave} disabled={saving} accessibilityLabel={cp.btn} accessibilityRole="button">
           {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>{cp.btn}</Text>}
-        </TouchableOpacity>
+        </GradientButton>
       </ScrollView>
     </KeyboardAvoidingView>
   );

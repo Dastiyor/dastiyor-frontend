@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Keyboard, Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { FullWindowOverlay } from 'react-native-screens';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/components/Icon';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -54,6 +54,10 @@ function enqueue(req: DialogRequest) {
 
 export const Alert = {
     alert(title: string, message?: string, buttons?: DialogButton[], options?: DialogOptions) {
+        // Most dialogs follow a form submit with the field still focused, and many buttons then
+        // close a modal screen. Closing it while a field is first responder leaves the screen
+        // underneath with a dead header back button on iOS, so the keyboard goes now.
+        Keyboard.dismiss();
         enqueue({ title, message, buttons: buttons?.length ? buttons : [], options });
     },
 };
@@ -139,7 +143,7 @@ export function DialogHost() {
                             accessibilityLabel={cancelButton.text ?? t.common.cancel}
                             style={styles.close}
                         >
-                            <Ionicons name="close" size={18} color={colors.textTertiary} />
+                            <Icon name="close" size={18} color={colors.textTertiary} />
                         </Pressable>
                     )}
                 </Pressable>

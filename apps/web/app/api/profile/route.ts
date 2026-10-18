@@ -127,54 +127,35 @@ export async function PUT(request: Request) {
             newEmail = trimmed;
         }
 
-        // A phone set here gets the same rules as one set through the OTP flow.
-        // It used to be written raw: no format check, and no check that another
-        // account already had it. `phone` is a login identifier -- login resolves
-        // it with findFirst -- so two accounts sharing a number makes which one
-        // you reach arbitrary.
+        // The phone is a login identifier and the proof of who someone is, so it
+        // only changes through SMS: POST /api/auth/verify-phone checks a code and
+        // then saves it as verified. Here it used to be writable directly, which
+        // let anyone claim a stranger's number (blocking that person's signup) and
+        // log in with it unconfirmed, or clear it and lock themselves out.
         //
-        // Changing the number also clears phoneVerified. Verification belongs to
-        // a specific number, and only POST /api/auth/verify-phone can grant it;
-        // without this, verifying one number and then editing to another would
-        // carry the verified flag onto a number nobody confirmed. Re-saving the
-        // same number leaves the flag alone, so an unrelated profile edit does
-        // not force someone to verify again.
-        let phoneUpdate: { phone: string | null; phoneVerified?: boolean } | undefined;
+        // The edit forms still resubmit the current number, so that is accepted --
+        // in any format -- and left untouched. Anything else is refused.
         if (phone !== undefined) {
             const rawPhone = typeof phone === 'string' ? phone.trim() : '';
-
-            if (rawPhone === '') {
-                phoneUpdate = { phone: null, phoneVerified: false };
-            } else {
-                if (!isValidPhone(rawPhone)) {
-                    return NextResponse.json(
-                        { error: 'Неверный формат номера. Используйте +992XXXXXXXXX' },
-                        { status: 400 }
-                    );
-                }
-
-                const normalized = normalizePhone(rawPhone);
-
-                const phoneOwner = await prisma.user.findFirst({
-                    where: { phone: normalized, NOT: { id: payload.id as string } },
-                    select: { id: true },
-                });
-                if (phoneOwner) {
-                    return NextResponse.json(
-                        { error: 'Этот номер телефона уже используется другим аккаунтом' },
-                        { status: 409 }
-                    );
-                }
-
-                const current = await prisma.user.findUnique({
-                    where: { id: payload.id as string },
-                    select: { phone: true },
-                });
-                phoneUpdate = {
-                    phone: normalized,
-                    // undefined leaves the column untouched when nothing changed.
-                    phoneVerified: current?.phone === normalized ? undefined : false,
-                };
+            if (rawPhone !== '' && !isValidPhone(rawPhone)) {
+                return NextResponse.json(
+                    { error: 'Неверный формат номера. Используйте +992XXXXXXXXX' },
+                    { status: 400 }
+                );
+            }
+            const current = await prisma.user.findUnique({
+                where: { id: payload.id as string },
+                select: { phone: true },
+            });
+            const requested = rawPhone === '' ? null : normalizePhone(rawPhone);
+            if (requested !== (current?.phone ?? null)) {
+                return NextResponse.json(
+                    {
+                        error: 'Номер телефона можно изменить только с подтверждением по SMS',
+                        code: 'PHONE_CHANGE_REQUIRES_VERIFICATION',
+                    },
+                    { status: 403 }
+                );
             }
         }
 
@@ -197,7 +178,6 @@ export async function PUT(request: Request) {
                 // number, and since phone-registered users log in with it, that
                 // locked them out of their own account for good. Send an explicit
                 // empty string to clear a field on purpose.
-                ...(phoneUpdate ?? {}),
                 ...(bio !== undefined ? { bio: bio ? sanitizeString(bio.trim()) : null } : {}),
                 ...(skills !== undefined ? { skills: skills ? sanitizeString(skills.trim()) : null } : {}),
                 ...(avatar !== undefined ? { avatar: safeAvatar } : {}),

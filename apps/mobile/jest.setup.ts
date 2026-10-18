@@ -73,11 +73,6 @@ jest.mock('react-native-purchases', () => ({
   PURCHASES_ERROR_CODE: { PURCHASE_CANCELLED_ERROR: '1' },
 }));
 
-// Mock @expo/vector-icons
-jest.mock('@expo/vector-icons', () => ({
-  Ionicons: 'Ionicons',
-}));
-
 // Mock api-client callbacks (prevent module-level side effects)
 jest.mock('@/lib/api-client', () => ({
   // Resolve rather than returning undefined: callers chain .catch() on these.

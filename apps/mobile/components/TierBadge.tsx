@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/components/Icon';
 import type { SubscriptionTier } from '@dastiyor/types';
 
 const COLORS: Record<SubscriptionTier, { bg: string; fg: string }> = {
@@ -14,7 +14,7 @@ export function TierBadge({ tier, label }: { tier: SubscriptionTier | null; labe
   const { bg, fg } = COLORS[tier];
   return (
     <View style={[styles.badge, { backgroundColor: bg }]}>
-      <Ionicons name="ribbon" size={12} color={fg} />
+      <Icon name="ribbon" size={12} color={fg} />
       <Text style={[styles.text, { color: fg }]}>{label}</Text>
     </View>
   );

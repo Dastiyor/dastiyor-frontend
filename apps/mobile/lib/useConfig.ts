@@ -7,6 +7,8 @@ interface AppConfig {
   estimatedTimes: string[];
   subscriptionsEnabled: boolean;
   mobilePurchaseEnabled: boolean;
+  // Admin-managed (dastiyor-admin → Settings → Company); '' means not set.
+  company: { name: string; email: string; phone: string; supportEmail: string; address: string };
 }
 
 const FALLBACK: AppConfig = {
@@ -22,6 +24,8 @@ const FALLBACK: AppConfig = {
   // Off until an up-to-date server says otherwise.
   subscriptionsEnabled: false,
   mobilePurchaseEnabled: false,
+  // Mirrors COMPANY_DEFAULTS in the web app's lib/company-defaults.ts.
+  company: { name: 'Dastiyor', email: 'info@dastiyor.com', phone: '', supportEmail: 'support@dastiyor.com', address: '' },
 };
 
 const TTL_MS = 10 * 60 * 1000; // 10 minutes

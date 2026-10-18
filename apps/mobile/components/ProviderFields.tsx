@@ -1,6 +1,7 @@
-import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '@/contexts/ThemeContext';
 import { ChipGroup } from '@/components/ChipGroup';
+import { Input } from '@/components/Premium';
 
 export const MAX_CATEGORIES = 5;
 
@@ -29,7 +30,7 @@ export function ProviderFields({ value, onChange, categories, cities, tr, labels
   return (
     <View>
       <Text style={[styles.label, { color: colors.text }]}>{labels.experience}</Text>
-      <TextInput
+      <Input
         accessibilityLabel={labels.experience}
         style={[styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]}
         value={value.experience}

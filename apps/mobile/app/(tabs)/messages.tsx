@@ -19,6 +19,7 @@ import { Avatar } from '@/components/Avatar';
 import { useToast } from '@/contexts/ToastContext';
 import type { Conversation } from '@dastiyor/types';
 import { Alert } from '@/lib/dialog';
+import { PressScale, FadeIn } from '@/components/Premium';
 
 export default function MessagesScreen() {
   const { t } = useLanguage();
@@ -81,7 +82,7 @@ export default function MessagesScreen() {
     const roleKey = item.partnerRole as keyof typeof t.profile.roles | undefined;
     const roleLabel = roleKey ? (t.profile.roles[roleKey] ?? item.partnerRole) : null;
     return (
-      <TouchableOpacity style={[styles.row, { backgroundColor: colors.surface }]} onPress={() => openChat(item)} onLongPress={() => confirmDelete(item)} delayLongPress={350} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel={item.partnerName}>
+      <PressScale style={[styles.row, { backgroundColor: colors.surface }]} onPress={() => openChat(item)} onLongPress={() => confirmDelete(item)} delayLongPress={350} accessibilityRole="button" accessibilityLabel={item.partnerName}>
         <Avatar name={item.partnerName} avatarUrl={item.partnerAvatar} size={52} />
         <View style={styles.rowBody}>
           <View style={styles.rowTop}>
@@ -101,7 +102,7 @@ export default function MessagesScreen() {
             ) : null}
           </View>
         </View>
-      </TouchableOpacity>
+      </PressScale>
     );
   }, [t, colors, confirmDelete]);
 
@@ -119,7 +120,7 @@ export default function MessagesScreen() {
           ListEmptyComponent={
             <EmptyState icon="chatbubbles-outline" title={t.messages.empty} subtitle={t.messages.hint} />
           }
-          renderItem={renderConversation}
+          renderItem={(info) => <FadeIn index={info.index}>{renderConversation(info)}</FadeIn>}
           ItemSeparatorComponent={() => <View style={[styles.sep, { backgroundColor: colors.border, marginLeft: 76 }]} />}
           ListFooterComponent={conversations.length > 0 ? (
             <View style={[styles.footer, { backgroundColor: colors.bg }]}>

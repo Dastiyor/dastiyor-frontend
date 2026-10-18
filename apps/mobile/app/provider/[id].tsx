@@ -18,6 +18,7 @@ import { formatDate, plural } from '@/lib/intl';
 import { Avatar } from '@/components/Avatar';
 import { ProviderProfileSections } from '@/components/ProviderProfileSections';
 import type { PublicProfile } from '@dastiyor/types';
+import { GradientButton } from '@/components/Premium';
 
 type ProviderProfile = PublicProfile;
 
@@ -53,9 +54,9 @@ export default function ProviderProfileScreen() {
     <View style={styles.center}>
       <Text style={[styles.errorText, { color: colors.textSecondary }]}>{error ?? pv.notFound}</Text>
       {error ? (
-        <TouchableOpacity style={styles.retryBtn} onPress={loadProfile}>
+        <GradientButton style={styles.retryBtn} onPress={loadProfile}>
           <Text style={styles.retryBtnText}>{t.common.errorRetry}</Text>
-        </TouchableOpacity>
+        </GradientButton>
       ) : null}
     </View>
   );
@@ -105,12 +106,12 @@ export default function ProviderProfileScreen() {
       ) : null}
 
       {user?.role === 'CUSTOMER' && user.id !== id ? (
-        <TouchableOpacity
+        <GradientButton
           style={styles.chatBtn}
           onPress={() => router.push({ pathname: '/chat/[partnerId]', params: { partnerId: profile.id, partnerName: profile.fullName } })}
         >
           <Text style={styles.chatBtnText}>{pv.chat}</Text>
-        </TouchableOpacity>
+        </GradientButton>
       ) : null}
 
       <View style={styles.reviewsSection}>

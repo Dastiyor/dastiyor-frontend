@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
@@ -20,6 +19,7 @@ import { LogoWordmark } from '@/components/Logo';
 import { PasswordInput } from '@/components/PasswordInput';
 import { passwordStrength } from '@/lib/validation';
 import { Alert } from '@/lib/dialog';
+import { GradientButton, Input } from '@/components/Premium';
 
 export default function ResetPasswordScreen() {
   const { t } = useLanguage();
@@ -74,7 +74,7 @@ export default function ResetPasswordScreen() {
         <Text style={[styles.title, { color: colors.text }]}>{rp.title}</Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{rp.subtitle}</Text>
 
-        <TextInput
+        <Input
           style={[styles.input, styles.codeInput, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]}
           placeholder={rp.codePh}
           placeholderTextColor={colors.textTertiary}
@@ -101,13 +101,13 @@ export default function ResetPasswordScreen() {
           onChangeText={setConfirm}
         />
 
-        <TouchableOpacity
+        <GradientButton
           style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleReset}
           disabled={loading}
         >
           {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{rp.btn}</Text>}
-        </TouchableOpacity>
+        </GradientButton>
 
         <TouchableOpacity style={styles.backLink} onPress={() => router.replace('/(auth)/login')}>
           <Text style={styles.backLinkText}>{t.forgotPassword.backToLogin}</Text>

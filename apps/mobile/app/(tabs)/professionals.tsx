@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, FlatList, RefreshControl, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, FlatList, RefreshControl, ActivityIndicator, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/components/Icon';
 import type { ProfessionalSort } from '@dastiyor/types';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -10,12 +10,15 @@ import { useProfessionals, type ProfessionalFilters } from '@/lib/useProfessiona
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { EmptyState } from '@/components/EmptyState';
 import { ProfessionalCardItem } from '@/components/ProfessionalCardItem';
+import { Input, useFocusGlow, PressScale, FadeIn, useChipStyle } from '@/components/Premium';
 
 const SORTS: ProfessionalSort[] = ['rating', 'reviews', 'completed', 'newest'];
 
 export default function ProfessionalsScreen() {
   const { t, tr } = useLanguage();
   const { colors } = useTheme();
+  const chipStyle = useChipStyle();
+  const searchGlow = useFocusGlow();
   const { config } = useConfig();
   const insets = useSafeAreaInsets();
   const pr = t.professionals;
@@ -35,9 +38,10 @@ export default function ProfessionalsScreen() {
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
       <ScreenHeader title={pr.title} />
       <View style={[styles.searchWrap, { backgroundColor: colors.surface }]}>
-        <View style={[styles.searchBar, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
-          <Ionicons name="search-outline" size={18} color={colors.textTertiary} />
-          <TextInput
+        <View style={[styles.searchBar, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }, searchGlow.style]}>
+          <Icon name="search-outline" size={18} color={colors.textTertiary} />
+          <Input
+            {...searchGlow.handlers}
             style={[styles.searchInput, { color: colors.text }]}
             placeholder={pr.searchPh}
             placeholderTextColor={colors.textTertiary}
@@ -49,7 +53,7 @@ export default function ProfessionalsScreen() {
           {filters.q.length > 0 && (
             <TouchableOpacity onPress={() => setFilters((f) => ({ ...f, q: '' }))} accessibilityRole="button" accessibilityLabel={t.common.cancel}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-              <Ionicons name="close-circle" size={18} color={colors.textTertiary} />
+              <Icon name="close-circle" size={18} color={colors.textTertiary} />
             </TouchableOpacity>
           )}
         </View>
@@ -61,15 +65,15 @@ export default function ProfessionalsScreen() {
             {row.options.map((o) => {
               const active = filters[row.key] === o.value;
               return (
-                <TouchableOpacity
+                <PressScale
                   key={o.value || '__all__'}
-                  style={[styles.chip, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }, active && styles.chipActive]}
+                  style={[styles.chip, chipStyle.box(active)]}
                   onPress={() => setFilters((f) => ({ ...f, [row.key]: o.value }))}
                   accessibilityRole="button"
                   accessibilityState={{ selected: active }}
                 >
-                  <Text style={[styles.chipText, { color: active ? '#fff' : colors.text }]}>{o.label}</Text>
-                </TouchableOpacity>
+                  <Text style={[styles.chipText, chipStyle.text(active)]}>{o.label}</Text>
+                </PressScale>
               );
             })}
           </ScrollView>
@@ -82,7 +86,7 @@ export default function ProfessionalsScreen() {
         <FlatList
           data={items}
           keyExtractor={(p) => p.id}
-          renderItem={({ item }) => <ProfessionalCardItem pro={item} labels={labels} tr={tr} />}
+          renderItem={({ item, index }) => <FadeIn index={index}><ProfessionalCardItem pro={item} labels={labels} tr={tr} /></FadeIn>}
           contentContainerStyle={{ paddingTop: 12, paddingBottom: insets.bottom + 24 }}
           ListHeaderComponent={items.length > 0 ? <Text style={[styles.found, { color: colors.textSecondary }]}>{`${pr.found}: ${total}`}</Text> : null}
           refreshControl={<RefreshControl refreshing={refreshing} tintColor="#2563EB"
@@ -110,10 +114,10 @@ const styles = StyleSheet.create({
   searchWrap: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 },
   searchBar: { flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderRadius: 12, paddingHorizontal: 12, height: 44 },
   searchInput: { flex: 1, fontSize: 15 },
-  chipRows: { borderBottomWidth: 1, paddingBottom: 8 },
-  chipRow: { paddingHorizontal: 16, paddingTop: 8, gap: 8 },
+  chipRows: { borderBottomWidth: 1, paddingTop: 2, paddingBottom: 2 },
+  // Vertical padding leaves room for the chips' drop shadow, which the ScrollView would clip.
+  chipRow: { paddingHorizontal: 16, paddingVertical: 6, gap: 8 },
   chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, borderWidth: 1 },
-  chipActive: { backgroundColor: '#2563EB', borderColor: '#2563EB' },
   chipText: { fontSize: 13, fontWeight: '600' },
   found: { fontSize: 12, marginHorizontal: 16, marginBottom: 8 },
 });

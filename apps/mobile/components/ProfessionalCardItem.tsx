@@ -1,10 +1,11 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/components/Icon';
 import type { ProfessionalCard } from '@dastiyor/types';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Avatar } from '@/components/Avatar';
 import { TierBadge } from '@/components/TierBadge';
+import { PressScale } from '@/components/Premium';
 
 export function ProfessionalCardItem({ pro, labels, tr }: {
   pro: ProfessionalCard;
@@ -13,7 +14,7 @@ export function ProfessionalCardItem({ pro, labels, tr }: {
 }) {
   const { colors } = useTheme();
   return (
-    <TouchableOpacity
+    <PressScale
       style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
       onPress={() => router.push({ pathname: '/provider/[id]', params: { id: pro.id, name: pro.fullName } })}
       accessibilityRole="button"
@@ -22,16 +23,16 @@ export function ProfessionalCardItem({ pro, labels, tr }: {
       <View style={styles.body}>
         <View style={styles.row}>
           <Text style={[styles.name, { color: colors.text }]} numberOfLines={1}>{pro.fullName}</Text>
-          {pro.isVerified && <Ionicons name="checkmark-circle" size={16} color="#059669" />}
+          {pro.isVerified && <Icon name="checkmark-circle" size={16} color="#059669" />}
         </View>
         <View style={styles.row}>
-          <Ionicons name="star" size={13} color="#F59E0B" />
+          <Icon name="star" size={13} color="#F59E0B" />
           <Text style={styles.rating}>{pro.avgRating != null ? pro.avgRating.toFixed(1) : '—'}</Text>
           <Text style={[styles.meta, { color: colors.textSecondary }]}>{`${pro.reviewCount} ${labels.reviews} · ${pro.completedCount} ${labels.completed}`}</Text>
         </View>
         {pro.city && (
           <View style={styles.row}>
-            <Ionicons name="location-outline" size={13} color={colors.textTertiary} />
+            <Icon name="location-outline" size={13} color={colors.textTertiary} />
             <Text style={[styles.meta, { color: colors.textSecondary }]}>{tr(pro.city)}</Text>
           </View>
         )}
@@ -47,14 +48,14 @@ export function ProfessionalCardItem({ pro, labels, tr }: {
       </View>
       <View style={styles.side}>
         <TierBadge tier={pro.tier} label={pro.tier ? labels.tiers[pro.tier] : ''} />
-        <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+        <Icon name="chevron-forward" size={18} color={colors.textTertiary} />
       </View>
-    </TouchableOpacity>
+    </PressScale>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { flexDirection: 'row', gap: 12, borderWidth: 1, borderRadius: 14, padding: 14, marginHorizontal: 16, marginBottom: 10 },
+  card: { flexDirection: 'row', gap: 12, borderWidth: 1, borderRadius: 14, padding: 14, marginHorizontal: 16, marginBottom: 10, shadowColor: '#1E3A8A', shadowOpacity: 0.08, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 3 },
   body: { flex: 1, gap: 4, minWidth: 0 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   name: { fontSize: 15, fontWeight: '700', flexShrink: 1 },

@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { View, TextInput, TouchableOpacity, StyleSheet, TextInputProps } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, TouchableOpacity, StyleSheet, TextInputProps } from 'react-native';
+import { Icon } from '@/components/Icon';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { Input, useFocusGlow } from '@/components/Premium';
 
 type Props = Omit<TextInputProps, 'secureTextEntry'> & {
   /** Controlled visibility, so a group of fields can share one toggle. */
@@ -29,11 +30,13 @@ export function PasswordInput({ visible, onToggleVisible, showToggle = true, ...
   const isControlled = visible !== undefined;
   const shown = isControlled ? visible : ownVisible;
   const toggle = isControlled ? onToggleVisible : () => setOwnVisible((v) => !v);
+  const glow = useFocusGlow(props.onFocus, props.onBlur);
 
   return (
-    <View style={[styles.row, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
-      <TextInput
+    <View style={[styles.row, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }, glow.style]}>
+      <Input
         {...props}
+        {...glow.handlers}
         style={[styles.input, { color: colors.text }, props.style]}
         placeholderTextColor={props.placeholderTextColor ?? colors.textTertiary}
         secureTextEntry={!shown}
@@ -47,7 +50,7 @@ export function PasswordInput({ visible, onToggleVisible, showToggle = true, ...
           accessibilityRole="button"
           accessibilityLabel={shown ? t.common.hidePassword : t.common.showPassword}
         >
-          <Ionicons name={shown ? 'eye-outline' : 'eye-off-outline'} size={20} color="#9CA3AF" />
+          <Icon name={shown ? 'eye-outline' : 'eye-off-outline'} size={20} color="#9CA3AF" />
         </TouchableOpacity>
       ) : null}
     </View>

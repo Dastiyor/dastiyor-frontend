@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
@@ -20,6 +19,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { PasswordInput } from '@/components/PasswordInput';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Alert } from '@/lib/dialog';
+import { GradientButton, Input } from '@/components/Premium';
 
 interface ProfileSnapshot {
   fullName: string;
@@ -114,7 +114,7 @@ export default function ChangeEmailScreen() {
         />
 
         <Text style={[styles.label, { color: colors.text }]}>{ce.newLabel}</Text>
-        <TextInput
+        <Input
           style={inputStyle}
           value={newEmail}
           onChangeText={setNewEmail}
@@ -127,7 +127,7 @@ export default function ChangeEmailScreen() {
           maxLength={255}
         />
 
-        <TouchableOpacity
+        <GradientButton
           style={[styles.btn, saving && styles.btnDisabled]}
           onPress={handleSave}
           disabled={saving}
@@ -135,7 +135,7 @@ export default function ChangeEmailScreen() {
           accessibilityRole="button"
         >
           {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>{ce.btn}</Text>}
-        </TouchableOpacity>
+        </GradientButton>
       </ScrollView>
     </KeyboardAvoidingView>
   );

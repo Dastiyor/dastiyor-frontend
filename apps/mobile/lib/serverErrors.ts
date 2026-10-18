@@ -41,6 +41,7 @@ const ERRORS: Record<string, readonly [en: string, tj: string]> = {
     'Введите текущий пароль, чтобы подтвердить смену email': ['Enter your current password to confirm the email change', 'Барои тасдиқи иваз кардани email пароли ҷориро ворид кунед'],
     'Этот email уже используется': ['This email is already in use', 'Ин email аллакай истифода мешавад'],
     'Этот номер телефона уже используется другим аккаунтом': ['This phone number is already used by another account', 'Ин рақами телефон аллакай аз ҷониби ҳисоби дигар истифода мешавад'],
+    'Номер телефона можно изменить только с подтверждением по SMS': ['The phone number can only be changed with SMS confirmation', 'Рақами телефонро танҳо бо тасдиқ тавассути SMS иваз кардан мумкин аст'],
     'Вход через Apple не настроен': ['Apple sign-in is not configured', 'Воридшавӣ тавассути Apple танзим нашудааст'],
     'Недействительный токен Google': ['Invalid Google token', 'Токени Google нодуруст'],
     'Недействительный токен Apple': ['Invalid Apple token', 'Токени Apple нодуруст'],

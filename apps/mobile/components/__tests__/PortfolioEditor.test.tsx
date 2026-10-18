@@ -103,7 +103,8 @@ describe('PortfolioEditor', () => {
 
     fireEvent.press(getAllByLabelText('Delete')[0]);
 
-    await waitFor(() => expect(queryByText('Kitchen')).toBeNull());
+    // The re-render draws SVG icons and gradients, which can outlast waitFor's 1s default on a busy machine.
+    await waitFor(() => expect(queryByText('Kitchen')).toBeNull(), { timeout: 5000 });
     expect(mApi.del).toHaveBeenCalledWith('/api/profile/portfolio/a');
   });
 

@@ -1,16 +1,16 @@
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   Modal,
   Pressable,
   ScrollView,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/components/Icon';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { GradientButton, Input, PressScale, useChipStyle } from '@/components/Premium';
 
 export interface FilterState {
   category: string;
@@ -61,6 +61,7 @@ export function FilterSheet({ visible, filters, onChange, onApply, onClose, cate
   const { t: globalT, tr } = useLanguage();
   const t = globalT.filterSheet;
   const { colors } = useTheme();
+  const chipStyle = useChipStyle();
 
   function set(key: keyof FilterState, value: string) {
     onChange({ ...filters, [key]: value });
@@ -74,7 +75,7 @@ export function FilterSheet({ visible, filters, onChange, onApply, onClose, cate
         <View style={[styles.header, { borderBottomColor: colors.border }]}>
           <Text style={[styles.title, { color: colors.text }]}>{t.filters}</Text>
           <TouchableOpacity onPress={onClose}>
-            <Ionicons name="close" size={22} color={colors.textSecondary} />
+            <Icon name="close" size={22} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
@@ -86,13 +87,13 @@ export function FilterSheet({ visible, filters, onChange, onApply, onClose, cate
             {[{ label: t.all, value: '' }, ...categories.map((c) => ({ label: tr(c), value: c }))].map((c) => {
               const active = filters.category === c.value;
               return (
-                <TouchableOpacity
+                <PressScale
                   key={c.value || '__all__'}
-                  style={[styles.chip, { borderColor: colors.border, backgroundColor: colors.surfaceAlt }, active && styles.chipActive]}
+                  style={[styles.chip, chipStyle.box(active)]}
                   onPress={() => set('category', c.value)}
                 >
-                  <Text style={[styles.chipText, { color: colors.textSecondary }, active && styles.chipTextActive]}>{c.label}</Text>
-                </TouchableOpacity>
+                  <Text style={[styles.chipText, chipStyle.text(active)]}>{c.label}</Text>
+                </PressScale>
               );
             })}
           </View>
@@ -103,15 +104,15 @@ export function FilterSheet({ visible, filters, onChange, onApply, onClose, cate
             {URGENCY_KEYS.map((u) => {
               const active = filters.urgency === u.value;
               return (
-                <TouchableOpacity
+                <PressScale
                   key={u.value || '__all__'}
-                  style={[styles.chip, { borderColor: colors.border, backgroundColor: colors.surfaceAlt }, active && styles.chipActive]}
+                  style={[styles.chip, chipStyle.box(active)]}
                   onPress={() => set('urgency', u.value)}
                 >
-                  <Text style={[styles.chipText, { color: colors.textSecondary }, active && styles.chipTextActive]}>
+                  <Text style={[styles.chipText, chipStyle.text(active)]}>
                     {u.key === 'all' ? t.all : globalT.urgency[u.key]}
                   </Text>
-                </TouchableOpacity>
+                </PressScale>
               );
             })}
           </View>
@@ -122,15 +123,15 @@ export function FilterSheet({ visible, filters, onChange, onApply, onClose, cate
             {SORT_KEYS.map((s) => {
               const active = filters.sort === s.value;
               return (
-                <TouchableOpacity
+                <PressScale
                   key={s.value}
-                  style={[styles.chip, { borderColor: colors.border, backgroundColor: colors.surfaceAlt }, active && styles.chipActive]}
+                  style={[styles.chip, chipStyle.box(active)]}
                   onPress={() => set('sort', s.value)}
                 >
-                  <Text style={[styles.chipText, { color: colors.textSecondary }, active && styles.chipTextActive]}>
+                  <Text style={[styles.chipText, chipStyle.text(active)]}>
                     {t.sortOptions[s.key]}
                   </Text>
-                </TouchableOpacity>
+                </PressScale>
               );
             })}
           </View>
@@ -142,13 +143,13 @@ export function FilterSheet({ visible, filters, onChange, onApply, onClose, cate
             {[{ label: t.all, value: '' }, ...cities.map((c) => ({ label: tr(c), value: c }))].map((c) => {
               const active = filters.city === c.value;
               return (
-                <TouchableOpacity
+                <PressScale
                   key={c.value || '__all__'}
-                  style={[styles.chip, { borderColor: colors.border, backgroundColor: colors.surfaceAlt }, active && styles.chipActive]}
+                  style={[styles.chip, chipStyle.box(active)]}
                   onPress={() => set('city', c.value)}
                 >
-                  <Text style={[styles.chipText, { color: colors.textSecondary }, active && styles.chipTextActive]}>{c.label}</Text>
-                </TouchableOpacity>
+                  <Text style={[styles.chipText, chipStyle.text(active)]}>{c.label}</Text>
+                </PressScale>
               );
             })}
           </View>
@@ -157,7 +158,7 @@ export function FilterSheet({ visible, filters, onChange, onApply, onClose, cate
           <Text style={[styles.label, { color: colors.textTertiary }]}>{t.budget}</Text>
           <View style={styles.budgetRow}>
             <View style={[styles.inputWrap, styles.budgetInput, { borderColor: colors.border, backgroundColor: colors.surfaceAlt }]}>
-              <TextInput
+              <Input
                 style={[styles.input, { color: colors.text }]}
                 placeholder={t.from}
                 placeholderTextColor={colors.textTertiary}
@@ -168,7 +169,7 @@ export function FilterSheet({ visible, filters, onChange, onApply, onClose, cate
             </View>
             <View style={[styles.budgetDash, { backgroundColor: colors.border }]} />
             <View style={[styles.inputWrap, styles.budgetInput, { borderColor: colors.border, backgroundColor: colors.surfaceAlt }]}>
-              <TextInput
+              <Input
                 style={[styles.input, { color: colors.text }]}
                 placeholder={t.to}
                 placeholderTextColor={colors.textTertiary}
@@ -188,12 +189,12 @@ export function FilterSheet({ visible, filters, onChange, onApply, onClose, cate
           >
             <Text style={[styles.resetText, { color: colors.textSecondary }]}>{t.reset}</Text>
           </TouchableOpacity>
-          <TouchableOpacity
+          <GradientButton
             style={styles.applyBtn}
             onPress={() => onApply(filters)}
           >
             <Text style={styles.applyText}>{t.apply}</Text>
-          </TouchableOpacity>
+          </GradientButton>
         </View>
       </View>
     </Modal>
@@ -228,9 +229,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
     borderWidth: 1.5,
   },
-  chipActive: { borderColor: '#2563EB', backgroundColor: '#EFF6FF' },
   chipText: { fontSize: 13, fontWeight: '600' },
-  chipTextActive: { color: '#2563EB' },
   inputWrap: {
     flexDirection: 'row', alignItems: 'center',
     borderWidth: 1.5, borderRadius: 12,

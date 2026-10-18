@@ -8,7 +8,7 @@ import {
   RefreshControl,
   ActivityIndicator,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/components/Icon';
 import { router, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,6 +22,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { useToast } from '@/contexts/ToastContext';
 import { CATEGORY_ICONS } from '@/lib/categoryIcons';
 import { formatMoney } from '@/lib/intl';
+import { PressScale, FadeIn } from '@/components/Premium';
 
 const STATUS_COLORS: Record<string, { color: string; bg: string }> = {
   OPEN:        { color: '#059669', bg: '#D1FAE5' },
@@ -141,15 +142,14 @@ export default function MyScreen() {
   }
 
   const renderTask = useCallback(({ item }: { item: MyTask }) => (
-    <TouchableOpacity
+    <PressScale
       style={[styles.card, { backgroundColor: colors.surface }]}
       onPress={() => router.push(`/task/${item.id}`)}
-      activeOpacity={0.75}
       accessibilityRole="button"
       accessibilityLabel={`${item.title}, ${tr(item.category)}, ${tr(item.budget)}`}
     >
       <View style={[styles.cardIconBox, { backgroundColor: colors.iconBg }]}>
-        <Ionicons name={CATEGORY_ICONS[item.category] ?? 'briefcase-outline'} size={22} color="#2563EB" />
+        <Icon name={CATEGORY_ICONS[item.category] ?? 'briefcase-outline'} size={22} color="#2563EB" />
       </View>
       <View style={styles.cardBody}>
         <View style={styles.cardTopRow}>
@@ -159,7 +159,7 @@ export default function MyScreen() {
         <Text style={[styles.cardTitle, { color: colors.text }]} numberOfLines={1}>{item.title}</Text>
         {item.city ? (
           <View style={styles.cardLocation}>
-            <Ionicons name="location-outline" size={11} color={colors.textTertiary} />
+            <Icon name="location-outline" size={11} color={colors.textTertiary} />
             <Text style={[styles.cardLocationText, { color: colors.textTertiary }]}>{tr(item.city)}</Text>
           </View>
         ) : null}
@@ -168,19 +168,18 @@ export default function MyScreen() {
           <Text style={[styles.cardMeta, { color: colors.textTertiary }]}>{timeAgo(item.postedAt, locale)}</Text>
         </View>
       </View>
-    </TouchableOpacity>
+    </PressScale>
   ), [t, locale, colors]);
 
   const renderResponse = useCallback(({ item }: { item: MyResponseItem }) => (
-    <TouchableOpacity
+    <PressScale
       style={[styles.card, { backgroundColor: colors.surface }]}
       onPress={() => router.push(`/task/${item.task.id}`)}
-      activeOpacity={0.75}
       accessibilityRole="button"
       accessibilityLabel={`${item.task.title}, ${tr(item.task.category)}, ${formatMoney(item.price)} TJS`}
     >
       <View style={[styles.cardIconBox, { backgroundColor: colors.iconBg }]}>
-        <Ionicons name={CATEGORY_ICONS[item.task.category] ?? 'briefcase-outline'} size={22} color="#2563EB" />
+        <Icon name={CATEGORY_ICONS[item.task.category] ?? 'briefcase-outline'} size={22} color="#2563EB" />
       </View>
       <View style={styles.cardBody}>
         <View style={styles.cardTopRow}>
@@ -191,7 +190,7 @@ export default function MyScreen() {
         <Text style={[styles.responseMsg, { color: colors.textSecondary }]} numberOfLines={1}>{item.message}</Text>
         {item.task.city ? (
           <View style={styles.cardLocation}>
-            <Ionicons name="location-outline" size={11} color={colors.textTertiary} />
+            <Icon name="location-outline" size={11} color={colors.textTertiary} />
             <Text style={[styles.cardLocationText, { color: colors.textTertiary }]}>{tr(item.task.city)}</Text>
           </View>
         ) : null}
@@ -200,7 +199,7 @@ export default function MyScreen() {
           <Text style={[styles.cardMeta, { color: colors.textTertiary }]}>{timeAgo(item.createdAt, locale)}</Text>
         </View>
       </View>
-    </TouchableOpacity>
+    </PressScale>
   ), [t, locale, colors]);
 
   return (
@@ -229,7 +228,7 @@ export default function MyScreen() {
             />
           }
           ListFooterComponent={loadingMore ? <ActivityIndicator color="#2563EB" style={{ margin: 16 }} /> : null}
-          renderItem={renderTask}
+          renderItem={(info) => <FadeIn index={info.index}>{renderTask(info)}</FadeIn>}
         />
       ) : (
         <FlatList
@@ -249,16 +248,10 @@ export default function MyScreen() {
             />
           }
           ListFooterComponent={loadingMore ? <ActivityIndicator color="#2563EB" style={{ margin: 16 }} /> : null}
-          renderItem={renderResponse}
+          renderItem={(info) => <FadeIn index={info.index}>{renderResponse(info)}</FadeIn>}
         />
       )}
 
-      {/* FAB for creating tasks (customers only) */}
-      {isCustomer && (
-        <TouchableOpacity style={[styles.fab, { bottom: insets.bottom + 16 }]} onPress={() => router.push('/create-task')} accessibilityLabel={t.my.createTask} accessibilityRole="button">
-          <Ionicons name="add" size={28} color="#fff" />
-        </TouchableOpacity>
-      )}
     </View>
   );
 }
@@ -266,17 +259,11 @@ export default function MyScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   skeletonList: { paddingTop: 12 },
-  fab: {
-    position: 'absolute', bottom: 0, right: 20,
-    width: 56, height: 56, borderRadius: 28,
-    backgroundColor: '#2563EB', alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#2563EB', shadowOpacity: 0.4, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 8,
-  },
   list: { padding: 16, paddingBottom: 24 },
   card: {
     flexDirection: 'row', alignItems: 'flex-start',
     backgroundColor: '#fff', borderRadius: 16, padding: 14, marginBottom: 10,
-    shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 6, shadowOffset: { width: 0, height: 2 }, elevation: 2,
+    shadowColor: '#1E3A8A', shadowOpacity: 0.08, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 3,
   },
   cardIconBox: {
     width: 48, height: 48, borderRadius: 14, backgroundColor: '#EFF6FF',

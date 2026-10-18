@@ -16,26 +16,19 @@ export function getTermsOfServiceUrl(): string {
   );
 }
 
-export async function openPrivacyPolicy(): Promise<void> {
+export const FAQ_URL = 'https://www.dastiyor.com/help';
+
+export async function openInAppBrowser(url: string): Promise<void> {
   try {
-    await WebBrowser.openBrowserAsync(getPrivacyPolicyUrl(), {
+    await WebBrowser.openBrowserAsync(url, {
       readerMode: false,
       enableBarCollapsing: true,
       dismissButtonStyle: 'close',
     });
   } catch {
-    await Linking.openURL(getPrivacyPolicyUrl());
+    await Linking.openURL(url);
   }
 }
 
-export async function openTermsOfService(): Promise<void> {
-  try {
-    await WebBrowser.openBrowserAsync(getTermsOfServiceUrl(), {
-      readerMode: false,
-      enableBarCollapsing: true,
-      dismissButtonStyle: 'close',
-    });
-  } catch {
-    await Linking.openURL(getTermsOfServiceUrl());
-  }
-}
+export const openPrivacyPolicy = () => openInAppBrowser(getPrivacyPolicyUrl());
+export const openTermsOfService = () => openInAppBrowser(getTermsOfServiceUrl());

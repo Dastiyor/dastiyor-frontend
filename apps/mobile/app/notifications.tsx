@@ -3,7 +3,6 @@ import {
   View,
   Text,
   FlatList,
-  TouchableOpacity,
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
@@ -13,11 +12,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { ScreenHeader } from '@/components/ScreenHeader';
 import { EmptyState } from '@/components/EmptyState';
 import { useToast } from '@/contexts/ToastContext';
 import { timeAgo } from '@/lib/timeAgo';
 import type { AppNotification } from '@dastiyor/types';
+import { PressScale, FadeIn } from '@/components/Premium';
 
 const TYPE_ICON: Record<string, string> = {
   NEW_OFFER:      '📩',
@@ -73,10 +72,9 @@ export default function NotificationsScreen() {
   }
 
   const renderNotification = useCallback(({ item }: { item: AppNotification }) => (
-    <TouchableOpacity
+    <PressScale
       style={[styles.row, { backgroundColor: !item.isRead ? colors.iconBg : colors.surface }]}
       onPress={() => handleTap(item)}
-      activeOpacity={0.7}
       accessibilityRole="button"
       accessibilityLabel={item.title}
     >
@@ -89,12 +87,11 @@ export default function NotificationsScreen() {
         <Text style={[styles.message, { color: colors.textSecondary }]} numberOfLines={2}>{item.message}</Text>
       </View>
       {!item.isRead && <View style={[styles.dot, { backgroundColor: colors.accent }]} />}
-    </TouchableOpacity>
+    </PressScale>
   ), [t, colors]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
-      <ScreenHeader title={t.notifications.title} showBack />
       {loading ? (
         <ActivityIndicator style={styles.center} size="large" color={colors.accent} />
       ) : (
@@ -106,7 +103,7 @@ export default function NotificationsScreen() {
           ListEmptyComponent={
             <EmptyState icon="notifications-outline" title={t.notifications.empty} />
           }
-          renderItem={renderNotification}
+          renderItem={(info) => <FadeIn index={info.index}>{renderNotification(info)}</FadeIn>}
           ItemSeparatorComponent={() => <View style={[styles.sep, { backgroundColor: colors.border }]} />}
         />
       )}

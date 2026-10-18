@@ -2,7 +2,6 @@ import { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
@@ -22,6 +21,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { LogoWordmark } from '@/components/Logo';
 import { Alert } from '@/lib/dialog';
+import { GradientButton, Input } from '@/components/Premium';
 
 export default function ForgotPasswordScreen() {
   const { t } = useLanguage();
@@ -67,7 +67,7 @@ export default function ForgotPasswordScreen() {
         <Text style={[styles.title, { color: colors.text }]}>{fp.title}</Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{fp.subtitle}</Text>
 
-        <TextInput
+        <Input
           style={[styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]}
           placeholder={fp.emailPh}
           placeholderTextColor={colors.textTertiary}
@@ -79,13 +79,13 @@ export default function ForgotPasswordScreen() {
           maxLength={255}
         />
 
-        <TouchableOpacity
+        <GradientButton
           style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleSend}
           disabled={loading}
         >
           {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{fp.btn}</Text>}
-        </TouchableOpacity>
+        </GradientButton>
 
         <TouchableOpacity style={styles.backLink} onPress={() => goBack()}>
           <Text style={styles.backLinkText}>{fp.backToLogin}</Text>

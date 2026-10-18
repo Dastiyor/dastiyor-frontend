@@ -1,11 +1,13 @@
+import { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/components/Icon';
 import { router } from 'expo-router';
 import { goBack } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { SideDrawer } from '@/components/SideDrawer';
 
 interface Props {
   title: string;
@@ -19,6 +21,7 @@ export function ScreenHeader({ title, unreadCount = 0, onNotificationsOpen, show
   const { t } = useLanguage();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
+  const [menuOpen, setMenuOpen] = useState(false);
   const statusBarHeight = insets.top;
   const backLabel = t.navigation.back;
   const notifLabel = t.navigation.notifications;
@@ -32,10 +35,24 @@ export function ScreenHeader({ title, unreadCount = 0, onNotificationsOpen, show
           accessibilityRole="button"
           accessibilityLabel={backLabel}
         >
-          <Ionicons name="chevron-back" size={24} color={colors.accent} />
+          <Icon name="chevron-back" size={24} color={colors.accent} />
         </TouchableOpacity>
       ) : (
-        <View style={styles.iconBtn} />
+        <View style={styles.actions}>
+          <TouchableOpacity
+            style={styles.iconBtn}
+            onPress={() => setMenuOpen(true)}
+            accessibilityLabel={t.menu.open}
+            accessibilityRole="button"
+          >
+            <View style={styles.burger}>
+              <View style={[styles.bar, { width: 20, backgroundColor: colors.text }]} />
+              <View style={[styles.bar, { width: 13, backgroundColor: colors.accent }]} />
+              <View style={[styles.bar, { width: 17, backgroundColor: colors.text }]} />
+            </View>
+          </TouchableOpacity>
+          <SideDrawer visible={menuOpen} onClose={() => setMenuOpen(false)} />
+        </View>
       )}
 
       <Text style={[styles.title, { color: colors.text }]} accessibilityRole="header">{title}</Text>
@@ -43,22 +60,32 @@ export function ScreenHeader({ title, unreadCount = 0, onNotificationsOpen, show
       {showBack ? (
         <View style={styles.iconBtn} />
       ) : (
-        <TouchableOpacity
-          style={styles.iconBtn}
-          onPress={() => {
-            if (!user) {
-              router.push('/(auth)/register');
-              return;
-            }
-            onNotificationsOpen?.();
-            router.push('/notifications' as any);
-          }}
-          accessibilityLabel={notifLabel}
-          accessibilityRole="button"
-        >
-          <Ionicons name={unreadCount > 0 ? 'notifications' : 'notifications-outline'} size={24} color={colors.text} />
-          {unreadCount > 0 && <View style={styles.notifDot} />}
-        </TouchableOpacity>
+        <View style={styles.actions}>
+          <TouchableOpacity
+            style={styles.iconBtn}
+            onPress={() => {
+              if (!user) {
+                router.push('/(auth)/register');
+                return;
+              }
+              onNotificationsOpen?.();
+              router.push('/notifications' as any);
+            }}
+            accessibilityLabel={notifLabel}
+            accessibilityRole="button"
+          >
+            <Icon name={unreadCount > 0 ? 'notifications' : 'notifications-outline'} size={21} color={colors.text} />
+            {unreadCount > 0 && <View style={styles.notifDot} />}
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.iconBtn}
+            onPress={() => router.push('/profile')}
+            accessibilityLabel={t.tabs.profile}
+            accessibilityRole="button"
+          >
+            <Icon name="person-circle-outline" size={30} color={colors.text} />
+          </TouchableOpacity>
+        </View>
       )}
     </View>
   );
@@ -75,6 +102,9 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 17, fontWeight: '700', flex: 1, textAlign: 'center' },
   iconBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  actions: { flexDirection: 'row', width: 72 },
+  burger: { gap: 4, alignItems: 'flex-start' },
+  bar: { height: 2.5, borderRadius: 2 },
   notifDot: {
     position: 'absolute', top: 1, right: 1,
     width: 8, height: 8, borderRadius: 4, backgroundColor: '#EF4444',

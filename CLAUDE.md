@@ -150,4 +150,4 @@ E2E_ALLOW_WRITES=1 pnpm --filter @dastiyor/web exec playwright test e2e/flows/si
 
 ### External services
 
-Supabase (required). Optional, each degrading gracefully when unset: Brevo (email/SMS), Payom.tj (SMS to +992), SmartPay TJ (payments), Upstash Redis (rate limiting), Vercel Blob (uploads), VAPID web push, Sentry (`sentry.{client,server}.config.ts`), PostHog (mobile analytics only). One Vercel cron: `/api/cron/expire-subscriptions` daily at 02:00.
+Supabase (required). Optional, each degrading gracefully when unset: Brevo (email/SMS), Payom.tj (SMS to +992), SmartPay TJ (payments), Upstash Redis (rate limiting), Vercel Blob (uploads), VAPID web push, Sentry (`sentry.{client,server}.config.ts`), PostHog (mobile via `EXPO_PUBLIC_POSTHOG_KEY` on EAS; web via `NEXT_PUBLIC_POSTHOG_KEY`, proxied through `/ingest`). One Vercel cron: `/api/cron/expire-subscriptions` daily at 02:00.

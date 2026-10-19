@@ -215,7 +215,16 @@
           "iosUrlScheme": "com.googleusercontent.apps.879800960695-cgt63devjbu7bunbseln8mu16a0httk0"
         }
       ],
-      "./plugins/withPodDeploymentTarget"
+      "./plugins/withPodDeploymentTarget",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableMinifyInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true
+          }
+        }
+      ]
     ],
     "extra": {
       "eas": {

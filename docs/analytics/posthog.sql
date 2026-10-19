@@ -41,39 +41,40 @@ GRANT SELECT ON ALL TABLES IN SCHEMA analytics TO posthog_ro;
 -- If PostHog does not list views as sync sources, use base-table sync with a
 -- column-limited copy instead; do not grant posthog_ro access to public.
 
--- ─── 2. Insights (PostHog → SQL insight). Table names are the synced copies,
---        prefixed with the source name you chose, e.g. dastiyor_users. ─────────
+-- ─── 2. Insights (PostHog → SQL insight). PostHog names the synced tables
+--        postgres.<prefix>.<view> (prefix `dastiyor`) and snake_cases the columns.
+--        A view with no rows gets no table until it has one.  ─────────
 
 -- Activity dashboard
 
 -- New users per day, by role
-SELECT toDate(createdAt) AS day, role, count() AS users
-FROM dastiyor_users
-WHERE createdAt >= now() - INTERVAL 90 DAY
+SELECT toDate(created_at) AS day, role, count() AS users
+FROM postgres.dastiyor.users
+WHERE created_at >= now() - INTERVAL 90 DAY
 GROUP BY day, role ORDER BY day;
 
 -- Tasks posted per week, by category
-SELECT toStartOfWeek(createdAt) AS week, category, count() AS tasks
-FROM dastiyor_tasks
-WHERE createdAt >= now() - INTERVAL 180 DAY
+SELECT toStartOfWeek(created_at) AS week, category, count() AS tasks
+FROM postgres.dastiyor.tasks
+WHERE created_at >= now() - INTERVAL 180 DAY
 GROUP BY week, category ORDER BY week;
 
 -- Tasks posted by city (last 30 days)
 SELECT city, count() AS tasks
-FROM dastiyor_tasks
-WHERE createdAt >= now() - INTERVAL 30 DAY
+FROM postgres.dastiyor.tasks
+WHERE created_at >= now() - INTERVAL 30 DAY
 GROUP BY city ORDER BY tasks DESC;
 
 -- Average responses per task, by week the task was posted
-SELECT toStartOfWeek(t.createdAt) AS week, count(r.id) / count(DISTINCT t.id) AS responses_per_task
-FROM dastiyor_tasks t LEFT JOIN dastiyor_responses r ON r.taskId = t.id
-WHERE t.createdAt >= now() - INTERVAL 180 DAY
+SELECT toStartOfWeek(t.created_at) AS week, count(r.id) / count(DISTINCT t.id) AS responses_per_task
+FROM postgres.dastiyor.tasks t LEFT JOIN postgres.dastiyor.responses r ON r.task_id = t.id
+WHERE t.created_at >= now() - INTERVAL 180 DAY
 GROUP BY week ORDER BY week;
 
 -- Completed tasks per day (by when they were last updated to COMPLETED)
-SELECT toDate(updatedAt) AS day, count() AS completed
-FROM dastiyor_tasks
-WHERE status = 'COMPLETED' AND updatedAt >= now() - INTERVAL 90 DAY
+SELECT toDate(updated_at) AS day, count() AS completed
+FROM postgres.dastiyor.tasks
+WHERE status = 'COMPLETED' AND updated_at >= now() - INTERVAL 90 DAY
 GROUP BY day ORDER BY day;
 
 -- Revenue dashboard
@@ -81,24 +82,24 @@ GROUP BY day ORDER BY day;
 -- Web (SmartPay) revenue per day, by plan, in somoni.
 -- Store (App Store / Google Play) revenue is in RevenueCat, or in PostHog via
 -- RevenueCat's own PostHog integration.
-SELECT toDate(createdAt) AS day, plan, sum(amount) AS somoni
-FROM dastiyor_payments
-WHERE status = 'COMPLETED' AND createdAt >= now() - INTERVAL 180 DAY
+SELECT toDate(created_at) AS day, plan, sum(amount) AS somoni
+FROM postgres.dastiyor.payments
+WHERE status = 'COMPLETED' AND created_at >= now() - INTERVAL 180 DAY
 GROUP BY day, plan ORDER BY day;
 
 -- Active subscriptions by plan and where they were bought
 SELECT plan, source, count() AS active
-FROM dastiyor_subscriptions
-WHERE isActive AND endDate > now()
+FROM postgres.dastiyor.subscriptions
+WHERE is_active AND end_date > now()
 GROUP BY plan, source ORDER BY active DESC;
 
 -- Subscriptions expiring in the next 7 days
 SELECT plan, count() AS expiring
-FROM dastiyor_subscriptions
-WHERE isActive AND endDate > now() AND endDate <= now() + INTERVAL 7 DAY
+FROM postgres.dastiyor.subscriptions
+WHERE is_active AND end_date > now() AND end_date <= now() + INTERVAL 7 DAY
 GROUP BY plan;
 
 -- Sourcing requests by status
 SELECT status, count() AS requests
-FROM dastiyor_sourcing_requests
+FROM postgres.dastiyor.sourcing_requests
 GROUP BY status;

@@ -47,10 +47,10 @@ GRANT SELECT ON ALL TABLES IN SCHEMA analytics TO posthog_ro;
 
 -- Activity dashboard
 
--- New users per day, by role
+-- New users per day, by role (ADMIN is the dastiyor-admin panel login, not a user)
 SELECT toDate(created_at) AS day, role, count() AS users
 FROM postgres.dastiyor.users
-WHERE created_at >= now() - INTERVAL 90 DAY
+WHERE role != 'ADMIN' AND created_at >= now() - INTERVAL 90 DAY
 GROUP BY day, role ORDER BY day;
 
 -- Tasks posted per week, by category

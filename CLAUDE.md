@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Dastiyor (https://www.dastiyor.com) is an online services marketplace for Tajikistan where customers post tasks and service providers respond. The UI language is Russian (primary) and Tajik.
 
-Two roles only: **CUSTOMER** and **PROVIDER**. There is no admin panel and no ADMIN role in the app — `packages/types` still declares `'ADMIN'` in the `UserRole` union, but nothing in `apps/web` or `apps/mobile` reads it and the Prisma schema comment says `CUSTOMER, PROVIDER`.
+Two roles in the app: **CUSTOMER** and **PROVIDER**. Nothing in `apps/web` or `apps/mobile` reads `'ADMIN'` (still declared in `packages/types`), but one `ADMIN` row exists in the database on purpose: `admin@dastiyor.com`, the login for the separate dastiyor-admin repo, which admits only `role = 'ADMIN'`. Do not delete or demote it; exclude it from user counts.
 
 ## Monorepo Structure
 
@@ -151,3 +151,11 @@ E2E_ALLOW_WRITES=1 pnpm --filter @dastiyor/web exec playwright test e2e/flows/si
 ### External services
 
 Supabase (required). Optional, each degrading gracefully when unset: Brevo (email/SMS), Payom.tj (SMS to +992), SmartPay TJ (payments), Upstash Redis (rate limiting), Vercel Blob (uploads), VAPID web push, Sentry (`sentry.{client,server}.config.ts`), PostHog (mobile via `EXPO_PUBLIC_POSTHOG_KEY` on EAS; web via `NEXT_PUBLIC_POSTHOG_KEY`, proxied through `/ingest`). One Vercel cron: `/api/cron/expire-subscriptions` daily at 02:00.
+
+**PostHog data warehouse.** PostHog syncs the `analytics` schema daily (views over User/Task/Response/Payment/Subscription/SourcingRequest with no email, phone or message text) through the read-only `posthog_ro` role, which can read only those views. Synced tables are named `postgres.dastiyor.<view>` with **snake_case** columns (`created_at`, `task_id`); a view with no rows gets no table until it has one, so a query on it errors "Unknown table" until then. Setup SQL and the dashboard queries live in `docs/analytics/posthog.sql`. posthog-js ignores automated browsers (`navigator.webdriver`), so verify web events from a real browser, not Playwright/DevTools.
+
+### Mobile release builds
+
+- Android release builds run R8 code + resource shrinking (`expo-build-properties` in `app.json`). A new native library that uses reflection may need ProGuard keep rules; test a release build, not just dev.
+- `ios/` and `android/` are generated (CNG) and git-ignored. Run `eas-cli` from `apps/mobile`, never the repo root (it writes stray `eas.json`/`app.json` there).
+- A local release build needs `ANDROID_HOME=$HOME/Library/Android/sdk` and `SENTRY_DISABLE_AUTO_UPLOAD=true` (no Sentry auth token locally): `npx expo prebuild --platform android --clean`, then `./gradlew :app:assembleRelease` in `android/`.

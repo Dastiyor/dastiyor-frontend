@@ -9,8 +9,8 @@ import {
   ScrollView,
 } from 'react-native';
 import { Text } from '@/components/AppText';
-import { Link, router } from 'expo-router';
-import { goBack } from '@/lib/nav';
+import { Link } from 'expo-router';
+import { goBack, replaceFromModal } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardOffset } from '@/lib/useKeyboardOffset';
 import { AUTH_CLOSE_SIZE, useAuthTopSpacing } from '@/lib/authLayout';
@@ -103,7 +103,7 @@ export default function RegisterScreen() {
       await loginWithGoogle(accessToken, role);
       await storage.setItem('onboarding_done', '1');
       await storage.deleteItem(DRAFT_KEY);
-      router.replace('/(tabs)');
+      replaceFromModal('/(tabs)');
     } catch (e) {
       Alert.alert(r.errRegister, (e as Error).message);
     } finally {
@@ -185,7 +185,7 @@ export default function RegisterScreen() {
       await storage.setItem('onboarding_done', '1');
       await storage.deleteItem(DRAFT_KEY);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-      router.replace('/(tabs)');
+      replaceFromModal('/(tabs)');
     } catch (e) {
       Alert.alert(r.errRegister, (e as Error).message);
     } finally {
@@ -212,7 +212,7 @@ export default function RegisterScreen() {
       await loginWithApple(credential.identityToken, credential.email ?? undefined, fullNameStr, role);
       await storage.setItem('onboarding_done', '1');
       await storage.deleteItem(DRAFT_KEY);
-      router.replace('/(tabs)');
+      replaceFromModal('/(tabs)');
     } catch (e: any) {
       if (e.code !== 'ERR_REQUEST_CANCELED') {
         Alert.alert(r.errRegister, (e as Error).message);

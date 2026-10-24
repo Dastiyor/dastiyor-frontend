@@ -1,6 +1,6 @@
 import { Keyboard } from 'react-native';
 import { router } from 'expo-router';
-import { goBack } from '@/lib/nav';
+import { goBack, replaceFromModal } from '@/lib/nav';
 
 const mockRouter = router as jest.Mocked<typeof router>;
 
@@ -35,5 +35,21 @@ describe('goBack', () => {
     goBack();
 
     expect(dismiss).toHaveBeenCalled();
+  });
+});
+
+describe('replaceFromModal', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it('drops the keyboard, then replaces', () => {
+    // Signing in with the password field focused left every native back button dead.
+    const order: string[] = [];
+    jest.spyOn(Keyboard, 'dismiss').mockImplementation(() => { order.push('dismiss'); });
+    (mockRouter.replace as jest.Mock).mockImplementation(() => { order.push('replace'); });
+
+    replaceFromModal('/(tabs)');
+
+    expect(order).toEqual(['dismiss', 'replace']);
+    expect(mockRouter.replace).toHaveBeenCalledWith('/(tabs)');
   });
 });

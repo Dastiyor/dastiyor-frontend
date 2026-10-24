@@ -17,3 +17,13 @@ export function goBack() {
   if (router.canGoBack()) router.back();
   else router.replace('/(tabs)');
 }
+
+/**
+ * router.replace() out of a modal screen (sign-in, sign-up, verify-phone), with the keyboard
+ * dismissed first for the reason above: their submit buttons keep the keyboard up, and
+ * replacing the modal while a field is focused left every native back button dead afterwards.
+ */
+export function replaceFromModal(href: Parameters<typeof router.replace>[0]) {
+  Keyboard.dismiss();
+  router.replace(href);
+}

@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Text } from '@/components/AppText';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardOffset } from '@/lib/useKeyboardOffset';
 import { useKeyboardAwareScroll } from '@/lib/useKeyboardAwareScroll';
@@ -18,7 +18,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { formatPhone } from '@/lib/phone';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { goBack } from '@/lib/nav';
+import { goBack, replaceFromModal } from '@/lib/nav';
 import { Alert } from '@/lib/dialog';
 import { GradientButton, Input } from '@/components/Premium';
 
@@ -75,8 +75,8 @@ export default function VerifyPhoneScreen() {
       Alert.alert(t.common.done, vp.success, [{
         text: t.common.ok,
         onPress: () => {
-          if (returnTo) router.replace(returnTo as never);
-          else if (forced) router.replace('/(tabs)');
+          if (returnTo) replaceFromModal(returnTo as never);
+          else if (forced) replaceFromModal('/(tabs)');
           else goBack();
         },
       }]);

@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { Text } from '@/components/AppText';
 import { Link, router } from 'expo-router';
-import { goBack } from '@/lib/nav';
+import { goBack, replaceFromModal } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardOffset } from '@/lib/useKeyboardOffset';
 import { AUTH_CLOSE_SIZE, useAuthTopSpacing } from '@/lib/authLayout';
@@ -50,7 +50,7 @@ export default function LoginScreen() {
       const accessToken = await signInWithGoogle();
       if (!accessToken) return;
       await loginWithGoogle(accessToken);
-      router.replace('/(tabs)');
+      replaceFromModal('/(tabs)');
     } catch (e) {
       Alert.alert(L.errOauth, (e as Error).message);
     } finally {
@@ -67,7 +67,7 @@ export default function LoginScreen() {
     try {
       await login(identifier.trim(), password);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-      router.replace('/(tabs)');
+      replaceFromModal('/(tabs)');
     } catch (e) {
       Alert.alert(L.errOauth, (e as Error).message);
     } finally {
@@ -93,7 +93,7 @@ export default function LoginScreen() {
         .filter(Boolean)
         .join(' ') || undefined;
       await loginWithApple(credential.identityToken, credential.email ?? undefined, fullName);
-      router.replace('/(tabs)');
+      replaceFromModal('/(tabs)');
     } catch (e: any) {
       if (e.code !== 'ERR_REQUEST_CANCELED') {
         Alert.alert(L.errOauth, (e as Error).message);

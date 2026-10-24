@@ -77,6 +77,6 @@ describe('SideDrawer', () => {
   it('shares the app link', async () => {
     const share = jest.spyOn(Share, 'share').mockResolvedValue({ action: 'sharedAction' });
     await press(setup(), t.menu.share);
-    await waitFor(() => expect(share).toHaveBeenCalledWith({ message: t.menu.shareMessage }));
+    await waitFor(() => expect(share).toHaveBeenCalledWith({ message: t.menu.shareMessage, url: 'https://www.dastiyor.com/mobile-app' }));
   });
 });

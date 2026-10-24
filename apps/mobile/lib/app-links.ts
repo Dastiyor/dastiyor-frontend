@@ -23,8 +23,16 @@ export async function openStoreReview(): Promise<void> {
   }
 }
 
+export const SHARE_URL = 'https://www.dastiyor.com/mobile-app';
+
+// iOS builds the share sheet's link preview (title, image, site icon) only from `url`; a link
+// inside `message` is just text, so the sheet showed a plain text icon. Android has no `url`
+// and takes the link in the message.
 export function shareApp(message: string) {
-  return Share.share({ message }).catch(() => {});
+  const content = Platform.OS === 'ios'
+    ? { message, url: SHARE_URL }
+    : { message: `${message} ${SHARE_URL}` };
+  return Share.share(content).catch(() => {});
 }
 
 type DeviceInfo = { version: string; platform: string; osVersion: string; userId?: string };

@@ -1,5 +1,5 @@
-import { Platform } from 'react-native';
-import { reportMailto, storeReviewUrl } from '../app-links';
+import { Platform, Share } from 'react-native';
+import { reportMailto, shareApp, SHARE_URL, storeReviewUrl } from '../app-links';
 
 describe('reportMailto', () => {
   it('addresses support and pre-fills subject and device details, URL-encoded', () => {
@@ -30,5 +30,24 @@ describe('storeReviewUrl', () => {
   it('opens the Play Store listing on Android', () => {
     Platform.OS = 'android';
     expect(storeReviewUrl()).toBe('market://details?id=com.dastiyor.app');
+  });
+});
+
+describe('shareApp', () => {
+  const original = Platform.OS;
+  afterEach(() => { Platform.OS = original; });
+
+  it('gives iOS the link as url, so the share sheet shows a link preview', async () => {
+    Platform.OS = 'ios';
+    const share = jest.spyOn(Share, 'share').mockResolvedValue({ action: 'sharedAction' });
+    await shareApp('Dastiyor');
+    expect(share).toHaveBeenCalledWith({ message: 'Dastiyor', url: SHARE_URL });
+  });
+
+  it('puts the link in the message on Android, which has no url field', async () => {
+    Platform.OS = 'android';
+    const share = jest.spyOn(Share, 'share').mockResolvedValue({ action: 'sharedAction' });
+    await shareApp('Dastiyor');
+    expect(share).toHaveBeenCalledWith({ message: `Dastiyor ${SHARE_URL}` });
   });
 });

@@ -19,6 +19,9 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
+  // Absolute base for file-based metadata (the generated og:image); without it Next uses the
+  // deployment's own *.vercel.app address.
+  metadataBase: new URL("https://www.dastiyor.com"),
   title: "Дастиёр — Маркетплейс услуг в Таджикистане",
   description: "Найдите профессионалов для любых задач. Лучший маркетплейс услуг в Таджикистане.",
   openGraph: {
@@ -28,13 +31,11 @@ export const metadata: Metadata = {
     siteName: "Дастиёр",
     locale: "ru_TJ",
     type: "website",
-    images: [{ url: "https://dastiyor.com/opengraph-image.png", width: 1200, height: 630, alt: "Дастиёр" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Дастиёр — Маркетплейс услуг",
     description: "Найдите профессионалов для любых задач в Таджикистане.",
-    images: ["https://dastiyor.com/opengraph-image.png"],
   },
   alternates: {
     canonical: "https://dastiyor.com",

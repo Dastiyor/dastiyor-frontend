@@ -75,7 +75,7 @@ export function ScreenHeader({ title, unreadCount = 0, onNotificationsOpen, show
             accessibilityLabel={notifLabel}
             accessibilityRole="button"
           >
-            <Icon name={unreadCount > 0 ? 'notifications' : 'notifications-outline'} size={28} color={colors.text} />
+            <Icon name={unreadCount > 0 ? 'notifications' : 'notifications-outline'} size={24} color={colors.text} />
             {unreadCount > 0 && <View style={styles.notifDot} />}
           </TouchableOpacity>
           <TouchableOpacity
@@ -84,7 +84,7 @@ export function ScreenHeader({ title, unreadCount = 0, onNotificationsOpen, show
             accessibilityLabel={t.tabs.profile}
             accessibilityRole="button"
           >
-            <Icon name="person-circle-outline" size={30} color={colors.text} />
+            <Icon name="person-circle-outline" size={24} color={colors.text} />
           </TouchableOpacity>
         </View>
       )}

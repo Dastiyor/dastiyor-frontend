@@ -15,6 +15,7 @@ import { useKeyboardOffset } from '@/lib/useKeyboardOffset';
 import { useKeyboardAwareScroll } from '@/lib/useKeyboardAwareScroll';
 import { api } from '@/lib/api-client';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { formatPhone } from '@/lib/phone';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { goBack } from '@/lib/nav';
@@ -126,7 +127,7 @@ export default function VerifyPhoneScreen() {
           </>
         ) : (
           <>
-            <Text style={[styles.sent, { color: colors.textSecondary }]}>{vp.codeSent.replace('{phone}', fullPhone)}</Text>
+            <Text style={[styles.sent, { color: colors.textSecondary }]}>{vp.codeSent.replace('{phone}', formatPhone(fullPhone))}</Text>
 
             <Text style={[styles.label, { color: colors.text }]}>{vp.codeLabel}</Text>
             <Input
@@ -148,29 +149,37 @@ export default function VerifyPhoneScreen() {
             >
               {busy ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>{vp.verify}</Text>}
             </GradientButton>
-
-            <TouchableOpacity
-              style={styles.linkBtn}
-              onPress={() => { setStep('phone'); setCode(''); }}
-              disabled={busy}
-              accessibilityLabel={vp.changeNumber}
-              accessibilityRole="button"
-            >
-              <Text style={[styles.linkText, { color: colors.textSecondary }]}>{vp.changeNumber}</Text>
-            </TouchableOpacity>
           </>
         )}
 
-        {forced && (
-          <TouchableOpacity
-            style={styles.linkBtn}
-            onPress={logout}
-            disabled={busy}
-            accessibilityLabel={t.profile.logout}
-            accessibilityRole="button"
-          >
-            <Text style={[styles.linkText, { color: colors.textSecondary }]}>{t.profile.logout}</Text>
-          </TouchableOpacity>
+        {(step === 'code' || forced) && (
+          <View style={styles.links}>
+            {step === 'code' && (
+              <TouchableOpacity
+                style={styles.linkBtn}
+                onPress={() => { setStep('phone'); setCode(''); }}
+                disabled={busy}
+                accessibilityLabel={vp.changeNumber}
+                accessibilityRole="button"
+              >
+                <Text style={[styles.linkText, { color: colors.textSecondary }]}>{vp.changeNumber}</Text>
+              </TouchableOpacity>
+            )}
+            {step === 'code' && forced && (
+              <Text style={[styles.linkText, { color: colors.textTertiary }]} importantForAccessibility="no">|</Text>
+            )}
+            {forced && (
+              <TouchableOpacity
+                style={styles.linkBtn}
+                onPress={logout}
+                disabled={busy}
+                accessibilityLabel={t.profile.logout}
+                accessibilityRole="button"
+              >
+                <Text style={[styles.linkText, { color: colors.textSecondary }]}>{t.profile.logout}</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         )}
       </ScrollView>
     </KeyboardAvoidingView>
@@ -192,6 +201,7 @@ const styles = StyleSheet.create({
   btn: { backgroundColor: '#2563EB', borderRadius: 14, padding: 16, alignItems: 'center', marginTop: 8 },
   btnDisabled: { opacity: 0.6 },
   btnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  linkBtn: { padding: 14, alignItems: 'center' },
+  links: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', marginTop: 4 },
+  linkBtn: { paddingVertical: 14, paddingHorizontal: 10, alignItems: 'center' },
   linkText: { fontSize: 14, fontWeight: '500' },
 });

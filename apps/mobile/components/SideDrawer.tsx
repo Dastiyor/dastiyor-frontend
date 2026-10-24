@@ -42,6 +42,7 @@ export function SideDrawer({ visible, onClose }: { visible: boolean; onClose: ()
   const { config } = useConfig();
   const insets = useSafeAreaInsets();
   const x = useRef(new Animated.Value(-WIDTH)).current;
+  const pending = useRef<(() => void) | undefined>(undefined);
   const m = t.menu;
   const version = Constants.expoConfig?.version ?? '';
 
@@ -49,11 +50,22 @@ export function SideDrawer({ visible, onClose }: { visible: boolean; onClose: ()
     if (visible) Animated.spring(x, { toValue: 0, useNativeDriver: true, bounciness: 0, speed: 18 }).start();
   }, [visible, x]);
 
+  // On iOS the in-app browser is presented on top of the topmost view controller. Opened while
+  // this Modal was still on screen, it landed on the Modal, which then tore it down when it
+  // dismissed (FAQ / privacy / terms crashed the app). So on iOS the action waits for onDismiss,
+  // which only iOS fires.
   function close(then?: () => void) {
     Animated.timing(x, { toValue: -WIDTH, duration: 180, useNativeDriver: true }).start(() => {
+      if (Platform.OS === 'ios') pending.current = then;
       onClose();
-      then?.();
+      if (Platform.OS !== 'ios') then?.();
     });
+  }
+
+  function onDismiss() {
+    const then = pending.current;
+    pending.current = undefined;
+    then?.();
   }
 
   function report() {
@@ -94,7 +106,7 @@ export function SideDrawer({ visible, onClose }: { visible: boolean; onClose: ()
   ];
 
   return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={() => close()} statusBarTranslucent>
+    <Modal visible={visible} transparent animationType="none" onRequestClose={() => close()} onDismiss={onDismiss} statusBarTranslucent>
       <Pressable style={styles.backdrop} onPress={() => close()} accessibilityLabel={t.navigation.back} />
       <Animated.View style={[styles.panel, { width: WIDTH, backgroundColor: colors.bg, transform: [{ translateX: x }] }]}>
         {/* Brand header */}

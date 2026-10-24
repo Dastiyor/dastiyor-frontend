@@ -13,6 +13,7 @@ import Constants from 'expo-constants';
 import { Icon, type IconName } from '@/components/Icon';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { formatPhone } from '@/lib/phone';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useNotifPrefs } from '@/contexts/NotifPrefsContext';
 import { Avatar } from '@/components/Avatar';
@@ -164,14 +165,20 @@ export default function ProfileScreen() {
               </View>
             </View>
             {/* Theme */}
-            <TouchableOpacity onPress={toggleTheme} activeOpacity={0.6}>
-              <View style={[styles.rowItem, { borderBottomColor: 'transparent' }]}>
-                <Icon name={isDark ? 'moon-outline' : 'sunny-outline'} size={22} color="#10B981" style={styles.rowIcon} />
+            <View style={[styles.rowItem, { borderBottomColor: 'transparent' }]}>
+              <Icon name={isDark ? 'moon-outline' : 'sunny-outline'} size={22} color="#10B981" style={styles.rowIcon} />
+              <View style={styles.rowBody}>
                 <Text style={[styles.rowLabel, { color: colors.text }]}>{t.settings?.theme ?? 'Theme'}</Text>
-                <Text style={[styles.themeValue, { color: colors.textSecondary }]}>{isDark ? (t.settings?.dark ?? 'Dark') : (t.settings?.light ?? 'Light')}</Text>
-                <Icon name="chevron-forward" size={16} color={colors.textTertiary} />
+                <Text style={[styles.rowSublabel, { color: colors.textSecondary }]}>{isDark ? (t.settings?.dark ?? 'Dark') : (t.settings?.light ?? 'Light')}</Text>
               </View>
-            </TouchableOpacity>
+              <Switch
+                value={isDark}
+                onValueChange={toggleTheme}
+                trackColor={{ false: colors.border, true: '#2563EB' }}
+                thumbColor="#fff"
+                accessibilityLabel={t.settings?.theme ?? 'Theme'}
+              />
+            </View>
           </View>
 
           <Text style={[styles.versionText, { color: colors.textTertiary }]}>
@@ -187,7 +194,7 @@ export default function ProfileScreen() {
   const hasRealEmail = user.email && !user.email.endsWith('@phone.dastiyor.local');
   // Phone-registered users get a generated @phone.dastiyor.local address;
   // showing its local part surfaces "phone_992905550101" as their handle.
-  const username = hasRealEmail ? user.email!.split('@')[0] : (user.phone ?? '');
+  const username = hasRealEmail ? user.email!.split('@')[0] : formatPhone(user.phone ?? '');
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
@@ -250,7 +257,7 @@ export default function ProfileScreen() {
               <Icon name="call-outline" size={22} color={colors.accent} style={styles.rowIcon} />
               <View style={styles.rowBody}>
                 <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>{p.phone}</Text>
-                <Text style={[styles.infoValue, { color: colors.text }]}>{user.phone}</Text>
+                <Text style={[styles.infoValue, { color: colors.text }]}>{formatPhone(user.phone)}</Text>
                 <Text style={[styles.infoHint, { color: colors.textTertiary }]}>
                   {p.phoneHint}
                 </Text>
@@ -317,14 +324,20 @@ export default function ProfileScreen() {
             </View>
           </View>
           {/* Theme */}
-          <TouchableOpacity onPress={toggleTheme} activeOpacity={0.6}>
-            <View style={[styles.rowItem, { borderBottomColor: colors.border }]}>
-              <Icon name={isDark ? 'moon-outline' : 'sunny-outline'} size={22} color="#10B981" style={styles.rowIcon} />
+          <View style={[styles.rowItem, { borderBottomColor: colors.border }]}>
+            <Icon name={isDark ? 'moon-outline' : 'sunny-outline'} size={22} color="#10B981" style={styles.rowIcon} />
+            <View style={styles.rowBody}>
               <Text style={[styles.rowLabel, { color: colors.text }]}>{t.settings?.theme ?? 'Theme'}</Text>
-              <Text style={[styles.themeValue, { color: colors.textSecondary }]}>{isDark ? (t.settings?.dark ?? 'Dark') : (t.settings?.light ?? 'Light')}</Text>
-              <Icon name="chevron-forward" size={16} color={colors.textTertiary} />
+              <Text style={[styles.rowSublabel, { color: colors.textSecondary }]}>{isDark ? (t.settings?.dark ?? 'Dark') : (t.settings?.light ?? 'Light')}</Text>
             </View>
-          </TouchableOpacity>
+            <Switch
+              value={isDark}
+              onValueChange={toggleTheme}
+              trackColor={{ false: colors.border, true: '#2563EB' }}
+              thumbColor="#fff"
+              accessibilityLabel={t.settings?.theme ?? 'Theme'}
+            />
+          </View>
           {/* In-app notification popups */}
           <View style={[styles.rowItem, { borderBottomColor: 'transparent' }]}>
             <Icon name="notifications-outline" size={22} color="#F59E0B" style={styles.rowIcon} />

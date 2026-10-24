@@ -75,7 +75,7 @@ export function ScreenHeader({ title, unreadCount = 0, onNotificationsOpen, show
             accessibilityLabel={notifLabel}
             accessibilityRole="button"
           >
-            <Icon name={unreadCount > 0 ? 'notifications' : 'notifications-outline'} size={21} color={colors.text} />
+            <Icon name={unreadCount > 0 ? 'notifications' : 'notifications-outline'} size={28} color={colors.text} />
             {unreadCount > 0 && <View style={styles.notifDot} />}
           </TouchableOpacity>
           <TouchableOpacity
@@ -104,8 +104,10 @@ const styles = StyleSheet.create({
   title: { fontSize: 17, fontWeight: '700', flex: 1, textAlign: 'center' },
   iconBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   actions: { flexDirection: 'row', width: 72 },
+  // Whole-point bars and gaps: 2.5pt bars rounded unevenly to device pixels and pushed the
+  // middle one off centre.
   burger: { gap: 4, alignItems: 'flex-start' },
-  bar: { height: 2.5, borderRadius: 2 },
+  bar: { height: 3, borderRadius: 1.5 },
   notifDot: {
     position: 'absolute', top: 1, right: 1,
     width: 8, height: 8, borderRadius: 4, backgroundColor: '#EF4444',

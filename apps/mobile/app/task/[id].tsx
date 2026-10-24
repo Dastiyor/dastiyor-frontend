@@ -28,7 +28,7 @@ export default function TaskDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
   const { t, locale, tr } = useLanguage();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const tk = t.task;
   const [task, setTask] = useState<TaskDetail | null>(null);
@@ -267,9 +267,10 @@ export default function TaskDetailScreen() {
           </View>
         </View>
 
-        <View style={[styles.budgetBox, { backgroundColor: colors.iconBg }]}>
-          <Text style={styles.budgetLabel}>{tk.budget}</Text>
-          <Text style={styles.budgetValue}>{tr(task.budget)}</Text>
+        {/* Dark mode: an outlined card, a filled navy one sat badly on the black background. */}
+        <View style={[styles.budgetBox, isDark ? { backgroundColor: 'transparent', borderColor: colors.accent } : { backgroundColor: colors.iconBg, borderColor: colors.iconBg }]}>
+          <Text style={[styles.budgetLabel, isDark && { color: colors.textSecondary }]}>{tk.budget}</Text>
+          <Text style={[styles.budgetValue, isDark && { color: colors.text }]}>{tr(task.budget)}</Text>
         </View>
 
         <Text style={[styles.sectionTitle, { color: colors.text }]}>{tk.description}</Text>
@@ -462,8 +463,8 @@ const styles = StyleSheet.create({
   metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 16 },
   metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   meta: { fontSize: 13, color: '#6B7280' },
-  budgetBox: { backgroundColor: '#EFF6FF', borderRadius: 12, padding: 16, marginBottom: 20 },
-  budgetLabel: { fontSize: 12, color: '#2563EB', fontWeight: '600', marginBottom: 4 },
+  budgetBox: { backgroundColor: '#EFF6FF', borderRadius: 12, borderWidth: 1.5, padding: 16, marginBottom: 20 },
+  budgetLabel: { fontSize: 12, color: '#2563EB', fontWeight: '700', letterSpacing: 0.6, textTransform: 'uppercase', marginBottom: 6 },
   budgetValue: { fontSize: 22, fontWeight: '800', color: '#1D4ED8' },
   sectionTitle: { fontSize: 14, fontWeight: '700', color: '#374151', marginBottom: 10 },
   description: { fontSize: 15, color: '#374151', lineHeight: 24, marginBottom: 20 },

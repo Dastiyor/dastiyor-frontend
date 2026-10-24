@@ -4,6 +4,7 @@ import {
   TouchableOpacity,
   Modal,
   Pressable,
+  ScrollView,
   StatusBar,
 } from 'react-native';
 import { Text } from '@/components/AppText';
@@ -44,6 +45,9 @@ export default function OnboardingScreen() {
     <View style={[styles.container, { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 24 }]}>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
+      {/* Scrolls on short screens: as a plain flex column the hero shrank below its text,
+          which then overlapped the feature list. */}
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} bounces={false}>
       {/* Lang picker top-right */}
       <View style={styles.topRow}>
         <TouchableOpacity style={styles.langBtn} onPress={() => setLangModal(true)} activeOpacity={0.7}>
@@ -78,6 +82,7 @@ export default function OnboardingScreen() {
           </View>
         )})}
       </View>
+      </ScrollView>
 
       {/* CTA */}
       <TouchableOpacity style={styles.cta} onPress={finish} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel={t.cta}>
@@ -124,6 +129,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
 
+  scroll: { flex: 1 },
+  scrollContent: { flexGrow: 1 },
+
   topRow: {
     alignItems: 'flex-end',
     marginBottom: 8,
@@ -142,7 +150,7 @@ const styles = StyleSheet.create({
 
   hero: {
     alignItems: 'center',
-    flex: 1,
+    flexGrow: 1,
     justifyContent: 'center',
     paddingBottom: 8,
   },
@@ -179,7 +187,8 @@ const styles = StyleSheet.create({
 
   features: {
     gap: 14,
-    marginBottom: 32,
+    marginTop: 16,
+    marginBottom: 24,
   },
   featureRow: {
     flexDirection: 'row',

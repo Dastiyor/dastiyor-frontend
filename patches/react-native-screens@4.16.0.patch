@@ -1,0 +1,23 @@
+diff --git a/ios/RNSScreenStack.mm b/ios/RNSScreenStack.mm
+index 229dc58b2c69069aade23975fbe4be6d3d7420d8..27c683c7aa4307a7d30c56e0612f8a8effd7c5a7 100644
+--- a/ios/RNSScreenStack.mm
++++ b/ios/RNSScreenStack.mm
+@@ -230,13 +230,11 @@ - (BOOL)navigationBar:(UINavigationBar *)navigationBar shouldPopItem:(UINavigati
+     // which we check indirectly by checking if transitionCoordinator is set.
+     // If it's not, we are safe to proceed.
+     if (self.transitionCoordinator == nil) {
+-      // We still need to disable interactions for back button so click effects are not applied,
+-      // and there is unfortunately no better place for it currently
+-      UIView *button = [navigationBar rnscreens_findBackButtonWrapperView];
+-      if (button != nil) {
+-        button.userInteractionEnabled = false;
+-      }
+-
++      // Dastiyor patch (upstream fix: react-native-screens#3173, released in 4.17.0):
++      // 4.16 disabled the back button here and relied on didPopItem to re-enable it. iOS 26
++      // reuses that button view on the next push, so it was sometimes left disabled -- a dead
++      // back button while swipe-back still worked. The transitionCoordinator check above
++      // already stops double pops, so nothing is disabled now.
+       return true;
+     }
+ 

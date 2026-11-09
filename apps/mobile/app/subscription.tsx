@@ -16,7 +16,7 @@ export default function SubscriptionScreen() {
       <SubscriptionPlans
         storeReady={initPurchases()}
         labels={{
-          tiers: s.tiers, features: s.features, buy: s.buy, current: s.current, until: s.until, restore: s.restore,
+          features: s.features, free: s.free, usage: s.usage, usageUnlimited: s.usageUnlimited, rules: s.rules, buy: s.buy, current: s.current, until: s.until, restore: s.restore,
           manage: s.manage, success: s.success, unavailable: s.unavailable, terms: s.terms, privacy: s.privacy,
           error: t.common.error, ok: t.common.ok,
         }}

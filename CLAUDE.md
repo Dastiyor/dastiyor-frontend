@@ -105,6 +105,8 @@ On a slow phone the server-rendered page is visible for seconds before React att
 
 `lib/features.ts` gates subscriptions/paid plans off via `NEXT_PUBLIC_SUBSCRIPTIONS_ENABLED` and `SUBSCRIPTION_GATE_ENABLED`. Subscription code, routes and the SmartPay integration are all live but hidden; don't delete them as dead code.
 
+Plans are FREE / PRO / PRO+ / BUSINESS, defined once in `lib/plans.ts` (ids `pro`, `pro_plus`, `business`; prices, limits, badge text, feature-list i18n keys). Rows from before November 2026 may still say `basic`/`standard`/`premium`; `normalizePlan()` reads them as PRO/PRO+/BUSINESS, and checkout accepts only the new ids. `SUBSCRIPTION_GATE_ENABLED` switches on the monthly response limit (`lib/response-allowance.ts`: 30-day periods from a paid plan's start, the Dushanbe calendar month on FREE). Store products are `dastiyor_<plan>_<period>` with RevenueCat entitlements named after the plan ids. The daily cron reminds web (SmartPay) subscribers to renew 2–3 days before the end, because SmartPay plans do not renew by themselves.
+
 ### Key libraries
 
 - `lib/require-auth.ts`, `lib/auth.ts` — auth (above)

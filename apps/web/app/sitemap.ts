@@ -14,7 +14,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         { url: `${BASE_URL}/professionals`, lastModified: now, changeFrequency: 'daily', priority: 0.8 },
         // Subscriptions are temporarily hidden — see lib/features.ts
         ...(SUBSCRIPTIONS_ENABLED
-            ? [{ url: `${BASE_URL}/contractor-plans`, lastModified: now, changeFrequency: 'monthly' as const, priority: 0.6 }]
+            ? [{ url: `${BASE_URL}/subscription`, lastModified: now, changeFrequency: 'monthly' as const, priority: 0.6 }]
             : []),
         { url: `${BASE_URL}/register`, lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
         { url: `${BASE_URL}/login`, lastModified: now, changeFrequency: 'monthly', priority: 0.4 },

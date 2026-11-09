@@ -37,7 +37,7 @@ async function user(key, fullName, role, extra = {}) {
             password,
             phoneVerified: true,
             ...(role === 'PROVIDER'
-                ? { subscription: { create: { plan: 'standard', endDate: new Date(Date.now() + 365 * 864e5) } } }
+                ? { subscription: { create: { plan: 'pro_plus', endDate: new Date(Date.now() + 365 * 864e5) } } }
                 : {}),
             ...extra,
         },

@@ -83,7 +83,7 @@ export default function Footer({ company = COMPANY_DEFAULTS }: { company?: Compa
                         <ul style={{ display: 'flex', flexDirection: 'column', gap: '16px', listStyle: 'none', padding: 0 }}>
                             <li><Link href="/register?type=provider" style={{ color: '#4B5563', textDecoration: 'none', fontSize: '0.95rem' }}>{t('footer.becomeProvider')}</Link></li>
                             {SUBSCRIPTIONS_ENABLED && (
-                                <li><Link href="/contractor-plans" style={{ color: '#4B5563', textDecoration: 'none', fontSize: '0.95rem' }}>{t('footer.plans')}</Link></li>
+                                <li><Link href="/subscription" style={{ color: '#4B5563', textDecoration: 'none', fontSize: '0.95rem' }}>{t('footer.plans')}</Link></li>
                             )}
                             <li><Link href="/mobile-app" style={{ color: '#4B5563', textDecoration: 'none', fontSize: '0.95rem' }}>{t('footer.mobileApp')}</Link></li>
                             <li><Link href="/sourcing" style={{ color: '#4B5563', textDecoration: 'none', fontSize: '0.95rem' }}>{t('footer.sourcing')}</Link></li>

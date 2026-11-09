@@ -71,9 +71,9 @@ describe('GET /api/users/[id]', () => {
 
     it('tier null when subscriptions disabled, plan when enabled', async () => {
         mockSubscriptionsEnabled = true;
-        prismaMock.subscription.findFirst.mockResolvedValue({ plan: 'premium' } as never);
+        prismaMock.subscription.findFirst.mockResolvedValue({ plan: 'business' } as never);
         const { user: body } = await (await get()).json();
-        expect(body.tier).toBe('premium');
+        expect(body.tier).toBe('business');
     });
 
     it('returns 500 on a database error', async () => {

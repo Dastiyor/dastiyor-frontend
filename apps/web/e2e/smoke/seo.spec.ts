@@ -17,7 +17,7 @@ test('the sitemap lists the public pages and no private ones', async ({ request 
     }
     expect(xml).not.toMatch(/\/(customer|provider|api)\//);
     // Paid plans are hidden at launch.
-    expect(xml).not.toContain('/contractor-plans');
+    expect(xml).not.toContain('/subscription');
 });
 
 test('pages carry a title, a description and a mobile viewport', async ({ page }) => {

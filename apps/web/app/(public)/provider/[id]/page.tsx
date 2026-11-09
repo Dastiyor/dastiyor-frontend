@@ -55,7 +55,7 @@ export default async function ProviderProfilePage({ params }: Props) {
                     {/* Paid tier badge — null while subscriptions are switched off */}
                     {user.tier && (
                         <div style={{ position: 'absolute', top: '20px', right: '20px' }}>
-                            <TierBadge tier={user.tier} label={t(`subscription.${user.tier}`)} />
+                            <TierBadge tier={user.tier} />
                         </div>
                     )}
 

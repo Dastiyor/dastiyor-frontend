@@ -4,12 +4,8 @@ import { NextRequest } from 'next/server';
 
 jest.mock('@/lib/payments', () => ({
     verifyWebhookSignature: jest.fn(),
-    PLANS: {
-        basic: { name: 'Basic', nameRu: 'Базовый', price: 99, durationDays: 7 },
-        standard: { name: 'Standard', nameRu: 'Стандарт', price: 199, durationDays: 30 },
-        premium: { name: 'Premium', nameRu: 'Премиум', price: 399, durationDays: 30 },
-    },
-    isValidPlan: jest.fn((plan: string) => ['basic', 'standard', 'premium'].includes(plan)),
+    PLANS: jest.requireActual('@/lib/plans').PLANS,
+    normalizePlan: jest.requireActual('@/lib/plans').normalizePlan,
 }));
 
 jest.mock('@/lib/notifications/email', () => ({
@@ -43,10 +39,10 @@ const mockPayment = {
     userId: 'user-1',
     smartpayOrderId: 'ORDER-001',
     status: 'PENDING',
-    plan: 'basic',
+    plan: 'pro',
     amount: 99,
     currency: 'TJS',
-    description: 'Подписка Базовый',
+    description: 'Подписка PRO',
     transactionId: null,
     paymentMethod: null,
     user: { email: 'user@test.com', fullName: 'Test User' },
@@ -121,7 +117,7 @@ describe('/api/webhooks/smartpay', () => {
                 expect.objectContaining({
                     data: expect.objectContaining({
                         userId: 'user-1',
-                        plan: 'basic',
+                        plan: 'pro',
                         isActive: true,
                         source: 'web',
                     }),
@@ -134,7 +130,7 @@ describe('/api/webhooks/smartpay', () => {
             prismaMock.subscription.findUnique.mockResolvedValue({
                 id: 'sub-1',
                 userId: 'user-1',
-                plan: 'basic',
+                plan: 'pro',
                 startDate: new Date(),
                 endDate: futureEnd,
                 isActive: true,
@@ -145,8 +141,8 @@ describe('/api/webhooks/smartpay', () => {
 
             const updateCall = prismaMock.subscription.update.mock.calls[0][0];
             const newEndDate = updateCall.data.endDate as Date;
-            // Should extend from futureEnd + 7 days (basic plan), not from now + 7 days
-            const expectedMinEnd = new Date(futureEnd.getTime() + 6 * 24 * 60 * 60 * 1000);
+            // Should extend from futureEnd + 30 days, not from now + 30 days
+            const expectedMinEnd = new Date(futureEnd.getTime() + 29 * 24 * 60 * 60 * 1000);
             expect(newEndDate.getTime()).toBeGreaterThanOrEqual(expectedMinEnd.getTime());
             expect(updateCall.data.isActive).toBe(true);
             expect(updateCall.data.source).toBe('web');
@@ -157,7 +153,7 @@ describe('/api/webhooks/smartpay', () => {
             prismaMock.subscription.findUnique.mockResolvedValue({
                 id: 'sub-1',
                 userId: 'user-1',
-                plan: 'basic',
+                plan: 'pro',
                 startDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
                 endDate: pastEnd,
                 isActive: false,
@@ -169,9 +165,21 @@ describe('/api/webhooks/smartpay', () => {
             const updateCall = prismaMock.subscription.update.mock.calls[0][0];
             // Expired sub: extends from now, not from pastEnd
             const newEndDate = updateCall.data.endDate as Date;
-            const expectedMax = new Date(Date.now() + 8 * 24 * 60 * 60 * 1000);
+            const expectedMax = new Date(Date.now() + 31 * 24 * 60 * 60 * 1000);
             expect(newEndDate.getTime()).toBeLessThanOrEqual(expectedMax.getTime());
             expect(updateCall.data.isActive).toBe(true);
+        });
+
+        it('activates the replacement plan for an order placed under an old plan id', async () => {
+            prismaMock.payment.findUnique.mockResolvedValue({ ...mockPayment, plan: 'standard' } as any);
+            prismaMock.subscription.findUnique.mockResolvedValue(null);
+            prismaMock.subscription.create.mockResolvedValue({} as any);
+
+            await POST(makeRequest(validCallbackBody));
+
+            expect(prismaMock.subscription.create).toHaveBeenCalledWith(
+                expect.objectContaining({ data: expect.objectContaining({ plan: 'pro_plus' }) })
+            );
         });
 
         it('creates in-app notification for user', async () => {
@@ -202,7 +210,7 @@ describe('/api/webhooks/smartpay', () => {
                 'user@test.com',
                 'Test User',
                 99,
-                'Подписка Базовый',
+                'Подписка PRO',
                 'ORDER-001',
                 'sp_tx_123',
             undefined,

@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client';
 import type { PaginatedResult, ProfessionalCard, ProfessionalSort, PublicProfile, SubscriptionTier } from '@dastiyor/types';
+import { normalizePlan } from '@/lib/plans';
 import { prisma } from '@/lib/prisma';
 import { SUBSCRIPTIONS_ENABLED } from '@/lib/features';
 
@@ -13,7 +14,9 @@ export interface ProfessionalSearch {
 }
 
 const SORTS: ProfessionalSort[] = ['rating', 'reviews', 'completed', 'newest'];
-const TIERS: SubscriptionTier[] = ['basic', 'standard', 'premium'];
+/** Plans can be live in the app alone, and buyers still get their badge and ranking. */
+const tiersLive = () => SUBSCRIPTIONS_ENABLED || process.env.MOBILE_PURCHASE_ENABLED === 'true';
+
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 50;
 
@@ -69,7 +72,7 @@ export async function searchProfessionals(search: ProfessionalSearch): Promise<P
     if (search.city) filters.push(Prisma.sql`u.city = ${search.city}`);
     const where = Prisma.join(filters, ' AND ');
 
-    const tierRank = SUBSCRIPTIONS_ENABLED ? Prisma.sql`tier_rank DESC, ` : Prisma.empty;
+    const tierRank = tiersLive() ? Prisma.sql`tier_rank DESC, ` : Prisma.empty;
 
     const [rows, [{ total }]] = await Promise.all([
         prisma.$queryRaw<(ProfessionalCard & { tier_rank: number })[]>(Prisma.sql`
@@ -78,7 +81,10 @@ export async function searchProfessionals(search: ProfessionalSearch): Promise<P
                    COALESCE(r.review_count, 0)::int AS "reviewCount",
                    COALESCE(c.completed, 0)::int AS "completedCount",
                    s.plan AS tier,
-                   CASE s.plan WHEN 'premium' THEN 3 WHEN 'standard' THEN 2 WHEN 'basic' THEN 1 ELSE 0 END AS tier_rank
+                   -- BUSINESS, PRO+, PRO, FREE; old plan ids rank as their replacements (lib/plans.ts)
+                   CASE WHEN s.plan IN ('business', 'premium') THEN 3
+                        WHEN s.plan IN ('pro_plus', 'standard') THEN 2
+                        WHEN s.plan IN ('pro', 'basic') THEN 1 ELSE 0 END AS tier_rank
             FROM "User" u
             LEFT JOIN (
                 SELECT "reviewedId", ROUND(AVG(rating)::numeric, 1)::float AS avg_rating, COUNT(*) AS review_count
@@ -97,19 +103,19 @@ export async function searchProfessionals(search: ProfessionalSearch): Promise<P
 
     const items = rows.map(({ tier_rank: _rank, ...card }) => ({
         ...card,
-        tier: SUBSCRIPTIONS_ENABLED && TIERS.includes(card.tier as SubscriptionTier) ? card.tier : null,
+        tier: tiersLive() ? normalizePlan(card.tier) : null,
     }));
     return { items, total, page, limit };
 }
 
 /** The provider's paid tier for badges, or null (also null while subscriptions are off). */
 export async function getActiveTier(userId: string): Promise<SubscriptionTier | null> {
-    if (!SUBSCRIPTIONS_ENABLED) return null;
+    if (!tiersLive()) return null;
     const sub = await prisma.subscription.findFirst({
         where: { userId, isActive: true, endDate: { gt: new Date() } },
         select: { plan: true },
     });
-    return TIERS.includes(sub?.plan as SubscriptionTier) ? (sub!.plan as SubscriptionTier) : null;
+    return normalizePlan(sub?.plan);
 }
 
 /**

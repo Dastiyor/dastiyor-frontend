@@ -28,25 +28,25 @@ describe('RevenueCat', () => {
 
         it('picks the highest active entitlement', async () => {
             fetchMock.mockReturnValue(subscriber({
-                basic: { expires_date: inDays(3) },
-                premium: { expires_date: inDays(20) },
-                standard: { expires_date: inDays(10) },
+                pro: { expires_date: inDays(3) },
+                business: { expires_date: inDays(20) },
+                pro_plus: { expires_date: inDays(10) },
             }));
             const ent = await getStoreEntitlement('u1');
-            expect(ent?.plan).toBe('premium');
+            expect(ent?.plan).toBe('business');
             expect(ent!.expiresAt.getTime()).toBeGreaterThan(Date.now() + 19 * DAY);
         });
 
         it('ignores expired entitlements but honours a grace period', async () => {
             fetchMock.mockReturnValue(subscriber({
-                premium: { expires_date: inDays(-1) },
-                standard: { expires_date: inDays(-1), grace_period_expires_date: inDays(2) },
+                business: { expires_date: inDays(-1) },
+                pro_plus: { expires_date: inDays(-1), grace_period_expires_date: inDays(2) },
             }));
-            expect((await getStoreEntitlement('u1'))?.plan).toBe('standard');
+            expect((await getStoreEntitlement('u1'))?.plan).toBe('pro_plus');
         });
 
         it('returns null with no active entitlement, an unknown id or a lifetime grant', async () => {
-            fetchMock.mockReturnValue(subscriber({ gold: { expires_date: inDays(5) }, basic: { expires_date: null } }));
+            fetchMock.mockReturnValue(subscriber({ gold: { expires_date: inDays(5) }, pro: { expires_date: null } }));
             expect(await getStoreEntitlement('u1')).toBeNull();
         });
 
@@ -63,21 +63,21 @@ describe('RevenueCat', () => {
     });
 
     describe('syncStoreSubscription', () => {
-        it('premium entitlement upserts premium with store expiry', async () => {
+        it('business entitlement upserts business with store expiry', async () => {
             const exp = inDays(30);
-            fetchMock.mockReturnValue(subscriber({ premium: { expires_date: exp } }));
+            fetchMock.mockReturnValue(subscriber({ business: { expires_date: exp } }));
             prismaMock.subscription.findUnique.mockResolvedValue(null);
 
             await syncStoreSubscription('u1');
 
             expect(prismaMock.subscription.create).toHaveBeenCalledWith({
-                data: expect.objectContaining({ userId: 'u1', plan: 'premium', endDate: new Date(exp), isActive: true, source: 'store' }),
+                data: expect.objectContaining({ userId: 'u1', plan: 'business', endDate: new Date(exp), isActive: true, source: 'store' }),
             });
         });
 
         it('store expiry earlier than an existing SmartPay endDate leaves it', async () => {
-            fetchMock.mockReturnValue(subscriber({ basic: { expires_date: inDays(5) } }));
-            prismaMock.subscription.findUnique.mockResolvedValue({ userId: 'u1', plan: 'premium', isActive: true, endDate: new Date(inDays(20)), source: 'web' } as never);
+            fetchMock.mockReturnValue(subscriber({ pro: { expires_date: inDays(5) } }));
+            prismaMock.subscription.findUnique.mockResolvedValue({ userId: 'u1', plan: 'business', isActive: true, endDate: new Date(inDays(20)), source: 'web' } as never);
 
             await syncStoreSubscription('u1');
 
@@ -87,20 +87,20 @@ describe('RevenueCat', () => {
 
         it('a later store expiry takes over the row', async () => {
             const exp = inDays(30);
-            fetchMock.mockReturnValue(subscriber({ standard: { expires_date: exp } }));
-            prismaMock.subscription.findUnique.mockResolvedValue({ userId: 'u1', plan: 'basic', isActive: true, endDate: new Date(inDays(2)), startDate: new Date(), source: 'web' } as never);
+            fetchMock.mockReturnValue(subscriber({ pro_plus: { expires_date: exp } }));
+            prismaMock.subscription.findUnique.mockResolvedValue({ userId: 'u1', plan: 'pro', isActive: true, endDate: new Date(inDays(2)), startDate: new Date(), source: 'web' } as never);
 
             await syncStoreSubscription('u1');
 
             expect(prismaMock.subscription.update).toHaveBeenCalledWith({
                 where: { userId: 'u1' },
-                data: expect.objectContaining({ plan: 'standard', endDate: new Date(exp), isActive: true, source: 'store' }),
+                data: expect.objectContaining({ plan: 'pro_plus', endDate: new Date(exp), isActive: true, source: 'store' }),
             });
         });
 
         it('a lapsed store subscription is deactivated', async () => {
             fetchMock.mockReturnValue(subscriber({}));
-            prismaMock.subscription.findUnique.mockResolvedValue({ userId: 'u1', plan: 'premium', isActive: true, endDate: new Date(inDays(10)), source: 'store' } as never);
+            prismaMock.subscription.findUnique.mockResolvedValue({ userId: 'u1', plan: 'business', isActive: true, endDate: new Date(inDays(10)), source: 'store' } as never);
 
             await syncStoreSubscription('u1');
 
@@ -109,7 +109,7 @@ describe('RevenueCat', () => {
 
         it('EXPIRATION with no active entitlement does not delete a valid web subscription', async () => {
             fetchMock.mockReturnValue(subscriber({}));
-            prismaMock.subscription.findUnique.mockResolvedValue({ userId: 'u1', plan: 'premium', isActive: true, endDate: new Date(inDays(10)), source: 'web' } as never);
+            prismaMock.subscription.findUnique.mockResolvedValue({ userId: 'u1', plan: 'business', isActive: true, endDate: new Date(inDays(10)), source: 'web' } as never);
 
             await syncStoreSubscription('u1');
 

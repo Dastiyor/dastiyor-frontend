@@ -1,49 +1,32 @@
 import { prisma } from '@/lib/prisma';
-import { verifyJWT } from '@/lib/auth';
+import { verifyJWTWithVersion } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import Link from 'next/link';
 import SubscriptionPlans from '@/components/subscription/SubscriptionPlans';
+import CurrentPlan from '@/components/subscription/CurrentPlan';
 import { getServerTranslation } from '@/lib/i18n/server';
 import { SUBSCRIPTIONS_ENABLED } from '@/lib/features';
+import { activePlan, getResponseAllowance } from '@/lib/response-allowance';
 
+/** Provider plans. Public: signed-out visitors see the plans with a sign-in link. */
 export default async function SubscriptionPage() {
     // Subscriptions are temporarily hidden — see lib/features.ts
     if (!SUBSCRIPTIONS_ENABLED) redirect('/');
 
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-
-    if (!token) {
-        redirect('/login');
-    }
-
-    const payload = await verifyJWT(token);
-    if (!payload || !payload.id) {
-        redirect('/login');
-    }
-
-    const user = await prisma.user.findUnique({
-        where: { id: payload.id as string },
-        include: {
-            subscription: true
-        }
-    });
-
-    if (!user) {
-        redirect('/login');
-    }
+    const token = (await cookies()).get('token')?.value;
+    const payload = token ? await verifyJWTWithVersion(token) : null;
+    const user = payload?.id
+        ? await prisma.user.findUnique({ where: { id: payload.id as string }, include: { subscription: true } })
+        : null;
 
     const { t } = await getServerTranslation();
-    const currentSubscription = user.subscription;
-    const isActive = currentSubscription?.isActive &&
-        currentSubscription?.endDate &&
-        new Date(currentSubscription.endDate) > new Date();
+    const plan = activePlan(user?.subscription ?? null);
+    const usage = user?.role === 'PROVIDER' ? await getResponseAllowance(user.id) : null;
 
     return (
         <div style={{ backgroundColor: 'var(--secondary)', minHeight: '100vh', padding: '60px 0' }}>
-            <div className="container" style={{ maxWidth: '1100px' }}>
-                <div style={{ textAlign: 'center', marginBottom: '60px' }}>
+            <div className="container" style={{ maxWidth: '1200px' }}>
+                <div style={{ textAlign: 'center', marginBottom: '48px' }}>
                     <h1 className="heading-lg" style={{ fontSize: '2.5rem', marginBottom: '16px' }}>
                         {t('subscriptionPage.title')}
                     </h1>
@@ -52,112 +35,10 @@ export default async function SubscriptionPage() {
                     </p>
                 </div>
 
-                {/* Current Subscription Status */}
-                {isActive && currentSubscription && (
-                    <div style={{
-                        backgroundColor: '#f0fdf4',
-                        border: '2px solid #22c55e',
-                        borderRadius: '16px',
-                        padding: '24px 32px',
-                        marginBottom: '40px',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center'
-                    }}>
-                        <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                                <span style={{ fontSize: '1.5rem' }}>✨</span>
-                                <h3 style={{ fontSize: '1.3rem', fontWeight: '700', color: '#166534' }}>
-                                    {currentSubscription.plan.charAt(0).toUpperCase() + currentSubscription.plan.slice(1)} {t('subscriptionPage.planActive')}
-                                </h3>
-                            </div>
-                            <p style={{ color: '#15803d' }}>
-                                {t('subscriptionPage.activeUntil')} {new Date(currentSubscription.endDate).toLocaleDateString('ru-RU')}
-                            </p>
-                        </div>
-                        <div style={{ textAlign: 'right' }}>
-                            <div style={{ fontSize: '0.9rem', color: '#15803d', marginBottom: '4px' }}>
-                                {t('subscriptionPage.daysLeft')}
-                            </div>
-                            <div style={{ fontSize: '2rem', fontWeight: '700', color: '#166534' }}>
-                                {/* eslint-disable-next-line react-hooks/purity */}
-                                {Math.ceil((new Date(currentSubscription.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))}
-                            </div>
-                        </div>
-                    </div>
-                )}
+                {usage && <CurrentPlan plan={plan} endDate={user?.subscription?.endDate ?? null} usage={usage} />}
 
-                {/* Subscription Plans */}
-                <SubscriptionPlans
-                    currentPlan={isActive ? currentSubscription?.plan : null}
-                    userId={user.id}
-                />
-
-                {/* Features Comparison */}
-                <div style={{
-                    backgroundColor: 'white',
-                    borderRadius: '24px',
-                    padding: '48px',
-                    marginTop: '60px',
-                    border: '1px solid var(--border)'
-                }}>
-                    <h2 className="heading-md" style={{ textAlign: 'center', marginBottom: '40px' }}>
-                        {t('subscriptionPage.compare')}
-                    </h2>
-
-                    <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '520px' }}>
-                        <thead>
-                            <tr style={{ borderBottom: '2px solid var(--border)' }}>
-                                <th style={{ textAlign: 'left', padding: '16px 0', fontWeight: '600' }}>{t('subscriptionPage.features')}</th>
-                                <th style={{ textAlign: 'center', padding: '16px 0', fontWeight: '600' }}>{t('subscriptionPage.free')}</th>
-                                <th style={{ textAlign: 'center', padding: '16px 0', fontWeight: '600', color: 'var(--primary)' }}>Базовый</th>
-                                <th style={{ textAlign: 'center', padding: '16px 0', fontWeight: '600', color: 'var(--accent)' }}>Стандарт</th>
-                                <th style={{ textAlign: 'center', padding: '16px 0', fontWeight: '600', color: '#9333ea' }}>Премиум</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <FeatureRow feature={t('subscriptionPage.viewTasks')} free="✓" basic="✓" standard="✓" premium="✓" />
-                            <FeatureRow feature={t('subscriptionPage.taskResponses')} free="3/мес" basic="15/мес" standard="50/мес" premium={t('subscriptionPage.unlimited')} />
-                            <FeatureRow feature={t('subscriptionPage.profileVisibility')} free={t('subscriptionPage.basicVisibility')} basic={t('subscriptionPage.improvedVisibility')} standard={t('subscriptionPage.priorityVisibility')} premium={t('subscriptionPage.featuredVisibility')} />
-                            <FeatureRow feature={t('subscriptionPage.responsesPriority')} free="—" basic={t('subscriptionPage.standardPriority')} standard={t('subscriptionPage.highPriority')} premium={t('subscriptionPage.highestPriority')} />
-                            <FeatureRow feature={t('subscriptionPage.profileBadge')} free="—" basic="✓" standard="✓" premium="✓" />
-                            <FeatureRow feature={t('subscriptionPage.analytics')} free="—" basic="—" standard={t('subscriptionPage.basicAnalytics')} premium={t('subscriptionPage.fullAnalytics')} />
-                            <FeatureRow feature={t('subscriptionPage.support')} free="—" basic="—" standard="—" premium="✓" />
-                        </tbody>
-                    </table>
-                    </div>
-                </div>
-
-                {/* FAQ */}
-                <div style={{ marginTop: '60px', textAlign: 'center' }}>
-                    <h3 className="heading-md" style={{ marginBottom: '16px' }}>{t('subscriptionPage.faqTitle')}</h3>
-                    <p style={{ color: 'var(--text-light)', marginBottom: '24px' }}>
-                        {t('subscriptionPage.faqDesc')}
-                    </p>
-                    <Link href="/how-it-works" className="btn btn-outline">
-                        {t('subscriptionPage.learnMore')}
-                    </Link>
-                </div>
+                <SubscriptionPlans currentPlan={plan} signedIn={!!user} />
             </div>
         </div>
-    );
-}
-
-function FeatureRow({ feature, free, basic, standard, premium }: {
-    feature: string;
-    free: string;
-    basic: string;
-    standard: string;
-    premium: string;
-}) {
-    return (
-        <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
-            <td style={{ padding: '16px 0', color: 'var(--text)' }}>{feature}</td>
-            <td style={{ padding: '16px 0', textAlign: 'center', color: 'var(--text-light)' }}>{free}</td>
-            <td style={{ padding: '16px 0', textAlign: 'center' }}>{basic}</td>
-            <td style={{ padding: '16px 0', textAlign: 'center' }}>{standard}</td>
-            <td style={{ padding: '16px 0', textAlign: 'center' }}>{premium}</td>
-        </tr>
     );
 }

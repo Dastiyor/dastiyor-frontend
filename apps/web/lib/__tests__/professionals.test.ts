@@ -95,7 +95,8 @@ describe('searchProfessionals', () => {
 
         const res = await searchProfessionals({ sort: 'reviews' });
         expect(flat(rowsCall())).toContain('ORDER BY tier_rank DESC, "reviewCount" DESC');
-        expect(res.items[0].tier).toBe('premium');
+        // stored under an old id, served as its replacement
+        expect(res.items[0].tier).toBe('business');
     });
 });
 
@@ -129,11 +130,20 @@ describe('getActiveTier', () => {
         expect(prismaMock.subscription.findFirst).not.toHaveBeenCalled();
     });
 
+    it('shows the plan when plans are live in the app only', async () => {
+        mockSubscriptionsEnabled = false;
+        process.env.MOBILE_PURCHASE_ENABLED = 'true';
+        prismaMock.subscription.findFirst.mockResolvedValue({ plan: 'pro' } as never);
+
+        expect(await getActiveTier('u1')).toBe('pro');
+        delete process.env.MOBILE_PURCHASE_ENABLED;
+    });
+
     it('returns the plan of an active, unexpired subscription', async () => {
         mockSubscriptionsEnabled = true;
-        prismaMock.subscription.findFirst.mockResolvedValue({ plan: 'standard' } as never);
+        prismaMock.subscription.findFirst.mockResolvedValue({ plan: 'pro_plus' } as never);
 
-        expect(await getActiveTier('u1')).toBe('standard');
+        expect(await getActiveTier('u1')).toBe('pro_plus');
         expect(prismaMock.subscription.findFirst).toHaveBeenCalledWith({
             where: { userId: 'u1', isActive: true, endDate: { gt: expect.any(Date) } },
             select: { plan: true },

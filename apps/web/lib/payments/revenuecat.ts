@@ -2,7 +2,7 @@
  * App Store / Google Play subscriptions, through RevenueCat.
  *
  * The app's RevenueCat user id is our User.id. Entitlement ids in RevenueCat are
- * our plan ids (basic, standard, premium). Rather than interpret each webhook
+ * our plan ids (pro, pro_plus, business; see lib/plans.ts). Rather than interpret each webhook
  * event, we re-read the subscriber from RevenueCat and mirror it into our
  * Subscription row (RevenueCat's own recommendation), so duplicates and
  * out-of-order events are harmless.
@@ -13,10 +13,10 @@
  */
 
 import { prisma } from '@/lib/prisma';
-import type { PlanId } from './index';
+import type { PlanId } from '@/lib/plans';
 
 const API = 'https://api.revenuecat.com/v1';
-const RANK: PlanId[] = ['premium', 'standard', 'basic'];
+const RANK: PlanId[] = ['business', 'pro_plus', 'pro'];
 
 interface Entitlement {
     expires_date: string | null;

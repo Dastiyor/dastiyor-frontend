@@ -33,7 +33,7 @@ export default function ProfessionalsScreen() {
     { key: 'sort' as const, options: SORTS.map((s) => ({ value: s, label: pr.sorts[s] })) },
   ], [config, tr, t.categories.all, pr]);
 
-  const labels = { reviews: pr.reviews, completed: pr.completed, tiers: t.provider.tiers };
+  const labels = { reviews: pr.reviews, completed: pr.completed };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>

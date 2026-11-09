@@ -20,6 +20,7 @@ import { Avatar } from '@/components/Avatar';
 import { LOCALE_NAMES, type Locale } from '@/lib/i18n';
 import { Alert } from '@/lib/dialog';
 import { useConfig } from '@/lib/useConfig';
+import { storeKey } from '@/lib/purchases';
 import { GradientButton } from '@/components/Premium';
 
 const LOCALES: Locale[] = ['ru', 'tj', 'en'];
@@ -239,8 +240,8 @@ export default function ProfileScreen() {
               onPress={() => router.push({ pathname: '/provider/[id]', params: { id: user.id, name: user.fullName } })}
             />
           ) : null}
-          {/* Paid plans in the app, only once both switches are on (see /api/config). */}
-          {user.role === 'PROVIDER' && config.subscriptionsEnabled && config.mobilePurchaseEnabled ? (
+          {/* Paid plans in the app: both switches on (see /api/config) and this platform's store connected. */}
+          {user.role === 'PROVIDER' && config.subscriptionsEnabled && config.mobilePurchaseEnabled && storeKey() ? (
             <RowItem
               icon="ribbon-outline"
               iconColor="#7C3AED"

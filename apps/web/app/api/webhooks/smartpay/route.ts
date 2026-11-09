@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyWebhookSignature, PLANS, isValidPlan } from '@/lib/payments';
+import { verifyWebhookSignature, PLANS, normalizePlan } from '@/lib/payments';
 import type { SmartPayWebhook } from '@/lib/payments';
 import { sendPaymentReceiptEmail } from '@/lib/notifications/email';
 
@@ -61,8 +61,10 @@ export async function POST(request: Request) {
         });
 
         // Activate or extend subscription
-        if (payment.plan && isValidPlan(payment.plan)) {
-            const planConfig = PLANS[payment.plan];
+        // normalizePlan: an order started before the plan rename still activates its replacement.
+        const plan = normalizePlan(payment.plan);
+        if (plan) {
+            const planConfig = PLANS[plan];
             const now = new Date();
 
             const existingSub = await prisma.subscription.findUnique({
@@ -79,7 +81,7 @@ export async function POST(request: Request) {
                 await prisma.subscription.update({
                     where: { userId: payment.userId },
                     data: {
-                        plan: payment.plan,
+                        plan,
                         startDate: existingSub.isActive ? existingSub.startDate : now,
                         endDate,
                         isActive: true,
@@ -90,7 +92,7 @@ export async function POST(request: Request) {
                 await prisma.subscription.create({
                     data: {
                         userId: payment.userId,
-                        plan: payment.plan,
+                        plan,
                         startDate: now,
                         endDate,
                         isActive: true,
@@ -105,7 +107,7 @@ export async function POST(request: Request) {
                     userId: payment.userId,
                     type: 'SYSTEM',
                     title: 'Подписка активирована',
-                    message: `Ваша подписка "${planConfig.nameRu}" успешно активирована на ${planConfig.durationDays} дней.`,
+                    message: `Ваша подписка "${planConfig.name}" успешно активирована на ${planConfig.durationDays} дней.`,
                     link: '/provider/subscription',
                 }
             });

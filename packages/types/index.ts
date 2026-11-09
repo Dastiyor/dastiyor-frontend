@@ -71,7 +71,8 @@ export interface PortfolioProject {
   order: number;
 }
 
-export type SubscriptionTier = 'basic' | 'standard' | 'premium';
+/** Paid provider plans (FREE is the absence of one). See apps/web/lib/plans.ts. */
+export type SubscriptionTier = 'pro' | 'pro_plus' | 'business';
 
 export type ProfessionalSort = 'rating' | 'reviews' | 'completed' | 'newest';
 

@@ -1,3 +1,4 @@
+import { storeKey } from '@/lib/purchases';
 import { useState } from 'react';
 import {
   View,
@@ -83,7 +84,7 @@ export default function RespondScreen() {
       ) {
         // Store rules: the plans screen (in-app purchase) is the only purchase path offered here.
         Alert.alert(t.subscription.required, t.subscription.message,
-          config.subscriptionsEnabled && config.mobilePurchaseEnabled
+          config.subscriptionsEnabled && config.mobilePurchaseEnabled && storeKey()
             ? [{ text: t.common.cancel, style: 'cancel' }, { text: t.subscription.viewPlans, onPress: () => router.push('/subscription') }]
             : undefined);
       } else {

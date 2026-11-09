@@ -8,6 +8,7 @@ import { validateResponseInput } from '@/lib/validation';
 import { sendTaskResponseNotification } from '@/lib/notifications/email';
 import { sendPushNotification } from '@/lib/web-push';
 import { requireAuth } from '@/lib/require-auth';
+import { getResponseAllowance, canRespond } from '@/lib/response-allowance';
 import { needsPhoneVerification, PHONE_VERIFICATION_REQUIRED } from '@/lib/phone-gate';
 
 export async function POST(request: Request) {
@@ -27,7 +28,6 @@ export async function POST(request: Request) {
         }
 
         // 2. Load User
-        // TODO: Re-enable subscription include when payment gateway is ready
         const user = await prisma.user.findUnique({
             where: { id: payload.id as string }
         });
@@ -52,17 +52,14 @@ export async function POST(request: Request) {
             );
         }
 
-        // Subscription gate — disabled only when SUBSCRIPTION_GATE_ENABLED=false
+        // Monthly response limit: FREE 5, PRO 30, PRO+ and BUSINESS unlimited.
+        // Off only when SUBSCRIPTION_GATE_ENABLED=false (see lib/features.ts).
+        // The code stays SUBSCRIPTION_REQUIRED: both clients route it to the plans page.
         if (process.env.SUBSCRIPTION_GATE_ENABLED !== 'false') {
-            const subscription = await prisma.subscription.findUnique({
-                where: { userId: payload.id as string },
-                select: { isActive: true, endDate: true, plan: true },
-            });
-            const hasActiveSub =
-                subscription?.isActive && new Date(subscription.endDate) > new Date();
-            if (!hasActiveSub) {
+            const allowance = await getResponseAllowance(payload.id as string);
+            if (!canRespond(allowance)) {
                 return NextResponse.json(
-                    { error: 'Для отклика нужна активная подписка', code: 'SUBSCRIPTION_REQUIRED' },
+                    { error: 'Лимит откликов на этот месяц исчерпан', code: 'SUBSCRIPTION_REQUIRED' },
                     { status: 403 }
                 );
             }

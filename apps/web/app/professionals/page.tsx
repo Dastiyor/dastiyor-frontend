@@ -4,7 +4,7 @@ import { getServerTranslation } from '@/lib/i18n/server';
 import { getCategories } from '@/lib/categories';
 import { CITIES } from '@/lib/config-fallback';
 import { parseSearchParams, searchProfessionals } from '@/lib/professionals';
-import TierBadge from '@/components/TierBadge';
+import TierBadge, { tierCardStyle } from '@/components/TierBadge';
 import Filters from './Filters';
 import styles from './professionals.module.css';
 
@@ -64,7 +64,7 @@ export default async function ProfessionalsPage({ searchParams }: Props) {
                         </p>
                         <div className={styles.grid}>
                             {result.items.map((pro) => (
-                                <Link key={pro.id} href={`/provider/${pro.id}`} className={styles.card}>
+                                <Link key={pro.id} href={`/provider/${pro.id}`} className={styles.card} style={tierCardStyle(pro.tier)}>
                                     <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
                                         <div className={styles.avatar}>
                                             {pro.avatar
@@ -76,7 +76,7 @@ export default async function ProfessionalsPage({ searchParams }: Props) {
                                                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{pro.fullName}</span>
                                                 {pro.isVerified && <BadgeCheck size={16} color="#059669" aria-label={t('reviews_page.verified')} />}
                                             </h3>
-                                            <TierBadge tier={pro.tier} label={pro.tier ? t(`subscription.${pro.tier}`) : ''} size="sm" />
+                                            <TierBadge tier={pro.tier} size="sm" />
                                         </div>
                                     </div>
 

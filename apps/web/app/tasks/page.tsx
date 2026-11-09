@@ -123,7 +123,7 @@ export default async function TasksPage({ searchParams }: Props) {
 
                     <div style={{ display: 'flex', gap: '16px', alignItems: 'center', justifyContent: 'center' }}>
                         {SUBSCRIPTIONS_ENABLED && (
-                            <Link href="/contractor-plans" style={{
+                            <Link href="/subscription" style={{
                                 backgroundColor: 'rgba(37, 99, 235, 0.1)',
                                 color: 'var(--primary)',
                                 padding: '8px 16px',

@@ -130,6 +130,15 @@ describe('getActiveTier', () => {
         expect(prismaMock.subscription.findFirst).not.toHaveBeenCalled();
     });
 
+    it('shows the plan when plans are live in the app only', async () => {
+        mockSubscriptionsEnabled = false;
+        process.env.MOBILE_PURCHASE_ENABLED = 'true';
+        prismaMock.subscription.findFirst.mockResolvedValue({ plan: 'pro' } as never);
+
+        expect(await getActiveTier('u1')).toBe('pro');
+        delete process.env.MOBILE_PURCHASE_ENABLED;
+    });
+
     it('returns the plan of an active, unexpired subscription', async () => {
         mockSubscriptionsEnabled = true;
         prismaMock.subscription.findFirst.mockResolvedValue({ plan: 'pro_plus' } as never);

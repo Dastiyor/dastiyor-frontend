@@ -14,6 +14,9 @@ export interface ProfessionalSearch {
 }
 
 const SORTS: ProfessionalSort[] = ['rating', 'reviews', 'completed', 'newest'];
+/** Plans can be live in the app alone, and buyers still get their badge and ranking. */
+const tiersLive = () => SUBSCRIPTIONS_ENABLED || process.env.MOBILE_PURCHASE_ENABLED === 'true';
+
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 50;
 
@@ -69,7 +72,7 @@ export async function searchProfessionals(search: ProfessionalSearch): Promise<P
     if (search.city) filters.push(Prisma.sql`u.city = ${search.city}`);
     const where = Prisma.join(filters, ' AND ');
 
-    const tierRank = SUBSCRIPTIONS_ENABLED ? Prisma.sql`tier_rank DESC, ` : Prisma.empty;
+    const tierRank = tiersLive() ? Prisma.sql`tier_rank DESC, ` : Prisma.empty;
 
     const [rows, [{ total }]] = await Promise.all([
         prisma.$queryRaw<(ProfessionalCard & { tier_rank: number })[]>(Prisma.sql`
@@ -100,14 +103,14 @@ export async function searchProfessionals(search: ProfessionalSearch): Promise<P
 
     const items = rows.map(({ tier_rank: _rank, ...card }) => ({
         ...card,
-        tier: SUBSCRIPTIONS_ENABLED ? normalizePlan(card.tier) : null,
+        tier: tiersLive() ? normalizePlan(card.tier) : null,
     }));
     return { items, total, page, limit };
 }
 
 /** The provider's paid tier for badges, or null (also null while subscriptions are off). */
 export async function getActiveTier(userId: string): Promise<SubscriptionTier | null> {
-    if (!SUBSCRIPTIONS_ENABLED) return null;
+    if (!tiersLive()) return null;
     const sub = await prisma.subscription.findFirst({
         where: { userId, isActive: true, endDate: { gt: new Date() } },
         select: { plan: true },

@@ -82,6 +82,7 @@ describe('/api/subscription', () => {
         });
 
         it('returns this month\'s response usage against the plan limit', async () => {
+            delete process.env.SUBSCRIPTION_GATE_ENABLED;
             (prismaMock.subscription.findUnique as jest.Mock).mockResolvedValue({
                 plan: 'pro', startDate: new Date(), endDate: new Date(Date.now() + 86400000), isActive: true,
             });
@@ -90,6 +91,16 @@ describe('/api/subscription', () => {
             const data = await (await GET(makeGetRequest())).json();
 
             expect(data.usage).toMatchObject({ used: 12, limit: 30 });
+        });
+
+        it('leaves usage out while the limit is not enforced', async () => {
+            process.env.SUBSCRIPTION_GATE_ENABLED = 'false';
+            (prismaMock.subscription.findUnique as jest.Mock).mockResolvedValue(null);
+            (prismaMock.response.count as jest.Mock).mockResolvedValue(12);
+
+            const data = await (await GET(makeGetRequest())).json();
+
+            expect(data.usage).toBeUndefined();
         });
 
         it('serves an old plan id as its replacement', async () => {

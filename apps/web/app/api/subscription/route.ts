@@ -22,10 +22,12 @@ export async function GET(request: Request) {
             getResponseAllowance(userId),
         ]);
 
-        // usage: responses this month against the plan's limit (limit null = unlimited)
+        // usage: responses this month against the plan's limit (limit null = unlimited).
+        // Left out while the limit isn't enforced, so nobody sees a limit that doesn't apply.
+        const limitEnforced = process.env.SUBSCRIPTION_GATE_ENABLED !== 'false';
         return NextResponse.json({
             subscription: subscriptionView(subscription),
-            usage: { used: usage.used, limit: usage.limit, periodStart: usage.periodStart },
+            ...(limitEnforced && { usage: { used: usage.used, limit: usage.limit, periodStart: usage.periodStart } }),
         });
 
     } catch (error) {

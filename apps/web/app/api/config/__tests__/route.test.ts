@@ -30,6 +30,14 @@ describe('GET /api/config', () => {
         expect(data.mobilePurchaseEnabled).toBe(true);
     });
 
+    it('turns plans on for the app alone, before the website has checkout', async () => {
+        mockSubscriptionsEnabled = false;
+        process.env.MOBILE_PURCHASE_ENABLED = 'true';
+        const data = await (await GET()).json();
+        expect(data.subscriptionsEnabled).toBe(true);
+        expect(data.mobilePurchaseEnabled).toBe(true);
+    });
+
     it('includes the admin-managed company contacts for the app menu', async () => {
         const data = await (await GET()).json();
         expect(data.company).toEqual({ name: 'Dastiyor', email: 'hi@x.tj', phone: '+992 900', supportEmail: 'help@x.tj', address: 'Душанбе' });

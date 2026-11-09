@@ -83,11 +83,11 @@ describe('Public provider profile', () => {
 
     it('shows tier badge only when tier is set', async () => {
         await renderPage();
-        expect(screen.queryByText('subscription.premium')).not.toBeInTheDocument();
+        expect(screen.queryByText('TOP')).not.toBeInTheDocument();
     });
 
     it('shows the tier badge for a paid provider', async () => {
-        await renderPage({ tier: 'premium' });
-        expect(screen.getByText('subscription.premium')).toBeInTheDocument();
+        await renderPage({ tier: 'business' });
+        expect(screen.getByText('TOP')).toBeInTheDocument();
     });
 });

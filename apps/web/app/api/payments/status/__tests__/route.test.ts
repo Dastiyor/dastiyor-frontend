@@ -12,12 +12,8 @@ jest.mock('next/headers', () => ({
 }));
 
 jest.mock('@/lib/payments', () => ({
-    PLANS: {
-        basic: { nameRu: 'Базовый' },
-        standard: { nameRu: 'Стандарт' },
-        premium: { nameRu: 'Премиум' },
-    },
-    isValidPlan: jest.fn((plan: string) => ['basic', 'standard', 'premium'].includes(plan)),
+    PLANS: jest.requireActual('@/lib/plans').PLANS,
+    normalizePlan: jest.requireActual('@/lib/plans').normalizePlan,
     getSmartPayOrderStatus: jest.fn(async () => null),
 }));
 import { getSmartPayOrderStatus } from '@/lib/payments';
@@ -69,7 +65,7 @@ describe('/api/payments/status', () => {
             id: 'pay-1',
             userId: 'other-user',
             status: 'COMPLETED',
-            plan: 'basic',
+            plan: 'pro',
             amount: 99,
             currency: 'TJS',
         } as any);
@@ -86,7 +82,7 @@ describe('/api/payments/status', () => {
             id: 'pay-1',
             userId: mockUserId,
             status: 'COMPLETED',
-            plan: 'standard',
+            plan: 'pro_plus',
             amount: 199,
             currency: 'TJS',
         } as any);
@@ -96,7 +92,7 @@ describe('/api/payments/status', () => {
 
         expect(response.status).toBe(200);
         expect(data.status).toBe('COMPLETED');
-        expect(data.planName).toBe('Стандарт');
+        expect(data.planName).toBe('PRO+');
         expect(data.amount).toBe(199);
         expect(data.currency).toBe('TJS');
     });
@@ -123,7 +119,7 @@ describe('/api/payments/status', () => {
             id: 'pay-1',
             userId: mockUserId,
             status: 'PENDING',
-            plan: 'basic',
+            plan: 'pro',
             amount: 99,
             currency: 'TJS',
         } as any);
@@ -148,7 +144,8 @@ describe('/api/payments/status', () => {
         const data = await response.json();
 
         expect(data.status).toBe('FAILED');
-        expect(data.planName).toBe('Премиум');
+        // An order from before the rename is named as its replacement
+        expect(data.planName).toBe('BUSINESS');
     });
 
     it('returns 500 on database error', async () => {
@@ -162,7 +159,7 @@ describe('/api/payments/status', () => {
     });
 
     describe('pending payment and SmartPay', () => {
-        const pending = { id: 'pay-1', userId: 'user-1', smartpayOrderId: 'ORDER-001', status: 'PENDING', plan: 'basic', amount: 99, currency: 'TJS' };
+        const pending = { id: 'pay-1', userId: 'user-1', smartpayOrderId: 'ORDER-001', status: 'PENDING', plan: 'pro', amount: 99, currency: 'TJS' };
 
         it('marks a voided invoice as FAILED', async () => {
             prismaMock.payment.findUnique.mockResolvedValue(pending as any);

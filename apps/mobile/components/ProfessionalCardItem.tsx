@@ -10,13 +10,16 @@ import { PressScale } from '@/components/Premium';
 
 export function ProfessionalCardItem({ pro, labels, tr }: {
   pro: ProfessionalCard;
-  labels: { reviews: string; completed: string; tiers: Record<'basic' | 'standard' | 'premium', string> };
+  labels: { reviews: string; completed: string };
   tr: (v: string) => string;
 }) {
   const { colors } = useTheme();
+  // PRO+ is highlighted in the directory, BUSINESS more strongly (same as the website)
+  const highlight = pro.tier === 'business' ? { borderColor: '#F59E0B', borderWidth: 2 }
+    : pro.tier === 'pro_plus' ? { borderColor: '#A78BFA', borderWidth: 2 } : null;
   return (
     <PressScale
-      style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}
+      style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }, highlight]}
       onPress={() => router.push({ pathname: '/provider/[id]', params: { id: pro.id, name: pro.fullName } })}
       accessibilityRole="button"
     >
@@ -48,7 +51,7 @@ export function ProfessionalCardItem({ pro, labels, tr }: {
         )}
       </View>
       <View style={styles.side}>
-        <TierBadge tier={pro.tier} label={pro.tier ? labels.tiers[pro.tier] : ''} />
+        <TierBadge tier={pro.tier} />
         <Icon name="chevron-forward" size={18} color={colors.textTertiary} />
       </View>
     </PressScale>

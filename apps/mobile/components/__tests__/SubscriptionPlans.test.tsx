@@ -13,11 +13,11 @@ const P = Purchases as unknown as Record<string, jest.Mock>;
 const get = api.get as jest.Mock;
 const post = api.post as jest.Mock;
 
-const pkg = (plan: string, price: string) => ({ identifier: `$rc_${plan}`, product: { identifier: `dastiyor_${plan}_1m`, priceString: price } });
-const offerings = { current: { availablePackages: [pkg('premium', '$9.99'), pkg('basic', '$1.99'), pkg('standard', '$4.99')] } };
+const pkg = (plan: string, price: string) => ({ identifier: `$rc_${plan}`, product: { identifier: `dastiyor_${plan}_monthly`, priceString: price } });
+const offerings = { current: { availablePackages: [pkg('business', '$9.99'), pkg('pro', '$1.99'), pkg('pro_plus', '$4.99'), pkg('premium', '$5.99')] } };
 const labels = {
-  tiers: { basic: 'Basic', standard: 'Standard', premium: 'Premium' },
-  features: { basic: ['15 a day'], standard: ['50 a month'], premium: ['Unlimited'] },
+  features: { free: ['5 a month'], pro: ['30 a month'], pro_plus: ['Unlimited'], business: ['Unlimited, TOP'] },
+  free: 'FREE', usage: 'Used {used} of {limit}', usageUnlimited: 'Used {used}, unlimited', rules: ['30 days'],
   buy: 'Subscribe', current: 'Current plan', until: 'Until', restore: 'Restore purchases', manage: 'Manage subscription',
   success: 'Subscribed', unavailable: 'Not available yet', terms: 'Terms', privacy: 'Privacy', error: 'Error', ok: 'OK',
 };
@@ -28,13 +28,24 @@ describe('SubscriptionPlans', () => {
     jest.clearAllMocks();
     get.mockResolvedValue({ subscription: null });
     P.getOfferings.mockResolvedValue(offerings);
-    post.mockResolvedValue({ subscription: { plan: 'standard', isCurrentlyActive: true, endDate: '2026-12-01T00:00:00Z', source: 'store' } });
+    post.mockResolvedValue({ subscription: { plan: 'pro_plus', isCurrentlyActive: true, endDate: '2026-12-01T00:00:00Z', source: 'store' } });
   });
 
-  it('renders store price strings in plan order', async () => {
-    const { findByText, getAllByText } = setup();
+  it('renders store price strings in plan order, skipping products of old plans', async () => {
+    const { findByText, getAllByText, getByText } = setup();
     expect(await findByText('$1.99')).toBeTruthy();
     expect(getAllByText(/^\$\d/).map((n) => n.props.children)).toEqual(['$1.99', '$4.99', '$9.99']);
+    // dastiyor_pro_plus_monthly is PRO+, not PRO
+    expect(getByText('PRO+')).toBeTruthy();
+    expect(getByText('BUSINESS')).toBeTruthy();
+  });
+
+  it('shows FREE with its features and this month\'s usage when there is no plan', async () => {
+    get.mockResolvedValue({ subscription: null, usage: { used: 3, limit: 5 } });
+    const { findByText, getByText } = setup();
+    expect(await findByText('Current plan: FREE')).toBeTruthy();
+    expect(getByText('Used 3 of 5')).toBeTruthy();
+    expect(getByText('• 5 a month')).toBeTruthy();
   });
 
   it('purchase calls sync then shows success', async () => {
@@ -44,7 +55,7 @@ describe('SubscriptionPlans', () => {
 
     await waitFor(() => expect(post).toHaveBeenCalledWith('/api/subscription/sync'));
     expect(P.purchasePackage).toHaveBeenCalledWith(offerings.current.availablePackages[2]);
-    expect(Alert.alert).toHaveBeenCalledWith('Subscribed', expect.any(String));
+    expect(Alert.alert).toHaveBeenCalledWith('Subscribed', 'PRO+');
   });
 
   it('user cancel shows no error', async () => {
@@ -72,9 +83,10 @@ describe('SubscriptionPlans', () => {
   });
 
   it('shows the current plan and Manage for a store subscription', async () => {
-    get.mockResolvedValue({ subscription: { plan: 'premium', isCurrentlyActive: true, endDate: '2026-12-01T00:00:00Z', source: 'store' } });
-    const { findByText } = setup();
-    expect(await findByText('Current plan: Premium')).toBeTruthy();
+    get.mockResolvedValue({ subscription: { plan: 'business', isCurrentlyActive: true, endDate: '2026-12-01T00:00:00Z', source: 'store' }, usage: { used: 40, limit: null } });
+    const { findByText, getByText } = setup();
+    expect(await findByText('Current plan: BUSINESS')).toBeTruthy();
+    expect(getByText('Used 40, unlimited')).toBeTruthy();
     fireEvent.press(await findByText('Manage subscription'));
     expect(P.showManageSubscriptions).toHaveBeenCalled();
   });

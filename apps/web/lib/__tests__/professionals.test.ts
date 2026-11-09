@@ -95,7 +95,8 @@ describe('searchProfessionals', () => {
 
         const res = await searchProfessionals({ sort: 'reviews' });
         expect(flat(rowsCall())).toContain('ORDER BY tier_rank DESC, "reviewCount" DESC');
-        expect(res.items[0].tier).toBe('premium');
+        // stored under an old id, served as its replacement
+        expect(res.items[0].tier).toBe('business');
     });
 });
 
@@ -131,9 +132,9 @@ describe('getActiveTier', () => {
 
     it('returns the plan of an active, unexpired subscription', async () => {
         mockSubscriptionsEnabled = true;
-        prismaMock.subscription.findFirst.mockResolvedValue({ plan: 'standard' } as never);
+        prismaMock.subscription.findFirst.mockResolvedValue({ plan: 'pro_plus' } as never);
 
-        expect(await getActiveTier('u1')).toBe('standard');
+        expect(await getActiveTier('u1')).toBe('pro_plus');
         expect(prismaMock.subscription.findFirst).toHaveBeenCalledWith({
             where: { userId: 'u1', isActive: true, endDate: { gt: expect.any(Date) } },
             select: { plan: true },

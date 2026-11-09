@@ -154,14 +154,14 @@ async function seedMockData() {
             await prisma.subscription.upsert({
                 where: { userId: provider.id },
                 update: {
-                    plan: Math.random() > 0.5 ? 'premium' : 'standard',
+                    plan: Math.random() > 0.5 ? 'business' : 'pro_plus',
                     startDate: new Date(),
                     endDate: subscriptionEndDate,
                     isActive: true,
                 },
                 create: {
                     userId: provider.id,
-                    plan: Math.random() > 0.5 ? 'premium' : 'standard',
+                    plan: Math.random() > 0.5 ? 'business' : 'pro_plus',
                     startDate: new Date(),
                     endDate: subscriptionEndDate,
                     isActive: true,

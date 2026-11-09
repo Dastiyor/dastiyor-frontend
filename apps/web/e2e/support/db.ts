@@ -49,10 +49,10 @@ export async function createUser(
             phoneVerified: overrides.phoneVerified ?? true,
             googleId: overrides.googleId,
             appleId: overrides.appleId,
-            // POST /api/responses asks for an active subscription unless
-            // SUBSCRIPTION_GATE_ENABLED=false; give providers one either way.
+            // POST /api/responses caps FREE at 5 a month unless
+            // SUBSCRIPTION_GATE_ENABLED=false; give providers unlimited PRO+ either way.
             ...(role === 'PROVIDER' && overrides.subscription !== false
-                ? { subscription: { create: { plan: 'standard', endDate: new Date(Date.now() + 30 * 864e5) } } }
+                ? { subscription: { create: { plan: 'pro_plus', endDate: new Date(Date.now() + 30 * 864e5) } } }
                 : {}),
         },
     });

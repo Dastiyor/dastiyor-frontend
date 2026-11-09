@@ -28,7 +28,7 @@ describe('POST /api/subscription/sync', () => {
         const data = await (await post()).json();
 
         expect(syncStoreSubscription).toHaveBeenCalledWith('user-1');
-        expect(data.subscription).toMatchObject({ plan: 'premium', source: 'store', isCurrentlyActive: true, daysRemaining: 3 });
+        expect(data.subscription).toMatchObject({ plan: 'business', source: 'store', isCurrentlyActive: true, daysRemaining: 3 });
     });
 
     it('returns null when there is no subscription', async () => {

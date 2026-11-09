@@ -97,7 +97,7 @@ const ERRORS: Record<string, readonly [en: string, tj: string]> = {
     'Отклонить можно только отклики в ожидании': ['Only pending responses can be rejected', 'Танҳо посухҳои дар интизорбударо рад кардан мумкин аст'],
     'Отклонять отклики может только автор задания': ['Only the task author can reject responses', 'Танҳо муаллифи супориш посухҳоро рад карда метавонад'],
     'У исполнителя нет отклика в ожидании на это задание': ['This provider has no pending response for this task', 'Иҷрокунанда ба ин супориш посухи дар интизор надорад'],
-    'Для отклика нужна активная подписка': ['An active subscription is required to respond', 'Барои посух додан обунаи фаъол лозим аст'],
+    'Лимит откликов на этот месяц исчерпан': ['You have used all your responses for this month', 'Шумораи посухҳо барои ин моҳ ба охир расид'],
 
     // --- reviews ---
     'Оставить отзыв может только автор задания': ['Only the task author can leave a review', 'Танҳо муаллифи супориш шарҳ гузошта метавонад'],

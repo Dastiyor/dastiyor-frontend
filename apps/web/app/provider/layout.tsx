@@ -35,11 +35,6 @@ export default async function ProviderLayout({
         redirect('/login');
     }
 
-    // TODO: Re-enable subscription include when payment gateway is ready
-    // const user = await prisma.user.findUnique({
-    //     where: { id: payload.id as string },
-    //     include: { subscription: true }
-    // });
     const user = await prisma.user.findUnique({
         where: { id: payload.id as string }
     });
@@ -57,14 +52,6 @@ export default async function ProviderLayout({
     if (user.role !== 'PROVIDER') {
         redirect('/access-denied');
     }
-
-    // TODO: Re-enable plan display when payment gateway is ready
-    // const daysLeft = user.subscription && user.subscription.isActive
-    //     ? Math.ceil((new Date(user.subscription.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
-    //     : 0;
-    // const planName = user.subscription?.plan === 'premium' ? 'Premium' :
-    //     user.subscription?.plan === 'standard' ? 'Pro' :
-    //         user.subscription?.plan === 'basic' ? 'Basic' : 'Free';
 
     const { t } = await getServerTranslation();
     const accentColor = 'var(--primary)';

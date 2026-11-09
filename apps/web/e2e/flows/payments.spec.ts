@@ -24,7 +24,7 @@ test.describe('at launch', () => {
     test('buying a plan is closed, in the API and in the pages', async ({ page }) => {
         await loginAs(page, await createUser('PROVIDER', { subscription: false }));
 
-        const buy = await page.request.post('/api/subscription', { data: { plan: 'basic' } });
+        const buy = await page.request.post('/api/subscription', { data: { plan: 'pro' } });
         expect(buy.status()).toBe(404);
         expect(await prisma.payment.count({ where: { user: { email: { contains: '@e2e.' } }, status: 'PENDING' } })).toBe(0);
 
@@ -40,7 +40,7 @@ test.describe('at launch', () => {
 });
 
 test.describe('SmartPay webhook', () => {
-    async function pendingPayment(user: E2EUser, plan = 'basic', amount = 99) {
+    async function pendingPayment(user: E2EUser, plan = 'pro', amount = 49) {
         return prisma.payment.create({
             data: {
                 userId: user.id,
@@ -74,19 +74,19 @@ test.describe('SmartPay webhook', () => {
     test('a paid callback activates the plan, once', async ({ request }) => {
         const provider = await createUser('PROVIDER', { subscription: false });
         const payment = await pendingPayment(provider);
-        const body = callback(payment.smartpayOrderId!, 99);
+        const body = callback(payment.smartpayOrderId!, 49);
 
         expect((await request.post('/api/webhooks/smartpay', { data: body })).status()).toBe(200);
         expect((await prisma.payment.findUniqueOrThrow({ where: { id: payment.id } })).status).toBe('COMPLETED');
 
         const subscription = await prisma.subscription.findUniqueOrThrow({ where: { userId: provider.id } });
-        expect(subscription).toMatchObject({ plan: 'basic', isActive: true });
+        expect(subscription).toMatchObject({ plan: 'pro', isActive: true });
         const days = (subscription.endDate.getTime() - Date.now()) / 864e5;
-        expect(days).toBeGreaterThan(6.9);
-        expect(days).toBeLessThan(7.1);
+        expect(days).toBeGreaterThan(29.9);
+        expect(days).toBeLessThan(30.1);
         expect(await prisma.notification.count({ where: { userId: provider.id } })).toBe(1);
 
-        // SmartPay retries callbacks; a repeat must not add a second week.
+        // SmartPay retries callbacks; a repeat must not add a second month.
         await request.post('/api/webhooks/smartpay', { data: body });
         const after = await prisma.subscription.findUniqueOrThrow({ where: { userId: provider.id } });
         expect(after.endDate.getTime()).toBe(subscription.endDate.getTime());
@@ -99,12 +99,12 @@ test.describe('SmartPay webhook', () => {
         const orderId = payment.smartpayOrderId!;
 
         const forgeries = [
-            callback(orderId, 99, 'not-the-secret'),
-            { ...callback(orderId, 99), signature: '' },
-            // Signed for 1 somoni, replayed as 99.
-            { ...callback(orderId, 1), amount: 9900 },
+            callback(orderId, 49, 'not-the-secret'),
+            { ...callback(orderId, 49), signature: '' },
+            // Signed for 1 somoni, replayed as 49.
+            { ...callback(orderId, 1), amount: 4900 },
             // Signed for another order.
-            { ...callback('e2e-other-order', 99), order_id: orderId },
+            { ...callback('e2e-other-order', 49), order_id: orderId },
         ];
         for (const body of forgeries) {
             expect((await request.post('/api/webhooks/smartpay', { data: body })).status()).toBe(403);
@@ -118,7 +118,7 @@ test.describe('SmartPay webhook', () => {
         const provider = await createUser('PROVIDER', { subscription: false });
         const payment = await pendingPayment(provider);
 
-        // Correctly signed, but SmartPay says 50 somoni were paid for a 99 somoni plan.
+        // Correctly signed, but SmartPay says 50 somoni were paid for a 49 somoni plan.
         const res = await request.post('/api/webhooks/smartpay', { data: callback(payment.smartpayOrderId!, 50) });
         expect(res.status()).toBe(200);
         expect((await prisma.payment.findUniqueOrThrow({ where: { id: payment.id } })).status).toBe('PENDING');
@@ -126,7 +126,7 @@ test.describe('SmartPay webhook', () => {
     });
 
     test('a callback for an order we never created is a 404', async ({ request }) => {
-        const res = await request.post('/api/webhooks/smartpay', { data: callback('e2e-no-such-order', 99) });
+        const res = await request.post('/api/webhooks/smartpay', { data: callback('e2e-no-such-order', 49) });
         expect(res.status()).toBe(404);
     });
 
@@ -148,7 +148,7 @@ test.describe('SmartPay webhook', () => {
 test('the nightly job expires overdue subscriptions and needs its secret', async ({ request }) => {
     const provider = await createUser('PROVIDER', { subscription: false });
     await prisma.subscription.create({
-        data: { userId: provider.id, plan: 'basic', endDate: new Date(Date.now() - 864e5), isActive: true },
+        data: { userId: provider.id, plan: 'pro', endDate: new Date(Date.now() - 864e5), isActive: true },
     });
 
     expect((await request.get('/api/cron/expire-subscriptions')).status()).toBe(401);

@@ -174,55 +174,59 @@ describe('/api/responses', () => {
             expect(data.code).toBe('PHONE_VERIFICATION_REQUIRED');
         });
 
-        it.skip('should return 403 if provider has no active subscription', async () => {
-            (prismaMock.user.findUnique as jest.Mock).mockResolvedValue({
-                id: mockUserId,
-                role: 'PROVIDER',
-                subscription: null,
-            });
-
-            const request = new NextRequest('http://localhost/api/responses', {
+        describe('monthly response limit (gate on)', () => {
+            const send = () => POST(new NextRequest('http://localhost/api/responses', {
                 method: 'POST',
-                body: JSON.stringify({
-                    taskId: 'task-1',
-                    message: 'I can help',
-                    price: '500',
-                }),
+                body: JSON.stringify({ taskId: 'task-1', message: 'I can help', price: '500' }),
+            }));
+
+            beforeEach(() => {
+                delete process.env.SUBSCRIPTION_GATE_ENABLED;
             });
 
-            const response = await POST(request);
-            const data = await response.json();
+            it('stops a FREE provider at 5 responses', async () => {
+                (prismaMock.subscription.findUnique as jest.Mock).mockResolvedValue(null);
+                (prismaMock.response.count as jest.Mock).mockResolvedValue(5);
 
-            expect(response.status).toBe(403);
-            expect(data.error).toContain('Для отклика нужна активная подписка');
-            expect(data.code).toBe('SUBSCRIPTION_REQUIRED');
-        });
+                const response = await send();
+                const data = await response.json();
 
-        it.skip('should return 403 if subscription is expired', async () => {
-            (prismaMock.user.findUnique as jest.Mock).mockResolvedValue({
-                id: mockUserId,
-                role: 'PROVIDER',
-                subscription: {
-                    isActive: true,
+                expect(response.status).toBe(403);
+                expect(data.error).toBe('Лимит откликов на этот месяц исчерпан');
+                expect(data.code).toBe('SUBSCRIPTION_REQUIRED');
+            });
+
+            it('lets a FREE provider send a 5th response', async () => {
+                (prismaMock.subscription.findUnique as jest.Mock).mockResolvedValue(null);
+                (prismaMock.response.count as jest.Mock).mockResolvedValue(4);
+
+                const response = await send();
+                expect(response.status).not.toBe(403);
+            });
+
+            it('treats an expired paid plan as FREE', async () => {
+                (prismaMock.subscription.findUnique as jest.Mock).mockResolvedValue({
+                    plan: 'pro', isActive: true,
+                    startDate: new Date(Date.now() - 40 * 86400000),
                     endDate: new Date(Date.now() - 86400000),
-                    plan: 'standard',
-                },
+                });
+                (prismaMock.response.count as jest.Mock).mockResolvedValue(5);
+
+                const response = await send();
+                expect(response.status).toBe(403);
             });
 
-            const request = new NextRequest('http://localhost/api/responses', {
-                method: 'POST',
-                body: JSON.stringify({
-                    taskId: 'task-1',
-                    message: 'I can help',
-                    price: '500',
-                }),
+            it('never stops a PRO+ provider', async () => {
+                (prismaMock.subscription.findUnique as jest.Mock).mockResolvedValue({
+                    plan: 'pro_plus', isActive: true,
+                    startDate: new Date(Date.now() - 86400000),
+                    endDate: new Date(Date.now() + 29 * 86400000),
+                });
+                (prismaMock.response.count as jest.Mock).mockResolvedValue(500);
+
+                const response = await send();
+                expect(response.status).not.toBe(403);
             });
-
-            const response = await POST(request);
-            const data = await response.json();
-
-            expect(response.status).toBe(403);
-            expect(data.code).toBe('SUBSCRIPTION_REQUIRED');
         });
 
         it('should return 404 if task not found', async () => {

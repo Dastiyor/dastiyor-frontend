@@ -4,6 +4,7 @@ import { PLANS, isValidPlan, createSmartPayOrder, generateOrderId } from '@/lib/
 import { requireAuth } from '@/lib/require-auth';
 import { SUBSCRIPTIONS_ENABLED } from '@/lib/features';
 import { subscriptionView } from '@/lib/payments/subscription-view';
+import { getResponseAllowance } from '@/lib/response-allowance';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
@@ -15,11 +16,17 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const subscription = await prisma.subscription.findUnique({
-            where: { userId: payload.id as string }
-        });
+        const userId = payload.id as string;
+        const [subscription, usage] = await Promise.all([
+            prisma.subscription.findUnique({ where: { userId } }),
+            getResponseAllowance(userId),
+        ]);
 
-        return NextResponse.json({ subscription: subscriptionView(subscription) });
+        // usage: responses this month against the plan's limit (limit null = unlimited)
+        return NextResponse.json({
+            subscription: subscriptionView(subscription),
+            usage: { used: usage.used, limit: usage.limit, periodStart: usage.periodStart },
+        });
 
     } catch (error) {
         console.error('Get Subscription Error:', error);
@@ -65,7 +72,7 @@ export async function POST(request: Request) {
                 currency: 'TJS',
                 status: 'PENDING',
                 type: 'SUBSCRIPTION',
-                description: `Подписка ${planConfig.nameRu}`,
+                description: `Подписка ${planConfig.name}`,
                 plan,
                 smartpayOrderId: orderId,
             }
@@ -75,7 +82,7 @@ export async function POST(request: Request) {
         const smartPayResult = await createSmartPayOrder({
             orderId,
             amount: planConfig.price,
-            description: `Dastiyor — Подписка ${planConfig.nameRu} (${planConfig.durationDays} дн.)`,
+            description: `Dastiyor — Подписка ${planConfig.name} (${planConfig.durationDays} дн.)`,
             returnUrl: `${APP_URL}/payment/result?orderId=${orderId}`,
             customerPhone: user?.phone || undefined,
             customerName: user?.fullName || undefined,

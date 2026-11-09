@@ -6,7 +6,6 @@ import { ProviderProfileSections } from '../ProviderProfileSections';
 const TJ: Record<string, string> = { 'Ремонт': 'Таъмир', 'Худжанд': 'Хуҷанд' };
 const labels = {
   verified: 'Verified', years: ['year', 'years', 'years'] as const, portfolio: 'Portfolio', ratingBreakdown: 'Ratings',
-  tiers: { basic: 'Basic', standard: 'Standard', premium: 'Premium' },
 };
 const base = {
   experienceYears: 5, city: 'Худжанд', categories: ['Ремонт'], isVerified: true, tier: null,
@@ -35,11 +34,11 @@ describe('ProviderProfileSections', () => {
   });
 
   it('shows tier badge only when tier is set', () => {
-    expect(setup().queryByText('Premium')).toBeNull();
+    expect(setup().queryByText('TOP')).toBeNull();
   });
 
   it('shows the tier label for a paid provider', () => {
-    expect(setup({ tier: 'premium' }).getByText('Premium')).toBeTruthy();
+    expect(setup({ tier: 'business' }).getByText('TOP')).toBeTruthy();
   });
 
   it('hides portfolio section when empty', () => {

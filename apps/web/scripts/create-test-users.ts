@@ -57,14 +57,14 @@ async function createTestUsers() {
         await prisma.subscription.upsert({
             where: { userId: provider.id },
             update: {
-                plan: 'premium',
+                plan: 'business',
                 startDate: new Date(),
                 endDate: subscriptionEndDate,
                 isActive: true,
             },
             create: {
                 userId: provider.id,
-                plan: 'premium',
+                plan: 'business',
                 startDate: new Date(),
                 endDate: subscriptionEndDate,
                 isActive: true,

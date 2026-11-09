@@ -15,12 +15,8 @@ jest.mock('next/headers', () => ({ cookies: jest.fn() }));
 // here so the POST tests still exercise the SmartPay payment flow.
 jest.mock('@/lib/features', () => ({ SUBSCRIPTIONS_ENABLED: true }));
 jest.mock('@/lib/payments', () => ({
-    PLANS: {
-        basic: { name: 'Basic', nameRu: 'Базовый', price: 99, durationDays: 7 },
-        standard: { name: 'Standard', nameRu: 'Стандарт', price: 199, durationDays: 30 },
-        premium: { name: 'Premium', nameRu: 'Премиум', price: 399, durationDays: 30 },
-    },
-    isValidPlan: jest.fn((plan: string) => ['basic', 'standard', 'premium'].includes(plan)),
+    PLANS: jest.requireActual('@/lib/plans').PLANS,
+    isValidPlan: jest.requireActual('@/lib/plans').isValidPlan,
     createSmartPayOrder: jest.fn(),
     generateOrderId: jest.fn(() => 'ORDER-MOCK-001'),
 }));
@@ -70,7 +66,7 @@ describe('/api/subscription', () => {
             (prismaMock.subscription.findUnique as jest.Mock).mockResolvedValue({
                 id: 'sub-1',
                 userId: mockUserId,
-                plan: 'standard',
+                plan: 'pro_plus',
                 startDate: new Date(),
                 endDate: futureEnd,
                 isActive: true,
@@ -85,12 +81,33 @@ describe('/api/subscription', () => {
             expect(data.subscription.daysRemaining).toBeGreaterThanOrEqual(9);
         });
 
+        it('returns this month\'s response usage against the plan limit', async () => {
+            (prismaMock.subscription.findUnique as jest.Mock).mockResolvedValue({
+                plan: 'pro', startDate: new Date(), endDate: new Date(Date.now() + 86400000), isActive: true,
+            });
+            (prismaMock.response.count as jest.Mock).mockResolvedValue(12);
+
+            const data = await (await GET(makeGetRequest())).json();
+
+            expect(data.usage).toMatchObject({ used: 12, limit: 30 });
+        });
+
+        it('serves an old plan id as its replacement', async () => {
+            (prismaMock.subscription.findUnique as jest.Mock).mockResolvedValue({
+                plan: 'basic', startDate: new Date(), endDate: new Date(Date.now() + 86400000), isActive: true,
+            });
+
+            const data = await (await GET(makeGetRequest())).json();
+
+            expect(data.subscription.plan).toBe('pro');
+        });
+
         it('should return isCurrentlyActive false when endDate passed', async () => {
             const pastEnd = new Date(Date.now() - 1000);
             (prismaMock.subscription.findUnique as jest.Mock).mockResolvedValue({
                 id: 'sub-1',
                 userId: mockUserId,
-                plan: 'basic',
+                plan: 'pro',
                 startDate: new Date(),
                 endDate: pastEnd,
                 isActive: true,
@@ -111,7 +128,7 @@ describe('/api/subscription', () => {
 
             const request = new NextRequest('http://localhost/api/subscription', {
                 method: 'POST',
-                body: JSON.stringify({ plan: 'basic' }),
+                body: JSON.stringify({ plan: 'pro' }),
             });
 
             const response = await POST(request);
@@ -156,7 +173,7 @@ describe('/api/subscription', () => {
 
             const request = new NextRequest('http://localhost/api/subscription', {
                 method: 'POST',
-                body: JSON.stringify({ plan: 'basic' }),
+                body: JSON.stringify({ plan: 'pro' }),
             });
 
             const response = await POST(request);
@@ -170,12 +187,21 @@ describe('/api/subscription', () => {
                 expect.objectContaining({
                     data: expect.objectContaining({
                         userId: mockUserId,
-                        plan: 'basic',
+                        plan: 'pro',
+                        amount: 49,
                         status: 'PENDING',
                         currency: 'TJS',
                     }),
                 })
             );
+        });
+
+        it('rejects an old plan id at checkout', async () => {
+            const response = await POST(new NextRequest('http://localhost/api/subscription', {
+                method: 'POST',
+                body: JSON.stringify({ plan: 'premium' }),
+            }));
+            expect(response.status).toBe(400);
         });
 
         it('should return 502 when SmartPay order creation fails', async () => {
@@ -195,7 +221,7 @@ describe('/api/subscription', () => {
 
             const request = new NextRequest('http://localhost/api/subscription', {
                 method: 'POST',
-                body: JSON.stringify({ plan: 'standard' }),
+                body: JSON.stringify({ plan: 'pro_plus' }),
             });
 
             const response = await POST(request);

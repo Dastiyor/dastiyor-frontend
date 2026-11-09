@@ -15,7 +15,6 @@ export interface ProviderSectionLabels {
   years: readonly [string, string, string];
   portfolio: string;
   ratingBreakdown: string;
-  tiers: Record<'basic' | 'standard' | 'premium', string>;
 }
 
 /** Facts, rating breakdown and portfolio on the provider screen. Values are canonical; `tr` is display only. */
@@ -29,7 +28,7 @@ export function ProviderProfileSections({ profile: p, labels: l, tr, locale }: {
   return (
     <View>
       <View style={styles.facts}>
-        <TierBadge tier={p.tier} label={p.tier ? l.tiers[p.tier] : ''} />
+        <TierBadge tier={p.tier} />
         {p.isVerified && (
           <View style={styles.fact}>
             <Icon name="checkmark-circle" size={16} color="#059669" />

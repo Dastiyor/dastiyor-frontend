@@ -12,37 +12,52 @@ jest.mock('next/navigation', () => ({
 global.fetch = jest.fn();
 
 describe('SubscriptionPlans', () => {
-    const defaultProps = {
-        currentPlan: null,
-        userId: 'user-1',
-    };
+    const defaultProps = { currentPlan: null };
 
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
-    it('should render all three plans', () => {
+    it('shows FREE, PRO, PRO+ and BUSINESS with their prices', () => {
         render(<SubscriptionPlans {...defaultProps} />);
-        const headings = screen.getAllByRole('heading', { level: 3 });
-        const names = headings.map(h => h.textContent);
-        expect(names).toContain('Базовый');
-        expect(names).toContain('Стандарт');
-        expect(names).toContain('Премиум');
+        const names = screen.getAllByRole('heading', { level: 3 }).map(h => h.textContent);
+        expect(names).toEqual(['FREE', 'PRO', 'PRO+', 'BUSINESS']);
+        for (const price of ['0', '49', '99', '199']) {
+            expect(screen.getAllByText(new RegExp(`^${price}$`)).length).toBeGreaterThanOrEqual(1);
+        }
+        expect(screen.getByText('5 откликов в месяц')).toBeInTheDocument();
+        expect(screen.getByText('Значок: TOP')).toBeInTheDocument();
     });
 
-    it('should display prices', () => {
+    it('marks FREE as current when there is no paid plan', () => {
         render(<SubscriptionPlans {...defaultProps} />);
-        const price99 = screen.getAllByText(/^99$/);
-        const price199 = screen.getAllByText(/^199$/);
-        const price399 = screen.getAllByText(/^399$/);
-        expect(price99.length).toBeGreaterThanOrEqual(1);
-        expect(price199.length).toBeGreaterThanOrEqual(1);
-        expect(price399.length).toBeGreaterThanOrEqual(1);
+        expect(screen.getByTestId('plan-free')).toHaveTextContent(/текущий план/i);
+        expect(screen.getAllByRole('button', { name: /оплатить/i })).toHaveLength(3);
     });
 
-    it('should show current plan when provided', () => {
-        render(<SubscriptionPlans {...defaultProps} currentPlan="basic" />);
-        expect(screen.getByRole('button', { name: /текущий план/i })).toBeInTheDocument();
+    it('marks the active paid plan as current', () => {
+        render(<SubscriptionPlans currentPlan="pro_plus" />);
+        expect(screen.getByTestId('plan-pro_plus')).toHaveTextContent(/текущий план/i);
+        expect(screen.getByTestId('plan-free')).not.toHaveTextContent(/текущий план/i);
+        expect(screen.getAllByRole('button', { name: /оплатить/i })).toHaveLength(2);
+    });
+
+    it('asks a signed-out visitor to sign in instead of paying', () => {
+        render(<SubscriptionPlans currentPlan={null} signedIn={false} />);
+        expect(screen.queryByRole('button', { name: /оплатить/i })).not.toBeInTheDocument();
+        expect(screen.getAllByRole('link', { name: /войдите/i })[0]).toHaveAttribute('href', '/login?redirect=/subscription');
+    });
+
+    it('shows an error and stays put when checkout fails', async () => {
+        const { toast } = jest.requireMock('@/components/ui/Toast');
+        (global.fetch as jest.Mock).mockResolvedValue({ ok: false, json: () => Promise.resolve({ error: 'Неверный тариф' }) });
+        render(<SubscriptionPlans {...defaultProps} />);
+        fireEvent.click(screen.getAllByRole('button', { name: /оплатить/i })[0]);
+        await waitFor(() => expect(toast.error).toHaveBeenCalled());
+
+        (global.fetch as jest.Mock).mockRejectedValue(new Error('offline'));
+        fireEvent.click(screen.getAllByRole('button', { name: /оплатить/i })[0]);
+        await waitFor(() => expect(toast.error).toHaveBeenCalledTimes(2));
     });
 
     it('should call subscription API and redirect to paymentUrl', async () => {

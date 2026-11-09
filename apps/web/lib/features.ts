@@ -5,7 +5,8 @@
  * To bring everything back:
  *   1. Set NEXT_PUBLIC_SUBSCRIPTIONS_ENABLED=true   (shows all subscription UI + entry points)
  *   2. Unset SUBSCRIPTION_GATE_ENABLED, or set it to anything but 'false'
- *      (re-enables the "active subscription required" gate on responses)
+ *      (turns on the monthly response limit: FREE 5, PRO 30, PRO+/BUSINESS
+ *      unlimited; see lib/plans.ts and lib/response-allowance.ts)
  *
  * Note the asymmetry: the gate in POST /api/responses is `!== 'false'`, so it is
  * ON unless explicitly switched off — fail-secure, and the opposite of the

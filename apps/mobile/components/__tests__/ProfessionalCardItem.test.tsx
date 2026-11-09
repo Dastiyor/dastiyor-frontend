@@ -6,9 +6,9 @@ import { ProfessionalCardItem } from '../ProfessionalCardItem';
 
 const pro = {
   id: 'p1', fullName: 'Ali Karimov', avatar: null, city: 'Худжанд', categories: ['Ремонт'], experienceYears: 5,
-  isVerified: true, avgRating: 4.5, reviewCount: 3, completedCount: 9, tier: 'premium' as const,
+  isVerified: true, avgRating: 4.5, reviewCount: 3, completedCount: 9, tier: 'business' as const,
 };
-const labels = { reviews: 'reviews', completed: 'done', tiers: { basic: 'Basic', standard: 'Standard', premium: 'Premium' } };
+const labels = { reviews: 'reviews', completed: 'done' };
 const TJ: Record<string, string> = { 'Ремонт': 'Таъмир', 'Худжанд': 'Хуҷанд' };
 
 const setup = (p = pro) => render(<ProfessionalCardItem pro={p} labels={labels} tr={(v) => TJ[v] ?? v} />, {
@@ -30,7 +30,7 @@ describe('ProfessionalCardItem', () => {
     expect(getByText('3 reviews · 9 done')).toBeTruthy();
     expect(getByText('Хуҷанд')).toBeTruthy();
     expect(getByText('Таъмир')).toBeTruthy();
-    expect(getByText('Premium')).toBeTruthy();
+    expect(getByText('TOP')).toBeTruthy();
   });
 
   it('shows a dash for an unrated provider', () => {

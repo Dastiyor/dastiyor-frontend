@@ -10,31 +10,45 @@ import { openPrivacyPolicy, openTermsOfService } from '@/lib/legal';
 import { useTheme } from '@/contexts/ThemeContext';
 import { GradientButton } from '@/components/Premium';
 
-const ORDER: SubscriptionTier[] = ['basic', 'standard', 'premium'];
+const ORDER: SubscriptionTier[] = ['pro', 'pro_plus', 'business'];
+/** Plan names are the same in every language. */
+export const PLAN_NAMES: Record<SubscriptionTier, string> = { pro: 'PRO', pro_plus: 'PRO+', business: 'BUSINESS' };
 
 interface CurrentSubscription { plan: string; isCurrentlyActive: boolean; endDate: string; source: 'web' | 'store' }
+/** Responses this month; limit null = unlimited. */
+interface Usage { used: number; limit: number | null }
 
 export interface SubscriptionLabels {
-  tiers: Record<SubscriptionTier, string>;
-  features: Record<SubscriptionTier, readonly string[]>;
+  features: Record<'free' | SubscriptionTier, readonly string[]>;
+  free: string; usage: string; usageUnlimited: string; rules: readonly string[];
   buy: string; current: string; until: string; restore: string; manage: string; success: string;
   unavailable: string; terms: string; privacy: string; error: string; ok: string;
 }
 
-/** Store product ids follow dastiyor_<plan>_<period>; the plan is read from there. */
-const planOf = (p: PurchasesPackage) => ORDER.find((tier) => p.product.identifier.startsWith(`dastiyor_${tier}_`));
+/**
+ * Store product ids follow dastiyor_<plan>_<period> (dastiyor_pro_plus_monthly);
+ * the plan is everything between the prefix and the last underscore.
+ */
+export function planOf(p: PurchasesPackage): SubscriptionTier | undefined {
+  const plan = /^dastiyor_(.+)_[^_]+$/.exec(p.product.identifier)?.[1];
+  return ORDER.find((tier) => tier === plan);
+}
+
+const nameOf = (plan: string) => PLAN_NAMES[plan as SubscriptionTier] ?? plan;
 
 /** Plans from the App Store / Google Play (prices from the store), purchase, restore and manage. */
 export function SubscriptionPlans({ labels: l, storeReady }: { labels: SubscriptionLabels; storeReady: boolean }) {
   const { colors } = useTheme();
   const [current, setCurrent] = useState<CurrentSubscription | null>(null);
+  const [usage, setUsage] = useState<Usage | null>(null);
   const [packages, setPackages] = useState<{ plan: SubscriptionTier; pkg: PurchasesPackage }[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     Promise.all([
-      api.get<{ subscription: CurrentSubscription | null }>('/api/subscription').then((r) => setCurrent(r.subscription)).catch(() => {}),
+      api.get<{ subscription: CurrentSubscription | null; usage?: Usage }>('/api/subscription')
+        .then((r) => { setCurrent(r.subscription); setUsage(r.usage ?? null); }).catch(() => {}),
       storeReady
         ? Purchases.getOfferings().then((o) => {
             const list = (o.current?.availablePackages ?? [])
@@ -58,7 +72,7 @@ export function SubscriptionPlans({ labels: l, storeReady }: { labels: Subscript
     try {
       await Purchases.purchasePackage(pkg);
       const sub = await sync();
-      Alert.alert(l.success, sub ? `${l.tiers[sub.plan as SubscriptionTier] ?? sub.plan}` : '');
+      Alert.alert(l.success, sub ? nameOf(sub.plan) : '');
     } catch (e) {
       if (!isUserCancel(e)) Alert.alert(l.error, (e as Error).message);
     } finally {
@@ -84,24 +98,28 @@ export function SubscriptionPlans({ labels: l, storeReady }: { labels: Subscript
 
   return (
     <View style={{ gap: 12 }}>
-      {active && (
-        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Text style={[styles.title, { color: colors.text }]}>{`${l.current}: ${l.tiers[active.plan as SubscriptionTier] ?? active.plan}`}</Text>
-          <Text style={{ color: colors.textSecondary }}>{`${l.until} ${new Date(active.endDate).toLocaleDateString()}`}</Text>
-          {active.source === 'store' && (
-            <TouchableOpacity onPress={() => Purchases.showManageSubscriptions()} accessibilityRole="button">
-              <Text style={styles.link}>{l.manage}</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      )}
+      <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <Text style={[styles.title, { color: colors.text }]}>{`${l.current}: ${active ? nameOf(active.plan) : l.free}`}</Text>
+        {active && <Text style={{ color: colors.textSecondary }}>{`${l.until} ${new Date(active.endDate).toLocaleDateString()}`}</Text>}
+        {usage && (
+          <Text style={{ color: colors.text, fontWeight: '600' }}>
+            {(usage.limit === null ? l.usageUnlimited : l.usage).replace('{used}', String(usage.used)).replace('{limit}', String(usage.limit))}
+          </Text>
+        )}
+        {active?.source === 'store' && (
+          <TouchableOpacity onPress={() => Purchases.showManageSubscriptions()} accessibilityRole="button">
+            <Text style={styles.link}>{l.manage}</Text>
+          </TouchableOpacity>
+        )}
+        {!active && l.features.free.map((f) => <Text key={f} style={{ color: colors.textSecondary }}>{`• ${f}`}</Text>)}
+      </View>
 
       {packages.length === 0 ? (
         <Text style={{ color: colors.textSecondary, textAlign: 'center', marginVertical: 24 }}>{l.unavailable}</Text>
       ) : packages.map(({ plan, pkg }) => (
         <View key={pkg.identifier} style={[styles.card, { backgroundColor: colors.surface, borderColor: active?.plan === plan ? '#2563EB' : colors.border }]}>
           <View style={styles.row}>
-            <Text style={[styles.title, { color: colors.text }]}>{l.tiers[plan]}</Text>
+            <Text style={[styles.title, { color: colors.text }]}>{PLAN_NAMES[plan]}</Text>
             <Text style={[styles.price, { color: colors.text }]}>{pkg.product.priceString}</Text>
           </View>
           {l.features[plan].map((f) => <Text key={f} style={{ color: colors.textSecondary }}>{`• ${f}`}</Text>)}
@@ -110,6 +128,10 @@ export function SubscriptionPlans({ labels: l, storeReady }: { labels: Subscript
           </GradientButton>
         </View>
       ))}
+
+      <View style={{ gap: 4 }}>
+        {l.rules.map((r) => <Text key={r} style={[styles.note, { color: colors.textSecondary }]}>{`• ${r}`}</Text>)}
+      </View>
 
       {storeReady && (
         <TouchableOpacity onPress={restore} disabled={busy} accessibilityRole="button" style={{ alignSelf: 'center', padding: 8 }}>
@@ -134,4 +156,5 @@ const styles = StyleSheet.create({
   btnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
   link: { color: '#2563EB', fontWeight: '600', fontSize: 14 },
   small: { color: '#6B7280', fontSize: 12, textDecorationLine: 'underline' },
+  note: { fontSize: 12, lineHeight: 17 },
 });

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { PLANS, isValidPlan, getSmartPayOrderStatus } from '@/lib/payments';
+import { PLANS, normalizePlan, getSmartPayOrderStatus } from '@/lib/payments';
 import { requireAuth } from '@/lib/require-auth';
 
 // GET - Check payment status by orderId
@@ -39,9 +39,8 @@ export async function GET(request: Request) {
             status = 'FAILED';
         }
 
-        const planName = payment.plan && isValidPlan(payment.plan)
-            ? PLANS[payment.plan].nameRu
-            : null;
+        const plan = normalizePlan(payment.plan);
+        const planName = plan ? PLANS[plan].name : null;
 
         return NextResponse.json({
             status,

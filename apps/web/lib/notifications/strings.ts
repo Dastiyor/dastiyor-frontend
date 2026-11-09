@@ -23,6 +23,8 @@ type Strings = {
     completedBody: (task: string, credited: number) => string;
     rejectedTitle: string;
     rejectedBody: (task: string) => string;
+    renewTitle: string;
+    renewBody: (plan: string, date: string) => string;
 };
 
 const STRINGS: Record<NotificationLocale, Strings> = {
@@ -36,6 +38,8 @@ const STRINGS: Record<NotificationLocale, Strings> = {
             `Заказчик подтвердил выполнение задания "${t}".${c > 0 ? ` Баланс пополнен на ${c} с.` : ''}`,
         rejectedTitle: 'Отклик отклонен',
         rejectedBody: (t) => `Ваш отклик на задание "${t}" был отклонен заказчиком.`,
+        renewTitle: 'Подписка скоро закончится',
+        renewBody: (p, d) => `Тариф ${p} действует до ${d}. Продлите его, чтобы не вернуться на FREE.`,
     },
     tj: {
         newResponseTitle: 'Пешниҳоди нав',
@@ -47,6 +51,8 @@ const STRINGS: Record<NotificationLocale, Strings> = {
             `Фармоишгар иҷрои супориши "${t}"-ро тасдиқ кард.${c > 0 ? ` Ба ҳисоб ${c} с. илова шуд.` : ''}`,
         rejectedTitle: 'Посух рад шуд',
         rejectedBody: (t) => `Посухи шумо ба супориши "${t}" аз ҷониби фармоишгар рад карда шуд.`,
+        renewTitle: 'Обуна ба зудӣ ба охир мерасад',
+        renewBody: (p, d) => `Тарифи ${p} то ${d} амал мекунад. Онро дароз кунед, то ба FREE барнагардед.`,
     },
     en: {
         newResponseTitle: 'New offer',
@@ -58,6 +64,8 @@ const STRINGS: Record<NotificationLocale, Strings> = {
             `The customer confirmed "${t}" is done.${c > 0 ? ` ${c} TJS added to your balance.` : ''}`,
         rejectedTitle: 'Offer declined',
         rejectedBody: (t) => `Your offer on "${t}" was declined by the customer.`,
+        renewTitle: 'Your plan ends soon',
+        renewBody: (p, d) => `${p} is active until ${d}. Renew it to stay off FREE.`,
     },
 };
 

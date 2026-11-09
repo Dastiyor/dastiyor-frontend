@@ -37,28 +37,29 @@ export const FREE_RESPONSES_PER_MONTH = 5;
 export type PlanTier = 'free' | PlanId;
 export const TIER_ORDER: PlanTier[] = ['free', ...PLAN_IDS];
 
-/** i18n keys under plans.f.* for each tier, in the order the plan list gives them. */
+/**
+ * i18n keys under plans.f.* for each tier. Only what works today: promotions,
+ * task alerts, analytics, pinning and recommended placement are not built, so
+ * they are left out here. Their keys stay in the locale files for when they ship.
+ */
 export const PLAN_FEATURES: Record<PlanTier, string[]> = {
     free: [
         'createProfile', 'photoAndDescription', 'categoriesAndAreas', 'browseTasks', 'searchFilters',
         'responses5', 'messages', 'reviews', 'visibilityStandard', 'statsBasic',
     ],
     pro: [
-        'everythingFree', 'responses30', 'visibilityAboveFree', 'taskAlerts', 'promotions1',
-        'badgePro', 'supportStandard',
+        'everythingFree', 'responses30', 'visibilityAboveFree', 'badgePro', 'supportStandard',
     ],
     pro_plus: [
-        'everythingPro', 'responsesUnlimited', 'visibilityAbovePro', 'analyticsExtended', 'promotions2',
-        'highlightDirectory', 'taskAlertsPriority', 'supportPriority',
+        'everythingPro', 'responsesUnlimited', 'visibilityAbovePro', 'highlightDirectory', 'supportPriority',
     ],
     business: [
-        'everythingProPlus', 'responsesUnlimited', 'visibilityMax', 'analyticsAdvanced', 'promotions5',
-        'highlightSearch', 'recommendedPlacement', 'pinCategory', 'responseStats', 'supportPersonal',
+        'everythingProPlus', 'responsesUnlimited', 'visibilityMax', 'highlightSearch', 'supportPersonal',
     ],
 };
 
 /** i18n keys under plans.rules.* */
-export const PLAN_RULES = ['duration', 'autoRenew', 'customersFree', 'promotionsExpire', 'afterPayment', 'backToFree'];
+export const PLAN_RULES = ['duration', 'autoRenew', 'customersFree', 'afterPayment', 'backToFree'];
 
 /**
  * Plans before November 2026 were basic/standard/premium. Rows or store

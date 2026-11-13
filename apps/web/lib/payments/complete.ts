@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { PLANS, normalizePlan } from '@/lib/plans';
 import { sendPaymentReceiptEmail } from '@/lib/notifications/email';
+import { getSmartPayInvoice } from './smartpay';
 
 /**
  * Mark a PENDING SmartPay payment COMPLETED and activate (or extend) its plan.
@@ -90,4 +91,37 @@ export async function completeSmartPayPayment(
     }
 
     return 'completed';
+}
+
+/**
+ * Settle a PENDING SmartPay payment from SmartPay's order-status API, for when the webhook
+ * has not come: a Charged invoice for exactly the payment's amount completes it, a voided
+ * one (expired or cancelled) fails it. Anything else — still open, SmartPay unreachable,
+ * an amount that doesn't match — leaves it PENDING. Used by /api/payments/status while the
+ * payer waits on the result page, and by the daily cron for payers who left.
+ */
+export async function reconcileSmartPayPayment(payment: {
+    id: string;
+    amount: number;
+    smartpayOrderId: string;
+    transactionId: string | null;
+}): Promise<'COMPLETED' | 'FAILED' | 'PENDING'> {
+    const invoice = await getSmartPayInvoice(payment.smartpayOrderId);
+    if (invoice?.status === 'void') {
+        await prisma.payment.updateMany({ where: { id: payment.id, status: 'PENDING' }, data: { status: 'FAILED' } });
+        return 'FAILED';
+    }
+    if (invoice?.status === 'Charged') {
+        // Status amounts are dirams; our payment amounts are whole somoni.
+        if (invoice.paidAmount !== payment.amount * 100) {
+            console.error('[SmartPay] Amount mismatch for order:', payment.smartpayOrderId, invoice.paidAmount, payment.amount);
+            return 'PENDING';
+        }
+        await completeSmartPayPayment(payment.id, {
+            transactionId: invoice.invoiceUuid ?? payment.transactionId ?? payment.smartpayOrderId,
+            paymentMethod: invoice.paymentMethod,
+        });
+        return 'COMPLETED';
+    }
+    return 'PENDING';
 }

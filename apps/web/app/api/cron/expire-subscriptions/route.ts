@@ -3,12 +3,14 @@ import { prisma } from '@/lib/prisma';
 import { PLANS, normalizePlan } from '@/lib/plans';
 import { notificationStrings } from '@/lib/notifications/strings';
 import { sendPushNotification } from '@/lib/web-push';
+import { reconcileSmartPayPayment } from '@/lib/payments/complete';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// Called daily by Vercel Cron. Deactivates subscriptions past their endDate
-// (the provider is back on FREE), reminds web subscribers to renew, and
-// cleans up expired VerificationCode and PasswordReset rows.
+// Called daily by Vercel Cron. Settles SmartPay payments whose webhook never came,
+// deactivates subscriptions past their endDate (the provider is back on FREE),
+// reminds web subscribers to renew, and cleans up expired VerificationCode and
+// PasswordReset rows.
 export async function GET(request: Request) {
     const cronSecret = process.env.CRON_SECRET;
     if (!cronSecret) {
@@ -22,6 +24,9 @@ export async function GET(request: Request) {
     }
 
     const now = new Date();
+
+    // First, so a plan paid for yesterday is active before expiry and reminders run.
+    const settled = await settlePendingPayments(now);
 
     const [{ count: expired }, { count: deletedCodes }, { count: deletedResets }] =
         await Promise.all([
@@ -40,10 +45,43 @@ export async function GET(request: Request) {
     const reminded = await remindToRenew(now);
 
     console.log(
-        `[cron] at=${now.toISOString()} expired_subs=${expired} renew_reminders=${reminded} deleted_otps=${deletedCodes} deleted_resets=${deletedResets}`
+        `[cron] at=${now.toISOString()} settled_completed=${settled.completed} settled_failed=${settled.failed} expired_subs=${expired} renew_reminders=${reminded} deleted_otps=${deletedCodes} deleted_resets=${deletedResets}`
     );
 
-    return NextResponse.json({ expired, reminded, deletedCodes, deletedResets, at: now.toISOString() });
+    return NextResponse.json({ settled, expired, reminded, deletedCodes, deletedResets, at: now.toISOString() });
+}
+
+// SmartPay retries a webhook for two days; past that a PENDING payment won't move by itself.
+const SETTLE_WINDOW_MS = 3 * DAY_MS;
+// The invoice lives 30 minutes; leave younger payments to the payer and the webhook.
+const SETTLE_MIN_AGE_MS = 60 * 60 * 1000;
+
+/**
+ * SmartPay payments still PENDING a day later: the payer paid and left before the result
+ * page could check, and no webhook came. Ask SmartPay about each one, one at a time.
+ */
+async function settlePendingPayments(now: Date): Promise<{ completed: number; failed: number }> {
+    const pending = await prisma.payment.findMany({
+        where: {
+            status: 'PENDING',
+            smartpayOrderId: { not: null },
+            createdAt: { gt: new Date(now.getTime() - SETTLE_WINDOW_MS), lt: new Date(now.getTime() - SETTLE_MIN_AGE_MS) },
+        },
+        select: { id: true, amount: true, smartpayOrderId: true, transactionId: true },
+        take: 200,
+    });
+
+    const result = { completed: 0, failed: 0 };
+    for (const payment of pending) {
+        try {
+            const outcome = await reconcileSmartPayPayment({ ...payment, smartpayOrderId: payment.smartpayOrderId! });
+            if (outcome === 'COMPLETED') result.completed++;
+            if (outcome === 'FAILED') result.failed++;
+        } catch (error) {
+            console.error('[cron] Could not settle payment:', payment.id, error);
+        }
+    }
+    return result;
 }
 
 /**

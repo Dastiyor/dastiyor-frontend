@@ -5,7 +5,10 @@ jest.mock('@/lib/notifications/email', () => ({
     sendPaymentReceiptEmail: jest.fn().mockResolvedValue(undefined),
 }));
 
-import { completeSmartPayPayment } from '../complete';
+jest.mock('../smartpay', () => ({ getSmartPayInvoice: jest.fn(async () => null) }));
+
+import { completeSmartPayPayment, reconcileSmartPayPayment } from '../complete';
+import { getSmartPayInvoice } from '../smartpay';
 import { sendPaymentReceiptEmail } from '@/lib/notifications/email';
 
 const payment = {
@@ -49,5 +52,52 @@ describe('completeSmartPayPayment', () => {
         expect(prismaMock.subscription.create).toHaveBeenCalled();
         expect(sendPaymentReceiptEmail).toHaveBeenCalledWith('u@test.com', 'U', 49, 'Подписка PRO', 'DST-1', 'inv-1', 'ru');
         expect(logged).toHaveBeenCalledWith('Receipt email error:', expect.any(Error));
+    });
+
+    describe('reconcileSmartPayPayment', () => {
+        const pending = { id: 'pay-1', amount: 49, smartpayOrderId: 'DST-1', transactionId: null };
+        const invoice = (over: object) => (getSmartPayInvoice as jest.Mock).mockResolvedValue({ status: 'Charged', paidAmount: 4900, invoiceUuid: 'inv-1', paymentMethod: 'card', ...over });
+
+        beforeEach(() => {
+            prismaMock.payment.update.mockResolvedValue(payment as any);
+        });
+
+        it('leaves the payment PENDING while the invoice is open or SmartPay is unreachable', async () => {
+            invoice({ status: 'open', paidAmount: 0 });
+            expect(await reconcileSmartPayPayment(pending)).toBe('PENDING');
+            (getSmartPayInvoice as jest.Mock).mockResolvedValue(null);
+            expect(await reconcileSmartPayPayment(pending)).toBe('PENDING');
+            expect(prismaMock.payment.updateMany).not.toHaveBeenCalled();
+        });
+
+        it('fails a voided invoice', async () => {
+            invoice({ status: 'void', paidAmount: 0 });
+            expect(await reconcileSmartPayPayment(pending)).toBe('FAILED');
+            expect(prismaMock.payment.updateMany).toHaveBeenCalledWith({ where: { id: 'pay-1', status: 'PENDING' }, data: { status: 'FAILED' } });
+        });
+
+        it('completes a charged invoice for exactly the amount', async () => {
+            invoice({});
+            expect(await reconcileSmartPayPayment(pending)).toBe('COMPLETED');
+            expect(prismaMock.payment.update).toHaveBeenCalledWith(expect.objectContaining({
+                data: { transactionId: 'inv-1', paymentMethod: 'card' },
+            }));
+            expect(prismaMock.subscription.create).toHaveBeenCalled();
+        });
+
+        it('keeps a charged invoice for a different amount PENDING', async () => {
+            jest.spyOn(console, 'error').mockImplementation(() => {});
+            invoice({ paidAmount: 200 });
+            expect(await reconcileSmartPayPayment(pending)).toBe('PENDING');
+            expect(prismaMock.payment.updateMany).not.toHaveBeenCalled();
+        });
+
+        it('falls back to the stored transaction id, then the order id, without an invoice uuid', async () => {
+            invoice({ invoiceUuid: null, paymentMethod: null });
+            await reconcileSmartPayPayment({ ...pending, transactionId: 'stored' });
+            expect(prismaMock.payment.update).toHaveBeenLastCalledWith(expect.objectContaining({ data: { transactionId: 'stored', paymentMethod: null } }));
+            await reconcileSmartPayPayment(pending);
+            expect(prismaMock.payment.update).toHaveBeenLastCalledWith(expect.objectContaining({ data: { transactionId: 'DST-1', paymentMethod: null } }));
+        });
     });
 });

@@ -3,6 +3,8 @@ import { prismaMock } from '../../../../../__tests__/mocks/prisma';
 import { sendPushNotification } from '@/lib/web-push';
 
 jest.mock('@/lib/web-push', () => ({ sendPushNotification: jest.fn().mockResolvedValue(undefined) }));
+jest.mock('@/lib/payments/complete', () => ({ reconcileSmartPayPayment: jest.fn(async () => 'PENDING') }));
+import { reconcileSmartPayPayment } from '@/lib/payments/complete';
 
 const CRON_SECRET = 'test-cron-secret';
 
@@ -37,6 +39,7 @@ describe('/api/cron/expire-subscriptions', () => {
         prismaMock.verificationCode.deleteMany.mockResolvedValue({ count: 0 });
         prismaMock.passwordReset.deleteMany.mockResolvedValue({ count: 0 });
         prismaMock.subscription.findMany.mockResolvedValue([]);
+        prismaMock.payment.findMany.mockResolvedValue([]);
     });
 
     it('reminds web subscribers 2-3 days before the end, in their language', async () => {
@@ -99,5 +102,44 @@ describe('/api/cron/expire-subscriptions', () => {
 
         expect(response.status).toBe(200);
         expect(data.expired).toBe(0);
+    });
+
+    describe('settling SmartPay payments whose webhook never came', () => {
+        const auth = `Bearer ${CRON_SECRET}`;
+        const pay = (id: string) => ({ id, amount: 49, smartpayOrderId: `DST-${id}`, transactionId: null });
+
+        beforeEach(() => {
+            (reconcileSmartPayPayment as jest.Mock).mockReset();
+            prismaMock.subscription.updateMany.mockResolvedValue({ count: 0 });
+        });
+
+        it('asks SmartPay about PENDING payments between an hour and three days old', async () => {
+            const now = Date.now();
+            prismaMock.payment.findMany.mockResolvedValue([]);
+
+            await GET(makeRequest(auth));
+
+            const where = (prismaMock.payment.findMany.mock.calls[0][0] as any).where;
+            expect(where.status).toBe('PENDING');
+            expect(where.smartpayOrderId).toEqual({ not: null });
+            expect(now - where.createdAt.gt.getTime()).toBeGreaterThanOrEqual(3 * 864e5 - 5000);
+            expect(now - where.createdAt.lt.getTime()).toBeGreaterThanOrEqual(3600e3 - 5000);
+        });
+
+        it('counts completed and failed payments, and survives one that throws', async () => {
+            jest.spyOn(console, 'error').mockImplementation(() => {});
+            prismaMock.payment.findMany.mockResolvedValue([pay('a'), pay('b'), pay('c'), pay('d')] as any);
+            (reconcileSmartPayPayment as jest.Mock)
+                .mockResolvedValueOnce('COMPLETED')
+                .mockResolvedValueOnce('FAILED')
+                .mockRejectedValueOnce(new Error('db down'))
+                .mockResolvedValueOnce('PENDING');
+
+            const data = await (await GET(makeRequest(auth))).json();
+
+            expect(data.settled).toEqual({ completed: 1, failed: 1 });
+            expect(reconcileSmartPayPayment).toHaveBeenCalledTimes(4);
+            expect(reconcileSmartPayPayment).toHaveBeenCalledWith(pay('a'));
+        });
     });
 });

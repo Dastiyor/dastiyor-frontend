@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { PLANS, normalizePlan, getSmartPayInvoice } from '@/lib/payments';
-import { completeSmartPayPayment } from '@/lib/payments/complete';
+import { PLANS, normalizePlan } from '@/lib/payments';
+import { reconcileSmartPayPayment } from '@/lib/payments/complete';
 import { requireAuth } from '@/lib/require-auth';
 
 // GET - Check payment status by orderId
@@ -32,27 +32,10 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        // The webhook normally settles a payment. When it hasn't (SmartPay down, a delivery
-        // lost), ask SmartPay directly: a paid invoice for the exact amount activates the
-        // plan, a voided one (expired or cancelled) fails the payment.
+        // The webhook normally settles a payment; when it hasn't, ask SmartPay directly.
         let status = payment.status;
         if (status === 'PENDING') {
-            const invoice = await getSmartPayInvoice(orderId);
-            if (invoice?.status === 'void') {
-                await prisma.payment.updateMany({ where: { id: payment.id, status: 'PENDING' }, data: { status: 'FAILED' } });
-                status = 'FAILED';
-            } else if (invoice?.status === 'Charged') {
-                // Status amounts are dirams; our payment amounts are whole somoni.
-                if (invoice.paidAmount === payment.amount * 100) {
-                    await completeSmartPayPayment(payment.id, {
-                        transactionId: invoice.invoiceUuid ?? payment.transactionId ?? orderId,
-                        paymentMethod: invoice.paymentMethod,
-                    });
-                    status = 'COMPLETED';
-                } else {
-                    console.error('[Payment Status] Amount mismatch for order:', orderId, invoice.paidAmount, payment.amount);
-                }
-            }
+            status = await reconcileSmartPayPayment({ ...payment, smartpayOrderId: orderId });
         }
 
         const plan = normalizePlan(payment.plan);

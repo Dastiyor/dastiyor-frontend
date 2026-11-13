@@ -45,7 +45,7 @@ npx prisma studio
 npx prisma db seed
 ```
 
-CI (`.github/workflows/`) runs `tsc --noEmit` → `lint` → `test` → `build` for web, and `tsc --noEmit` → `lint` → `test` for mobile. `tsc --noEmit` catches type regressions that `next build` alone lets through — it exists because one shipped to production. Jest enforces a **90% global coverage threshold** (branches/functions/lines/statements), so `--coverage` runs fail if new code is untested.
+CI (`.github/workflows/`) runs `tsc --noEmit` → `lint` → `test` → `build` for web, and `tsc --noEmit` → `lint` → `test` for mobile. `tsc --noEmit` catches type regressions that `next build` alone lets through — it exists because one shipped to production. `jest.config.js` sets a 90% global coverage threshold, but CI runs plain `test`, so nothing enforces it: overall web coverage is about 46%, and `test:coverage` fails on `main`. Cover new code anyway (new modules are kept at 95–100%).
 
 ## Architecture
 
@@ -101,6 +101,12 @@ On a slow phone the server-rendered page is visible for seconds before React att
 - A controlled input that is in the server-rendered HTML passes a ref to `useAdoptTypedValue()`. Text typed or autofilled before hydration stays in the field but never reaches state, so the field looks filled in while validation and submit see it empty.
 - The language switcher is a link to `GET /api/locale?set=<locale>` (sets the cookie, redirects back to the referring page), upgraded to an in-place switch on click. Keep it a link.
 
+### Paid-plan features
+
+Promotions and BUSINESS category pins (`lib/promotions.ts`, `ProfilePromotion`), new-task alerts (`lib/task-alerts.ts`, `TaskAlert`, `User.taskAlertsEnabled`), recommended providers on a customer's open task (`lib/recommended-providers.ts`), and provider analytics (`lib/provider-analytics.ts`, profile views in `ProfileView`, recorded by `lib/profile-views.ts`). Ranking lives in `lib/professionals.ts`: pinned in the searched category, then promoted, then plan tier.
+
+**Migrate before deploying.** The build never runs `prisma migrate deploy`. These features read their tables on hot paths, including the public directory that live iOS calls, and `User` queries without a `select` read `taskAlertsEnabled`, so code that ships before its migration returns 500s, login included. Apply migrations to production by hand (`pnpm --filter @dastiyor/web migrate`) first.
+
 ### Feature flags
 
 `lib/features.ts` gates subscriptions/paid plans via `NEXT_PUBLIC_SUBSCRIPTIONS_ENABLED` and `SUBSCRIPTION_GATE_ENABLED`; `MOBILE_PURCHASE_ENABLED` (read by `/api/config` and `lib/professionals.ts`) turns on the app's plans screen and the tier badges/ranking on its own.
@@ -154,7 +160,7 @@ E2E_ALLOW_WRITES=1 pnpm --filter @dastiyor/web exec playwright test e2e/flows/si
 
 ### External services
 
-Supabase (required). Optional, each degrading gracefully when unset: Brevo (email/SMS), Payom.tj (SMS to +992), SmartPay TJ (payments), Upstash Redis (rate limiting), Vercel Blob (uploads), VAPID web push, Sentry (`sentry.{client,server}.config.ts`), PostHog (mobile via `EXPO_PUBLIC_POSTHOG_KEY` on EAS; web via `NEXT_PUBLIC_POSTHOG_KEY`, proxied through `/ingest`). One Vercel cron: `/api/cron/expire-subscriptions` daily at 02:00.
+Supabase (required). Optional, each degrading gracefully when unset: Brevo (email/SMS), Payom.tj (SMS to +992), SmartPay TJ (payments), Upstash Redis (rate limiting), Vercel Blob (uploads), VAPID web push, Sentry (`sentry.{client,server}.config.ts`), PostHog (mobile via `EXPO_PUBLIC_POSTHOG_KEY` on EAS; web via `NEXT_PUBLIC_POSTHOG_KEY`, proxied through `/ingest`). One Vercel cron: `/api/cron/expire-subscriptions` daily at 02:00. The team is on Vercel Hobby (daily crons only), so `/api/cron/send-task-alerts`, which sends PRO's new-task alerts 15 minutes late, is called every 5 minutes by `.github/workflows/task-alerts.yml` with the `CRON_SECRET` repo secret. GitHub runs scheduled workflows only from `main`, and late. On Vercel Pro, move it to a `vercel.json` cron and delete the workflow.
 
 **PostHog data warehouse.** PostHog syncs the `analytics` schema daily (views over User/Task/Response/Payment/Subscription/SourcingRequest with no email, phone or message text) through the read-only `posthog_ro` role, which can read only those views. Synced tables are named `postgres.dastiyor.<view>` with **snake_case** columns (`created_at`, `task_id`); a view with no rows gets no table until it has one, so a query on it errors "Unknown table" until then. Setup SQL and the dashboard queries live in `docs/analytics/posthog.sql`. posthog-js ignores automated browsers (`navigator.webdriver`), so verify web events from a real browser, not Playwright/DevTools.
 

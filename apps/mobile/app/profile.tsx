@@ -22,6 +22,7 @@ import { Alert } from '@/lib/dialog';
 import { useConfig } from '@/lib/useConfig';
 import { storeKey } from '@/lib/purchases';
 import { GradientButton } from '@/components/Premium';
+import { PromotionCard } from '@/components/PromotionCard';
 
 const LOCALES: Locale[] = ['ru', 'tj', 'en'];
 
@@ -79,7 +80,7 @@ function RowItem({
 export default function ProfileScreen() {
   const { user, loading, logout, deleteAccount } = useAuth();
   const { config } = useConfig();
-  const { locale, setLocale, t } = useLanguage();
+  const { locale, setLocale, t, tr } = useLanguage();
   const { colors, isDark, toggleTheme } = useTheme();
   const { popupsEnabled, togglePopups } = useNotifPrefs();
   const insets = useSafeAreaInsets();
@@ -250,6 +251,13 @@ export default function ProfileScreen() {
             />
           ) : null}
         </View>
+
+        {/* Promotions live on the subscription screen; where that screen is not
+            reachable (Android, no store key) a paid provider promotes from here.
+            Renders nothing on FREE. */}
+        {user.role === 'PROVIDER' && !(config.subscriptionsEnabled && config.mobilePurchaseEnabled && storeKey()) ? (
+          <PromotionCard labels={{ ...t.promotions, error: t.common.error }} tr={tr} />
+        ) : null}
 
         {/* Phone */}
         {user.phone ? (

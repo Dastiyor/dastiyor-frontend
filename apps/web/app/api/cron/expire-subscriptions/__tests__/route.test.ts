@@ -3,8 +3,8 @@ import { prismaMock } from '../../../../../__tests__/mocks/prisma';
 import { sendPushNotification } from '@/lib/web-push';
 
 jest.mock('@/lib/web-push', () => ({ sendPushNotification: jest.fn().mockResolvedValue(undefined) }));
-jest.mock('@/lib/payments/complete', () => ({ reconcileSmartPayPayment: jest.fn(async () => 'PENDING') }));
-import { reconcileSmartPayPayment } from '@/lib/payments/complete';
+jest.mock('@/lib/payments/complete', () => ({ reconcilePayment: jest.fn(async () => 'PENDING') }));
+import { reconcilePayment } from '@/lib/payments/complete';
 
 const CRON_SECRET = 'test-cron-secret';
 
@@ -106,10 +106,10 @@ describe('/api/cron/expire-subscriptions', () => {
 
     describe('settling SmartPay payments whose webhook never came', () => {
         const auth = `Bearer ${CRON_SECRET}`;
-        const pay = (id: string) => ({ id, amount: 49, smartpayOrderId: `DST-${id}`, transactionId: null });
+        const pay = (id: string) => ({ id, amount: 49, smartpayOrderId: `DST-${id}`, transactionId: null, provider: 'smartpay' });
 
         beforeEach(() => {
-            (reconcileSmartPayPayment as jest.Mock).mockReset();
+            (reconcilePayment as jest.Mock).mockReset();
             prismaMock.subscription.updateMany.mockResolvedValue({ count: 0 });
         });
 
@@ -129,7 +129,7 @@ describe('/api/cron/expire-subscriptions', () => {
         it('counts completed and failed payments, and survives one that throws', async () => {
             jest.spyOn(console, 'error').mockImplementation(() => {});
             prismaMock.payment.findMany.mockResolvedValue([pay('a'), pay('b'), pay('c'), pay('d')] as any);
-            (reconcileSmartPayPayment as jest.Mock)
+            (reconcilePayment as jest.Mock)
                 .mockResolvedValueOnce('COMPLETED')
                 .mockResolvedValueOnce('FAILED')
                 .mockRejectedValueOnce(new Error('db down'))
@@ -138,8 +138,8 @@ describe('/api/cron/expire-subscriptions', () => {
             const data = await (await GET(makeRequest(auth))).json();
 
             expect(data.settled).toEqual({ completed: 1, failed: 1 });
-            expect(reconcileSmartPayPayment).toHaveBeenCalledTimes(4);
-            expect(reconcileSmartPayPayment).toHaveBeenCalledWith(pay('a'));
+            expect(reconcilePayment).toHaveBeenCalledTimes(4);
+            expect(reconcilePayment).toHaveBeenCalledWith(pay('a'));
         });
     });
 });

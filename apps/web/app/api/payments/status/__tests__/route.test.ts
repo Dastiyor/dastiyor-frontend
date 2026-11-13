@@ -16,9 +16,9 @@ jest.mock('@/lib/payments', () => ({
     normalizePlan: jest.requireActual('@/lib/plans').normalizePlan,
 }));
 jest.mock('@/lib/payments/complete', () => ({
-    reconcileSmartPayPayment: jest.fn(async () => 'PENDING'),
+    reconcilePayment: jest.fn(async () => 'PENDING'),
 }));
-import { reconcileSmartPayPayment } from '@/lib/payments/complete';
+import { reconcilePayment } from '@/lib/payments/complete';
 
 const makeRequest = (orderId?: string) =>
     new Request(`http://localhost/api/payments/status${orderId ? `?orderId=${orderId}` : ''}`);
@@ -165,18 +165,18 @@ describe('/api/payments/status', () => {
 
         it.each(['COMPLETED', 'FAILED', 'PENDING'])('reports what SmartPay settles a pending payment to: %s', async (outcome) => {
             prismaMock.payment.findUnique.mockResolvedValue(pending as any);
-            (reconcileSmartPayPayment as jest.Mock).mockResolvedValue(outcome);
+            (reconcilePayment as jest.Mock).mockResolvedValue(outcome);
 
             const data = await (await GET(makeRequest('ORDER-001'))).json();
 
             expect(data.status).toBe(outcome);
-            expect(reconcileSmartPayPayment).toHaveBeenCalledWith(expect.objectContaining({ id: 'pay-1', amount: 99, smartpayOrderId: 'ORDER-001' }));
+            expect(reconcilePayment).toHaveBeenCalledWith(expect.objectContaining({ id: 'pay-1', amount: 99, smartpayOrderId: 'ORDER-001' }));
         });
 
         it('does not ask SmartPay about a finished payment', async () => {
             prismaMock.payment.findUnique.mockResolvedValue({ ...pending, status: 'COMPLETED' } as any);
             await GET(makeRequest('ORDER-001'));
-            expect(reconcileSmartPayPayment).not.toHaveBeenCalled();
+            expect(reconcilePayment).not.toHaveBeenCalled();
         });
     });
 });

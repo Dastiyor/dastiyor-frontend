@@ -3,11 +3,11 @@ import { prisma } from '@/lib/prisma';
 import { PLANS, normalizePlan } from '@/lib/plans';
 import { notificationStrings } from '@/lib/notifications/strings';
 import { sendPushNotification } from '@/lib/web-push';
-import { reconcileSmartPayPayment } from '@/lib/payments/complete';
+import { reconcilePayment } from '@/lib/payments/complete';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// Called daily by Vercel Cron. Settles SmartPay payments whose webhook never came,
+// Called daily by Vercel Cron. Settles SmartPay/Alif payments whose notification never came,
 // deactivates subscriptions past their endDate (the provider is back on FREE),
 // reminds web subscribers to renew, and cleans up expired VerificationCode and
 // PasswordReset rows.
@@ -51,14 +51,15 @@ export async function GET(request: Request) {
     return NextResponse.json({ settled, expired, reminded, deletedCodes, deletedResets, at: now.toISOString() });
 }
 
-// SmartPay retries a webhook for two days; past that a PENDING payment won't move by itself.
+// SmartPay retries a webhook for two days, Alif for about 15 hours; past that a PENDING
+// payment won't move by itself.
 const SETTLE_WINDOW_MS = 3 * DAY_MS;
 // The invoice lives 30 minutes; leave younger payments to the payer and the webhook.
 const SETTLE_MIN_AGE_MS = 60 * 60 * 1000;
 
 /**
- * SmartPay payments still PENDING a day later: the payer paid and left before the result
- * page could check, and no webhook came. Ask SmartPay about each one, one at a time.
+ * SmartPay/Alif payments still PENDING a day later: the payer paid and left before the result
+ * page could check, and no notification came. Ask the provider about each one, one at a time.
  */
 async function settlePendingPayments(now: Date): Promise<{ completed: number; failed: number }> {
     const pending = await prisma.payment.findMany({
@@ -67,14 +68,14 @@ async function settlePendingPayments(now: Date): Promise<{ completed: number; fa
             smartpayOrderId: { not: null },
             createdAt: { gt: new Date(now.getTime() - SETTLE_WINDOW_MS), lt: new Date(now.getTime() - SETTLE_MIN_AGE_MS) },
         },
-        select: { id: true, amount: true, smartpayOrderId: true, transactionId: true },
+        select: { id: true, amount: true, smartpayOrderId: true, transactionId: true, provider: true },
         take: 200,
     });
 
     const result = { completed: 0, failed: 0 };
     for (const payment of pending) {
         try {
-            const outcome = await reconcileSmartPayPayment({ ...payment, smartpayOrderId: payment.smartpayOrderId! });
+            const outcome = await reconcilePayment({ ...payment, smartpayOrderId: payment.smartpayOrderId! });
             if (outcome === 'COMPLETED') result.completed++;
             if (outcome === 'FAILED') result.failed++;
         } catch (error) {

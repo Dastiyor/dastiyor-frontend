@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { PLANS, normalizePlan } from '@/lib/payments';
-import { reconcileSmartPayPayment } from '@/lib/payments/complete';
+import { reconcilePayment } from '@/lib/payments/complete';
 import { requireAuth } from '@/lib/require-auth';
 
 // GET - Check payment status by orderId
@@ -32,10 +32,10 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        // The webhook normally settles a payment; when it hasn't, ask SmartPay directly.
+        // The provider's notification normally settles a payment; when it hasn't, ask the provider.
         let status = payment.status;
         if (status === 'PENDING') {
-            status = await reconcileSmartPayPayment({ ...payment, smartpayOrderId: orderId });
+            status = await reconcilePayment({ ...payment, smartpayOrderId: orderId });
         }
 
         const plan = normalizePlan(payment.plan);

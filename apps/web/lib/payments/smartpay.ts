@@ -14,8 +14,8 @@
  *
  * Env: SMARTPAY_API_KEY (dashboard → Settings → API Keys), SMARTPAY_WEBHOOK_SECRET (shown once
  * when the webhook is created), SMARTPAY_API_URL (defaults to production; the sandbox is
- * https://sandbox.smartpay.tj/api/merchant), SMARTPAY_TEST_AMOUNT (sandbox only — see
- * chargeAmount). Read at call time so tests can set them.
+ * https://sandbox.smartpay.tj/api/merchant), PAYMENT_TEST_AMOUNT (test mode only — see
+ * chargeAmount in ./provider). Read at call time so tests can set them.
  *
  * Sandbox test cards (shown on the sandbox payment page): МИР 2200 0000 0000 0004 succeeds,
  * any Visa/Mastercard is declined; any future expiry, any CVC. Invoices start at 2 somoni.
@@ -42,21 +42,6 @@ export function isSmartPaySandbox(): boolean {
     } catch {
         return false;
     }
-}
-
-// SmartPay's floor for an invoice, and the cap they set for the test phase.
-const SANDBOX_MIN_AMOUNT = 2;
-const SANDBOX_MAX_AMOUNT = 10;
-
-/**
- * Somoni to charge for a plan. SMARTPAY_TEST_AMOUNT replaces the price, clamped to 2–10, but
- * only against the sandbox: a production API URL always charges the real price. Use the result
- * for both the Payment row and the invoice — the webhook checks one against the other.
- */
-export function chargeAmount(price: number): number {
-    const override = Number(process.env.SMARTPAY_TEST_AMOUNT);
-    if (!isSmartPaySandbox() || !process.env.SMARTPAY_TEST_AMOUNT || !Number.isFinite(override)) return price;
-    return Math.min(SANDBOX_MAX_AMOUNT, Math.max(SANDBOX_MIN_AMOUNT, Math.round(override)));
 }
 
 // ─── Types ──────────────────────────────────────────────────────────────────

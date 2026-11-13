@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { PLANS, isValidPlan, createSmartPayOrder, generateOrderId, chargeAmount } from '@/lib/payments';
+import { PLANS, isValidPlan, createSmartPayOrder, generateOrderId, chargeAmount, activePaymentProvider, createAlifPayment, isAlifMethod } from '@/lib/payments';
 import { requireAuth } from '@/lib/require-auth';
 import { SUBSCRIPTIONS_ENABLED } from '@/lib/features';
 import { subscriptionView } from '@/lib/payments/subscription-view';
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
 
         const userId = payload.id as string;
         const body = await request.json();
-        const { plan } = body;
+        const { plan, method } = body;
 
         if (!plan || !isValidPlan(plan)) {
             return NextResponse.json({ error: 'Неверный тариф' }, { status: 400 });
@@ -59,13 +59,14 @@ export async function POST(request: Request) {
 
         const planConfig = PLANS[plan];
         const orderId = generateOrderId();
-        // The plan price, or the sandbox test amount; the Payment row and the invoice must agree.
+        const provider = activePaymentProvider();
+        // The plan price, or the test amount; the Payment row and the invoice must agree.
         const amount = chargeAmount(planConfig.price);
 
-        // Payer phone and name prefill the SmartPay invoice
+        // Payer phone and name prefill the provider's form
         const user = await prisma.user.findUnique({
             where: { id: userId },
-            select: { phone: true, fullName: true }
+            select: { phone: true, fullName: true, email: true }
         });
 
         // Create a pending payment record in our DB
@@ -78,21 +79,34 @@ export async function POST(request: Request) {
                 type: 'SUBSCRIPTION',
                 description: `Подписка ${planConfig.name}`,
                 plan,
+                provider,
                 smartpayOrderId: orderId,
             }
         });
 
-        // Create order with SmartPay
-        const smartPayResult = await createSmartPayOrder({
-            orderId,
-            amount,
-            description: `Dastiyor — Подписка ${planConfig.name} (${planConfig.durationDays} дн.)`,
-            returnUrl: `${APP_URL}/payment/result?orderId=${orderId}`,
-            customerPhone: user?.phone || undefined,
-            customerName: user?.fullName || undefined,
-        });
+        const description = `Dastiyor — Подписка ${planConfig.name} (${planConfig.durationDays} дн.)`;
+        const returnUrl = `${APP_URL}/payment/result?orderId=${orderId}`;
+        const result = provider === 'alif'
+            ? await createAlifPayment({
+                orderId,
+                amount,
+                description,
+                returnUrl,
+                // Korti Milli unless the client picked another method on our page
+                method: isAlifMethod(method) ? method : undefined,
+                email: user?.email || undefined,
+                phone: user?.phone || undefined,
+            })
+            : await createSmartPayOrder({
+                orderId,
+                amount,
+                description,
+                returnUrl,
+                customerPhone: user?.phone || undefined,
+                customerName: user?.fullName || undefined,
+            });
 
-        if (!smartPayResult.success) {
+        if (!result.success) {
             // Mark payment as failed
             await prisma.payment.update({
                 where: { id: payment.id },
@@ -104,15 +118,17 @@ export async function POST(request: Request) {
             );
         }
 
-        // Save SmartPay transaction ID
-        await prisma.payment.update({
-            where: { id: payment.id },
-            data: { transactionId: smartPayResult.transactionId }
-        });
+        // SmartPay names its invoice up front; Alif's transaction id comes with the payment.
+        if ('transactionId' in result && result.transactionId) {
+            await prisma.payment.update({
+                where: { id: payment.id },
+                data: { transactionId: result.transactionId }
+            });
+        }
 
         // Return the payment URL for the frontend to redirect to
         return NextResponse.json({
-            paymentUrl: smartPayResult.paymentUrl,
+            paymentUrl: result.paymentUrl,
             orderId,
             paymentId: payment.id,
         });

@@ -66,7 +66,8 @@ model User {
   deviceTokens DeviceToken[]
 
   // Payments
-  payments Payment[]
+  payments       Payment[]
+  paymentMethods PaymentMethod[]
 
   // Reports
   reportsMade    Report[] @relation("ReportReporter")
@@ -165,6 +166,24 @@ model Response {
   @@index([userId])
 }
 
+// A provider's saved card or wallet (Alif tokenization), used for auto-renewal
+model PaymentMethod {
+  id        String   @id @default(cuid())
+  provider  String   @default("alif")
+  requestId String   @unique // our tokenization order id
+  token     String? // Alif's token (UUID) once approved
+  account   String? // masked card or phone
+  type      String? // korti_milli, wallet, visa, …
+  status    String   @default("PENDING") // PENDING, APPROVED, FAILED, REMOVED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
 // Subscription Model (for Providers)
 model Subscription {
   id        String   @id @default(cuid())
@@ -172,7 +191,12 @@ model Subscription {
   startDate DateTime @default(now())
   endDate   DateTime
   isActive  Boolean  @default(true)
-  source    String   @default("web") // 'web' (SmartPay) | 'store' (App Store / Google Play via RevenueCat)
+  source    String   @default("web") // 'web' (SmartPay / Alif) | 'store' (App Store / Google Play via RevenueCat)
+
+  // Alif auto-renewal: the Alif subscription order id charging the saved method monthly
+  autoRenew              Boolean @default(false)
+  providerSubscriptionId String?
+  paymentMethodId        String?
 
   // Relationships
   userId String @unique
@@ -324,10 +348,10 @@ model Payment {
   type            String // SUBSCRIPTION
   description     String // Human-readable description
   plan            String? // Subscription plan if type=SUBSCRIPTION
-  // SmartPay fields
-  transactionId   String?  @unique // SmartPay transaction ID
-  paymentMethod   String? // e.g. 'visa', 'humo', 'dc_next'
-  smartpayOrderId String?  @unique // Our order ID sent to SmartPay
+  provider        String   @default("smartpay") // 'smartpay' | 'alif'
+  transactionId   String?  @unique // The provider's transaction / invoice id
+  paymentMethod   String? // e.g. 'visa', 'korti_milli', 'wallet'
+  smartpayOrderId String?  @unique // Our order id sent to the provider (named before Alif; holds Alif's too)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

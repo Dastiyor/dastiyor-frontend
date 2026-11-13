@@ -19,10 +19,13 @@ jest.mock('@/lib/payments', () => ({
     isValidPlan: jest.requireActual('@/lib/plans').isValidPlan,
     createSmartPayOrder: jest.fn(),
     generateOrderId: jest.fn(() => 'ORDER-MOCK-001'),
-    chargeAmount: jest.requireActual('@/lib/payments/smartpay').chargeAmount,
+    chargeAmount: jest.requireActual('@/lib/payments/provider').chargeAmount,
+    activePaymentProvider: jest.requireActual('@/lib/payments/provider').activePaymentProvider,
+    isAlifMethod: jest.requireActual('@/lib/payments/alif').isAlifMethod,
+    createAlifPayment: jest.fn(),
 }));
 
-import { createSmartPayOrder } from '@/lib/payments';
+import { createSmartPayOrder, createAlifPayment } from '@/lib/payments';
 
 describe('/api/subscription', () => {
     const mockUserId = 'user-1';
@@ -234,6 +237,38 @@ describe('/api/subscription', () => {
                 env.SMARTPAY_TEST_AMOUNT = saved.amount;
                 if (saved.url === undefined) delete env.SMARTPAY_API_URL;
                 if (saved.amount === undefined) delete env.SMARTPAY_TEST_AMOUNT;
+            }
+        });
+
+        it('takes the payment with Alif when PAYMENT_PROVIDER=alif, passing the chosen method', async () => {
+            const env = process.env as Record<string, string | undefined>;
+            env.PAYMENT_PROVIDER = 'alif';
+            try {
+                prismaMock.user.findUnique.mockResolvedValue({ fullName: 'Test', phone: '+992901234567', email: 'p@test.tj' } as any);
+                prismaMock.payment.create.mockResolvedValue({ id: 'pay-1' } as any);
+                (createAlifPayment as jest.Mock).mockResolvedValue({ success: true, paymentUrl: 'https://web.alif.tj/x' });
+
+                const response = await POST(new NextRequest('http://localhost/api/subscription', {
+                    method: 'POST', body: JSON.stringify({ plan: 'pro', method: 'wallet' }),
+                }));
+                const data = await response.json();
+
+                expect(response.status).toBe(200);
+                expect(data.paymentUrl).toBe('https://web.alif.tj/x');
+                expect(prismaMock.payment.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ provider: 'alif', amount: 49 }) }));
+                expect(createAlifPayment).toHaveBeenCalledWith(expect.objectContaining({ amount: 49, method: 'wallet', email: 'p@test.tj', phone: '+992901234567' }));
+                expect(createSmartPayOrder).not.toHaveBeenCalled();
+                // Alif's transaction id arrives with the payment, so nothing is saved up front.
+                expect(prismaMock.payment.update).not.toHaveBeenCalled();
+
+                (createAlifPayment as jest.Mock).mockClear();
+                prismaMock.user.findUnique.mockResolvedValue(null);
+                await POST(new NextRequest('http://localhost/api/subscription', {
+                    method: 'POST', body: JSON.stringify({ plan: 'pro', method: 'bitcoin' }),
+                }));
+                expect(createAlifPayment).toHaveBeenCalledWith(expect.objectContaining({ method: undefined, email: undefined, phone: undefined }));
+            } finally {
+                delete env.PAYMENT_PROVIDER;
             }
         });
 

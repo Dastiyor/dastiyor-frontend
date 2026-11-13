@@ -2,12 +2,13 @@ import { prisma } from '@/lib/prisma';
 import { PLANS, normalizePlan } from '@/lib/plans';
 import { sendPaymentReceiptEmail } from '@/lib/notifications/email';
 import { getSmartPayInvoice } from './smartpay';
+import { checkAlifTransaction } from './alif';
 
 /**
- * Mark a PENDING SmartPay payment COMPLETED and activate (or extend) its plan.
+ * Mark a PENDING payment (SmartPay or Alif) COMPLETED and activate (or extend) its plan.
  *
- * Shared by the webhook and by /api/payments/status, which falls back to SmartPay's
- * order-status API when no webhook has arrived. Callers check the amount first.
+ * Shared by the provider notifications, /api/payments/status and the daily cron, all of which
+ * confirm the payment with the provider first. Callers check the amount first.
  * The PENDING → COMPLETED claim is atomic, so when both paths race only one activates.
  */
 export async function completeSmartPayPayment(
@@ -124,4 +125,42 @@ export async function reconcileSmartPayPayment(payment: {
         return 'COMPLETED';
     }
     return 'PENDING';
+}
+
+/**
+ * Settle a PENDING Alif payment from Alif's signed /checktxn: `ok` for exactly the payment's
+ * amount completes it, `failed` fails it, anything else (pending, unreachable, unsigned,
+ * an amount that doesn't match) leaves it PENDING. `canceled` is a refund of a payment that
+ * was `ok`, so it never arrives for a PENDING one.
+ */
+export async function reconcileAlifPayment(payment: {
+    id: string;
+    amount: number;
+    smartpayOrderId: string;
+}): Promise<'COMPLETED' | 'FAILED' | 'PENDING'> {
+    const txn = await checkAlifTransaction(payment.smartpayOrderId);
+    if (txn?.status === 'failed') {
+        await prisma.payment.updateMany({ where: { id: payment.id, status: 'PENDING' }, data: { status: 'FAILED' } });
+        return 'FAILED';
+    }
+    if (txn?.status === 'ok') {
+        if (txn.amount !== payment.amount * 100) {
+            console.error('[Alif] Amount mismatch for order:', payment.smartpayOrderId, txn.amount, payment.amount);
+            return 'PENDING';
+        }
+        await completeSmartPayPayment(payment.id, { transactionId: `alif_${txn.transactionId}`, paymentMethod: txn.method });
+        return 'COMPLETED';
+    }
+    return 'PENDING';
+}
+
+/** Settle a PENDING payment with whichever provider took it. */
+export function reconcilePayment(payment: {
+    id: string;
+    amount: number;
+    smartpayOrderId: string;
+    transactionId: string | null;
+    provider: string;
+}): Promise<'COMPLETED' | 'FAILED' | 'PENDING'> {
+    return payment.provider === 'alif' ? reconcileAlifPayment(payment) : reconcileSmartPayPayment(payment);
 }

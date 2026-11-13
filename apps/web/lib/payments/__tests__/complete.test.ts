@@ -6,8 +6,10 @@ jest.mock('@/lib/notifications/email', () => ({
 }));
 
 jest.mock('../smartpay', () => ({ getSmartPayInvoice: jest.fn(async () => null) }));
+jest.mock('../alif', () => ({ checkAlifTransaction: jest.fn(async () => null) }));
 
-import { completeSmartPayPayment, reconcileSmartPayPayment } from '../complete';
+import { completeSmartPayPayment, reconcileSmartPayPayment, reconcileAlifPayment, reconcilePayment } from '../complete';
+import { checkAlifTransaction } from '../alif';
 import { getSmartPayInvoice } from '../smartpay';
 import { sendPaymentReceiptEmail } from '@/lib/notifications/email';
 
@@ -99,5 +101,54 @@ describe('completeSmartPayPayment', () => {
             await reconcileSmartPayPayment(pending);
             expect(prismaMock.payment.update).toHaveBeenLastCalledWith(expect.objectContaining({ data: { transactionId: 'DST-1', paymentMethod: null } }));
         });
+    });
+
+    describe('reconcileAlifPayment', () => {
+        const pending = { id: 'pay-1', amount: 2, smartpayOrderId: 'DST-1' };
+        const txn = (over: object) => (checkAlifTransaction as jest.Mock).mockResolvedValue({ status: 'ok', transactionId: '789', amount: 200, method: 'korti_milli', ...over });
+
+        beforeEach(() => {
+            prismaMock.payment.update.mockResolvedValue(payment as any);
+        });
+
+        it('leaves the payment PENDING while Alif says pending or can\'t be checked', async () => {
+            txn({ status: 'pending' });
+            expect(await reconcileAlifPayment(pending)).toBe('PENDING');
+            (checkAlifTransaction as jest.Mock).mockResolvedValue(null);
+            expect(await reconcileAlifPayment(pending)).toBe('PENDING');
+            expect(prismaMock.payment.updateMany).not.toHaveBeenCalled();
+        });
+
+        it('fails a failed payment', async () => {
+            txn({ status: 'failed' });
+            expect(await reconcileAlifPayment(pending)).toBe('FAILED');
+            expect(prismaMock.payment.updateMany).toHaveBeenCalledWith({ where: { id: 'pay-1', status: 'PENDING' }, data: { status: 'FAILED' } });
+        });
+
+        it('completes an ok payment for exactly the amount, recording Alif\'s transaction and method', async () => {
+            txn({});
+            expect(await reconcileAlifPayment(pending)).toBe('COMPLETED');
+            expect(prismaMock.payment.update).toHaveBeenCalledWith(expect.objectContaining({
+                data: { transactionId: 'alif_789', paymentMethod: 'korti_milli' },
+            }));
+        });
+
+        it('keeps an ok payment for a different amount PENDING', async () => {
+            jest.spyOn(console, 'error').mockImplementation(() => {});
+            txn({ amount: 4900 });
+            expect(await reconcileAlifPayment(pending)).toBe('PENDING');
+            expect(prismaMock.payment.updateMany).not.toHaveBeenCalled();
+        });
+    });
+
+    it('reconcilePayment asks the provider that took the payment', async () => {
+        (checkAlifTransaction as jest.Mock).mockResolvedValue(null);
+        (getSmartPayInvoice as jest.Mock).mockResolvedValue(null);
+        const base = { id: 'pay-1', amount: 2, smartpayOrderId: 'DST-1', transactionId: null };
+        await reconcilePayment({ ...base, provider: 'alif' });
+        expect(checkAlifTransaction).toHaveBeenCalledWith('DST-1');
+        expect(getSmartPayInvoice).not.toHaveBeenCalled();
+        await reconcilePayment({ ...base, provider: 'smartpay' });
+        expect(getSmartPayInvoice).toHaveBeenCalledWith('DST-1');
     });
 });

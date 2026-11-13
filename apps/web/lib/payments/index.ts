@@ -13,8 +13,13 @@ export {
     generateOrderId,
     isSmartPayConfigured,
     isSmartPaySandbox,
-    chargeAmount,
 } from './smartpay';
+
+export { activePaymentProvider, isPaymentTestMode, chargeAmount } from './provider';
+export type { PaymentProvider } from './provider';
+
+export { createAlifPayment, isAlifConfigured, isAlifMethod, ALIF_METHODS } from './alif';
+export type { AlifMethod } from './alif';
 
 export type {
     SmartPayOrderRequest,

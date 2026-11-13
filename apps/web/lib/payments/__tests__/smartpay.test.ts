@@ -1,5 +1,6 @@
 /** @jest-environment node */
-import { createSmartPayOrder, verifyWebhookSignature, getSmartPayOrderStatus, getSmartPayInvoice, isSmartPayConfigured, isSmartPaySandbox, chargeAmount } from '../smartpay';
+import { createSmartPayOrder, verifyWebhookSignature, getSmartPayOrderStatus, getSmartPayInvoice, isSmartPayConfigured, isSmartPaySandbox } from '../smartpay';
+import { chargeAmount } from '../provider';
 
 const env = process.env as Record<string, string | undefined>;
 const fetchMock = jest.fn();

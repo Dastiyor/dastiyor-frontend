@@ -28,7 +28,7 @@ describe('getRecommendedProviders', () => {
 
         expect(ids(res)).toEqual(['a', 'b', 'c', 'd', 'e', 'f']);
         expect(search).toHaveBeenCalledTimes(1);
-        expect(search).toHaveBeenCalledWith({ category: 'Ремонт', city: 'Душанбе', limit: 7 });
+        expect(search).toHaveBeenCalledWith({ category: 'Ремонт', city: 'Душанбе', limit: 51 });
     });
 
     it('tops up from other cities, without repeating anyone', async () => {
@@ -39,7 +39,7 @@ describe('getRecommendedProviders', () => {
         const res = await getRecommendedProviders(task);
 
         expect(ids(res)).toEqual(['a', 'b', 'x', 'y']);
-        expect(search).toHaveBeenLastCalledWith({ category: 'Ремонт', limit: 7 });
+        expect(search).toHaveBeenLastCalledWith({ category: 'Ремонт', limit: 51 });
     });
 
     it('skips the author and everyone who responded, and asks for enough to cover them', async () => {
@@ -52,7 +52,7 @@ describe('getRecommendedProviders', () => {
 
         expect(ids(res)).toEqual(['a', 'b']);
         expect(prismaMock.response.findMany).toHaveBeenCalledWith({ where: { taskId: 't1' }, select: { userId: true } });
-        expect(search).toHaveBeenCalledWith(expect.objectContaining({ limit: 9 }));
+        expect(search).toHaveBeenCalledWith(expect.objectContaining({ limit: 53 }));
     });
 
     it('puts BUSINESS first, even from another city, and keeps the rest in directory order', async () => {
@@ -65,6 +65,15 @@ describe('getRecommendedProviders', () => {
         expect(ids(res)).toEqual(['biz', 'pp', 'free1', 'free2', 'pro']);
     });
 
+    it('keeps a BUSINESS provider the directory lists below the first six', async () => {
+        const free = ['f1', 'f2', 'f3', 'f4', 'f5', 'f6', 'f7'].map((i) => pro(i));
+        search.mockResolvedValueOnce(page([...free, pro('biz', 'Душанбе', 'business')]));
+
+        const res = await getRecommendedProviders(task);
+
+        expect(ids(res)).toEqual(['biz', 'f1', 'f2', 'f3', 'f4', 'f5']);
+    });
+
     it('searches every city when the task has none', async () => {
         search.mockResolvedValueOnce(page([pro('a')]));
 
@@ -72,6 +81,6 @@ describe('getRecommendedProviders', () => {
 
         expect(ids(res)).toEqual(['a']);
         expect(search).toHaveBeenCalledTimes(1);
-        expect(search).toHaveBeenCalledWith({ category: 'Ремонт', limit: 4 });
+        expect(search).toHaveBeenCalledWith({ category: 'Ремонт', limit: 51 });
     });
 });

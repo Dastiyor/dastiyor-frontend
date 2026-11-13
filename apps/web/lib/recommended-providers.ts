@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { searchProfessionals } from '@/lib/professionals';
 
 export const RECOMMENDED_LIMIT = 6;
+/** Directory rows read per pass, beyond the ones we must skip. */
+const WINDOW = 50;
 
 export interface RecommendationTask {
     id: string;
@@ -11,20 +13,30 @@ export interface RecommendationTask {
     city: string | null;
 }
 
+/** BUSINESS first, everyone else after in the order given. */
+const businessFirst = (list: ProfessionalCard[]) => [
+    ...list.filter((p) => p.tier === 'business'),
+    ...list.filter((p) => p.tier !== 'business'),
+];
+
 /**
  * Providers to suggest to a customer for their task, shown on the task page
  * (web and app) while it is OPEN.
  *
  * Picks from the task's category, the task's city first, then any city to
- * fill up to six; skips the author and anyone who already responded. Order
- * within each pass is the directory's (lib/professionals.ts: paid tier, then
- * rating). Of the providers picked, BUSINESS ones are moved to the top
- * ("priority among recommended providers"), so a BUSINESS provider from
- * another city can list above a FREE one from the task's city, but only once
- * the task's city has run short of six.
+ * fill up to six; skips the author and anyone who already responded. Within a
+ * pass, BUSINESS providers ("priority among recommended providers") go ahead
+ * of the rest before the cut, and the rest keep the directory's order
+ * (lib/professionals.ts). The six picked are then ordered BUSINESS first, so a
+ * BUSINESS provider from another city can list above a FREE one from the
+ * task's city, but only gets in once the task's city has run short of six.
+ *
+ * Each pass reads a window of the directory (WINDOW rows plus the skipped
+ * ones), not every provider: there is no tier filter to ask for, so a
+ * BUSINESS provider ranked below that window is not seen.
  *
  * Tier is null while plans are switched off (searchProfessionals handles
- * MOBILE_PURCHASE_ENABLED), and the BUSINESS hoist is then a no-op.
+ * MOBILE_PURCHASE_ENABLED), and the BUSINESS priority is then a no-op.
  */
 export async function getRecommendedProviders(task: RecommendationTask, limit = RECOMMENDED_LIMIT): Promise<ProfessionalCard[]> {
     const responders = await prisma.response.findMany({
@@ -32,12 +44,11 @@ export async function getRecommendedProviders(task: RecommendationTask, limit = 
         select: { userId: true },
     });
     const skip = new Set([task.userId, ...responders.map((r) => r.userId)]);
-    // Asking for limit + |skip| guarantees `limit` survivors whenever that many exist.
-    const want = limit + skip.size;
+    const want = Math.max(limit, WINDOW) + skip.size;
 
     const picked: ProfessionalCard[] = [];
     const take = (items: ProfessionalCard[]) => {
-        for (const pro of items) {
+        for (const pro of businessFirst(items)) {
             if (picked.length >= limit) return;
             if (skip.has(pro.id)) continue;
             skip.add(pro.id);
@@ -52,8 +63,5 @@ export async function getRecommendedProviders(task: RecommendationTask, limit = 
         take((await searchProfessionals({ category: task.category, limit: want })).items);
     }
 
-    return [
-        ...picked.filter((p) => p.tier === 'business'),
-        ...picked.filter((p) => p.tier !== 'business'),
-    ];
+    return businessFirst(picked);
 }

@@ -7,6 +7,8 @@ import { getServerTranslation } from '@/lib/i18n/server';
 import SubscriptionPlans from '@/components/subscription/SubscriptionPlans';
 import CurrentPlan from '@/components/subscription/CurrentPlan';
 import { activePlan, getResponseAllowance } from '@/lib/response-allowance';
+import PromotionCard from '@/components/provider/PromotionCard';
+import { getPromotionStatus, pinnableCategories } from '@/lib/promotions';
 
 /** The provider dashboard's plan page: current plan, this month's responses, and the plans to switch to. */
 export default async function SubscriptionPage() {
@@ -26,7 +28,10 @@ export default async function SubscriptionPage() {
     });
     if (!user || user.role !== 'PROVIDER') redirect('/access-denied');
 
-    const usage = await getResponseAllowance(user.id);
+    const [usage, promotions] = await Promise.all([
+        getResponseAllowance(user.id),
+        pinnableCategories(user.categories).then(categories => getPromotionStatus(user.id, { categories })),
+    ]);
     const plan = activePlan(user.subscription);
 
     return (
@@ -41,6 +46,8 @@ export default async function SubscriptionPage() {
             </div>
 
             <CurrentPlan plan={plan} endDate={user.subscription?.endDate ?? null} usage={usage} />
+
+            {promotions.plan && <PromotionCard initial={promotions} />}
 
             <SubscriptionPlans currentPlan={plan} />
         </>

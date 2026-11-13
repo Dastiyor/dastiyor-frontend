@@ -1,6 +1,18 @@
-import { formatDate, formatMoney, plural } from '../intl';
+import { formatDate, formatDushanbe, formatMoney, plural } from '../intl';
 
 const SEPT_5 = '2026-09-05T10:00:00.000Z';
+
+describe('formatDushanbe', () => {
+    it('shows Dushanbe wall-clock time (UTC+5) whatever the phone zone', () => {
+        expect(formatDushanbe('2026-11-20T18:00:00.000Z')).toBe('20.11 23:00');
+        // 21:30 UTC on the 31st is already 1 January in Dushanbe
+        expect(formatDushanbe('2026-12-31T21:30:00.000Z')).toBe('01.01 02:30');
+    });
+
+    it('is empty for a bad date', () => {
+        expect(formatDushanbe('nope')).toBe('');
+    });
+});
 
 describe('formatDate', () => {
     it('renders ru and tj as DD.MM.YYYY', () => {

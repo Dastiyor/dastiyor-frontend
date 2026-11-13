@@ -90,6 +90,37 @@ export interface ProfessionalCard {
   completedCount: number;
   /** null while subscriptions are switched off */
   tier: SubscriptionTier | null;
+  /** End of a running 24-hour profile promotion (ISO), else null. Added Nov 2026; older servers omit it. */
+  promotedUntil?: string | null;
+  /** Pinned in the category being searched (BUSINESS). Added Nov 2026; older servers omit it. */
+  pinned?: boolean;
+}
+
+/** A 24-hour profile promotion (category null) or category pin. */
+export interface ProfilePromotionView {
+  id: string;
+  category: string | null;
+  startsAt: string;
+  endsAt: string;
+}
+
+/** GET /api/promotions → PromotionStatus; POST → { promotion, status }. */
+export interface PromotionStatus {
+  /** null = FREE (no promotions) */
+  plan: SubscriptionTier | null;
+  /** Credits per period, used this period, left. */
+  limit: number;
+  used: number;
+  remaining: number;
+  /** The current 30-day period (ISO); null on FREE. Credits reset at periodEnd. */
+  periodStart: string | null;
+  periodEnd: string | null;
+  promotion: ProfilePromotionView | null;
+  pin: ProfilePromotionView | null;
+  /** BUSINESS only */
+  canPin: boolean;
+  /** Per category of the provider's profile: active pins and, when full, when the first frees up. */
+  pinSlots: { category: string; taken: number; nextFreeAt: string | null }[];
 }
 
 export interface PublicReview {

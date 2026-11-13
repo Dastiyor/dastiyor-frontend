@@ -52,7 +52,9 @@ export function parseSearchParams(params: URLSearchParams): Required<Pick<Profes
 /**
  * Provider search: text, category and city filters, sorting and paging, with
  * rating and counts computed in Postgres so sorting covers every provider,
- * not one page. Paid tiers rank first while subscriptions are switched on.
+ * not one page. While plans are live, providers pinned in the searched
+ * category rank first, then providers with a running promotion, then paid
+ * tiers (lib/promotions.ts).
  *
  * ponytail: the review/task aggregates are recomputed per query. Fine for
  * thousands of providers; add counter columns or a materialized view if this
@@ -72,10 +74,15 @@ export async function searchProfessionals(search: ProfessionalSearch): Promise<P
     if (search.city) filters.push(Prisma.sql`u.city = ${search.city}`);
     const where = Prisma.join(filters, ' AND ');
 
-    const tierRank = tiersLive() ? Prisma.sql`tier_rank DESC, ` : Prisma.empty;
+    // Pinned in the searched category, then promoted, then plan tier — only while plans are live.
+    const live = tiersLive();
+    const tierRank = live ? Prisma.sql`pinned DESC, promoted DESC, tier_rank DESC, ` : Prisma.empty;
+    const pinned = search.category
+        ? Prisma.sql`EXISTS (SELECT 1 FROM "ProfilePromotion" pp WHERE pp."userId" = u.id AND pp.category = ${search.category} AND pp."endsAt" > now())`
+        : Prisma.sql`false`;
 
     const [rows, [{ total }]] = await Promise.all([
-        prisma.$queryRaw<(ProfessionalCard & { tier_rank: number })[]>(Prisma.sql`
+        prisma.$queryRaw<(Omit<ProfessionalCard, 'promotedUntil'> & { tier_rank: number; promoted: boolean; promotedUntil: Date | null })[]>(Prisma.sql`
             SELECT u.id, u."fullName", u.avatar, u.city, u.categories, u."experienceYears", u."isVerified",
                    r.avg_rating AS "avgRating",
                    COALESCE(r.review_count, 0)::int AS "reviewCount",
@@ -84,7 +91,13 @@ export async function searchProfessionals(search: ProfessionalSearch): Promise<P
                    -- BUSINESS, PRO+, PRO, FREE; old plan ids rank as their replacements (lib/plans.ts)
                    CASE WHEN s.plan IN ('business', 'premium') THEN 3
                         WHEN s.plan IN ('pro_plus', 'standard') THEN 2
-                        WHEN s.plan IN ('pro', 'basic') THEN 1 ELSE 0 END AS tier_rank
+                        WHEN s.plan IN ('pro', 'basic') THEN 1 ELSE 0 END AS tier_rank,
+                   -- subqueries, not joins: a provider with several promotion rows must stay one row
+                   (SELECT MAX(pp."endsAt") FROM "ProfilePromotion" pp
+                     WHERE pp."userId" = u.id AND pp.category IS NULL AND pp."endsAt" > now()) AS "promotedUntil",
+                   EXISTS (SELECT 1 FROM "ProfilePromotion" pp
+                     WHERE pp."userId" = u.id AND pp.category IS NULL AND pp."endsAt" > now()) AS promoted,
+                   ${pinned} AS pinned
             FROM "User" u
             LEFT JOIN (
                 SELECT "reviewedId", ROUND(AVG(rating)::numeric, 1)::float AS avg_rating, COUNT(*) AS review_count
@@ -101,9 +114,11 @@ export async function searchProfessionals(search: ProfessionalSearch): Promise<P
         prisma.$queryRaw<{ total: number }[]>(Prisma.sql`SELECT COUNT(*)::int AS total FROM "User" u WHERE ${where}`),
     ]);
 
-    const items = rows.map(({ tier_rank: _rank, ...card }) => ({
+    const items = rows.map(({ tier_rank: _rank, promoted: _promoted, promotedUntil, pinned: isPinned, ...card }) => ({
         ...card,
-        tier: tiersLive() ? normalizePlan(card.tier) : null,
+        tier: live ? normalizePlan(card.tier) : null,
+        promotedUntil: live && promotedUntil ? new Date(promotedUntil).toISOString() : null,
+        pinned: live && !!isPinned,
     }));
     return { items, total, page, limit };
 }

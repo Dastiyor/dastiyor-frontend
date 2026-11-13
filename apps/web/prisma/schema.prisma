@@ -77,6 +77,9 @@ model User {
 
   // Company sourcing requests
   sourcingRequests SourcingRequest[]
+
+  // Paid-plan profile promotions and category pins
+  profilePromotions ProfilePromotion[]
 }
 
 // Provider portfolio project: a past job shown on the public profile
@@ -432,4 +435,21 @@ model SourcingRequest {
 
   @@index([status, createdAt])
   @@index([userId])
+}
+
+// A 24-hour profile promotion bought with a paid plan's monthly credits.
+// category null = promoted in the whole directory; set = pinned in that
+// category (BUSINESS only, at most 3 at once per category). See lib/promotions.ts.
+model ProfilePromotion {
+  id        String   @id @default(cuid())
+  category  String? // canonical Russian category for a pin, null for a promotion
+  createdAt DateTime @default(now())
+  endsAt    DateTime
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([category, endsAt])
+  @@index([endsAt])
 }

@@ -12,9 +12,9 @@ const PLAN_NAMES: Record<SubscriptionTier, string> = { pro: 'PRO', pro_plus: 'PR
 interface CurrentSubscription { plan: string; isCurrentlyActive: boolean; endDate: string }
 
 /**
- * The provider's active plan, read-only, for where the plans screen is not
- * reachable (Android, which cannot sell): a plan bought on the iPhone or the
- * website still shows here. Renders nothing on FREE.
+ * The provider's active plan, read-only, on the profile while the plans screen
+ * is switched off: a plan bought on the iPhone or the website still shows.
+ * Renders nothing on FREE.
  *
  * Deliberately no price, button or link: Google Play (and Apple) forbid
  * pointing users to a payment outside the store from inside the app.

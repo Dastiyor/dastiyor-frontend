@@ -116,7 +116,17 @@ export function SubscriptionPlans({ labels: l, storeReady, locale = 'ru' }: { la
         {!active && l.features.free.map((f) => <Text key={f} style={{ color: colors.textSecondary }}>{`• ${f}`}</Text>)}
       </View>
 
-      {packages.length === 0 ? (
+      {!storeReady ? (
+        // No store on this platform (Android): what each plan includes, and nothing else.
+        // No price, button, link or word on where to buy -- Google Play forbids pointing
+        // to a payment outside the store from inside the app.
+        ORDER.map((plan) => (
+          <View key={plan} style={[styles.card, { backgroundColor: colors.surface, borderColor: active?.plan === plan ? '#2563EB' : colors.border }]}>
+            <Text style={[styles.title, { color: colors.text }]}>{PLAN_NAMES[plan]}</Text>
+            {l.features[plan].map((f) => <Text key={f} style={{ color: colors.textSecondary }}>{`• ${f}`}</Text>)}
+          </View>
+        ))
+      ) : packages.length === 0 ? (
         <Text style={{ color: colors.textSecondary, textAlign: 'center', marginVertical: 24 }}>{l.unavailable}</Text>
       ) : packages.map(({ plan, pkg }) => (
         <View key={pkg.identifier} style={[styles.card, { backgroundColor: colors.surface, borderColor: active?.plan === plan ? '#2563EB' : colors.border }]}>
@@ -131,9 +141,9 @@ export function SubscriptionPlans({ labels: l, storeReady, locale = 'ru' }: { la
         </View>
       ))}
 
-      <View style={{ gap: 4 }}>
+      {storeReady && <View style={{ gap: 4 }}>
         {l.rules.map((r) => <Text key={r} style={[styles.note, { color: colors.textSecondary }]}>{`• ${r}`}</Text>)}
-      </View>
+      </View>}
 
       {storeReady && (
         <TouchableOpacity onPress={restore} disabled={busy} accessibilityRole="button" style={{ alignSelf: 'center', padding: 8 }}>

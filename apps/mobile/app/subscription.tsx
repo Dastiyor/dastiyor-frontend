@@ -1,8 +1,9 @@
 import { ScrollView } from 'react-native';
+import { Stack } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SubscriptionPlans } from '@/components/SubscriptionPlans';
 import { PromotionCard } from '@/components/PromotionCard';
-import { initPurchases } from '@/lib/purchases';
+import { initPurchases, storeKey } from '@/lib/purchases';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -14,6 +15,8 @@ export default function SubscriptionScreen() {
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 40 }}>
+      {/* Without a store (Android) this screen only describes the plans */}
+      {!storeKey() && <Stack.Screen options={{ title: t.navigation.plans }} />}
       {/* Paid plans only; renders nothing on FREE */}
       <PromotionCard labels={{ ...t.promotions, error: t.common.error }} tr={tr} />
       <SubscriptionPlans

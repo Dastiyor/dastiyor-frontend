@@ -252,23 +252,23 @@ export default function ProfileScreen() {
               onPress={() => router.push('/analytics')}
             />
           ) : null}
-          {/* Paid plans in the app: both switches on (see /api/config) and this platform's store connected. */}
-          {user.role === 'PROVIDER' && config.subscriptionsEnabled && config.mobilePurchaseEnabled && storeKey() ? (
+          {/* Paid plans in the app: both switches on (see /api/config). With this platform's store
+              connected it is the purchase screen; without one (Android) the same screen only
+              describes the plans, under the name "Тарифы". */}
+          {user.role === 'PROVIDER' && config.subscriptionsEnabled && config.mobilePurchaseEnabled ? (
             <RowItem
               icon="ribbon-outline"
               iconColor="#7C3AED"
-              label={p.subscription}
+              label={storeKey() ? p.subscription : p.plans}
               onPress={() => router.push('/subscription')}
             />
           ) : null}
         </View>
 
-        {/* Promotions live on the subscription screen; where that screen is not
-            reachable (Android, no store key) a paid provider promotes from here.
-            Renders nothing on FREE. */}
-        {user.role === 'PROVIDER' && !(config.subscriptionsEnabled && config.mobilePurchaseEnabled && storeKey()) ? (
+        {/* Plan and promotions live on the plans screen; where that screen is switched off
+            (see /api/config) a paid provider sees them here. Both render nothing on FREE. */}
+        {user.role === 'PROVIDER' && !(config.subscriptionsEnabled && config.mobilePurchaseEnabled) ? (
           <>
-            {/* A plan bought on the iPhone or the website; read-only, renders nothing on FREE */}
             <CurrentPlanCard labels={{ current: t.subscription.current, until: t.subscription.until }} locale={locale} />
             <PromotionCard labels={{ ...t.promotions, error: t.common.error }} tr={tr} />
           </>

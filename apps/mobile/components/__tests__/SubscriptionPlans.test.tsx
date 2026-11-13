@@ -96,4 +96,30 @@ describe('SubscriptionPlans', () => {
     const { findByText } = setup();
     expect(await findByText('Not available yet')).toBeTruthy();
   });
+
+  describe('without a store (Android)', () => {
+    const setupNoStore = () => render(<SubscriptionPlans labels={labels} storeReady={false} />, { wrapper: ({ children }) => <ThemeProvider>{children}</ThemeProvider> });
+
+    it('describes every plan with no price, buy button, payment rules or restore', async () => {
+      const screen = setupNoStore();
+      expect(await screen.findByText('PRO+')).toBeTruthy();
+      expect(screen.getByText('PRO')).toBeTruthy();
+      expect(screen.getByText('BUSINESS')).toBeTruthy();
+      expect(screen.getByText('• Unlimited, TOP')).toBeTruthy();
+      expect(screen.queryByText('Subscribe')).toBeNull();
+      expect(screen.queryByText(/\$/)).toBeNull();
+      expect(screen.queryByText('• 30 days')).toBeNull();
+      expect(screen.queryByText('Restore purchases')).toBeNull();
+      expect(screen.queryByText('Not available yet')).toBeNull();
+      expect(P.getOfferings).not.toHaveBeenCalled();
+    });
+
+    it('shows a plan bought elsewhere as current, with no Manage link', async () => {
+      get.mockResolvedValue({ subscription: { plan: 'pro_plus', isCurrentlyActive: true, endDate: '2026-12-13T00:00:00Z', source: 'web' } });
+      const screen = setupNoStore();
+      expect(await screen.findByText('Current plan: PRO+')).toBeTruthy();
+      expect(screen.getByText(/^Until \d{2}\.12\.2026$/)).toBeTruthy();
+      expect(screen.queryByText('Manage subscription')).toBeNull();
+    });
+  });
 });

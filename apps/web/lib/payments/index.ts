@@ -11,6 +11,8 @@ export {
     getSmartPayOrderStatus,
     generateOrderId,
     isSmartPayConfigured,
+    isSmartPaySandbox,
+    chargeAmount,
 } from './smartpay';
 
 export type {

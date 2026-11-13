@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { PLANS, isValidPlan, createSmartPayOrder, generateOrderId } from '@/lib/payments';
+import { PLANS, isValidPlan, createSmartPayOrder, generateOrderId, chargeAmount } from '@/lib/payments';
 import { requireAuth } from '@/lib/require-auth';
 import { SUBSCRIPTIONS_ENABLED } from '@/lib/features';
 import { subscriptionView } from '@/lib/payments/subscription-view';
@@ -59,6 +59,8 @@ export async function POST(request: Request) {
 
         const planConfig = PLANS[plan];
         const orderId = generateOrderId();
+        // The plan price, or the sandbox test amount; the Payment row and the invoice must agree.
+        const amount = chargeAmount(planConfig.price);
 
         // Payer phone and name prefill the SmartPay invoice
         const user = await prisma.user.findUnique({
@@ -70,7 +72,7 @@ export async function POST(request: Request) {
         const payment = await prisma.payment.create({
             data: {
                 userId,
-                amount: planConfig.price,
+                amount,
                 currency: 'TJS',
                 status: 'PENDING',
                 type: 'SUBSCRIPTION',
@@ -83,7 +85,7 @@ export async function POST(request: Request) {
         // Create order with SmartPay
         const smartPayResult = await createSmartPayOrder({
             orderId,
-            amount: planConfig.price,
+            amount,
             description: `Dastiyor — Подписка ${planConfig.name} (${planConfig.durationDays} дн.)`,
             returnUrl: `${APP_URL}/payment/result?orderId=${orderId}`,
             customerPhone: user?.phone || undefined,

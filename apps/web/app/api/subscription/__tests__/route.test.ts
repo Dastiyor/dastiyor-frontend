@@ -19,6 +19,7 @@ jest.mock('@/lib/payments', () => ({
     isValidPlan: jest.requireActual('@/lib/plans').isValidPlan,
     createSmartPayOrder: jest.fn(),
     generateOrderId: jest.fn(() => 'ORDER-MOCK-001'),
+    chargeAmount: jest.requireActual('@/lib/payments/smartpay').chargeAmount,
 }));
 
 import { createSmartPayOrder } from '@/lib/payments';
@@ -205,6 +206,35 @@ describe('/api/subscription', () => {
                     }),
                 })
             );
+        });
+
+        it('charges the sandbox test amount on both the payment row and the invoice', async () => {
+            const env = process.env as Record<string, string | undefined>;
+            const saved = { url: env.SMARTPAY_API_URL, amount: env.SMARTPAY_TEST_AMOUNT };
+            env.SMARTPAY_API_URL = 'https://sandbox.smartpay.tj/api/merchant';
+            env.SMARTPAY_TEST_AMOUNT = '2';
+            try {
+                prismaMock.user.findUnique.mockResolvedValue({ fullName: 'Test', phone: null } as any);
+                prismaMock.payment.create.mockResolvedValue({ id: 'pay-1' } as any);
+                prismaMock.payment.update.mockResolvedValue({} as any);
+                (createSmartPayOrder as jest.Mock).mockResolvedValue({ success: true, paymentUrl: 'https://x', transactionId: 't' });
+
+                const response = await POST(new NextRequest('http://localhost/api/subscription', {
+                    method: 'POST',
+                    body: JSON.stringify({ plan: 'business' }),
+                }));
+
+                expect(response.status).toBe(200);
+                expect(prismaMock.payment.create).toHaveBeenCalledWith(
+                    expect.objectContaining({ data: expect.objectContaining({ amount: 2, plan: 'business' }) })
+                );
+                expect(createSmartPayOrder).toHaveBeenCalledWith(expect.objectContaining({ amount: 2 }));
+            } finally {
+                env.SMARTPAY_API_URL = saved.url;
+                env.SMARTPAY_TEST_AMOUNT = saved.amount;
+                if (saved.url === undefined) delete env.SMARTPAY_API_URL;
+                if (saved.amount === undefined) delete env.SMARTPAY_TEST_AMOUNT;
+            }
         });
 
         it('rejects an old plan id at checkout', async () => {

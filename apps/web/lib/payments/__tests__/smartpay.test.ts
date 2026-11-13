@@ -1,5 +1,5 @@
 /** @jest-environment node */
-import { createSmartPayOrder, verifyWebhookSignature, getSmartPayOrderStatus, isSmartPayConfigured } from '../smartpay';
+import { createSmartPayOrder, verifyWebhookSignature, getSmartPayOrderStatus, isSmartPayConfigured, isSmartPaySandbox, chargeAmount } from '../smartpay';
 
 const env = process.env as Record<string, string | undefined>;
 const fetchMock = jest.fn();
@@ -20,6 +20,7 @@ describe('SmartPay', () => {
         env.SMARTPAY_API_KEY = 'key-1';
         env.SMARTPAY_WEBHOOK_SECRET = 'test_secret';
         delete env.SMARTPAY_API_URL;
+        delete env.SMARTPAY_TEST_AMOUNT;
     });
     afterAll(() => { Object.assign(env, saved); });
 
@@ -131,5 +132,45 @@ describe('SmartPay', () => {
         expect(isSmartPayConfigured()).toBe(true);
         delete env.SMARTPAY_API_KEY;
         expect(isSmartPayConfigured()).toBe(false);
+    });
+
+    describe('sandbox test amount', () => {
+        const SANDBOX = 'https://sandbox.smartpay.tj/api/merchant';
+
+        it('detects the sandbox host only', () => {
+            expect(isSmartPaySandbox()).toBe(false);
+            env.SMARTPAY_API_URL = SANDBOX;
+            expect(isSmartPaySandbox()).toBe(true);
+            env.SMARTPAY_API_URL = 'https://sandbox.smartpay.tj.evil.example/api';
+            expect(isSmartPaySandbox()).toBe(false);
+            env.SMARTPAY_API_URL = 'not a url';
+            expect(isSmartPaySandbox()).toBe(false);
+        });
+
+        it('never overrides the price against production', () => {
+            env.SMARTPAY_TEST_AMOUNT = '2';
+            expect(chargeAmount(199)).toBe(199);
+            env.SMARTPAY_API_URL = 'https://ecomm.smartpay.tj/api/merchant';
+            expect(chargeAmount(199)).toBe(199);
+        });
+
+        it('keeps the price in the sandbox when no test amount is set or it is not a number', () => {
+            env.SMARTPAY_API_URL = SANDBOX;
+            expect(chargeAmount(49)).toBe(49);
+            env.SMARTPAY_TEST_AMOUNT = 'abc';
+            expect(chargeAmount(49)).toBe(49);
+        });
+
+        it('clamps the sandbox test amount to SmartPay\'s 2–10 somoni', () => {
+            env.SMARTPAY_API_URL = SANDBOX;
+            env.SMARTPAY_TEST_AMOUNT = '2';
+            expect(chargeAmount(199)).toBe(2);
+            env.SMARTPAY_TEST_AMOUNT = '1';
+            expect(chargeAmount(199)).toBe(2);
+            env.SMARTPAY_TEST_AMOUNT = '50';
+            expect(chargeAmount(199)).toBe(10);
+            env.SMARTPAY_TEST_AMOUNT = '5.4';
+            expect(chargeAmount(199)).toBe(5);
+        });
     });
 });

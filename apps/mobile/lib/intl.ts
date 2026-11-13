@@ -55,6 +55,19 @@ export function formatDate(
 }
 
 /**
+ * "DD.MM HH:MM" in Dushanbe time (UTC+5 all year, no DST), for promotion end
+ * times. Built from a fixed offset because Hermes' ICU time-zone data varies
+ * by platform, and the phone's own zone may not be Tajikistan.
+ */
+export function formatDushanbe(iso: string): string {
+  const time = new Date(iso).getTime();
+  if (isNaN(time)) return '';
+  const d = new Date(time + 5 * 60 * 60 * 1000);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${pad(d.getUTCDate())}.${pad(d.getUTCMonth() + 1)} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+}
+
+/**
  * Group thousands with a non-breaking space. Mirrors formatMoney in
  * apps/web/lib/format-budget.ts -- the server formats task budgets, the client
  * formats response prices, and they must look the same on one screen.

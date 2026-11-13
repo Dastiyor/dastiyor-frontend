@@ -23,6 +23,7 @@ import type { TaskDetail, TaskResponse, MyResponse } from '@dastiyor/types';
 import { Alert } from '@/lib/dialog';
 import { formatMoney } from '@/lib/intl';
 import { GradientButton } from '@/components/Premium';
+import { RecommendedProviders } from '@/components/RecommendedProviders';
 
 export default function TaskDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -343,6 +344,8 @@ export default function TaskDetailScreen() {
         {isOwner && responses.length === 0 && task.status === 'OPEN' ? (
           <View style={styles.noResponses}><Text style={styles.noResponsesText}>{tk.noResponses}</Text></View>
         ) : null}
+
+        <RecommendedProviders taskId={task.id} enabled={isOwner && task.status === 'OPEN'} refreshKey={task.responseCount} />
 
         {/* Cancel is OPEN-only: /api/tasks/cancel rejects anything else (400). */}
         {isOwner && task.status === 'OPEN' ? (

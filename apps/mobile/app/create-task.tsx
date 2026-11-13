@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { Text } from '@/components/AppText';
 import { router } from 'expo-router';
-import { goBack } from '@/lib/nav';
+import { goBack, replaceFromModal } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardOffset } from '@/lib/useKeyboardOffset';
 import { useKeyboardAwareScroll } from '@/lib/useKeyboardAwareScroll';
@@ -70,7 +70,7 @@ export default function CreateTaskScreen() {
     setLoading(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     try {
-      await api.post('/api/tasks', {
+      const created = await api.post<{ task?: { id: string } }>('/api/tasks', {
         title: title.trim(),
         description: description.trim(),
         category,
@@ -81,7 +81,12 @@ export default function CreateTaskScreen() {
         address: address.trim() || undefined,
       });
       track(AnalyticsEvent.TaskCreateCompleted, { category, city, budgetType });
-      Alert.alert(t.common.done, ct.published, [{ text: t.common.ok, onPress: () => goBack() }]);
+      // Land on the new task, where the customer sees recommended providers.
+      const newId = created?.task?.id;
+      Alert.alert(t.common.done, ct.published, [{
+        text: t.common.ok,
+        onPress: () => (newId ? replaceFromModal({ pathname: '/task/[id]', params: { id: newId } }) : goBack()),
+      }]);
     } catch (e) {
       const err = e as { code?: string; message: string };
       const msg = err.message ?? '';

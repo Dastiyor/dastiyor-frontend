@@ -5,6 +5,7 @@ import TaskInfo from '@/components/tasks/TaskInfo';
 import TaskSidebar from '@/components/tasks/TaskSidebar';
 import ResponseList from '@/components/tasks/ResponseList';
 import ReviewForm from '@/components/reviews/ReviewForm';
+import RecommendedProviders from '@/components/tasks/RecommendedProviders';
 import { cookies } from 'next/headers';
 import { verifyJWT } from '@/lib/auth';
 import Link from 'next/link';
@@ -333,6 +334,8 @@ export default async function TaskDetailsPage({ params }: Props) {
                             assignedUserId={task.assignedUserId}
                             taskStatus={task.status}
                         />
+
+                        {isOwner && task.status === 'OPEN' && <RecommendedProviders task={task} />}
                     </main>
 
                     {/* Sidebar */}

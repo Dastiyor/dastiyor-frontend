@@ -92,6 +92,11 @@ export interface ProfessionalCard {
   tier: SubscriptionTier | null;
 }
 
+/** GET /api/tasks/[id]/recommended-providers (task owner only). Empty unless the task is OPEN. */
+export interface RecommendedProvidersResponse {
+  providers: ProfessionalCard[];
+}
+
 export interface PublicReview {
   id: string;
   rating: number;

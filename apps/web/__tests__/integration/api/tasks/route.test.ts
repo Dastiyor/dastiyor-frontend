@@ -3,10 +3,14 @@ import { prismaMock } from '../../../mocks/prisma';
 import { verifyJWTWithVersion } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import { getClientIP, checkRateLimit } from '@/lib/rate-limit';
+import { queueTaskAlerts } from '@/lib/task-alerts';
 
 jest.mock('next/headers', () => ({
     cookies: jest.fn(),
 }));
+
+// New-task alerts have their own tests (lib/__tests__/task-alerts.test.ts).
+jest.mock('@/lib/task-alerts', () => ({ queueTaskAlerts: jest.fn() }));
 
 jest.mock('@/lib/auth', () => ({
     verifyJWTWithVersion: jest.fn(),
@@ -116,6 +120,7 @@ describe('/api/tasks Route', () => {
             expect(response.status).toBe(201);
             expect(data.message).toBe('Task created successfully');
             expect(prismaMock.task.create).toHaveBeenCalled();
+            expect(queueTaskAlerts).toHaveBeenCalledWith(expect.objectContaining({ id: 'task-id' }));
         });
 
         it('refuses to create a task for a provider', async () => {

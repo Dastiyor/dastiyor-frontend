@@ -10,6 +10,7 @@ import { getCategories } from '@/lib/categories';
 import { logAction, getRequestIP } from '@/lib/audit';
 import { requireAuth } from '@/lib/require-auth';
 import { needsPhoneVerification, PHONE_VERIFICATION_REQUIRED } from '@/lib/phone-gate';
+import { queueTaskAlerts } from '@/lib/task-alerts';
 
 const TASKS_PER_PAGE = 20;
 
@@ -241,6 +242,9 @@ export async function POST(request: Request) {
             details: { title, category, city },
             ipAddress: clientIP,
         });
+
+        // Paid providers' new-task alerts; runs after the response, never throws.
+        queueTaskAlerts(task);
 
         return NextResponse.json(
             { message: 'Task created successfully', task },

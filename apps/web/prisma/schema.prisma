@@ -19,6 +19,7 @@ model User {
   phone                 String?
   phoneVerified         Boolean   @default(false) // OAuth registrants must verify a phone before posting/accepting tasks
   locale                String    @default("ru") // ru | tj | en — language for notifications sent to this user
+  taskAlertsEnabled     Boolean   @default(true) // Paid providers: push when a matching task is posted (lib/task-alerts.ts)
   bio                   String? // Provider bio/description
   skills                String? // Comma-separated skills
   experienceYears       Int? // Provider years of experience
@@ -77,6 +78,9 @@ model User {
 
   // Company sourcing requests
   sourcingRequests SourcingRequest[]
+
+  // New-task alerts waiting to be sent to this provider
+  taskAlerts TaskAlert[]
 }
 
 // Provider portfolio project: a past job shown on the public profile
@@ -133,6 +137,9 @@ model Task {
 
   // Reports
   reports Report[] @relation("ReportTargetTask")
+
+  // Delayed new-task alerts (PRO plan)
+  alerts TaskAlert[]
 
   @@index([status])
   @@index([category])
@@ -431,5 +438,27 @@ model SourcingRequest {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([status, createdAt])
+  @@index([userId])
+}
+
+/// A new-task alert queued for later delivery. PRO providers hear about a
+/// matching task 15 minutes after it is posted; PRO+ and BUSINESS are told at
+/// once and get no row. Drained by GET /api/cron/send-task-alerts.
+model TaskAlert {
+  id        String    @id @default(cuid())
+  dueAt     DateTime
+  status    String    @default("PENDING") // PENDING, CLAIMED, SENT, DROPPED
+  claimId   String? // Set when a drain run claims the row, so two runs never send it twice
+  sentAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, userId])
+  @@index([status, dueAt])
+  @@index([claimId])
   @@index([userId])
 }

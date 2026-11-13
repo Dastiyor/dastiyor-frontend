@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Bell, BellOff, MessageSquare, CheckCircle, CheckSquare, Info, XCircle } from 'lucide-react';
+import { Bell, BellOff, MessageSquare, CheckCircle, CheckSquare, Info, XCircle, BriefcaseBusiness } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 
 type Notification = {
@@ -86,6 +86,7 @@ export default function NotificationBell() {
             case 'OFFER_REJECTED': return <XCircle size={20} color="#EF4444" />;
             case 'TASK_COMPLETED': return <CheckSquare size={20} color="#3B82F6" />;
             case 'NEW_OFFER': return <MoneyIcon />;
+            case 'NEW_TASK': return <BriefcaseBusiness size={20} color="#0EA5E9" />;
             default: return <Info size={20} color="#6B7280" />;
         }
     };

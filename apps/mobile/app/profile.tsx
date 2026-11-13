@@ -22,6 +22,7 @@ import { Alert } from '@/lib/dialog';
 import { useConfig } from '@/lib/useConfig';
 import { storeKey } from '@/lib/purchases';
 import { GradientButton } from '@/components/Premium';
+import { CurrentPlanCard } from '@/components/CurrentPlanCard';
 import { PromotionCard } from '@/components/PromotionCard';
 import { TaskAlertsRow } from '@/components/TaskAlertsRow';
 
@@ -266,7 +267,11 @@ export default function ProfileScreen() {
             reachable (Android, no store key) a paid provider promotes from here.
             Renders nothing on FREE. */}
         {user.role === 'PROVIDER' && !(config.subscriptionsEnabled && config.mobilePurchaseEnabled && storeKey()) ? (
-          <PromotionCard labels={{ ...t.promotions, error: t.common.error }} tr={tr} />
+          <>
+            {/* A plan bought on the iPhone or the website; read-only, renders nothing on FREE */}
+            <CurrentPlanCard labels={{ current: t.subscription.current, until: t.subscription.until }} />
+            <PromotionCard labels={{ ...t.promotions, error: t.common.error }} tr={tr} />
+          </>
         ) : null}
 
         {/* New-task alerts (paid plans; the row says so on FREE) */}

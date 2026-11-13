@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { PLANS, normalizePlan } from '@/lib/plans';
 import { notificationStrings } from '@/lib/notifications/strings';
 import { sendPushNotification } from '@/lib/web-push';
+import { sendPlanEndingEmail } from '@/lib/notifications/email';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -47,10 +48,14 @@ export async function GET(request: Request) {
 }
 
 /**
- * Web (SmartPay) plans are one payment for 30 days and do not renew by
- * themselves, so their owners get one reminder when 2-3 days are left. The
- * cron runs once a day, so each subscription falls in the window exactly once.
- * Store plans renew through Apple/Google and are left alone.
+ * Web plans are one payment for 30 days and do not renew by themselves, so
+ * their owners get one reminder when 2-3 days are left. The cron runs once a
+ * day, so each subscription falls in the window exactly once. Store plans
+ * renew through Apple/Google and are left alone.
+ *
+ * Only the email asks the provider to renew. The in-app notification and the
+ * push show up inside the iOS and Android apps, where Apple and Google forbid
+ * pointing users to an outside payment, so they only state the end date.
  */
 async function remindToRenew(now: Date): Promise<number> {
     const due = await prisma.subscription.findMany({
@@ -59,7 +64,7 @@ async function remindToRenew(now: Date): Promise<number> {
             source: 'web',
             endDate: { gt: new Date(now.getTime() + 2 * DAY_MS), lte: new Date(now.getTime() + 3 * DAY_MS) },
         },
-        select: { userId: true, plan: true, endDate: true, user: { select: { locale: true } } },
+        select: { userId: true, plan: true, endDate: true, user: { select: { locale: true, email: true, fullName: true } } },
     });
 
     await Promise.allSettled(due.map(async (sub) => {
@@ -73,6 +78,7 @@ async function remindToRenew(now: Date): Promise<number> {
             data: { userId: sub.userId, type: 'SYSTEM', title, message, link: '/subscription' },
         });
         await sendPushNotification(sub.userId, { title, body: message, url: '/subscription' });
+        if (sub.user.email) await sendPlanEndingEmail(sub.user.email, sub.user.fullName, name, date, sub.user.locale);
     }));
 
     return due.length;

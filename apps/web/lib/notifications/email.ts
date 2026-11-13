@@ -415,6 +415,31 @@ export async function sendPaymentReceiptEmail(
     });
 }
 
+/** Web plans do not renew by themselves; the renewal call to action lives here, outside the apps. */
+export async function sendPlanEndingEmail(
+    email: string,
+    fullName: string,
+    plan: string,
+    date: string,
+    locale?: string | null
+): Promise<boolean> {
+    const t = emailStrings(locale).planEnding;
+    const link = `${APP_URL}/subscription`;
+    const a = { name: fullName, plan, date, link };
+    return sendEmail({
+        to: email,
+        subject: t.subject(a),
+        html: emailLayout({
+            heading: t.heading,
+            preview: t.preview(a),
+            locale,
+            body: t.body(a).map((line) => p(esc(line))).join(''),
+            cta: { label: t.cta, url: link },
+        }),
+        text: t.text(a),
+    });
+}
+
 export async function sendTaskCancelledNotification(
     email: string,
     taskTitle: string,

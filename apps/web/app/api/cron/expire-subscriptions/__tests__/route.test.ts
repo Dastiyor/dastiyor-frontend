@@ -1,8 +1,10 @@
 import { GET } from '../route';
 import { prismaMock } from '../../../../../__tests__/mocks/prisma';
 import { sendPushNotification } from '@/lib/web-push';
+import { sendPlanEndingEmail } from '@/lib/notifications/email';
 
 jest.mock('@/lib/web-push', () => ({ sendPushNotification: jest.fn().mockResolvedValue(undefined) }));
+jest.mock('@/lib/notifications/email', () => ({ sendPlanEndingEmail: jest.fn().mockResolvedValue(true) }));
 
 const CRON_SECRET = 'test-cron-secret';
 
@@ -43,8 +45,8 @@ describe('/api/cron/expire-subscriptions', () => {
         prismaMock.subscription.updateMany.mockResolvedValue({ count: 0 });
         prismaMock.notification.create.mockResolvedValue({} as never);
         prismaMock.subscription.findMany.mockResolvedValue([
-            { userId: 'u1', plan: 'pro_plus', endDate: new Date('2026-11-12T10:00:00Z'), user: { locale: 'tj' } },
-            { userId: 'u2', plan: 'standard', endDate: new Date('2026-11-12T10:00:00Z'), user: { locale: null } },
+            { userId: 'u1', plan: 'pro_plus', endDate: new Date('2026-11-12T10:00:00Z'), user: { locale: 'tj', email: 'a@test.tj', fullName: 'Ali' } },
+            { userId: 'u2', plan: 'standard', endDate: new Date('2026-11-12T10:00:00Z'), user: { locale: null, email: '', fullName: 'Bob' } },
         ] as never);
 
         const response = await GET(makeRequest(`Bearer ${CRON_SECRET}`));
@@ -62,6 +64,13 @@ describe('/api/cron/expire-subscriptions', () => {
             userId: 'u2', message: expect.stringContaining('PRO+'),
         }) });
         expect(sendPushNotification).toHaveBeenCalledTimes(2);
+        // Inside the apps (notification + push) the text only states the date: Apple and Google
+        // forbid pointing to an outside payment there. The renewal call goes by email.
+        for (const [{ data }] of prismaMock.notification.create.mock.calls as unknown as [{ data: { message: string } }][]) {
+            expect(data.message).not.toMatch(/Продлите|дароз кунед|Renew/i);
+        }
+        expect(sendPlanEndingEmail).toHaveBeenCalledTimes(1);
+        expect(sendPlanEndingEmail).toHaveBeenCalledWith('a@test.tj', 'Ali', 'PRO+', expect.any(String), 'tj');
     });
 
     it('expires active subscriptions past endDate and returns count', async () => {

@@ -20,7 +20,7 @@ type T = {
 type Templates = {
     passwordReset: T; passwordResetCode: T; taskResponse: T; offerAccepted: T;
     taskCompleted: T; offerRejected: T; newMessage: T; newReview: T;
-    welcome: T; paymentReceipt: T; taskCancelled: T;
+    welcome: T; paymentReceipt: T; taskCancelled: T; planEnding: T;
 };
 
 const ru: Templates = {
@@ -89,6 +89,12 @@ const ru: Templates = {
         preview: (a) => `Заказчик отменил задание "${a.task}".`,
         body: (a) => [`Заказчик отменил задание «${a.task}».`, 'Посмотрите другие доступные задания.'],
         cta: 'Найти задания', text: (a) => `Задание "${a.task}" отменено. ${a.link}`,
+    },
+    planEnding: {
+        subject: (a) => `Тариф ${a.plan} заканчивается ${a.date} — Dastiyor`, heading: 'Тариф скоро закончится',
+        preview: (a) => `Тариф ${a.plan} действует до ${a.date}.`,
+        body: (a) => [`Здравствуйте, ${a.name}! Ваш тариф ${a.plan} действует до ${a.date}.`, 'Тарифы на сайте не продлеваются сами. Продлите его на dastiyor.com, чтобы профиль не вернулся на FREE.'],
+        cta: 'Продлить тариф', text: (a) => `Тариф ${a.plan} действует до ${a.date}. Продлить: ${a.link}`,
     },
 };
 
@@ -159,6 +165,12 @@ const tj: Templates = {
         body: (a) => [`Фармоишгар супориши «${a.task}»-ро бекор кард.`, 'Супоришҳои дигари дастрасро бинед.'],
         cta: 'Ёфтани супоришҳо', text: (a) => `Супориши "${a.task}" бекор шуд. ${a.link}`,
     },
+    planEnding: {
+        subject: (a) => `Тарифи ${a.plan} ${a.date} ба охир мерасад — Dastiyor`, heading: 'Тариф ба зудӣ ба охир мерасад',
+        preview: (a) => `Тарифи ${a.plan} то ${a.date} амал мекунад.`,
+        body: (a) => [`Салом, ${a.name}! Тарифи шумо ${a.plan} то ${a.date} амал мекунад.`, 'Тарифҳои сомона худ аз худ дароз намешаванд. Онро дар dastiyor.com дароз кунед, то профил ба FREE барнагардад.'],
+        cta: 'Дароз кардани тариф', text: (a) => `Тарифи ${a.plan} то ${a.date} амал мекунад. Дароз кардан: ${a.link}`,
+    },
 };
 
 const en: Templates = {
@@ -227,6 +239,12 @@ const en: Templates = {
         preview: (a) => `The customer cancelled "${a.task}".`,
         body: (a) => [`The customer cancelled "${a.task}".`, 'Have a look at the other tasks available.'],
         cta: 'Browse tasks', text: (a) => `"${a.task}" was cancelled. ${a.link}`,
+    },
+    planEnding: {
+        subject: (a) => `Your ${a.plan} plan ends ${a.date} — Dastiyor`, heading: 'Your plan ends soon',
+        preview: (a) => `${a.plan} is active until ${a.date}.`,
+        body: (a) => [`Hello ${a.name}, your ${a.plan} plan is active until ${a.date}.`, 'Plans bought on the website do not renew by themselves. Renew it on dastiyor.com to stay off FREE.'],
+        cta: 'Renew plan', text: (a) => `${a.plan} is active until ${a.date}. Renew: ${a.link}`,
     },
 };
 

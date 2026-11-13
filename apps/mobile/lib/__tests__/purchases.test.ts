@@ -17,6 +17,23 @@ const load = () => {
 describe('purchases', () => {
   beforeEach(() => Object.values(P).forEach((fn) => fn.mockReset()));
 
+  it('offers the store only when the native module is in the build', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { NativeModules } = require('react-native');
+    const saved = { native: NativeModules.RNPurchases, key: process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY };
+    process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY = 'appl_key';
+    try {
+      // Builds before 1.2.0 get this code by OTA without the native module
+      delete NativeModules.RNPurchases;
+      expect(load().storeKey()).toBeUndefined();
+      NativeModules.RNPurchases = {};
+      expect(load().storeKey()).toBe('appl_key');
+    } finally {
+      if (saved.native) NativeModules.RNPurchases = saved.native; else delete NativeModules.RNPurchases;
+      if (saved.key) process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY = saved.key; else delete process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY;
+    }
+  });
+
   it('does nothing without a store key', async () => {
     const { initPurchases, identifyPurchases } = load();
     expect(initPurchases(undefined)).toBe(false);

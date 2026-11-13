@@ -1,4 +1,4 @@
-import { Platform } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 import Purchases, { PURCHASES_ERROR_CODE } from 'react-native-purchases';
 
 /**
@@ -11,6 +11,10 @@ import Purchases, { PURCHASES_ERROR_CODE } from 'react-native-purchases';
  */
 
 export function storeKey(): string | undefined {
+  // Store builds from before 1.2.0 (runtimes 1.1.0 / 1.1.1) lack the native module but
+  // still receive this code by OTA; the library then throws on its first call. Treat them
+  // as having no store, so they get the info-only plans screen instead of a crash.
+  if (!NativeModules.RNPurchases) return undefined;
   if (Platform.OS === 'ios') return process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY || undefined;
   if (Platform.OS === 'android') return process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY || undefined;
   return undefined;

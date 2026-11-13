@@ -14,6 +14,20 @@ describe('plans', () => {
         expect(TIER_ORDER.every((t) => PLAN_FEATURES[t].length > 0)).toBe(true);
     });
 
+    it('advertises the promotions each plan really gets, and pinning only on BUSINESS', () => {
+        for (const id of ['pro', 'pro_plus', 'business'] as const) {
+            expect(PLAN_FEATURES[id]).toContain(`promotions${PLANS[id].promotionsPerMonth}`);
+        }
+        expect(TIER_ORDER.filter((t) => PLAN_FEATURES[t].includes('pinCategory'))).toEqual(['business']);
+    });
+
+    it('has text for every advertised line in both languages', () => {
+        const f = (l: string) => require(`../i18n/locales/${l}.json`).plans.f as Record<string, string>;
+        for (const locale of ['ru', 'tj']) {
+            for (const key of TIER_ORDER.flatMap((t) => PLAN_FEATURES[t])) expect(f(locale)[key]).toBeTruthy();
+        }
+    });
+
     it('reads old plan ids as their replacements and rejects them at checkout', () => {
         expect(normalizePlan('basic')).toBe('pro');
         expect(normalizePlan('standard')).toBe('pro_plus');

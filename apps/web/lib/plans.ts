@@ -37,24 +37,22 @@ export const FREE_RESPONSES_PER_MONTH = 5;
 export type PlanTier = 'free' | PlanId;
 export const TIER_ORDER: PlanTier[] = ['free', ...PLAN_IDS];
 
-/**
- * i18n keys under plans.f.* for each tier. Only what works today: promotions,
- * task alerts, analytics, pinning and recommended placement are not built, so
- * they are left out here. Their keys stay in the locale files for when they ship.
- */
+/** i18n keys under plans.f.* for each tier. List only what the code really unlocks for that plan. */
 export const PLAN_FEATURES: Record<PlanTier, string[]> = {
     free: [
         'createProfile', 'photoAndDescription', 'categoriesAndAreas', 'browseTasks', 'searchFilters',
         'responses5', 'messages', 'reviews', 'visibilityStandard', 'statsBasic',
     ],
     pro: [
-        'everythingFree', 'responses30', 'visibilityAboveFree', 'badgePro', 'supportStandard',
+        'everythingFree', 'responses30', 'visibilityAboveFree', 'badgePro', 'promotions1', 'taskAlerts', 'supportStandard',
     ],
     pro_plus: [
-        'everythingPro', 'responsesUnlimited', 'visibilityAbovePro', 'highlightDirectory', 'supportPriority',
+        'everythingPro', 'responsesUnlimited', 'visibilityAbovePro', 'highlightDirectory', 'promotions2', 'taskAlertsPriority',
+        'analyticsExtended', 'supportPriority',
     ],
     business: [
-        'everythingProPlus', 'responsesUnlimited', 'visibilityMax', 'highlightSearch', 'supportPersonal',
+        'everythingProPlus', 'responsesUnlimited', 'visibilityMax', 'highlightSearch', 'promotions5', 'pinCategory',
+        'recommendedPlacement', 'taskAlertsPriority', 'analyticsAdvanced', 'responseStats', 'supportPersonal',
     ],
 };
 

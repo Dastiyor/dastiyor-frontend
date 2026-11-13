@@ -1,6 +1,9 @@
 /** @jest-environment node */
 import { GET } from '../route';
+import { trackProfileApiView } from '@/lib/profile-views';
 import { prismaMock } from '../../../../../__tests__/mocks/prisma';
+
+jest.mock('@/lib/profile-views', () => ({ trackProfileApiView: jest.fn() }));
 
 let mockSubscriptionsEnabled = false;
 jest.mock('@/lib/features', () => ({
@@ -44,6 +47,17 @@ describe('GET /api/users/[id]', () => {
         expect(prismaMock.portfolioProject.findMany).toHaveBeenCalledWith(expect.objectContaining({
             where: { userId: 'p1' }, orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
         }));
+    });
+
+    it('records a view of a provider, not of a customer', async () => {
+        (trackProfileApiView as jest.Mock).mockClear();
+        await get();
+        expect(trackProfileApiView).toHaveBeenCalledWith(expect.any(Request), 'p1');
+
+        (trackProfileApiView as jest.Mock).mockClear();
+        prismaMock.user.findUnique.mockResolvedValue({ ...user, role: 'CUSTOMER' } as never);
+        await get();
+        expect(trackProfileApiView).not.toHaveBeenCalled();
     });
 
     it('ratingBreakdown fills missing stars with 0', async () => {

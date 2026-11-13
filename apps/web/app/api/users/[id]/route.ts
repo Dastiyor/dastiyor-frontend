@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getPublicProfile } from '@/lib/professionals';
+import { trackProfileApiView } from '@/lib/profile-views';
 
 export async function GET(
-    _request: Request,
+    request: Request,
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
@@ -11,6 +12,7 @@ export async function GET(
         if (!user) {
             return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 });
         }
+        if (user.role === 'PROVIDER') trackProfileApiView(request, id); // after the response; never throws
         return NextResponse.json({ user });
     } catch (error) {
         console.error('Get User Error:', error);

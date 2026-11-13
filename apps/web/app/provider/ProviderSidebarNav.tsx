@@ -7,6 +7,7 @@ import {
     LayoutDashboard,
     FileText,
     User,
+    BarChart3,
 } from 'lucide-react';
 
 export default function ProviderSidebarNav() {
@@ -17,6 +18,7 @@ export default function ProviderSidebarNav() {
     const navItems = [
         { href: '/provider', label: t('provider.dashboard'), icon: LayoutDashboard, exact: true },
         { href: '/provider/my-responses', label: t('provider.myResponses'), icon: FileText },
+        { href: '/provider/analytics', label: t('analytics.nav'), icon: BarChart3 },
         { href: '/provider/profile', label: t('provider.profile'), icon: User },
     ];
 

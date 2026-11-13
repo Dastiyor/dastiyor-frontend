@@ -1,0 +1,34 @@
+# Stand-in scheduler for the PRO plan's delayed new-task alerts.
+#
+# The Vercel team is on the Hobby plan, where a cron can run only once a day,
+# so this workflow calls the drain endpoint every 5 minutes instead. When the
+# team moves to Vercel Pro, replace it with a vercel.json cron on the same
+# endpoint (/api/cron/send-task-alerts, every 5 minutes) and delete this file.
+#
+# Needs the repository secret CRON_SECRET, equal to CRON_SECRET on Vercel.
+# GitHub runs schedules from the default branch only, on a best-effort basis
+# (a run can start several minutes late); the endpoint is safe to call at any
+# time and drops alerts more than 2 hours old.
+name: Task alerts
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: task-alerts
+  cancel-in-progress: false
+
+jobs:
+  drain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Send due task alerts
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl --silent --show-error --fail-with-body --max-time 120 \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            https://www.dastiyor.com/api/cron/send-task-alerts

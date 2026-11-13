@@ -22,6 +22,7 @@ import { Alert } from '@/lib/dialog';
 import { useConfig } from '@/lib/useConfig';
 import { storeKey } from '@/lib/purchases';
 import { GradientButton } from '@/components/Premium';
+import { TaskAlertsRow } from '@/components/TaskAlertsRow';
 
 const LOCALES: Locale[] = ['ru', 'tj', 'en'];
 
@@ -250,6 +251,9 @@ export default function ProfileScreen() {
             />
           ) : null}
         </View>
+
+        {/* New-task alerts (paid plans; the row says so on FREE) */}
+        {user.role === 'PROVIDER' ? <TaskAlertsRow /> : null}
 
         {/* Phone */}
         {user.phone ? (

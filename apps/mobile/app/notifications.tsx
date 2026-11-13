@@ -20,6 +20,7 @@ import { PressScale, FadeIn } from '@/components/Premium';
 
 const TYPE_ICON: Record<string, string> = {
   NEW_OFFER:      '📩',
+  NEW_TASK:       '🆕',
   OFFER_ACCEPTED: '✅',
   OFFER_REJECTED: '❌',
   NEW_MESSAGE:    '💬',

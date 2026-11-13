@@ -8,6 +8,9 @@ jest.mock('next/headers', () => ({
     cookies: jest.fn(),
 }));
 
+// New-task alerts have their own tests (lib/__tests__/task-alerts.test.ts).
+jest.mock('@/lib/task-alerts', () => ({ queueTaskAlerts: jest.fn() }));
+
 jest.mock('@/lib/auth', () => ({
     verifyJWTWithVersion: jest.fn(),
     getBearerToken: jest.fn(() => null),

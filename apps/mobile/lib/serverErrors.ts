@@ -161,6 +161,7 @@ const ERRORS: Record<string, readonly [en: string, tj: string]> = {
     'Подписки недоступны': ['Subscriptions are unavailable', 'Обунаҳо дастрас нестанд'],
     'Подписка не найдена': ['Subscription not found', 'Обуна ёфт нашуд'],
     'Некорректные данные подписки': ['Invalid subscription data', 'Маълумоти обуна нодуруст аст'],
+    'Некорректное значение настройки': ['Invalid setting value', 'Қимати танзимот нодуруст аст'],
     'Неверный тариф': ['Invalid plan', 'Тарифи нодуруст'],
     'Платёж не найден': ['Payment not found', 'Пардохт ёфт нашуд'],
     'Не указан orderId': ['orderId is missing', 'orderId нишон дода нашудааст'],

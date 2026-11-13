@@ -568,6 +568,13 @@ const translations = {
       errPhone: 'Enter a 9-digit number',
       errCode: 'Enter the 6-digit code',
     },
+    taskAlerts: {
+      title: 'New task alerts',
+      hintFree: 'On PRO, PRO+ and BUSINESS we tell you about new tasks in your categories and city.',
+      hintPro: 'On PRO, the alert arrives 15 minutes after a task in your categories and city is posted.',
+      hintInstant: 'The alert arrives as soon as a task in your categories and city is posted.',
+      saveError: 'Could not save the setting. Try again.',
+    },
   },
   ru: {
     onboarding: {
@@ -1128,6 +1135,13 @@ const translations = {
       success: 'Номер подтверждён.',
       errPhone: 'Введите 9-значный номер',
       errCode: 'Введите 6-значный код',
+    },
+    taskAlerts: {
+      title: 'Уведомления о новых заданиях',
+      hintFree: 'На тарифах PRO, PRO+ и BUSINESS мы сообщаем о новых заданиях в ваших категориях и городе.',
+      hintPro: 'На тарифе PRO уведомление приходит через 15 минут после публикации задания в ваших категориях и городе.',
+      hintInstant: 'Уведомление приходит сразу, как только появляется задание в ваших категориях и городе.',
+      saveError: 'Не удалось сохранить настройку. Попробуйте ещё раз.',
     },
   },
   tj: {
@@ -1690,6 +1704,13 @@ const translations = {
       success: 'Рақами шумо тасдиқ шуд.',
       errPhone: 'Рақами 9-рақамаро ворид кунед',
       errCode: 'Рамзи 6-рақамаро ворид кунед',
+    },
+    taskAlerts: {
+      title: 'Огоҳиҳо дар бораи супоришҳои нав',
+      hintFree: 'Дар тарифҳои PRO, PRO+ ва BUSINESS мо дар бораи супоришҳои нав дар категорияҳо ва шаҳри шумо хабар медиҳем.',
+      hintPro: 'Дар тарифи PRO огоҳӣ 15 дақиқа пас аз нашри супориш дар категорияҳо ва шаҳри шумо меояд.',
+      hintInstant: 'Огоҳӣ дарҳол меояд, вақте ки дар категорияҳо ва шаҳри шумо супориш пайдо мешавад.',
+      saveError: 'Танзимотро нигоҳ доштан нашуд. Боз кӯшиш кунед.',
     },
   },
 } as const;

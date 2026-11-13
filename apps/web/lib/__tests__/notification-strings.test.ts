@@ -46,6 +46,16 @@ describe('renderNotification', () => {
 
     const done = notificationParams({ task: 'Fix sink', credited: 150 });
     expect(renderNotification('TASK_COMPLETED', done, 'en')?.message).toMatch(/150 TJS/);
+
+    const newTask = notificationParams({ task: 'Fix sink', category: 'Сантехника' });
+    expect(renderNotification('NEW_TASK', newTask, 'ru')).toEqual({
+      title: 'Новое задание: Сантехника',
+      message: '"Fix sink" — откликнитесь первым',
+    });
+    expect(renderNotification('NEW_TASK', newTask, 'tj')?.title).toBe('Супориши нав: Сантехника');
+    expect(renderNotification('NEW_TASK', notificationParams({ task: 'x', category: 'Уборка' }), 'tj')?.title)
+      .toBe('Супориши нав: Тозакунӣ');
+    expect(renderNotification('NEW_TASK', newTask, 'en')?.message).toBe('"Fix sink" — be the first to respond');
   });
 
   it('leaves a row alone when it cannot be rebuilt', () => {
@@ -56,5 +66,6 @@ describe('renderNotification', () => {
     expect(renderNotification('SYSTEM', notificationParams({ task: 'x' }), 'en')).toBeNull();
     // Right type, but the ingredients it needs are missing.
     expect(renderNotification('NEW_OFFER', notificationParams({ task: 'x' }), 'en')).toBeNull();
+    expect(renderNotification('NEW_TASK', notificationParams({ task: 'x' }), 'en')).toBeNull();
   });
 });

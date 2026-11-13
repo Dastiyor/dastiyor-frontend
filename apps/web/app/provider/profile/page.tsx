@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { User, Mail, Phone, MapPin, Star, Calendar, Edit, Briefcase } from 'lucide-react';
 import { getServerTranslation } from '@/lib/i18n/server';
 import ReviewList from '@/components/reviews/ReviewList';
+import TaskAlertsSettings from '@/components/provider/TaskAlertsSettings';
+import { alertPlan } from '@/lib/task-alerts';
 
 export default async function ProfilePage() {
     const { t, locale } = await getServerTranslation();
@@ -144,6 +146,9 @@ export default async function ProfilePage() {
                     </div>
                 </div>
             </div>
+
+            {/* New-task alerts */}
+            <TaskAlertsSettings initialEnabled={user.taskAlertsEnabled} plan={alertPlan(user.subscription) ?? 'free'} />
 
             {/* Stats */}
             <div className="prov-profile-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>

@@ -8,6 +8,8 @@
  * Message notifications are not here: their title is the sender's name and
  * their body is the message itself, both user content.
  */
+import { localizeTerm } from '@/lib/i18n/terms';
+
 export type NotificationLocale = 'ru' | 'tj' | 'en';
 
 export function asLocale(value: string | null | undefined): NotificationLocale {
@@ -25,6 +27,8 @@ type Strings = {
     rejectedBody: (task: string) => string;
     renewTitle: string;
     renewBody: (plan: string, date: string) => string;
+    newTaskTitle: (category: string) => string;
+    newTaskBody: (task: string) => string;
 };
 
 const STRINGS: Record<NotificationLocale, Strings> = {
@@ -40,6 +44,8 @@ const STRINGS: Record<NotificationLocale, Strings> = {
         rejectedBody: (t) => `Ваш отклик на задание "${t}" был отклонен заказчиком.`,
         renewTitle: 'Подписка скоро закончится',
         renewBody: (p, d) => `Тариф ${p} действует до ${d}. Продлите его, чтобы не вернуться на FREE.`,
+        newTaskTitle: (c) => `Новое задание: ${c}`,
+        newTaskBody: (t) => `"${t}" — откликнитесь первым`,
     },
     tj: {
         newResponseTitle: 'Пешниҳоди нав',
@@ -53,6 +59,8 @@ const STRINGS: Record<NotificationLocale, Strings> = {
         rejectedBody: (t) => `Посухи шумо ба супориши "${t}" аз ҷониби фармоишгар рад карда шуд.`,
         renewTitle: 'Обуна ба зудӣ ба охир мерасад',
         renewBody: (p, d) => `Тарифи ${p} то ${d} амал мекунад. Онро дароз кунед, то ба FREE барнагардед.`,
+        newTaskTitle: (c) => `Супориши нав: ${c}`,
+        newTaskBody: (t) => `"${t}" — аввалин шуда посух диҳед`,
     },
     en: {
         newResponseTitle: 'New offer',
@@ -66,11 +74,22 @@ const STRINGS: Record<NotificationLocale, Strings> = {
         rejectedBody: (t) => `Your offer on "${t}" was declined by the customer.`,
         renewTitle: 'Your plan ends soon',
         renewBody: (p, d) => `${p} is active until ${d}. Renew it to stay off FREE.`,
+        newTaskTitle: (c) => `New task: ${c}`,
+        newTaskBody: (t) => `"${t}" — be the first to respond`,
     },
 };
 
 export function notificationStrings(locale: string | null | undefined): Strings {
     return STRINGS[asLocale(locale)];
+}
+
+/**
+ * A canonical (Russian) category name in the recipient's language, via
+ * lib/i18n/terms.ts. That file has no English column, so English readers see
+ * the Russian name, as they would for an admin-added category.
+ */
+export function categoryName(category: string, locale: string | null | undefined): string {
+    return asLocale(locale) === 'tj' ? localizeTerm(category, 'tj') : category;
 }
 
 /**
@@ -88,6 +107,7 @@ export type NotificationParams = {
     provider?: string;
     price?: string;
     credited?: number;
+    category?: string;
 };
 
 export function notificationParams(params: NotificationParams): string {
@@ -122,6 +142,9 @@ export function renderNotification(
         case 'OFFER_REJECTED':
             if (!p.task) return null;
             return { title: s.rejectedTitle, message: s.rejectedBody(p.task) };
+        case 'NEW_TASK':
+            if (!p.task || !p.category) return null;
+            return { title: s.newTaskTitle(categoryName(p.category, locale)), message: s.newTaskBody(p.task) };
         default:
             return null;
     }

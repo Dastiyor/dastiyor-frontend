@@ -103,7 +103,9 @@ On a slow phone the server-rendered page is visible for seconds before React att
 
 ### Feature flags
 
-`lib/features.ts` gates subscriptions/paid plans off via `NEXT_PUBLIC_SUBSCRIPTIONS_ENABLED` and `SUBSCRIPTION_GATE_ENABLED`. Subscription code, routes and the SmartPay integration are all live but hidden; don't delete them as dead code.
+`lib/features.ts` gates subscriptions/paid plans via `NEXT_PUBLIC_SUBSCRIPTIONS_ENABLED` and `SUBSCRIPTION_GATE_ENABLED`; `MOBILE_PURCHASE_ENABLED` (read by `/api/config` and `lib/professionals.ts`) turns on the app's plans screen and the tier badges/ranking on its own.
+
+State as of November 2026: **plans are sold only in the iPhone app** (iOS 1.2.0, approved and live 2026-11-12) — `MOBILE_PURCHASE_ENABLED=true` on Vercel. Website checkout stays off (`NEXT_PUBLIC_SUBSCRIPTIONS_ENABLED` unset) until the client's SmartPay login arrives, and Android cannot sell (Google allows no merchant account from Tajikistan) — Android shows the plan but must never link to an outside payment. The response limit stays off (`SUBSCRIPTION_GATE_ENABLED=false`) until every platform can pay, so the mobile plan text and App Store descriptions sell the badge, visibility and highlight, not response counts; when the limit goes on, restore those lines in `apps/mobile/lib/i18n.ts` and in App Store Connect. Subscription code, routes and the SmartPay integration are all live; don't delete them as dead code.
 
 Plans are FREE / PRO / PRO+ / BUSINESS, defined once in `lib/plans.ts` (ids `pro`, `pro_plus`, `business`; prices, limits, badge text, feature-list i18n keys). Rows from before November 2026 may still say `basic`/`standard`/`premium`; `normalizePlan()` reads them as PRO/PRO+/BUSINESS, and checkout accepts only the new ids. `SUBSCRIPTION_GATE_ENABLED` switches on the monthly response limit (`lib/response-allowance.ts`: 30-day periods from a paid plan's start, the Dushanbe calendar month on FREE). Store products are `dastiyor_<plan>_<period>` with RevenueCat entitlements named after the plan ids. The daily cron reminds web (SmartPay) subscribers to renew 2–3 days before the end, because SmartPay plans do not renew by themselves.
 
@@ -161,3 +163,12 @@ Supabase (required). Optional, each degrading gracefully when unset: Brevo (emai
 - Android release builds run R8 code + resource shrinking (`expo-build-properties` in `app.json`). A new native library that uses reflection may need ProGuard keep rules; test a release build, not just dev.
 - `ios/` and `android/` are generated (CNG) and git-ignored. Run `eas-cli` from `apps/mobile`, never the repo root (it writes stray `eas.json`/`app.json` there).
 - A local release build needs `ANDROID_HOME=$HOME/Library/Android/sdk` and `SENTRY_DISABLE_AUTO_UPLOAD=true` (no Sentry auth token locally): `npx expo prebuild --platform android --clean`, then `./gradlew :app:assembleRelease` in `android/`.
+
+### App Store review (subscriptions)
+
+The iOS subscriptions (group "Dastiyor Provider Plans": `dastiyor_pro_monthly`, `dastiyor_pro_plus_monthly`, `dastiyor_business_monthly`, sold through RevenueCat) were rejected twice before approval. Keep these in place for every future version:
+
+- **Terms of Use link in the App Store description, in every localization** (guideline 3.1.2). The Russian description ends with links to `https://www.dastiyor.com/terms` and `/privacy`; a new localization needs them too.
+- **Subscription availability must cover the storefronts where the app is sold.** Apple reviews in a sandbox outside Tajikistan; a Tajikistan-only subscription loads no products there, and review fails with 2.1(b) "cannot locate the In-App Purchases". All three are available in all 175 countries.
+- **The plans are provider-only** (Profile → Подписка shows only for `PROVIDER`, with both config switches on and `EXPO_PUBLIC_REVENUECAT_IOS_KEY` in the build). The review sign-in is the customer demo account, so the top of the App Review notes must say: log in with the PROVIDER demo account → Profile → Подписка.
+- A new subscription goes to review together with an app version. After a rejection, click **Update Review** on the version page first; only then is **Resubmit to App Review** enabled.

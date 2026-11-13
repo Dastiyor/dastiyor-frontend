@@ -298,7 +298,7 @@ export default function TaskDetailScreen() {
               return (
                 <View key={r.id} style={[styles.responseCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                   <View style={styles.responseHeader}>
-                    <TouchableOpacity onPress={() => router.push({ pathname: '/provider/[id]', params: { id: r.provider.id, name: r.provider.fullName } })}>
+                    <TouchableOpacity onPress={() => router.push({ pathname: '/provider/[id]', params: { id: r.provider.id, name: r.provider.fullName, src: 'task', taskId: task.id } })}>
                       <Text style={[styles.providerName, styles.providerNameLink]}>{r.provider.fullName}</Text>
                     </TouchableOpacity>
                     <View style={[styles.rsBadge, { backgroundColor: rs.bg }]}>

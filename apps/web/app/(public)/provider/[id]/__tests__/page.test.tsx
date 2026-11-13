@@ -1,9 +1,11 @@
 import { render, screen, within } from '@testing-library/react';
 import ProviderProfilePage from '../page';
 import { getPublicProfile } from '@/lib/professionals';
+import { trackProfilePageView } from '@/lib/profile-views';
 import { prismaMock } from '../../../../../__tests__/mocks/prisma';
 
 jest.mock('@/lib/professionals', () => ({ getPublicProfile: jest.fn() }));
+jest.mock('@/lib/profile-views', () => ({ trackProfilePageView: jest.fn() }));
 jest.mock('@/components/reviews/ReviewList', () => ({ __esModule: true, default: () => <div data-testid="reviews" /> }));
 jest.mock('next/navigation', () => ({ notFound: jest.fn(() => { throw new Error('NEXT_NOT_FOUND'); }) }));
 jest.mock('next/link', () => ({ __esModule: true, default: ({ children, href }: { children: React.ReactNode; href: string }) => <a href={href}>{children}</a> }));
@@ -33,6 +35,7 @@ const renderPage = async (overrides = {}) => {
 
 describe('Public provider profile', () => {
     beforeEach(() => {
+        (trackProfilePageView as jest.Mock).mockClear();
         prismaMock.task.count.mockResolvedValue(8);
         prismaMock.response.count.mockResolvedValue(12);
     });
@@ -42,6 +45,12 @@ describe('Public provider profile', () => {
         await expect(ProviderProfilePage({ params: Promise.resolve({ id: 'x' }) })).rejects.toThrow('NEXT_NOT_FOUND');
         (getPublicProfile as jest.Mock).mockResolvedValue({ ...profile, role: 'CUSTOMER' });
         await expect(ProviderProfilePage({ params: Promise.resolve({ id: 'x' }) })).rejects.toThrow('NEXT_NOT_FOUND');
+        expect(trackProfilePageView).not.toHaveBeenCalled();
+    });
+
+    it('records a profile view for a provider', async () => {
+        await renderPage();
+        expect(trackProfilePageView).toHaveBeenCalledWith('p1');
     });
 
     it('renders category in Tajik but links with the canonical value', async () => {

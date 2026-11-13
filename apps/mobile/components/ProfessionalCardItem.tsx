@@ -7,11 +7,14 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { Avatar } from '@/components/Avatar';
 import { TierBadge } from '@/components/TierBadge';
 import { PressScale } from '@/components/Premium';
+import { sourceParams, type ProfileSource } from '@/lib/profileViewSource';
 
-export function ProfessionalCardItem({ pro, labels, tr }: {
+export function ProfessionalCardItem({ pro, labels, tr, source }: {
   pro: ProfessionalCard;
   labels: { reviews: string; completed: string };
   tr: (v: string) => string;
+  /** Where the list is, for the provider's view analytics. */
+  source?: ProfileSource;
 }) {
   const { colors } = useTheme();
   // PRO+ is highlighted in the directory, BUSINESS more strongly (same as the website)
@@ -20,7 +23,7 @@ export function ProfessionalCardItem({ pro, labels, tr }: {
   return (
     <PressScale
       style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }, highlight]}
-      onPress={() => router.push({ pathname: '/provider/[id]', params: { id: pro.id, name: pro.fullName } })}
+      onPress={() => router.push({ pathname: '/provider/[id]', params: { id: pro.id, name: pro.fullName, ...sourceParams(source) } })}
       accessibilityRole="button"
     >
       <Avatar name={pro.fullName} avatarUrl={pro.avatar} size={52} />

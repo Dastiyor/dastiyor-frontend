@@ -11,6 +11,7 @@ import { useProfessionals, type ProfessionalFilters } from '@/lib/useProfessiona
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { EmptyState } from '@/components/EmptyState';
 import { ProfessionalCardItem } from '@/components/ProfessionalCardItem';
+import type { ProfileSource } from '@/lib/profileViewSource';
 import { Input, useFocusGlow, PressScale, FadeIn, useChipStyle } from '@/components/Premium';
 
 const SORTS: ProfessionalSort[] = ['rating', 'reviews', 'completed', 'newest'];
@@ -25,6 +26,7 @@ export default function ProfessionalsScreen() {
   const pr = t.professionals;
   const [filters, setFilters] = useState<ProfessionalFilters>({ q: '', category: '', city: '', sort: 'rating' });
   const { items, total, loading, loadingMore, error, loadMore, refresh } = useProfessionals(filters);
+  const viewSource: ProfileSource = { src: filters.q.trim() ? 'search' : 'directory', category: filters.category, city: filters.city };
   const [refreshing, setRefreshing] = useState(false);
 
   const rows = useMemo(() => [
@@ -87,7 +89,7 @@ export default function ProfessionalsScreen() {
         <FlatList
           data={items}
           keyExtractor={(p) => p.id}
-          renderItem={({ item, index }) => <FadeIn index={index}><ProfessionalCardItem pro={item} labels={labels} tr={tr} /></FadeIn>}
+          renderItem={({ item, index }) => <FadeIn index={index}><ProfessionalCardItem pro={item} labels={labels} tr={tr} source={viewSource} /></FadeIn>}
           contentContainerStyle={{ paddingTop: 12, paddingBottom: insets.bottom + 24 }}
           ListHeaderComponent={items.length > 0 ? <Text style={[styles.found, { color: colors.textSecondary }]}>{`${pr.found}: ${total}`}</Text> : null}
           refreshControl={<RefreshControl refreshing={refreshing} tintColor="#2563EB"

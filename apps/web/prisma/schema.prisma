@@ -83,6 +83,9 @@ model User {
   profilePromotions ProfilePromotion[]
   // New-task alerts waiting to be sent to this provider
   taskAlerts TaskAlert[]
+  // Profile views (provider analytics)
+  profileViewsReceived ProfileView[] @relation("ProfileViewsReceived")
+  profileViewsMade     ProfileView[] @relation("ProfileViewsMade")
 }
 
 // Provider portfolio project: a past job shown on the public profile
@@ -480,4 +483,28 @@ model TaskAlert {
   @@index([status, dueAt])
   @@index([claimId])
   @@index([userId])
+}
+
+// One view of a provider's public profile (web page or the app's /api/users/[id]).
+// Stores no IP or user agent: dedupeKey is a one-way hash (daily salt) of the
+// viewer and a 6-hour window, unique, so a repeat view in that window is skipped.
+// category/city are canonical Russian values from the view's context (the task
+// page or directory filter it came from), not anything about the viewer.
+model ProfileView {
+  id        String   @id @default(cuid())
+  source    String // DIRECTORY, TASK, SEARCH, DIRECT
+  platform  String // WEB, APP
+  category  String?
+  city      String?
+  dedupeKey String   @unique
+  createdAt DateTime @default(now())
+
+  providerId String
+  provider   User    @relation("ProfileViewsReceived", fields: [providerId], references: [id], onDelete: Cascade)
+  viewerId   String? // signed-in viewer; null for anonymous
+  viewer     User?   @relation("ProfileViewsMade", fields: [viewerId], references: [id], onDelete: SetNull)
+
+  @@index([providerId, createdAt])
+  @@index([viewerId])
+  @@index([createdAt])
 }

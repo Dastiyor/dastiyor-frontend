@@ -9,6 +9,7 @@ import ArrowRight2 from 'iconsax-react-native/dist/cjs/ArrowRight2';
 import ArrowUp from 'iconsax-react-native/dist/cjs/ArrowUp';
 import Briefcase from 'iconsax-react-native/dist/cjs/Briefcase';
 import Calendar from 'iconsax-react-native/dist/cjs/Calendar';
+import Chart from 'iconsax-react-native/dist/cjs/Chart';
 import Call from 'iconsax-react-native/dist/cjs/Call';
 import Camera from 'iconsax-react-native/dist/cjs/Camera';
 import ClipboardText from 'iconsax-react-native/dist/cjs/ClipboardText';
@@ -163,6 +164,7 @@ const ICONS = {
   'sparkles-outline': [MagicStar, 'Linear'],
   'star': [Star1, 'Bold'],
   'star-outline': [Star1, 'Linear'],
+  'stats-chart-outline': [Chart, 'Linear'],
   'sunny-outline': [Sun1, 'Linear'],
   'text': [Text, 'Linear'],
   'time-outline': [Clock, 'Linear'],

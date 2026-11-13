@@ -248,3 +248,80 @@ export interface ApiError {
   error: string;
   code?: string;
 }
+
+// --- Provider analytics (GET /api/provider/analytics) ---
+
+/** Where a profile view came from. */
+export type ProfileViewSource = 'directory' | 'task' | 'search' | 'direct';
+
+/** A provider's plan as analytics sees it: FREE or an active, unexpired paid plan. */
+export type AnalyticsPlan = 'free' | SubscriptionTier;
+
+/** Sections of the analytics screen, each unlocked by a plan. */
+export type AnalyticsSection = 'profile' | 'advanced' | 'responses';
+
+/** A canonical Russian category or city with a count; translate `name` for display only. */
+export interface AnalyticsNamedCount {
+  name: string;
+  views: number;
+}
+
+/** "Расширенная аналитика профиля" — PRO+ and BUSINESS. */
+export interface ProfileAnalytics {
+  views7: number;
+  views30: number;
+  /** One entry per day for the last 30 days, oldest first, dates in Dushanbe time (YYYY-MM-DD). */
+  daily: { date: string; views: number }[];
+  /** Views in the last 30 days by source. */
+  sources: Record<ProfileViewSource, number>;
+  /** All responses ever sent, how many were hired, and the rate (0–100, null with no responses). */
+  responses: number;
+  hired: number;
+  conversion: number | null;
+}
+
+/** Last-30-day figures used in the peer comparison. */
+export interface AnalyticsComparisonFigures {
+  views30: number;
+  responses30: number;
+  /** Hired share of the responses sent in the last 30 days, 0–100; null with none sent. */
+  conversion30: number | null;
+}
+
+/** "Продвинутая аналитика профиля" — BUSINESS. */
+export interface AdvancedProfileAnalytics {
+  you: AnalyticsComparisonFigures;
+  /** Average of providers sharing at least one category; null when you have no categories or no peers. */
+  peers: (AnalyticsComparisonFigures & { count: number }) | null;
+  /** Views in the last 30 days by the category/city of the page they came from, most first. */
+  byCategory: AnalyticsNamedCount[];
+  byCity: AnalyticsNamedCount[];
+}
+
+/** "Расширенная статистика откликов" — BUSINESS. */
+export interface ResponseAnalytics {
+  sent: number;
+  /** Customers' views of a response are not tracked yet: always null. */
+  viewed: number | null;
+  hired: number;
+  conversion: number | null;
+  byCategory: { name: string; sent: number; hired: number; conversion: number | null }[];
+  /** Mean minutes from a task being posted to your response; null with no responses. */
+  avgResponseMinutes: number | null;
+  /** Last 6 months, oldest first, months in Dushanbe time (YYYY-MM). */
+  monthly: { month: string; sent: number; hired: number }[];
+}
+
+/**
+ * GET /api/provider/analytics. A section the caller's plan does not include is
+ * null and listed in `locked`, with the cheapest plan that unlocks it.
+ */
+export interface ProviderAnalytics {
+  plan: AnalyticsPlan;
+  /** Profile views are counted from this day (YYYY-MM-DD); nothing earlier exists. */
+  viewsTrackedSince: string;
+  profile: ProfileAnalytics | null;
+  advanced: AdvancedProfileAnalytics | null;
+  responses: ResponseAnalytics | null;
+  locked: { section: AnalyticsSection; plan: SubscriptionTier }[];
+}

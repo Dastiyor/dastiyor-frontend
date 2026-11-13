@@ -6,6 +6,7 @@ import { CheckCircle, MessageSquare, Star, Calendar, TrendingUp, BadgeCheck, Map
 import { getServerTranslation } from '@/lib/i18n/server';
 import { getPublicProfile } from '@/lib/professionals';
 import TierBadge from '@/components/TierBadge';
+import { trackProfilePageView } from '@/lib/profile-views';
 
 type Props = {
     params: Promise<{ id: string }>;
@@ -18,6 +19,7 @@ export default async function ProviderProfilePage({ params }: Props) {
     if (!user || user.role !== 'PROVIDER') {
         notFound();
     }
+    await trackProfilePageView(id); // records after the response; never throws
 
     const [totalAssigned, responseCount] = await Promise.all([
         prisma.task.count({ where: { assignedUserId: id } }),

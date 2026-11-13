@@ -138,6 +138,7 @@ const ERRORS: Record<string, readonly [en: string, tj: string]> = {
     'Выберите не больше 5 категорий': ['Choose up to 5 categories', 'То 5 категория интихоб кунед'],
     'Опыт должен быть от 0 до 60 лет': ['Experience must be between 0 and 60 years', 'Таҷриба бояд аз 0 то 60 сол бошад'],
     'Портфолио доступно только исполнителям': ['Only providers have a portfolio', 'Портфолио танҳо барои иҷрокунандагон аст'],
+    'Аналитика доступна только исполнителям': ['Analytics are for providers only', 'Таҳлил танҳо барои иҷрокунандагон дастрас аст'],
     'Название проекта: от 1 до 100 символов': ['Project title: 1 to 100 characters', 'Номи лоиҳа: аз 1 то 100 аломат'],
     'Описание проекта не должно превышать 1000 символов': ['The project description must not exceed 1000 characters', 'Тавсифи лоиҳа набояд аз 1000 аломат зиёд бошад'],
     'Не больше 8 фотографий в проекте': ['Up to 8 photos per project', 'Дар як лоиҳа то 8 акс'],

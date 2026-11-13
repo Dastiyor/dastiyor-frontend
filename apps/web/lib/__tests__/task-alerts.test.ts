@@ -113,6 +113,15 @@ describe('dispatchTaskAlerts', () => {
         ]);
     });
 
+    it('still alerts PRO+ when queueing the PRO alerts fails, then reports the failure', async () => {
+        prismaMock.user.findMany.mockResolvedValue([provider('p-plus', 'pro_plus'), provider('pro', 'pro')] as never);
+        prismaMock.notification.createMany.mockResolvedValue({ count: 1 });
+        prismaMock.taskAlert.createMany.mockRejectedValue(new Error('queue insert failed'));
+
+        await expect(dispatchTaskAlerts(task, NOW)).rejects.toThrow('queue insert failed');
+        expect(sendPushToMany).toHaveBeenCalledWith([expect.objectContaining({ userId: 'p-plus' })]);
+    });
+
     it('uses the current time by default', async () => {
         prismaMock.user.findMany.mockResolvedValue([]);
         await expect(dispatchTaskAlerts(task)).resolves.toEqual({ immediate: 0, queued: 0 });

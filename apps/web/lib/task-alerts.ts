@@ -106,14 +106,19 @@ export async function dispatchTaskAlerts(task: AlertTask, now: Date = new Date()
         else if (plan && DELAYED_PLANS.includes(plan)) delayed.push(p.id);
     }
 
-    if (delayed.length > 0) {
-        const dueAt = new Date(task.createdAt.getTime() + PRO_DELAY_MS);
-        await prisma.taskAlert.createMany({
-            data: delayed.map((userId) => ({ taskId: task.id, userId, dueAt })),
-            skipDuplicates: true,
-        });
-    }
-    await deliver(task, immediate);
+    const dueAt = new Date(task.createdAt.getTime() + PRO_DELAY_MS);
+    // Independent: a failed queue insert must not cost PRO+/BUSINESS their alert, nor the reverse.
+    const results = await Promise.allSettled([
+        deliver(task, immediate),
+        delayed.length > 0
+            ? prisma.taskAlert.createMany({
+                data: delayed.map((userId) => ({ taskId: task.id, userId, dueAt })),
+                skipDuplicates: true,
+            })
+            : null,
+    ]);
+    const failure = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
+    if (failure) throw failure.reason;
 
     return { immediate: immediate.length, queued: delayed.length };
 }

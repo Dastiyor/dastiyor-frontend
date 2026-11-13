@@ -11,6 +11,8 @@ import type { Locale } from '@/lib/i18n';
 import { openPrivacyPolicy, openTermsOfService } from '@/lib/legal';
 import { useTheme } from '@/contexts/ThemeContext';
 import { GradientButton } from '@/components/Premium';
+import { TierBadge } from '@/components/TierBadge';
+import { PlanComparison, type CompareLabels } from '@/components/PlanComparison';
 
 const ORDER: SubscriptionTier[] = ['pro', 'pro_plus', 'business'];
 /** Plan names are the same in every language. */
@@ -21,7 +23,7 @@ interface CurrentSubscription { plan: string; isCurrentlyActive: boolean; endDat
 interface Usage { used: number; limit: number | null }
 
 export interface SubscriptionLabels {
-  features: Record<'free' | SubscriptionTier, readonly string[]>;
+  compare: CompareLabels;
   free: string; usage: string; usageUnlimited: string; rules: readonly string[];
   buy: string; current: string; until: string; restore: string; manage: string; success: string;
   unavailable: string; terms: string; privacy: string; error: string; ok: string;
@@ -113,33 +115,29 @@ export function SubscriptionPlans({ labels: l, storeReady, locale = 'ru' }: { la
             <Text style={styles.link}>{l.manage}</Text>
           </TouchableOpacity>
         )}
-        {!active && l.features.free.map((f) => <Text key={f} style={{ color: colors.textSecondary }}>{`• ${f}`}</Text>)}
       </View>
 
-      {!storeReady ? (
-        // No store on this platform (Android): what each plan includes, and nothing else.
-        // No price, button, link or word on where to buy -- Google Play forbids pointing
-        // to a payment outside the store from inside the app.
-        ORDER.map((plan) => (
-          <View key={plan} style={[styles.card, { backgroundColor: colors.surface, borderColor: active?.plan === plan ? '#2563EB' : colors.border }]}>
-            <Text style={[styles.title, { color: colors.text }]}>{PLAN_NAMES[plan]}</Text>
-            {l.features[plan].map((f) => <Text key={f} style={{ color: colors.textSecondary }}>{`• ${f}`}</Text>)}
-          </View>
-        ))
-      ) : packages.length === 0 ? (
+      {/* Purchase cards only where the store can sell (iPhone): badge, name, price, button.
+          Android has none -- no price, button or word on where to buy, which Google Play
+          forbids for a payment outside the store. What each plan includes is the table below. */}
+      {storeReady && (packages.length === 0 ? (
         <Text style={{ color: colors.textSecondary, textAlign: 'center', marginVertical: 24 }}>{l.unavailable}</Text>
       ) : packages.map(({ plan, pkg }) => (
         <View key={pkg.identifier} style={[styles.card, { backgroundColor: colors.surface, borderColor: active?.plan === plan ? '#2563EB' : colors.border }]}>
           <View style={styles.row}>
-            <Text style={[styles.title, { color: colors.text }]}>{PLAN_NAMES[plan]}</Text>
+            <View style={[styles.row, { gap: 8 }]}>
+              <Text style={[styles.title, { color: colors.text }]}>{PLAN_NAMES[plan]}</Text>
+              <TierBadge tier={plan} />
+            </View>
             <Text style={[styles.price, { color: colors.text }]}>{pkg.product.priceString}</Text>
           </View>
-          {l.features[plan].map((f) => <Text key={f} style={{ color: colors.textSecondary }}>{`• ${f}`}</Text>)}
           <GradientButton style={[styles.btn, busy && { opacity: 0.6 }]} disabled={busy} onPress={() => buy(pkg)} accessibilityRole="button">
             <Text style={styles.btnText}>{l.buy}</Text>
           </GradientButton>
         </View>
-      ))}
+      )))}
+
+      <PlanComparison labels={l.compare} current={active ? (ORDER.find((t) => t === active.plan) ?? null) : null} />
 
       {storeReady && <View style={{ gap: 4 }}>
         {l.rules.map((r) => <Text key={r} style={[styles.note, { color: colors.textSecondary }]}>{`• ${r}`}</Text>)}

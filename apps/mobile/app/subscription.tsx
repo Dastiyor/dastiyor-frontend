@@ -23,7 +23,7 @@ export default function SubscriptionScreen() {
         storeReady={initPurchases()}
         locale={locale}
         labels={{
-          features: s.features, free: s.free, usage: s.usage, usageUnlimited: s.usageUnlimited, rules: s.rules, buy: s.buy, current: s.current, until: s.until, restore: s.restore,
+          compare: s.compare, free: s.free, usage: s.usage, usageUnlimited: s.usageUnlimited, rules: s.rules, buy: s.buy, current: s.current, until: s.until, restore: s.restore,
           manage: s.manage, success: s.success, unavailable: s.unavailable, terms: s.terms, privacy: s.privacy,
           error: t.common.error, ok: t.common.ok,
         }}

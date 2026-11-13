@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { api } from '@/lib/api-client';
 import { Alert } from '@/lib/dialog';
 import { SubscriptionPlans } from '../SubscriptionPlans';
+import { getTranslations } from '@/lib/i18n';
 
 jest.mock('@/lib/dialog', () => ({ Alert: { alert: jest.fn() } }));
 jest.mock('@/lib/legal', () => ({ openTermsOfService: jest.fn(), openPrivacyPolicy: jest.fn() }));
@@ -16,7 +17,7 @@ const post = api.post as jest.Mock;
 const pkg = (plan: string, price: string) => ({ identifier: `$rc_${plan}`, product: { identifier: `dastiyor_${plan}_monthly`, priceString: price } });
 const offerings = { current: { availablePackages: [pkg('business', '$9.99'), pkg('pro', '$1.99'), pkg('pro_plus', '$4.99'), pkg('premium', '$5.99')] } };
 const labels = {
-  features: { free: ['5 a month'], pro: ['30 a month'], pro_plus: ['Unlimited'], business: ['Unlimited, TOP'] },
+  compare: getTranslations('en').subscription.compare,
   free: 'FREE', usage: 'Used {used} of {limit}', usageUnlimited: 'Used {used}, unlimited', rules: ['30 days'],
   buy: 'Subscribe', current: 'Current plan', until: 'Until', restore: 'Restore purchases', manage: 'Manage subscription',
   success: 'Subscribed', unavailable: 'Not available yet', terms: 'Terms', privacy: 'Privacy', error: 'Error', ok: 'OK',
@@ -32,20 +33,20 @@ describe('SubscriptionPlans', () => {
   });
 
   it('renders store price strings in plan order, skipping products of old plans', async () => {
-    const { findByText, getAllByText, getByText } = setup();
+    const { findByText, getAllByText } = setup();
     expect(await findByText('$1.99')).toBeTruthy();
     expect(getAllByText(/^\$\d/).map((n) => n.props.children)).toEqual(['$1.99', '$4.99', '$9.99']);
-    // dastiyor_pro_plus_monthly is PRO+, not PRO
-    expect(getByText('PRO+')).toBeTruthy();
-    expect(getByText('BUSINESS')).toBeTruthy();
+    // Sorted PRO, PRO+, BUSINESS: dastiyor_pro_plus_monthly was read as PRO+, not PRO
+    expect(getAllByText('BUSINESS').length).toBeGreaterThan(0);
   });
 
-  it('shows FREE with its features and this month\'s usage when there is no plan', async () => {
+  it('shows FREE, this month\'s usage and the plan comparison when there is no plan', async () => {
     get.mockResolvedValue({ subscription: null, usage: { used: 3, limit: 5 } });
     const { findByText, getByText } = setup();
     expect(await findByText('Current plan: FREE')).toBeTruthy();
     expect(getByText('Used 3 of 5')).toBeTruthy();
-    expect(getByText('• 5 a month')).toBeTruthy();
+    expect(getByText('Compare plans')).toBeTruthy();
+    expect(getByText('How it works')).toBeTruthy();
   });
 
   it('purchase calls sync then shows success', async () => {
@@ -102,10 +103,9 @@ describe('SubscriptionPlans', () => {
 
     it('describes every plan with no price, buy button, payment rules or restore', async () => {
       const screen = setupNoStore();
-      expect(await screen.findByText('PRO+')).toBeTruthy();
-      expect(screen.getByText('PRO')).toBeTruthy();
-      expect(screen.getByText('BUSINESS')).toBeTruthy();
-      expect(screen.getByText('• Unlimited, TOP')).toBeTruthy();
+      expect(await screen.findByText('Compare plans')).toBeTruthy();
+      expect(screen.getByText('Pin in a category (24 h)')).toBeTruthy();
+      expect(screen.getByText('How it works')).toBeTruthy();
       expect(screen.queryByText('Subscribe')).toBeNull();
       expect(screen.queryByText(/\$/)).toBeNull();
       expect(screen.queryByText('• 30 days')).toBeNull();

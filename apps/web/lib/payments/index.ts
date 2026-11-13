@@ -9,6 +9,7 @@ export {
     createSmartPayOrder,
     verifyWebhookSignature,
     getSmartPayOrderStatus,
+    getSmartPayInvoice,
     generateOrderId,
     isSmartPayConfigured,
     isSmartPaySandbox,
@@ -20,6 +21,7 @@ export type {
     SmartPayOrderResponse,
     SmartPayWebhook,
     SmartPayInvoiceStatus,
+    SmartPayInvoice,
 } from './smartpay';
 
 export { PLANS, isValidPlan, normalizePlan } from '../plans';

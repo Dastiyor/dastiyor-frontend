@@ -100,7 +100,8 @@ describe('/api/webhooks/smartpay', () => {
         beforeEach(() => {
             prismaMock.payment.findUnique.mockResolvedValue(mockPayment as any);
             prismaMock.payment.updateMany.mockResolvedValue({ count: 1 });
-            prismaMock.payment.update.mockResolvedValue({} as any);
+            // completeSmartPayPayment reads the payment (with its user) back from this update.
+            prismaMock.payment.update.mockResolvedValue(mockPayment as any);
             prismaMock.notification.create.mockResolvedValue({} as any);
         });
 
@@ -172,6 +173,7 @@ describe('/api/webhooks/smartpay', () => {
 
         it('activates the replacement plan for an order placed under an old plan id', async () => {
             prismaMock.payment.findUnique.mockResolvedValue({ ...mockPayment, plan: 'standard' } as any);
+            prismaMock.payment.update.mockResolvedValue({ ...mockPayment, plan: 'standard' } as any);
             prismaMock.subscription.findUnique.mockResolvedValue(null);
             prismaMock.subscription.create.mockResolvedValue({} as any);
 

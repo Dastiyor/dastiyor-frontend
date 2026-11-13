@@ -7,7 +7,8 @@
  * 3. SmartPay POSTs a webhook — configured once in the dashboard (Settings → Webhooks),
  *    not per request — for each successful payment, signed with HMAC-SHA256
  * 4. We verify it and activate the subscription. GET /order/status/{order_id} reports
- *    open / Charged / void for invoices that never get a webhook.
+ *    open / Charged / void (and the paid amount, in dirams); /api/payments/status uses it
+ *    to activate a paid invoice whose webhook never came, and to fail a voided one.
  *
  * Units: invoice amounts are somoni; webhook amounts are dirams (1 somoni = 100 dirams).
  *
@@ -152,17 +153,38 @@ export async function createSmartPayOrder(params: SmartPayOrderRequest): Promise
     return { success: true, paymentUrl: data.payment_link, transactionId: data.invoice_uuid };
 }
 
-/** Invoice status by our order id, or null when unknown or SmartPay can't be reached. */
-export async function getSmartPayOrderStatus(orderId: string): Promise<SmartPayInvoiceStatus | null> {
+/** What SmartPay's order-status API reports for one invoice. */
+export interface SmartPayInvoice {
+    status: SmartPayInvoiceStatus;
+    paidAmount: number;          // dirams
+    invoiceUuid: string | null;
+    paymentMethod: string | null;
+}
+
+/** Invoice by our order id, or null when unknown or SmartPay can't be reached. */
+export async function getSmartPayInvoice(orderId: string): Promise<SmartPayInvoice | null> {
     if (!isSmartPayConfigured()) return null;
     try {
         const res = await call(`/order/status/${encodeURIComponent(orderId)}`, {}, 10_000);
         if (!res.ok) return null;
-        const { status } = await res.json();
-        return status === 'open' || status === 'Charged' || status === 'void' ? status : null;
+        const data = await res.json();
+        const { status } = data;
+        if (status !== 'open' && status !== 'Charged' && status !== 'void') return null;
+        return {
+            status,
+            // Reported as dirams with a decimal point ("200.0" for 2 somoni).
+            paidAmount: Math.round(Number(data.paid_amount) || 0),
+            invoiceUuid: data.invoice_uuid ? String(data.invoice_uuid) : null,
+            paymentMethod: data.payment_method ? String(data.payment_method) : null,
+        };
     } catch {
         return null;
     }
+}
+
+/** Invoice status by our order id, or null when unknown or SmartPay can't be reached. */
+export async function getSmartPayOrderStatus(orderId: string): Promise<SmartPayInvoiceStatus | null> {
+    return (await getSmartPayInvoice(orderId))?.status ?? null;
 }
 
 /**

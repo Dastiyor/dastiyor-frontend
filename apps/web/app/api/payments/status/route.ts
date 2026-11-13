@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { PLANS, normalizePlan, getSmartPayOrderStatus } from '@/lib/payments';
+import { PLANS, normalizePlan, getSmartPayInvoice } from '@/lib/payments';
+import { completeSmartPayPayment } from '@/lib/payments/complete';
 import { requireAuth } from '@/lib/require-auth';
 
 // GET - Check payment status by orderId
@@ -31,12 +32,27 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        // SmartPay only sends a webhook for successful payments, so a voided (expired or
-        // cancelled) invoice is learned here. Activation stays webhook-only.
+        // The webhook normally settles a payment. When it hasn't (SmartPay down, a delivery
+        // lost), ask SmartPay directly: a paid invoice for the exact amount activates the
+        // plan, a voided one (expired or cancelled) fails the payment.
         let status = payment.status;
-        if (status === 'PENDING' && await getSmartPayOrderStatus(orderId) === 'void') {
-            await prisma.payment.updateMany({ where: { id: payment.id, status: 'PENDING' }, data: { status: 'FAILED' } });
-            status = 'FAILED';
+        if (status === 'PENDING') {
+            const invoice = await getSmartPayInvoice(orderId);
+            if (invoice?.status === 'void') {
+                await prisma.payment.updateMany({ where: { id: payment.id, status: 'PENDING' }, data: { status: 'FAILED' } });
+                status = 'FAILED';
+            } else if (invoice?.status === 'Charged') {
+                // Status amounts are dirams; our payment amounts are whole somoni.
+                if (invoice.paidAmount === payment.amount * 100) {
+                    await completeSmartPayPayment(payment.id, {
+                        transactionId: invoice.invoiceUuid ?? payment.transactionId ?? orderId,
+                        paymentMethod: invoice.paymentMethod,
+                    });
+                    status = 'COMPLETED';
+                } else {
+                    console.error('[Payment Status] Amount mismatch for order:', orderId, invoice.paidAmount, payment.amount);
+                }
+            }
         }
 
         const plan = normalizePlan(payment.plan);

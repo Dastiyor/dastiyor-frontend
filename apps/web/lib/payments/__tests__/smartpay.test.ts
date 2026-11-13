@@ -1,5 +1,5 @@
 /** @jest-environment node */
-import { createSmartPayOrder, verifyWebhookSignature, getSmartPayOrderStatus, isSmartPayConfigured, isSmartPaySandbox, chargeAmount } from '../smartpay';
+import { createSmartPayOrder, verifyWebhookSignature, getSmartPayOrderStatus, getSmartPayInvoice, isSmartPayConfigured, isSmartPaySandbox, chargeAmount } from '../smartpay';
 
 const env = process.env as Record<string, string | undefined>;
 const fetchMock = jest.fn();
@@ -116,6 +116,18 @@ describe('SmartPay', () => {
             fetchMock.mockReturnValue(ok({ status: 'void' }));
             expect(await getSmartPayOrderStatus('DST-1')).toBe('void');
             expect(fetchMock.mock.calls[0][0]).toBe('https://ecomm.smartpay.tj/api/merchant/order/status/DST-1');
+        });
+
+        it('returns the paid amount in dirams, the invoice uuid and the method', async () => {
+            fetchMock.mockReturnValue(ok({ status: 'Charged', paid_amount: 200.0, invoice_uuid: 'u-1', payment_method: 'card' }));
+            expect(await getSmartPayInvoice('DST-1')).toEqual({ status: 'Charged', paidAmount: 200, invoiceUuid: 'u-1', paymentMethod: 'card' });
+            fetchMock.mockReturnValue(ok({ status: 'open', paid_amount: null }));
+            expect(await getSmartPayInvoice('DST-1')).toEqual({ status: 'open', paidAmount: 0, invoiceUuid: null, paymentMethod: null });
+        });
+
+        it('returns null on an HTTP error', async () => {
+            fetchMock.mockReturnValue(Promise.resolve({ ok: false, status: 404, json: () => Promise.resolve({}) }));
+            expect(await getSmartPayInvoice('DST-1')).toBeNull();
         });
 
         it('returns null for an unknown status, an error, or no key', async () => {

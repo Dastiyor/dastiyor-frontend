@@ -24,6 +24,15 @@ describe('ProfessionalCardItem', () => {
     expect(router.push).toHaveBeenCalledWith({ pathname: '/provider/[id]', params: { id: 'p1', name: 'Ali Karimov' } });
   });
 
+  it('passes where the list is, for the provider analytics', () => {
+    const { getByText } = render(
+      <ProfessionalCardItem pro={pro} labels={labels} tr={(v) => v} source={{ src: 'directory', category: 'Ремонт', city: '' }} />,
+      { wrapper: ({ children }) => <ThemeProvider>{children}</ThemeProvider> },
+    );
+    fireEvent.press(getByText('Ali Karimov'));
+    expect(router.push).toHaveBeenCalledWith({ pathname: '/provider/[id]', params: { id: 'p1', name: 'Ali Karimov', src: 'directory', category: 'Ремонт' } });
+  });
+
   it('shows rating, counts, translated city and categories, tier', () => {
     const { getByText } = setup();
     expect(getByText('4.5')).toBeTruthy();

@@ -240,6 +240,15 @@ export default function ProfileScreen() {
               onPress={() => router.push({ pathname: '/provider/[id]', params: { id: user.id, name: user.fullName } })}
             />
           ) : null}
+          {/* Analytics: every provider sees the screen; sections are gated by plan on the server. */}
+          {user.role === 'PROVIDER' ? (
+            <RowItem
+              icon="stats-chart-outline"
+              iconColor="#2563EB"
+              label={t.analytics.title}
+              onPress={() => router.push('/analytics')}
+            />
+          ) : null}
           {/* Paid plans in the app: both switches on (see /api/config) and this platform's store connected. */}
           {user.role === 'PROVIDER' && config.subscriptionsEnabled && config.mobilePurchaseEnabled && storeKey() ? (
             <RowItem

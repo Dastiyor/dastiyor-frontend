@@ -11,6 +11,7 @@ import { useLocalSearchParams, router, useNavigation } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { api } from '@/lib/api-client';
+import { profileQuery } from '@/lib/profileViewSource';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -23,7 +24,7 @@ import { GradientButton } from '@/components/Premium';
 type ProviderProfile = PublicProfile;
 
 export default function ProviderProfileScreen() {
-  const { id, name } = useLocalSearchParams<{ id: string; name?: string }>();
+  const { id, name, ...source } = useLocalSearchParams<{ id: string; name?: string; src?: string; taskId?: string; category?: string; city?: string }>();
   const { user } = useAuth();
   const { t, tr, locale } = useLanguage();
   const { colors } = useTheme();
@@ -40,7 +41,7 @@ export default function ProviderProfileScreen() {
     if (!id) return;
     setLoading(true);
     setError(null);
-    api.get<{ user: ProviderProfile }>(`/api/users/${id}`)
+    api.get<{ user: ProviderProfile }>(`/api/users/${id}${profileQuery(source)}`)
       .then((res) => setProfile(res.user))
       .catch(() => setError(pv.loadError))
       .finally(() => setLoading(false));

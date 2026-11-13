@@ -6,6 +6,8 @@ import type { SubscriptionTier } from '@dastiyor/types';
 import { api } from '@/lib/api-client';
 import { Alert } from '@/lib/dialog';
 import { isUserCancel } from '@/lib/purchases';
+import { formatDate } from '@/lib/intl';
+import type { Locale } from '@/lib/i18n';
 import { openPrivacyPolicy, openTermsOfService } from '@/lib/legal';
 import { useTheme } from '@/contexts/ThemeContext';
 import { GradientButton } from '@/components/Premium';
@@ -37,7 +39,7 @@ export function planOf(p: PurchasesPackage): SubscriptionTier | undefined {
 const nameOf = (plan: string) => PLAN_NAMES[plan as SubscriptionTier] ?? plan;
 
 /** Plans from the App Store / Google Play (prices from the store), purchase, restore and manage. */
-export function SubscriptionPlans({ labels: l, storeReady }: { labels: SubscriptionLabels; storeReady: boolean }) {
+export function SubscriptionPlans({ labels: l, storeReady, locale = 'ru' }: { labels: SubscriptionLabels; storeReady: boolean; locale?: Locale }) {
   const { colors } = useTheme();
   const [current, setCurrent] = useState<CurrentSubscription | null>(null);
   const [usage, setUsage] = useState<Usage | null>(null);
@@ -100,7 +102,7 @@ export function SubscriptionPlans({ labels: l, storeReady }: { labels: Subscript
     <View style={{ gap: 12 }}>
       <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
         <Text style={[styles.title, { color: colors.text }]}>{`${l.current}: ${active ? nameOf(active.plan) : l.free}`}</Text>
-        {active && <Text style={{ color: colors.textSecondary }}>{`${l.until} ${new Date(active.endDate).toLocaleDateString()}`}</Text>}
+        {active && <Text style={{ color: colors.textSecondary }}>{`${l.until} ${formatDate(active.endDate, locale)}`}</Text>}
         {usage && (
           <Text style={{ color: colors.text, fontWeight: '600' }}>
             {(usage.limit === null ? l.usageUnlimited : l.usage).replace('{used}', String(usage.used)).replace('{limit}', String(usage.limit))}

@@ -6,7 +6,7 @@ import { CurrentPlanCard } from '../CurrentPlanCard';
 
 const get = api.get as jest.Mock;
 const labels = { current: 'Current plan', until: 'Active until' };
-const setup = () => render(<CurrentPlanCard labels={labels} />, {
+const setup = () => render(<CurrentPlanCard labels={labels} locale="ru" />, {
   wrapper: ({ children }) => <ThemeProvider>{children}</ThemeProvider>,
 });
 
@@ -17,7 +17,8 @@ describe('CurrentPlanCard', () => {
     get.mockResolvedValue({ subscription: { plan: 'pro_plus', isCurrentlyActive: true, endDate: '2026-12-13T00:00:00.000Z', source: 'web' } });
     const screen = setup();
     await waitFor(() => expect(screen.getByText('Current plan: PRO+')).toBeTruthy());
-    expect(screen.getByText(/^Active until /)).toBeTruthy();
+    // DD.MM.YYYY whatever the phone's own language (the emulator showed 12/13/2026)
+    expect(screen.getByText(/^Active until \d{2}\.12\.2026$/)).toBeTruthy();
     expect(screen.queryAllByRole('button')).toHaveLength(0);
     expect(screen.queryAllByRole('link')).toHaveLength(0);
     expect(get).toHaveBeenCalledWith('/api/subscription');

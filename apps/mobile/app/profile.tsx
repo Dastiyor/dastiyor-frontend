@@ -269,7 +269,7 @@ export default function ProfileScreen() {
         {user.role === 'PROVIDER' && !(config.subscriptionsEnabled && config.mobilePurchaseEnabled && storeKey()) ? (
           <>
             {/* A plan bought on the iPhone or the website; read-only, renders nothing on FREE */}
-            <CurrentPlanCard labels={{ current: t.subscription.current, until: t.subscription.until }} />
+            <CurrentPlanCard labels={{ current: t.subscription.current, until: t.subscription.until }} locale={locale} />
             <PromotionCard labels={{ ...t.promotions, error: t.common.error }} tr={tr} />
           </>
         ) : null}

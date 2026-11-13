@@ -7,7 +7,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 
 export default function SubscriptionScreen() {
-  const { t, tr } = useLanguage();
+  const { t, tr, locale } = useLanguage();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const s = t.subscription;
@@ -18,6 +18,7 @@ export default function SubscriptionScreen() {
       <PromotionCard labels={{ ...t.promotions, error: t.common.error }} tr={tr} />
       <SubscriptionPlans
         storeReady={initPurchases()}
+        locale={locale}
         labels={{
           features: s.features, free: s.free, usage: s.usage, usageUnlimited: s.usageUnlimited, rules: s.rules, buy: s.buy, current: s.current, until: s.until, restore: s.restore,
           manage: s.manage, success: s.success, unavailable: s.unavailable, terms: s.terms, privacy: s.privacy,

@@ -3,6 +3,8 @@ import { View, StyleSheet } from 'react-native';
 import type { SubscriptionTier } from '@dastiyor/types';
 import { Text } from '@/components/AppText';
 import { api } from '@/lib/api-client';
+import { formatDate } from '@/lib/intl';
+import type { Locale } from '@/lib/i18n';
 import { useTheme } from '@/contexts/ThemeContext';
 
 const PLAN_NAMES: Record<SubscriptionTier, string> = { pro: 'PRO', pro_plus: 'PRO+', business: 'BUSINESS' };
@@ -17,7 +19,7 @@ interface CurrentSubscription { plan: string; isCurrentlyActive: boolean; endDat
  * Deliberately no price, button or link: Google Play (and Apple) forbid
  * pointing users to a payment outside the store from inside the app.
  */
-export function CurrentPlanCard({ labels: l }: { labels: { current: string; until: string } }) {
+export function CurrentPlanCard({ labels: l, locale }: { labels: { current: string; until: string }; locale: Locale }) {
   const { colors } = useTheme();
   const [plan, setPlan] = useState<CurrentSubscription | null>(null);
 
@@ -34,7 +36,7 @@ export function CurrentPlanCard({ labels: l }: { labels: { current: string; unti
       <Text style={[styles.title, { color: colors.text }]}>
         {`${l.current}: ${PLAN_NAMES[plan.plan as SubscriptionTier] ?? plan.plan}`}
       </Text>
-      <Text style={{ color: colors.textSecondary }}>{`${l.until} ${new Date(plan.endDate).toLocaleDateString()}`}</Text>
+      <Text style={{ color: colors.textSecondary }}>{`${l.until} ${formatDate(plan.endDate, locale)}`}</Text>
     </View>
   );
 }

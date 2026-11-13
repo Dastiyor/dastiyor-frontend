@@ -57,7 +57,7 @@ export function isBot(userAgent: string | null): boolean {
 
 /** Next.js router and browser speculative loads: nobody has seen the page. */
 export function isPrefetch(h: Headers): boolean {
-    if (h.get('next-router-prefetch')) return true;
+    if (h.get('next-router-prefetch') || h.get('next-router-segment-prefetch')) return true;
     if (h.get('purpose') === 'prefetch') return true;
     return /prefetch|prerender/i.test(h.get('sec-purpose') ?? '');
 }
@@ -187,11 +187,18 @@ export async function trackProfilePageView(providerId: string): Promise<void> {
     }
 }
 
-/** GET /api/users/[id] (the app): records after the response. */
+/**
+ * GET /api/users/[id] (the app): records after the response.
+ *
+ * Browsers also call this route (the web chat reads the partner's name from
+ * it), which is not a profile view; the web profile page records its own. They
+ * are told apart by the Sec-Fetch-* headers every current browser sends on
+ * fetch and React Native does not.
+ */
 export function trackProfileApiView(request: Request, providerId: string): void {
     try {
         const h = request.headers;
-        if (isBot(h.get('user-agent'))) return;
+        if (isBot(h.get('user-agent')) || h.get('sec-fetch-site') || h.get('sec-fetch-mode')) return;
         const token = getBearerToken(request);
         const context = classifyAppParams(new URL(request.url).searchParams);
         const visitor = visitorOf(h);

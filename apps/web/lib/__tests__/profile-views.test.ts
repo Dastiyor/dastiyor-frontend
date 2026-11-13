@@ -64,6 +64,7 @@ describe('isBot', () => {
 describe('isPrefetch', () => {
     it('recognises router and browser prefetches', () => {
         expect(isPrefetch(new Headers({ 'next-router-prefetch': '1' }))).toBe(true);
+        expect(isPrefetch(new Headers({ 'next-router-segment-prefetch': '/_tree' }))).toBe(true);
         expect(isPrefetch(new Headers({ purpose: 'prefetch' }))).toBe(true);
         expect(isPrefetch(new Headers({ 'sec-purpose': 'prefetch;prerender' }))).toBe(true);
         expect(isPrefetch(new Headers())).toBe(false);
@@ -245,6 +246,12 @@ describe('trackProfileApiView', () => {
         expect(prismaMock.profileView.createMany).toHaveBeenCalledWith(expect.objectContaining({
             data: [expect.objectContaining({ viewerId: null, source: 'DIRECT' })],
         }));
+    });
+
+    it('ignores browser fetches (the web chat), which are not profile views', () => {
+        trackProfileApiView(req('', { 'user-agent': SAFARI, 'sec-fetch-site': 'same-origin' }), 'p1');
+        trackProfileApiView(req('', { 'user-agent': SAFARI, 'sec-fetch-mode': 'cors' }), 'p1');
+        expect(afterCallbacks).toHaveLength(0);
     });
 
     it('never throws', () => {

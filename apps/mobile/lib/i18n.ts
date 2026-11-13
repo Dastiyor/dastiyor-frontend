@@ -372,6 +372,10 @@ const translations = {
       reviews: 'reviews',
       completed: 'jobs done',
     },
+    recommended: {
+      title: 'Recommended professionals',
+      subtitle: 'Professionals in this category you can message without waiting for responses.',
+    },
     provider: {
       completed: 'completed',
       // [one, few, many] -- see plural() in lib/intl.ts
@@ -941,6 +945,10 @@ const translations = {
       reviews: 'отзывов',
       completed: 'выполнено',
     },
+    recommended: {
+      title: 'Рекомендуемые исполнители',
+      subtitle: 'Исполнители из этой категории, которым можно написать, не дожидаясь откликов.',
+    },
     provider: {
       completed: 'выполнено',
       reviews: ['отзыв', 'отзыва', 'отзывов'] as const,
@@ -1508,6 +1516,10 @@ const translations = {
       emptyHint: 'Филтрҳоро тағйир диҳед',
       reviews: 'шарҳ',
       completed: 'иҷро шуд',
+    },
+    recommended: {
+      title: 'Иҷрокунандагони тавсияшуда',
+      subtitle: 'Иҷрокунандагони ин категория, ки ба онҳо бе интизори посухҳо навиштан мумкин аст.',
     },
     provider: {
       completed: 'иҷрошуда',

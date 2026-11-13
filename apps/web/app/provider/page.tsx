@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { getServerTranslation } from '@/lib/i18n/server';
 import { formatMoney } from '@/lib/format-budget';
+import PromotionCard from '@/components/provider/PromotionCard';
+import { getPromotionStatus, pinnableCategories } from '@/lib/promotions';
 
 export default async function ProviderDashboard() {
     const cookieStore = await cookies();
@@ -44,7 +46,7 @@ export default async function ProviderDashboard() {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const [reviews, completedTasks, activeTasks, responses, newOpportunities, completedRecent] = await Promise.all([
+    const [reviews, completedTasks, activeTasks, responses, newOpportunities, completedRecent, promotions] = await Promise.all([
         prisma.review.findMany({
             where: { reviewedId: user.id },
             select: { rating: true, createdAt: true },
@@ -85,7 +87,8 @@ export default async function ProviderDashboard() {
                 status: 'COMPLETED',
                 updatedAt: { gte: thirtyDaysAgo }
             }
-        })
+        }),
+        pinnableCategories(user.categories).then(categories => getPromotionStatus(user.id, { categories })),
     ]);
 
     const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);
@@ -138,6 +141,9 @@ export default async function ProviderDashboard() {
                     {t('provider.performanceSnapshot')}
                 </p>
             </div>
+
+            {/* Paid plans only (plans are bought in the iPhone app, so this can't live on /provider/subscription alone) */}
+            {promotions.plan && <PromotionCard initial={promotions} />}
 
             {/* Performance Metrics */}
             <div className="prov-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '28px' }}>

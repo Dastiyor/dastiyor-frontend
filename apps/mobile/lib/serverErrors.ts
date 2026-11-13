@@ -190,6 +190,16 @@ const ERRORS: Record<string, readonly [en: string, tj: string]> = {
     'Добавьте строчную букву': ['Add a lowercase letter', 'Ҳарфи хурд илова кунед'],
     'Добавьте цифру': ['Add a number', 'Рақам илова кунед'],
 
+    // --- profile promotions (web lib/promotions.ts) ---
+    'Продвигать профиль могут только исполнители': ['Only providers can promote a profile', 'Профилро танҳо иҷрокунандагон пешбарӣ карда метавонанд'],
+    'Продвижение профиля доступно на платных тарифах': ['Profile promotion is available on paid plans', 'Пешбарии профил дар тарифҳои пулакӣ дастрас аст'],
+    'Закрепление в категории доступно только на тарифе BUSINESS': ['Pinning in a category is available on the BUSINESS plan only', 'Маҳкамкунӣ дар категория танҳо дар тарифи BUSINESS дастрас аст'],
+    'Сначала добавьте эту категорию в свой профиль': ['Add this category to your profile first', 'Аввал ин категорияро ба профили худ илова кунед'],
+    'Продвижение уже активно': ['A promotion is already running', 'Пешбарӣ аллакай фаъол аст'],
+    'Закрепление уже активно': ['A pin is already active', 'Маҳкамкунӣ аллакай фаъол аст'],
+    'Продвижения на этот период закончились': ['No promotions left for this period', 'Пешбариҳо барои ин давра тамом шуданд'],
+    'В этой категории уже закреплены 3 исполнителя': ['3 providers are already pinned in this category', 'Дар ин категория аллакай 3 иҷрокунанда маҳкам шудаанд'],
+
     // --- client-side fallbacks in api-client ---
     'Ошибка сервера. Попробуйте позже.': ['Server error. Try again later.', 'Хатои сервер. Баъдтар кӯшиш кунед.'],
     'Ошибка запроса': ['Request error', 'Хатои дархост'],

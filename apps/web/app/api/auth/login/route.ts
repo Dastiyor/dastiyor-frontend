@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { persistRequestLocale } from '@/lib/persist-locale';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
-import { signJWT } from '@/lib/auth';
+import { signJWT, SESSION_MAX_AGE } from '@/lib/auth';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 import { logAction, getRequestIP } from '@/lib/audit';
 import { normalizePhone } from '@/lib/validation';
@@ -133,7 +133,7 @@ export async function POST(request: Request) {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            maxAge: 86400, // 1 day
+            maxAge: SESSION_MAX_AGE,
             path: '/',
         });
 

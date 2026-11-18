@@ -57,7 +57,7 @@ CI (`.github/workflows/`) runs `tsc --noEmit` → `lint` → `test` → `build` 
 
 ### Auth
 
-Cookie/Bearer JWT (jose HS256, 24h) signed in `lib/auth.ts`. Users carry a `tokenVersion` column; logout and password change bump it, so signature validity alone is not enough.
+Cookie/Bearer JWT (jose HS256, 30 days — `SESSION_MAX_AGE`) signed in `lib/auth.ts`. Users carry a `tokenVersion` column; logout and password change bump it, so signature validity alone is not enough.
 
 - **API routes** should use `requireAuth(request)` from `lib/require-auth.ts` — it handles Bearer *and* cookie, and calls `verifyJWTWithVersion` to reject revoked tokens. Roughly half the routes still call `verifyJWT` directly and skip the revocation check; prefer `requireAuth` in new code and when touching an old route.
 - **Dashboard layouts** (`app/customer/layout.tsx`, `app/provider/layout.tsx`) each do their own server-side check — read cookie, verify, load the user, compare `tokenVersion`, `redirect('/login')` on any failure. `middleware.ts` only sets the CSP and security headers; auth lives in the layout or the route.

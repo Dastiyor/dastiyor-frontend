@@ -6,11 +6,14 @@ if (!process.env.JWT_SECRET) {
 }
 const key = new TextEncoder().encode(process.env.JWT_SECRET);
 
+/** Session lifetime in seconds (JWT and `token` cookie). Long because logout/password change revoke via tokenVersion. */
+export const SESSION_MAX_AGE = 30 * 24 * 60 * 60;
+
 export async function signJWT(payload: Record<string, unknown>) {
     return await new SignJWT(payload)
         .setProtectedHeader({ alg: 'HS256' })
         .setIssuedAt()
-        .setExpirationTime('24h')
+        .setExpirationTime(`${SESSION_MAX_AGE}s`)
         .sign(key);
 }
 

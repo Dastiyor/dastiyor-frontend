@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { signJWT } from '@/lib/auth';
+import { signJWT, SESSION_MAX_AGE } from '@/lib/auth';
 import { sendWelcomeEmail } from '@/lib/notifications/email';
 import { logAction } from '@/lib/audit';
 
@@ -88,7 +88,7 @@ export function oauthCookieOptions() {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax' as const,
-        maxAge: 86400,
+        maxAge: SESSION_MAX_AGE,
         path: '/',
     };
 }

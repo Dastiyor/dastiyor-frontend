@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client';
 import { persistRequestLocale } from '@/lib/persist-locale';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
-import { signJWT } from '@/lib/auth';
+import { signJWT, SESSION_MAX_AGE } from '@/lib/auth';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 import { validatePassword, isValidPhone, normalizePhone, sanitizeString, PLACEHOLDER_EMAIL_DOMAIN } from '@/lib/validation';
 import { sendWelcomeEmail } from '@/lib/notifications/email';
@@ -137,7 +137,7 @@ export async function POST(request: Request) {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
-            maxAge: 86400,
+            maxAge: SESSION_MAX_AGE,
             path: '/',
         });
 

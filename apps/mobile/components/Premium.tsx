@@ -195,7 +195,9 @@ export function useFocusGlow(onFocus?: TextInputProps['onFocus'], onBlur?: TextI
       onFocus: ((e) => { setFocused(true); onFocus?.(e); }) as NonNullable<TextInputProps['onFocus']>,
       onBlur: ((e) => { setFocused(false); onBlur?.(e); }) as NonNullable<TextInputProps['onBlur']>,
     },
-    style: focused ? [styles.focus, { borderColor: colors.accent, shadowColor: colors.accent }] : null,
+    // Shadow props stay set while unfocused (opacity 0): adding them on focus made iOS drop the
+    // focus of the TextInput inside, so the search field blurred ~70ms after a tap.
+    style: [styles.focus, { shadowColor: colors.accent }, focused ? { borderColor: colors.accent } : { shadowOpacity: 0 }],
   };
 }
 

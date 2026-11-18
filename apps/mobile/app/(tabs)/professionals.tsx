@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   searchWrap: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 },
   searchBar: { flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderRadius: 12, paddingHorizontal: 12, height: 44 },
-  searchInput: { flex: 1, fontSize: 15 },
+  searchInput: { flex: 1, fontSize: 15, alignSelf: 'stretch' }, // full pill height = full tap target
   chipRows: { borderBottomWidth: 1, paddingTop: 2, paddingBottom: 2 },
   // Vertical padding leaves room for the chips' drop shadow, which the ScrollView would clip.
   chipRow: { paddingHorizontal: 16, paddingVertical: 6, gap: 8 },

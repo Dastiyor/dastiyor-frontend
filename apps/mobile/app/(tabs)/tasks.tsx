@@ -314,9 +314,10 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row', alignItems: 'center',
     borderWidth: 1,
-    borderRadius: 14, paddingHorizontal: 14, paddingVertical: 11,
+    borderRadius: 14, paddingHorizontal: 14,
   },
-  searchInput: { flex: 1, fontSize: 15, marginHorizontal: 8, padding: 0 },
+  // The padding sits on the input, not the pill, so a tap anywhere in the pill's height focuses it.
+  searchInput: { flex: 1, fontSize: 15, marginHorizontal: 8, paddingHorizontal: 0, paddingVertical: 11 },
   filterBtn: { marginLeft: 6, position: 'relative' },
   filterDot: {
     position: 'absolute', top: -2, right: -2,

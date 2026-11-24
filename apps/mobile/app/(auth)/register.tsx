@@ -32,6 +32,7 @@ import { passwordStrength } from '@/lib/validation';
 import type { Locale } from '@/lib/i18n';
 import { Alert } from '@/lib/dialog';
 import { GradientButton, Input } from '@/components/Premium';
+import { LanguageButton } from '@/components/LanguageButton';
 
 type Role = 'customer' | 'provider';
 
@@ -62,7 +63,8 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [pwIssues, setPwIssues] = useState<string[]>([]);
-  const [role, setRole] = useState<Role>('customer');
+  // No default: a preselected role is how providers ended up as customers.
+  const [role, setRole] = useState<Role | null>(null);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
@@ -89,13 +91,13 @@ export default function RegisterScreen() {
   }, []);
 
   useEffect(() => {
-    if (!fullName && !phoneLocal && !legalAccepted) return;
+    if (!role || (!fullName && !phoneLocal && !legalAccepted)) return;
     const draft: RegistrationDraft = { fullName, phoneLocal, role, legalAccepted };
     storage.setItem(DRAFT_KEY, JSON.stringify(draft)).catch(() => {});
   }, [fullName, phoneLocal, role, legalAccepted]);
 
   async function handleGoogleRegister() {
-    if (googleLoading) return;
+    if (googleLoading || !role) return;
     setGoogleLoading(true);
     try {
       const accessToken = await signInWithGoogle();
@@ -169,6 +171,7 @@ export default function RegisterScreen() {
   }
 
   async function handleVerify() {
+    if (!role) return;
     if (code.length < 6) {
       Alert.alert(t.common.error, t.verifyPhone.errCode);
       return;
@@ -194,7 +197,7 @@ export default function RegisterScreen() {
   }
 
   async function handleAppleRegister() {
-    if (appleLoading) return;
+    if (appleLoading || !role) return;
     setAppleLoading(true);
     try {
       const credential = await AppleAuthentication.signInAsync({
@@ -243,6 +246,7 @@ export default function RegisterScreen() {
       >
         <Icon name="close" size={22} color={colors.text} />
       </TouchableOpacity>
+      <LanguageButton style={[styles.langBtn, { top: top.closeTop + (AUTH_CLOSE_SIZE - 34) / 2 }]} />
       <ScrollView {...kbScroll}
         contentContainerStyle={[styles.inner, { paddingTop: top.contentPaddingTop, paddingBottom: insets.bottom + 24 + keyboardOffset }]}
         keyboardShouldPersistTaps="handled"
@@ -250,10 +254,40 @@ export default function RegisterScreen() {
       >
         <LogoWordmark size={30} style={{ marginBottom: 6 }} />
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          {step === 'code' ? t.verifyPhone.codeSent.replace('{phone}', `+992${phoneLocal}`) : r.subtitle}
+          {step === 'code' ? t.verifyPhone.codeSent.replace('{phone}', `+992${phoneLocal}`) : role ? r.subtitle : r.chooseTitle}
         </Text>
 
-        {step === 'code' ? (
+        {!role ? (
+          <>
+            <View style={styles.choiceRow}>
+              {(['customer', 'provider'] as Role[]).map((rv) => (
+                <TouchableOpacity
+                  key={rv}
+                  style={[styles.choiceCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                  onPress={() => { Haptics.selectionAsync().catch(() => {}); setRole(rv); }}
+                  activeOpacity={0.8}
+                  accessibilityRole="button"
+                  accessibilityLabel={rv === 'customer' ? r.customerTitle : r.providerTitle}
+                  accessibilityHint={rv === 'customer' ? r.customerDesc : r.providerDesc}
+                >
+                  <View style={[styles.choiceIcon, { backgroundColor: rv === 'customer' ? '#EFF6FF' : '#FFF7ED' }]}>
+                    <Icon name={ROLE_ICONS[rv]} size={32} color={rv === 'customer' ? '#2563EB' : '#EA580C'} />
+                  </View>
+                  <Text style={[styles.choiceTitle, { color: colors.text }]}>
+                    {rv === 'customer' ? r.customerTitle : r.providerTitle}
+                  </Text>
+                  <Text style={[styles.choiceDesc, { color: colors.textSecondary }]}>
+                    {rv === 'customer' ? r.customerDesc : r.providerDesc}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <Text style={[styles.choiceHint, { color: colors.textSecondary }]}>{r.advertiseHint}</Text>
+            <Link href="/(auth)/login" style={styles.link}>
+              {r.hasAccount} <Text style={styles.linkBold}>{r.loginLink}</Text>
+            </Link>
+          </>
+        ) : step === 'code' ? (
           <>
             <Text style={[styles.fieldLabel, { color: colors.text }]}>{t.verifyPhone.codeLabel}</Text>
             <Input
@@ -289,23 +323,20 @@ export default function RegisterScreen() {
         ) : (
           <>
 
-        {/* Role selector */}
-        <Text style={[styles.fieldLabel, { color: colors.text }]}>{r.iWant}</Text>
-        <View style={styles.roleRow}>
-          {(['customer', 'provider'] as Role[]).map((rv) => (
-            <TouchableOpacity
-              key={rv}
-              style={[styles.roleBtn, { backgroundColor: colors.surface, borderColor: colors.border }, role === rv && styles.roleBtnActive]}
-              onPress={() => setRole(rv)}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: role === rv, checked: role === rv }}
-            >
-              <Icon name={ROLE_ICONS[rv]} size={26} color={role === rv ? '#2563EB' : '#9CA3AF'} style={{ marginBottom: 6 }} />
-              <Text style={[styles.roleBtnText, role === rv && styles.roleBtnTextActive]}>
-                {rv === 'customer' ? r.postTask : r.doTask}
-              </Text>
-            </TouchableOpacity>
-          ))}
+        {/* Chosen role, with a way back to the choice */}
+        <View style={[styles.roleChip, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Icon name={ROLE_ICONS[role]} size={22} color={role === 'customer' ? '#2563EB' : '#EA580C'} />
+          <Text style={[styles.roleChipText, { color: colors.text }]} numberOfLines={2}>
+            {role === 'customer' ? r.customerTitle : r.providerTitle}
+          </Text>
+          <TouchableOpacity
+            onPress={() => setRole(null)}
+            disabled={loading || googleLoading || appleLoading}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+          >
+            <Text style={styles.linkBold}>{r.changeRole}</Text>
+          </TouchableOpacity>
         </View>
 
         {/* OAuth */}
@@ -463,15 +494,23 @@ const styles = StyleSheet.create({
 
   fieldLabel: { fontSize: 13, fontWeight: '600', color: '#374151', marginBottom: 6 },
 
-  /* Role */
-  roleRow: { flexDirection: 'row', gap: 10, marginBottom: 20 },
-  roleBtn: {
-    flex: 1, borderWidth: 1.5, borderColor: '#E5E7EB', borderRadius: 12,
-    padding: 14, alignItems: 'center', backgroundColor: '#fff',
+  langBtn: { position: 'absolute', right: 16, zIndex: 10, height: 34 },
+
+  /* Role choice */
+  choiceRow: { flexDirection: 'row', gap: 12, marginBottom: 16 },
+  choiceCard: {
+    flex: 1, minHeight: 240, borderWidth: 1.5, borderRadius: 18,
+    paddingVertical: 20, paddingHorizontal: 12, alignItems: 'center',
   },
-  roleBtnActive: { borderColor: '#2563EB', backgroundColor: '#EFF6FF' },
-  roleBtnText: { fontSize: 12, color: '#6B7280', fontWeight: '500', textAlign: 'center' },
-  roleBtnTextActive: { color: '#2563EB', fontWeight: '700' },
+  choiceIcon: { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
+  choiceTitle: { fontSize: 16, fontWeight: '700', textAlign: 'center', marginBottom: 8 },
+  choiceDesc: { fontSize: 13, lineHeight: 18, textAlign: 'center' },
+  choiceHint: { fontSize: 13, lineHeight: 18, textAlign: 'center' },
+  roleChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    borderWidth: 1, borderRadius: 12, paddingVertical: 12, paddingHorizontal: 14, marginBottom: 18,
+  },
+  roleChipText: { flex: 1, fontSize: 14, fontWeight: '600' },
 
   /* OAuth */
   oauthBtn: {

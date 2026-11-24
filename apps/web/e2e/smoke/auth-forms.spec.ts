@@ -28,7 +28,7 @@ test('signup asks for a role first, then shows the matching form', async ({ page
     await open(page, '/register');
     await expect(page.getByRole('heading', { name: 'Присоединяйтесь к Dastiyor' })).toBeVisible();
 
-    await page.getByRole('button', { name: /Я хочу работать/ }).click();
+    await page.getByRole('link', { name: /Я предлагаю услуги/ }).click();
     await expect(page.getByRole('heading', { name: 'Регистрация как Исполнитель' })).toBeVisible();
     for (const id of ['#reg-fullName', '#reg-email', '#reg-phone', '#reg-password']) {
         await expect(page.locator(id)).toBeVisible();

@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Text } from '@/components/AppText';
 import { router } from 'expo-router';
+import { looksLikeServiceAd } from '@/lib/service-ad';
 import { goBack, replaceFromModal } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardOffset } from '@/lib/useKeyboardOffset';
@@ -56,7 +57,7 @@ export default function CreateTaskScreen() {
     track(AnalyticsEvent.TaskCreateStarted);
   }, []);
 
-  async function handleCreate() {
+  async function handleCreate(adConfirmed = false) {
     if (!title.trim()) { Alert.alert(t.common.error, ct.errRequired); return; }
     if (title.trim().length < 5) { Alert.alert(t.common.error, ct.errTitleShort); return; }
     if (!description.trim()) { Alert.alert(t.common.error, ct.errRequired); return; }
@@ -65,6 +66,15 @@ export default function CreateTaskScreen() {
     if (!city) { Alert.alert(t.common.error, ct.errCity); return; }
     if (budgetType === 'fixed' && (!amount || isNaN(Number(amount)) || Number(amount) <= 0)) {
       Alert.alert(t.common.error, ct.errBudget);
+      return;
+    }
+    if (!adConfirmed && looksLikeServiceAd(title, description)) {
+      // Warn, never block: "post anyway" goes on with the same form.
+      Alert.alert(t.adWarning.title, t.adWarning.body, [
+        { text: t.common.cancel, style: 'cancel' },
+        { text: t.adWarning.becomeProvider, onPress: () => router.push('/switch-role') },
+        { text: t.adWarning.postAnyway, onPress: () => { handleCreate(true); } },
+      ]);
       return;
     }
     setLoading(true);
@@ -156,7 +166,7 @@ export default function CreateTaskScreen() {
         <Text style={[styles.label, { color: colors.text }]}>{ct.addressLabel}</Text>
         <Input style={[...inputStyle, { marginBottom: 28 }]} placeholder={ct.addressPh} placeholderTextColor={colors.textTertiary} value={address} onChangeText={setAddress} />
 
-        <GradientButton style={[styles.btn, loading && styles.btnDisabled]} onPress={handleCreate} disabled={loading} accessibilityLabel={ct.publish} accessibilityRole="button">
+        <GradientButton style={[styles.btn, loading && styles.btnDisabled]} onPress={() => handleCreate()} disabled={loading} accessibilityLabel={ct.publish} accessibilityRole="button">
           {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>{ct.publish}</Text>}
         </GradientButton>
       </ScrollView>

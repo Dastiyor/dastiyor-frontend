@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { looksLikeServiceAd } from '@/lib/service-ad';
 import { prisma } from '@/lib/prisma';
 import { formatBudget } from '@/lib/format-budget';
 import type { Prisma } from '@prisma/client';
@@ -242,6 +243,18 @@ export async function POST(request: Request) {
             details: { title, category, city },
             ipAddress: clientIP,
         });
+
+        // The clients warn before posting something that reads like a service ad;
+        // record the ones that went out anyway, so they can be reviewed.
+        if (looksLikeServiceAd(String(title), String(description))) {
+            logAction({
+                action: 'TASK_LOOKS_LIKE_AD',
+                userId: payload.id as string,
+                entity: 'Task',
+                entityId: task.id,
+                ipAddress: clientIP,
+            });
+        }
 
         // Paid providers' new-task alerts; runs after the response, never throws.
         queueTaskAlerts(task);

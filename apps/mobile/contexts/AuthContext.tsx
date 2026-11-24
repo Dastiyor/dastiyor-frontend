@@ -53,6 +53,8 @@ interface AuthState {
   logout: () => Promise<void>;
   deleteAccount: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  /** Switch between customer and provider; throws with the server's message when refused. */
+  switchRole: (role: 'CUSTOMER' | 'PROVIDER') => Promise<void>;
 }
 
 const AuthContext = createContext<AuthState | null>(null);
@@ -158,6 +160,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {}
   }
 
+  async function switchRole(role: 'CUSTOMER' | 'PROVIDER') {
+    // The role is inside the session token, so the server issues a new one.
+    const res = await api.post<{ token: string; user: ApiUser }>('/api/account/role', { role });
+    await storage.setItem('auth_token', res.token);
+    setUser((prev) => (prev ? { ...prev, role: res.user.role } : prev));
+    setErrorUser({ id: res.user.id, role: res.user.role });
+    identify(res.user.id, { role: res.user.role });
+    await refreshUser();
+  }
+
   async function logout() {
     try {
       await api.post('/api/auth/logout');
@@ -191,7 +203,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, loginWithGoogle, loginWithApple, logout, deleteAccount, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, login, register, loginWithGoogle, loginWithApple, logout, deleteAccount, refreshUser, switchRole }}>
       {children}
     </AuthContext.Provider>
   );

@@ -24,6 +24,8 @@ export type AuditAction =
     | 'UPDATE_PROFILE'
     | 'CHANGE_PASSWORD'
     | 'DELETE_ACCOUNT'
+    | 'SWITCH_ROLE'
+    | 'TASK_LOOKS_LIKE_AD'
     | 'UPLOAD_FILE';
 
 interface AuditLogParams {

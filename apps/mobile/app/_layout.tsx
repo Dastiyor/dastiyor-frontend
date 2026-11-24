@@ -84,6 +84,7 @@ function ThemedStack() {
       <Stack.Screen name="review/[taskId]" options={{ title: nav.review, presentation: 'modal' }} />
       <Stack.Screen name="provider/[id]" options={{ title: nav.provider }} />
       <Stack.Screen name="change-password" options={{ title: nav.changePassword }} />
+      <Stack.Screen name="switch-role" options={{ title: nav.switchRole }} />
       <Stack.Screen name="change-email" options={{ title: nav.changeEmail }} />
       <Stack.Screen name="edit-profile" options={{ title: nav.editProfile, presentation: 'modal' }} />
       <Stack.Screen name="portfolio" options={{ title: nav.portfolio }} />

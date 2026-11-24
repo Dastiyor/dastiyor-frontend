@@ -73,6 +73,11 @@ const ERRORS: Record<string, readonly [en: string, tj: string]> = {
 
     // --- tasks ---
     'Задание не найдено': ['Task not found', 'Супориш ёфт нашуд'],
+    // --- account type switch ---
+    'Неверный тип аккаунта': ['Invalid account type', 'Навъи аккаунт нодуруст аст'],
+    'У вас уже этот тип аккаунта': ['Your account is already this type', 'Аккаунти шумо аллакай ҳамин навъ аст'],
+    'Сначала завершите задания, которые сейчас в работе': ['First finish the tasks that are in progress', 'Аввал супоришҳоеро, ки ҳоло иҷро мешаванд, анҷом диҳед'],
+    'У вас действует платный тариф. Сменить тип аккаунта можно после его окончания': ['You have an active paid plan. You can change the account type once it ends', 'Шумо тарифи пулакии фаъол доред. Навъи аккаунтро пас аз анҷоми он иваз кардан мумкин аст'],
     'Задание недоступно для принятия': ['This task cannot be accepted', 'Супориш барои қабул дастрас нест'],
     'Не указан ID задания': ['Task id is missing', 'ID-и супориш нишон дода нашудааст'],
     'Некорректный ID задания': ['Invalid task id', 'ID-и супориш нодуруст аст'],

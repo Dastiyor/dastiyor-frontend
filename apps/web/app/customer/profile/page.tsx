@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, Phone, Calendar, Edit, User } from 'lucide-react';
 import { getServerTranslation } from '@/lib/i18n/server';
+import SwitchRoleLink from '@/components/SwitchRoleLink';
 
 export default async function CustomerProfilePage() {
     const { t, locale } = await getServerTranslation();
@@ -124,6 +125,7 @@ export default async function CustomerProfilePage() {
                     </div>
                 </div>
             </div>
+            <SwitchRoleLink label={t('switchRole.linkLabel')} hint={t('switchRole.linkHint')} />
         </div>
     );
 }

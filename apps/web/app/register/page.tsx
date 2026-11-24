@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import AuthLayout from '@/components/auth/AuthLayout';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { checkPasswordStrength } from '@/lib/validation';
 import { useTranslation } from '@/lib/i18n';
@@ -72,9 +73,9 @@ export default function RegisterPage() {
 function RegisterContent() {
     const searchParams = useSearchParams();
     const typeParam = searchParams.get('type');
-    const [role, setRole] = useState<Role>(
-        typeParam === 'provider' ? 'provider' : typeParam === 'customer' ? 'customer' : null
-    );
+    // The role lives in the URL, not in state: the choice cards are plain links
+    // (they work before hydration), and Back returns to the choice.
+    const role: Role = typeParam === 'provider' ? 'provider' : typeParam === 'customer' ? 'customer' : null;
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [password, setPassword] = useState('');
@@ -188,7 +189,30 @@ function RegisterContent() {
     }
 
     if (!role) {
-        // ... role selection code (same as before) ...
+        const cardStyle: React.CSSProperties = {
+                            backgroundColor: 'var(--white)',
+                            border: '2px solid transparent',
+                            borderRadius: '16px',
+                            padding: '40px',
+                            textAlign: 'center',
+                            textDecoration: 'none',
+                            color: 'inherit',
+                            transition: 'all 0.2s',
+                            boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: '16px'
+                        };
+        const iconStyle: React.CSSProperties = {
+            width: '80px',
+            height: '80px',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '2rem'
+        };
         return (
             <div style={{
                 minHeight: 'calc(100vh - 80px)', // Full height minus header
@@ -196,99 +220,66 @@ function RegisterContent() {
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '40px 20px',
+                padding: '24px 16px 40px',
                 backgroundColor: 'var(--secondary)'
             }}>
-                <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+                <div style={{ width: '100%', maxWidth: '800px', display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+                    <LanguageSwitcher />
+                </div>
+
+                <div style={{ textAlign: 'center', marginBottom: '32px' }}>
                     <h1 className="heading-lg">{t('auth.joinDastiyor')}</h1>
                     <p style={{ color: 'var(--text-light)', fontSize: '1.1rem' }}>{t('auth.chooseRole')}</p>
                 </div>
 
                 <div style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
                     gap: '24px',
                     width: '100%',
                     maxWidth: '800px'
                 }}>
-                    {/* Customer Card */}
-                    <button
-                        onClick={() => setRole('customer')}
-                        style={{
-                            backgroundColor: 'var(--white)',
-                            border: '2px solid transparent',
-                            borderRadius: '16px',
-                            padding: '40px',
-                            textAlign: 'center',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s',
-                            boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            gap: '16px'
-                        }}
+                    <Link
+                        href="/register?type=customer"
+                        className="role-card"
+                        style={cardStyle}
                         onMouseOver={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
                         onMouseOut={(e) => e.currentTarget.style.borderColor = 'transparent'}
                     >
-                        <div style={{
-                            width: '80px',
-                            height: '80px',
-                            backgroundColor: '#e8f0fe',
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'var(--primary)',
-                            fontSize: '2rem'
-                        }}>
+                        <div style={{ ...iconStyle, backgroundColor: '#e8f0fe', color: 'var(--primary)' }}>
                             👤
                         </div>
-                        <h3 style={{ fontSize: '1.5rem', fontWeight: '700' }}>{t('auth.iWantToFind')}</h3>
-                        <p style={{ color: 'var(--text-light)' }}>{t('auth.iWantToFindDesc')}</p>
-                    </button>
+                        <h2 style={{ fontSize: '1.5rem', fontWeight: '700', margin: 0 }}>{t('auth.iWantToFind')}</h2>
+                        <p style={{ color: 'var(--text-light)', margin: 0 }}>{t('auth.iWantToFindDesc')}</p>
+                    </Link>
 
-                    {/* Provider Card */}
-                    <button
-                        onClick={() => setRole('provider')}
-                        style={{
-                            backgroundColor: 'var(--white)',
-                            border: '2px solid transparent',
-                            borderRadius: '16px',
-                            padding: '40px',
-                            textAlign: 'center',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s',
-                            boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            gap: '16px'
-                        }}
+                    <Link
+                        href="/register?type=provider"
+                        className="role-card"
+                        style={cardStyle}
                         onMouseOver={(e) => e.currentTarget.style.borderColor = 'var(--accent)'}
                         onMouseOut={(e) => e.currentTarget.style.borderColor = 'transparent'}
                     >
-                        <div style={{
-                            width: '80px',
-                            height: '80px',
-                            backgroundColor: '#fff3e0',
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'var(--accent)',
-                            fontSize: '2rem'
-                        }}>
+                        <div style={{ ...iconStyle, backgroundColor: '#fff3e0', color: 'var(--accent)' }}>
                             💼
                         </div>
-                        <h3 style={{ fontSize: '1.5rem', fontWeight: '700' }}>{t('auth.iWantToWork')}</h3>
-                        <p style={{ color: 'var(--text-light)' }}>{t('auth.iWantToWorkDesc')}</p>
-                    </button>
+                        <h2 style={{ fontSize: '1.5rem', fontWeight: '700', margin: 0 }}>{t('auth.iWantToWork')}</h2>
+                        <p style={{ color: 'var(--text-light)', margin: 0 }}>{t('auth.iWantToWorkDesc')}</p>
+                    </Link>
                 </div>
 
-                <div style={{ marginTop: '40px' }}>
+                <p style={{ maxWidth: '640px', marginTop: '24px', textAlign: 'center', color: 'var(--text-light)', fontSize: '0.95rem' }}>
+                    {t('auth.roleAdvertiseHint')}
+                </p>
+
+                <div style={{ marginTop: '24px' }}>
                     {t('auth.haveAccount')} <Link href="/login" style={{ color: 'var(--primary)', fontWeight: '600' }}>{t('common.login')}</Link>
                 </div>
+                <style>{`
+                    @media (max-width: 480px) {
+                        .role-card { padding: 28px 20px !important; }
+                    }
+                `}</style>
             </div>
         );
     }
@@ -298,21 +289,15 @@ function RegisterContent() {
             title={role === 'customer' ? t('auth.signUpCustomer') : t('auth.signUpProvider')}
             subtitle={t('auth.createAccountSubtitle')}
         >
-            <button
-                onClick={() => setRole(null)}
-                style={{
-                    background: 'none',
-                    border: 'none',
-                    color: 'var(--text-light)',
-                    marginBottom: '20px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    fontSize: '0.9rem'
-                }}
-            >
-                {t('auth.changeRole')}
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '20px' }}>
+                <Link
+                    href="/register"
+                    style={{ color: 'var(--text-light)', fontSize: '0.9rem', textDecoration: 'none' }}
+                >
+                    {t('auth.changeRole')}
+                </Link>
+                <LanguageSwitcher />
+            </div>
 
             {error && (
                 <div style={{
@@ -552,7 +537,7 @@ function RegisterContent() {
             <div style={{ marginTop: '24px' }}>
                 <OAuthDivider />
                 <div style={{ marginTop: '12px' }}>
-                    <OAuthButtons role={role ?? 'customer'} />
+                    <OAuthButtons role={role} />
                 </div>
             </div>
             </>

@@ -1,10 +1,12 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { MapPin, Lightbulb } from 'lucide-react';
 import { toast } from '@/components/ui/Toast';
 import { useTranslation } from '@/lib/i18n';
 import { CATEGORIES, CITIES } from '@/lib/config-fallback';
+import { looksLikeServiceAd } from '@/lib/service-ad';
 
 export default function CreateTaskPage() {
     const { t, tr, tError } = useTranslation();
@@ -26,6 +28,8 @@ export default function CreateTaskPage() {
         images: [] as string[],
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    // Shown once when the text reads like a provider's ad; "post anyway" goes on.
+    const [adWarning, setAdWarning] = useState(false);
     const [hasDraft, setHasDraft] = useState(false);
     // Categories are admin-managed; the static list is the first-paint value
     // until /api/config answers. Cities are static everywhere.
@@ -130,7 +134,12 @@ export default function CreateTaskPage() {
         setFormData(prev => ({ ...prev, images: prev.images.filter((_, i) => i !== index) }));
     };
 
-    const handleSubmit = async (finalData: typeof formData) => {
+    const handleSubmit = async (finalData: typeof formData, adConfirmed = false) => {
+        if (!adConfirmed && looksLikeServiceAd(finalData.title, finalData.description)) {
+            setAdWarning(true);
+            return;
+        }
+        setAdWarning(false);
         setIsSubmitting(true);
         try {
             const res = await fetch('/api/tasks', {
@@ -396,6 +405,26 @@ export default function CreateTaskPage() {
                                 </div>
                             </div>
                         </div>
+
+                        {adWarning && (
+                            <div role="alert" style={{
+                                marginTop: '32px', padding: '20px', borderRadius: '12px',
+                                backgroundColor: '#FFF7ED', border: '1px solid #FED7AA', color: '#7C2D12',
+                            }}>
+                                <div style={{ fontWeight: 700, marginBottom: '6px' }}>{t('adWarning.title')}</div>
+                                <p style={{ margin: '0 0 16px', fontSize: '0.95rem', lineHeight: 1.5 }}>{t('adWarning.body')}</p>
+                                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                                    <Link href="/switch-role" className="btn btn-primary">{t('adWarning.becomeProvider')}</Link>
+                                    <button
+                                        type="button"
+                                        className="btn btn-outline"
+                                        onClick={() => handleSubmit(formData, true)}
+                                    >
+                                        {t('adWarning.postAnyway')}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
 
                         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '16px', marginTop: '40px', alignItems: 'center' }}>
                             <div style={{ fontSize: '0.85rem', color: '#6B7280' }}>

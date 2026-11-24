@@ -233,6 +233,14 @@ export default function ProfileScreen() {
             label={p.changePassword}
             onPress={() => router.push('/change-password')}
           />
+          <RowItem
+            icon="people-outline"
+            iconBg="rgba(234,88,12,0.12)"
+            iconColor="#EA580C"
+            label={t.switchRole.rowLabel}
+            sublabel={t.switchRole.rowHint}
+            onPress={() => router.push('/switch-role')}
+          />
           {/* Providers had no way to see the reviews customers leave them --
               only other people could, through the public profile. */}
           {user.role === 'PROVIDER' ? (

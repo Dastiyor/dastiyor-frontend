@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { User, Mail, Phone, MapPin, Star, Calendar, Edit, Briefcase } from 'lucide-react';
 import { getServerTranslation } from '@/lib/i18n/server';
+import SwitchRoleLink from '@/components/SwitchRoleLink';
 import ReviewList from '@/components/reviews/ReviewList';
 import TaskAlertsSettings from '@/components/provider/TaskAlertsSettings';
 import { alertPlan } from '@/lib/task-alerts';
@@ -215,6 +216,8 @@ export default async function ProfilePage() {
                     stats={{ totalReviews: reviews.length, averageRating: Number(averageRating), breakdown }}
                 />
             </div>
+
+            <SwitchRoleLink label={t('switchRole.linkLabel')} hint={t('switchRole.linkHint')} />
 
             <style>{`
                 @media (max-width: 640px) {

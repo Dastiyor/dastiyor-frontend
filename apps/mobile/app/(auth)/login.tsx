@@ -26,6 +26,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { LogoWordmark } from '@/components/Logo';
 import { Alert } from '@/lib/dialog';
 import { GradientButton, Input } from '@/components/Premium';
+import { LanguageButton } from '@/components/LanguageButton';
 
 export default function LoginScreen() {
   const { login, loginWithGoogle, loginWithApple } = useAuth();
@@ -119,6 +120,7 @@ export default function LoginScreen() {
       >
         <Icon name="close" size={22} color={colors.text} />
       </TouchableOpacity>
+      <LanguageButton style={[styles.langBtn, { top: top.closeTop + (AUTH_CLOSE_SIZE - 34) / 2 }]} />
       <ScrollView {...kbScroll}
         contentContainerStyle={[styles.inner, { paddingTop: top.contentPaddingTop, paddingBottom: insets.bottom + 24 + keyboardOffset }]}
         keyboardShouldPersistTaps="handled"
@@ -227,6 +229,7 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  langBtn: { position: 'absolute', right: 16, zIndex: 10, height: 34 },
   closeBtn: {
     position: 'absolute', left: 16, zIndex: 10,
     width: AUTH_CLOSE_SIZE, height: AUTH_CLOSE_SIZE, borderRadius: AUTH_CLOSE_SIZE / 2, borderWidth: 1,

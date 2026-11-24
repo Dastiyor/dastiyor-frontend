@@ -27,6 +27,13 @@ import { LogoWordmark } from '@/components/Logo';
 import { Alert } from '@/lib/dialog';
 import { GradientButton, Input } from '@/components/Premium';
 import { LanguageButton } from '@/components/LanguageButton';
+import { RoleChoice, type SignupRole } from '@/components/RoleChoice';
+import * as storage from '@/lib/storage';
+
+/** A Google / Apple sign-in for someone with no account yet, held until they pick a role. */
+type PendingOAuth =
+  | { kind: 'google'; accessToken: string }
+  | { kind: 'apple'; identityToken: string; email?: string; fullName?: string };
 
 export default function LoginScreen() {
   const { login, loginWithGoogle, loginWithApple } = useAuth();
@@ -43,6 +50,29 @@ export default function LoginScreen() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  // Google / Apple on the login screen can also be a first visit: the account is
+  // then created only once the person picks customer or provider.
+  const [pendingOAuth, setPendingOAuth] = useState<PendingOAuth | null>(null);
+  const [busyRole, setBusyRole] = useState<SignupRole | null>(null);
+
+  async function handlePickRole(role: SignupRole) {
+    if (!pendingOAuth || busyRole) return;
+    setBusyRole(role);
+    try {
+      if (pendingOAuth.kind === 'google') {
+        await loginWithGoogle(pendingOAuth.accessToken, role);
+      } else {
+        await loginWithApple(pendingOAuth.identityToken, pendingOAuth.email, pendingOAuth.fullName, role);
+      }
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      await storage.setItem('onboarding_done', '1');
+      replaceFromModal('/(tabs)');
+    } catch (e) {
+      Alert.alert(L.errOauth, (e as Error).message);
+    } finally {
+      setBusyRole(null);
+    }
+  }
 
   async function handleGoogleLogin() {
     if (googleLoading) return;
@@ -50,7 +80,10 @@ export default function LoginScreen() {
     try {
       const accessToken = await signInWithGoogle();
       if (!accessToken) return;
-      await loginWithGoogle(accessToken);
+      if (await loginWithGoogle(accessToken) === 'role-required') {
+        setPendingOAuth({ kind: 'google', accessToken });
+        return;
+      }
       replaceFromModal('/(tabs)');
     } catch (e) {
       Alert.alert(L.errOauth, (e as Error).message);
@@ -93,7 +126,18 @@ export default function LoginScreen() {
       const fullName = [credential.fullName?.givenName, credential.fullName?.familyName]
         .filter(Boolean)
         .join(' ') || undefined;
-      await loginWithApple(credential.identityToken, credential.email ?? undefined, fullName);
+      // Apple gives the name and email on the first sign-in only: keep them
+      // for the call that carries the role.
+      const pending: PendingOAuth = {
+        kind: 'apple',
+        identityToken: credential.identityToken,
+        email: credential.email ?? undefined,
+        fullName,
+      };
+      if (await loginWithApple(pending.identityToken, pending.email, pending.fullName) === 'role-required') {
+        setPendingOAuth(pending);
+        return;
+      }
       replaceFromModal('/(tabs)');
     } catch (e: any) {
       if (e.code !== 'ERR_REQUEST_CANCELED') {
@@ -127,8 +171,19 @@ export default function LoginScreen() {
         showsVerticalScrollIndicator={false}
       >
         <LogoWordmark size={30} color={colors.accent} style={{ marginBottom: 8 }} />
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{L.subtitle}</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+          {pendingOAuth ? t.register.chooseTitle : L.subtitle}
+        </Text>
 
+        {pendingOAuth ? (
+          <>
+            <RoleChoice onPick={handlePickRole} busyRole={busyRole} />
+            <TouchableOpacity onPress={() => setPendingOAuth(null)} disabled={busyRole !== null} accessibilityRole="button">
+              <Text style={[styles.link, { color: colors.textSecondary }]}>{t.navigation.back}</Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <>
         {isAppleAvailable && (
           <AppleAuthentication.AppleAuthenticationButton
             buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
@@ -146,7 +201,7 @@ export default function LoginScreen() {
           <TouchableOpacity
             style={[styles.oauthBtn, { borderColor: colors.border, backgroundColor: colors.surface }]}
             onPress={handleGoogleLogin}
-            disabled={googleLoading}
+            disabled={googleLoading || appleLoading}
           >
             {googleLoading ? (
               <ActivityIndicator color={colors.text} />
@@ -222,6 +277,8 @@ export default function LoginScreen() {
         <Link href="/(auth)/register" style={[styles.link, { color: colors.textSecondary }]}>
           {L.reg} <Text style={[styles.linkBold, { color: colors.accent }]}>{L.regLink}</Text>
         </Link>
+          </>
+        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );

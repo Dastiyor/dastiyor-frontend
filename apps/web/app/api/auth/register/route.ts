@@ -9,6 +9,7 @@ import { validatePassword, isValidPhone, normalizePhone, sanitizeString, PLACEHO
 import { sendWelcomeEmail } from '@/lib/notifications/email';
 import { logAction, getRequestIP } from '@/lib/audit';
 import { consumeOtp } from '@/lib/otp';
+import { verifyRegistrationTicket } from '@/lib/registration-ticket';
 
 export async function POST(request: Request) {
     // Read in the catch, which cannot see inside the try's scope
@@ -21,7 +22,7 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json();
-        const { email, password, fullName, phone, role, code } = body;
+        const { email, password, fullName, phone, role, code, ticket } = body;
 
         if (!password || !fullName) {
             return NextResponse.json({ error: 'Заполнены не все обязательные поля' }, { status: 400 });
@@ -88,19 +89,23 @@ export async function POST(request: Request) {
         }
 
         // Last check before the write, so a rejected form never burns the code.
-        // Guesses are capped per phone as well as per IP, as in verify-check.
-        if (!code) {
-            return NextResponse.json({ error: 'Неверный или просроченный код' }, { status: 400 });
-        }
-        const codeLimit = await checkRateLimit(`otp:${normalizedPhone}`, 'sms');
-        if (!codeLimit.allowed) {
-            return NextResponse.json(
-                { error: 'Слишком много попыток подтверждения. Попробуйте через 15 минут.' },
-                { status: 429 }
-            );
-        }
-        if (!(await consumeOtp(normalizedPhone, String(code), 'REGISTRATION'))) {
-            return NextResponse.json({ error: 'Неверный или просроченный код' }, { status: 400 });
+        // Either a ticket from verify-check (the code was already checked and
+        // spent there) or the code itself. Code guesses are capped per phone as
+        // well as per IP, as in verify-check; a ticket is not a guess.
+        if (!(await verifyRegistrationTicket(ticket, normalizedPhone))) {
+            if (!code) {
+                return NextResponse.json({ error: 'Неверный или просроченный код' }, { status: 400 });
+            }
+            const codeLimit = await checkRateLimit(`otp:${normalizedPhone}`, 'sms');
+            if (!codeLimit.allowed) {
+                return NextResponse.json(
+                    { error: 'Слишком много попыток подтверждения. Попробуйте через 15 минут.' },
+                    { status: 429 }
+                );
+            }
+            if (!(await consumeOtp(normalizedPhone, String(code), 'REGISTRATION'))) {
+                return NextResponse.json({ error: 'Неверный или просроченный код' }, { status: 400 });
+            }
         }
 
         const hashedPassword = await bcrypt.hash(password, 12);

@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 import { normalizePhone } from '@/lib/validation';
 import { consumeOtp } from '@/lib/otp';
+import { issueRegistrationTicket } from '@/lib/registration-ticket';
 
 export async function POST(request: Request) {
     try {
@@ -39,6 +40,14 @@ export async function POST(request: Request) {
                 { error: 'Неверный или просроченный код' },
                 { status: 400 }
             );
+        }
+
+        // A REGISTRATION code is spent here, so hand back proof that it passed:
+        // /api/auth/register takes the ticket in place of the code. The mobile
+        // signup checks the code first and asks for the role after.
+        if (type === 'REGISTRATION') {
+            const ticket = await issueRegistrationTicket(normalizedPhone);
+            return NextResponse.json({ success: true, message: 'Phone verified successfully', ticket });
         }
 
         return NextResponse.json({ success: true, message: 'Phone verified successfully' });

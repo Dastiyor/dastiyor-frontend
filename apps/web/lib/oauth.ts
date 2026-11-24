@@ -3,6 +3,29 @@ import { signJWT, SESSION_MAX_AGE } from '@/lib/auth';
 import { sendWelcomeEmail } from '@/lib/notifications/email';
 import { logAction } from '@/lib/audit';
 
+/**
+ * Would upsertOAuthUser sign in an existing account (by provider id, or by
+ * email, which it links)? False means it would create one. The mobile routes
+ * ask this first when the app has not chosen a role yet, so a new account is
+ * never created with a role the person did not pick.
+ */
+export async function oauthAccountExists({
+    provider,
+    providerId,
+    email,
+}: {
+    provider: 'google' | 'apple';
+    providerId: string;
+    email: string;
+}): Promise<boolean> {
+    const byProvider = provider === 'google'
+        ? await prisma.user.findUnique({ where: { googleId: providerId }, select: { id: true } })
+        : await prisma.user.findUnique({ where: { appleId: providerId }, select: { id: true } });
+    if (byProvider) return true;
+    const byEmail = await prisma.user.findUnique({ where: { email }, select: { id: true } });
+    return Boolean(byEmail);
+}
+
 export async function upsertOAuthUser({
     provider,
     providerId,

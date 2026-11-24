@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { upsertOAuthUser } from '@/lib/oauth';
+import { oauthAccountExists, upsertOAuthUser } from '@/lib/oauth';
 import { mustVerifyPhoneFirst } from '@/lib/phone-gate';
 import { getClientIP } from '@/lib/rate-limit';
 import { createRemoteJWKSet, jwtVerify } from 'jose';
@@ -8,7 +8,7 @@ const appleJWKS = createRemoteJWKSet(new URL('https://appleid.apple.com/auth/key
 
 export async function POST(request: Request) {
     try {
-        const { identityToken, email, fullName, role } = await request.json();
+        const { identityToken, email, fullName, role, deferRole } = await request.json();
 
         if (!identityToken) {
             return NextResponse.json({ error: 'Требуется identity token' }, { status: 400 });
@@ -38,6 +38,15 @@ export async function POST(request: Request) {
         }
 
         const name = fullName || appleEmail.split('@')[0];
+
+        // As in the Google route: a new app asks for the role only once it is
+        // known to be a new account. Apple sends the name and email only on the
+        // first sign-in, so the app keeps them and posts them again with the role.
+        if (!role && deferRole && !(await oauthAccountExists({
+            provider: 'apple', providerId: appleUserId, email: appleEmail,
+        }))) {
+            return NextResponse.json({ roleRequired: true });
+        }
 
         const { user, token } = await upsertOAuthUser({
             provider: 'apple',

@@ -5,6 +5,7 @@ import { signJWT } from '@/lib/auth';
 import { sendWelcomeEmail } from '@/lib/notifications/email';
 import { getClientIP, checkRateLimit } from '@/lib/rate-limit';
 import { consumeOtp } from '@/lib/otp';
+import { verifyRegistrationTicket } from '@/lib/registration-ticket';
 
 jest.mock('@/lib/auth', () => ({
     signJWT: jest.fn().mockResolvedValue('mock-jwt-token'),
@@ -39,6 +40,10 @@ jest.mock('@/lib/otp', () => ({
     consumeOtp: jest.fn(),
 }));
 
+jest.mock('@/lib/registration-ticket', () => ({
+    verifyRegistrationTicket: jest.fn(),
+}));
+
 jest.mock('bcryptjs', () => ({
     hash: jest.fn().mockResolvedValue('hashed-password'),
 }));
@@ -49,6 +54,7 @@ describe('/api/auth/register Route', () => {
         (getClientIP as jest.Mock).mockReturnValue('127.0.0.1');
         (checkRateLimit as jest.Mock).mockReturnValue({ allowed: true });
         (consumeOtp as jest.Mock).mockResolvedValue(true);
+        (verifyRegistrationTicket as jest.Mock).mockResolvedValue(false);
         prismaMock.user.findUnique.mockResolvedValue(null);
         prismaMock.user.findFirst.mockResolvedValue(null);
     });
@@ -101,6 +107,39 @@ describe('/api/auth/register Route', () => {
 
         expect(response.status).toBe(400);
         expect(consumeOtp).not.toHaveBeenCalled();
+    });
+
+    it('takes a verify-check ticket in place of the code, without spending a guess', async () => {
+        (verifyRegistrationTicket as jest.Mock).mockResolvedValue(true);
+        prismaMock.user.create.mockResolvedValue({ id: 'u', email: 'x', fullName: 'New User', role: 'PROVIDER' } as any);
+
+        const response = await post({ ...valid, code: undefined, ticket: 'tkt', role: 'provider' });
+
+        expect(response.status).toBe(201);
+        expect(verifyRegistrationTicket).toHaveBeenCalledWith('tkt', PHONE);
+        expect(consumeOtp).not.toHaveBeenCalled();
+        expect(checkRateLimit).not.toHaveBeenCalledWith(`otp:${PHONE}`, 'sms');
+        expect(prismaMock.user.create).toHaveBeenCalledWith({
+            data: expect.objectContaining({ phone: PHONE, phoneVerified: true, role: 'PROVIDER' }),
+        });
+    });
+
+    it('rejects a ticket that does not match and no code', async () => {
+        const response = await post({ ...valid, code: undefined, ticket: 'other-phone' });
+        const data = await response.json();
+
+        expect(response.status).toBe(400);
+        expect(data.error).toBe('Неверный или просроченный код');
+        expect(prismaMock.user.create).not.toHaveBeenCalled();
+    });
+
+    it('falls back to the code when the ticket is not valid', async () => {
+        prismaMock.user.create.mockResolvedValue({ id: 'u', email: 'x', fullName: 'New User', role: 'CUSTOMER' } as any);
+
+        const response = await post({ ...valid, ticket: 'expired' });
+
+        expect(response.status).toBe(201);
+        expect(consumeOtp).toHaveBeenCalledWith(PHONE, '123456', 'REGISTRATION');
     });
 
     it('creates a phone-only account as verified', async () => {

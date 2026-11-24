@@ -39,17 +39,31 @@ interface RegisterData {
   password: string;
   fullName: string;
   role: 'customer' | 'provider';
-  /** SMS code from /api/auth/verify-send (type REGISTRATION) for `phone`. */
-  code: string;
+  /**
+   * Proof the phone passed its SMS code: the `ticket` that
+   * /api/auth/verify-check returns for a REGISTRATION code. The server also
+   * still takes the raw `code` instead.
+   */
+  ticket?: string;
+  code?: string;
 }
+
+/**
+ * 'role-required': the token belongs to someone with no account yet. Nothing was
+ * created; ask customer or provider and call again with the same token and the role.
+ */
+export type OAuthResult = 'signed-in' | 'role-required';
+
+type OAuthResponse = { token?: string; user?: ApiUser; roleRequired?: boolean };
 
 interface AuthState {
   user: ApiUser | null;
   loading: boolean;
   login: (identifier: string, password: string) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
-  loginWithGoogle: (accessToken: string, role?: string) => Promise<void>;
-  loginWithApple: (identityToken: string, email?: string, fullName?: string, role?: string) => Promise<void>;
+  /** Without a role, a new person gets 'role-required' instead of an account. */
+  loginWithGoogle: (accessToken: string, role?: 'customer' | 'provider') => Promise<OAuthResult>;
+  loginWithApple: (identityToken: string, email?: string, fullName?: string, role?: 'customer' | 'provider') => Promise<OAuthResult>;
   logout: () => Promise<void>;
   deleteAccount: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -128,29 +142,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onAuthenticated(res, AnalyticsEvent.SignUpCompleted, 'password');
   }
 
-  async function loginWithGoogle(accessToken: string, role = 'customer') {
-    const res = await api.post<{ token: string; user: ApiUser }>('/api/auth/google/mobile', {
-      accessToken,
-      role,
-    });
+  // Sign in first, ask the role after: with no role the server signs an
+  // existing account in, and answers roleRequired for a new person without
+  // creating anything. The screen then asks and calls again with the role.
+  async function finishOAuth(res: OAuthResponse, role: string | undefined, method: string): Promise<OAuthResult> {
+    if (res.roleRequired) return 'role-required';
+    if (!res.token || !res.user) throw new Error('Empty sign-in response');
     await storage.setItem('auth_token', res.token);
-    onAuthenticated(res, AnalyticsEvent.LoginCompleted, 'google');
+    // A role is only sent once the server said this person is new.
+    onAuthenticated({ token: res.token, user: res.user }, role ? AnalyticsEvent.SignUpCompleted : AnalyticsEvent.LoginCompleted, method);
+    return 'signed-in';
+  }
+
+  async function loginWithGoogle(accessToken: string, role?: 'customer' | 'provider') {
+    const res = await api.post<OAuthResponse>('/api/auth/google/mobile', {
+      accessToken,
+      ...(role ? { role } : { deferRole: true }),
+    });
+    return finishOAuth(res, role, 'google');
   }
 
   async function loginWithApple(
     identityToken: string,
     email?: string,
     fullName?: string,
-    role = 'customer',
+    role?: 'customer' | 'provider',
   ) {
-    const res = await api.post<{ token: string; user: ApiUser }>('/api/auth/apple/mobile', {
+    const res = await api.post<OAuthResponse>('/api/auth/apple/mobile', {
       identityToken,
       email,
       fullName,
-      role,
+      ...(role ? { role } : { deferRole: true }),
     });
-    await storage.setItem('auth_token', res.token);
-    onAuthenticated(res, AnalyticsEvent.LoginCompleted, 'apple');
+    return finishOAuth(res, role, 'apple');
   }
 
   async function refreshUser() {

@@ -22,7 +22,7 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Haptics from 'expo-haptics';
 import { Icon } from '@/components/Icon';
 import { googleConfigured, signInWithGoogle } from '@/lib/google-signin';
-import { api } from '@/lib/api-client';
+import { api, ApiError } from '@/lib/api-client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -33,18 +33,19 @@ import type { Locale } from '@/lib/i18n';
 import { Alert } from '@/lib/dialog';
 import { GradientButton, Input } from '@/components/Premium';
 import { LanguageButton } from '@/components/LanguageButton';
-
-type Role = 'customer' | 'provider';
-
-const ROLE_ICONS = { customer: 'clipboard-outline', provider: 'construct-outline' } as const;
+import { RoleChoice, type SignupRole as Role } from '@/components/RoleChoice';
 
 /** Everything on the form except the password, which is never written to disk. */
 interface RegistrationDraft {
   fullName: string;
   phoneLocal: string;
-  role: Role;
   legalAccepted: boolean;
 }
+
+/** A Google / Apple sign-in for a new person, held until they pick a role. */
+type PendingOAuth =
+  | { kind: 'google'; accessToken: string }
+  | { kind: 'apple'; identityToken: string; email?: string; fullName?: string };
 
 const DRAFT_KEY = 'registration_draft';
 
@@ -63,15 +64,20 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [pwIssues, setPwIssues] = useState<string[]>([]);
-  // No default: a preselected role is how providers ended up as customers.
-  const [role, setRole] = useState<Role | null>(null);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
   const [legalAccepted, setLegalAccepted] = useState(false);
-  // The account is only created once the SMS code for this number comes back.
-  const [step, setStep] = useState<'form' | 'code'>('form');
+  // Form, then the SMS code, then the role -- the role is the last step, and
+  // the account is only created once it is picked. Google / Apple skip to the
+  // role step when the server says the person is new.
+  const [step, setStep] = useState<'form' | 'code' | 'role'>('form');
   const [code, setCode] = useState('');
+  // From verify-check: proof the number passed its code, sent with the role.
+  const [ticket, setTicket] = useState<{ phoneLocal: string; value: string } | null>(null);
+  const [pendingOAuth, setPendingOAuth] = useState<PendingOAuth | null>(null);
+  // No default: a preselected role is how providers ended up as customers.
+  const [busyRole, setBusyRole] = useState<Role | null>(null);
 
   // Reading the Terms or Privacy link leaves the app; on a memory-tight device
   // Android may kill the process while it is backgrounded, and expo-router then
@@ -84,28 +90,40 @@ export default function RegisterScreen() {
         const draft = JSON.parse(raw) as Partial<RegistrationDraft>;
         if (draft.fullName) setFullName(draft.fullName);
         if (draft.phoneLocal) setPhoneLocal(draft.phoneLocal);
-        if (draft.role === 'customer' || draft.role === 'provider') setRole(draft.role);
         if (draft.legalAccepted) setLegalAccepted(true);
       })
       .catch(() => {});
   }, []);
 
   useEffect(() => {
-    if (!role || (!fullName && !phoneLocal && !legalAccepted)) return;
-    const draft: RegistrationDraft = { fullName, phoneLocal, role, legalAccepted };
+    if (!fullName && !phoneLocal && !legalAccepted) return;
+    const draft: RegistrationDraft = { fullName, phoneLocal, legalAccepted };
     storage.setItem(DRAFT_KEY, JSON.stringify(draft)).catch(() => {});
-  }, [fullName, phoneLocal, role, legalAccepted]);
+  }, [fullName, phoneLocal, legalAccepted]);
+
+  async function finishSignup() {
+    await storage.setItem('onboarding_done', '1');
+    await storage.deleteItem(DRAFT_KEY);
+    replaceFromModal('/(tabs)');
+  }
+
+  function askRole(pending: PendingOAuth) {
+    setPendingOAuth(pending);
+    setStep('role');
+  }
 
   async function handleGoogleRegister() {
-    if (googleLoading || !role) return;
+    if (googleLoading) return;
     setGoogleLoading(true);
     try {
       const accessToken = await signInWithGoogle();
       if (!accessToken) return;
-      await loginWithGoogle(accessToken, role);
-      await storage.setItem('onboarding_done', '1');
-      await storage.deleteItem(DRAFT_KEY);
-      replaceFromModal('/(tabs)');
+      // An existing account is simply signed in; a new person picks a role first.
+      if (await loginWithGoogle(accessToken) === 'role-required') {
+        askRole({ kind: 'google', accessToken });
+        return;
+      }
+      await finishSignup();
     } catch (e) {
       Alert.alert(r.errRegister, (e as Error).message);
     } finally {
@@ -142,6 +160,12 @@ export default function RegisterScreen() {
       Alert.alert(t.common.error, t.legal.consentRequired);
       return;
     }
+    // Came back from the role step to fix the name or password: the number is
+    // already confirmed, so no second SMS.
+    if (ticket?.phoneLocal === phoneLocal) {
+      setStep('role');
+      return;
+    }
     setLoading(true);
     try {
       await sendCode();
@@ -170,34 +194,71 @@ export default function RegisterScreen() {
     }
   }
 
+  /** Check the SMS code now, so a typo is caught here and not after the role. */
   async function handleVerify() {
-    if (!role) return;
     if (code.length < 6) {
       Alert.alert(t.common.error, t.verifyPhone.errCode);
       return;
     }
     setLoading(true);
     try {
-      await register({
-        fullName: fullName.trim(),
+      const res = await api.post<{ ticket?: string }>('/api/auth/verify-check', {
         phone: `+992${phoneLocal}`,
-        password,
-        role,
         code,
+        type: 'REGISTRATION',
       });
-      await storage.setItem('onboarding_done', '1');
-      await storage.deleteItem(DRAFT_KEY);
+      if (!res.ticket) throw new Error(r.errRegister);
+      setTicket({ phoneLocal, value: res.ticket });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-      replaceFromModal('/(tabs)');
+      setStep('role');
     } catch (e) {
-      Alert.alert(r.errRegister, (e as Error).message);
+      Alert.alert(t.common.error, (e as Error).message);
     } finally {
       setLoading(false);
     }
   }
 
+  async function handlePickRole(role: Role) {
+    if (busyRole) return;
+    setBusyRole(role);
+    try {
+      if (pendingOAuth?.kind === 'google') {
+        await loginWithGoogle(pendingOAuth.accessToken, role);
+      } else if (pendingOAuth?.kind === 'apple') {
+        await loginWithApple(pendingOAuth.identityToken, pendingOAuth.email, pendingOAuth.fullName, role);
+      } else {
+        if (!ticket) { setStep('form'); return; }
+        await register({
+          fullName: fullName.trim(),
+          phone: `+992${phoneLocal}`,
+          password,
+          role,
+          ticket: ticket.value,
+        });
+      }
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      await finishSignup();
+    } catch (e) {
+      Alert.alert(r.errRegister, (e as Error).message);
+      // The server turned the form down (number already registered, the
+      // confirmation ran out, a field it rejects): back to the form to fix it.
+      // A network error keeps the role step, to try again.
+      if (!pendingOAuth && e instanceof ApiError && e.status === 400) {
+        setTicket(null);
+        setStep('form');
+      }
+    } finally {
+      setBusyRole(null);
+    }
+  }
+
+  function leaveRoleStep() {
+    setPendingOAuth(null);
+    setStep('form');
+  }
+
   async function handleAppleRegister() {
-    if (appleLoading || !role) return;
+    if (appleLoading) return;
     setAppleLoading(true);
     try {
       const credential = await AppleAuthentication.signInAsync({
@@ -212,10 +273,19 @@ export default function RegisterScreen() {
       }
       const fullNameStr = [credential.fullName?.givenName, credential.fullName?.familyName]
         .filter(Boolean).join(' ') || undefined;
-      await loginWithApple(credential.identityToken, credential.email ?? undefined, fullNameStr, role);
-      await storage.setItem('onboarding_done', '1');
-      await storage.deleteItem(DRAFT_KEY);
-      replaceFromModal('/(tabs)');
+      // Apple gives the name and email on the first sign-in only: keep them
+      // for the second call, the one that carries the role.
+      const pending: PendingOAuth = {
+        kind: 'apple',
+        identityToken: credential.identityToken,
+        email: credential.email ?? undefined,
+        fullName: fullNameStr,
+      };
+      if (await loginWithApple(pending.identityToken, pending.email, pending.fullName) === 'role-required') {
+        askRole(pending);
+        return;
+      }
+      await finishSignup();
     } catch (e: any) {
       if (e.code !== 'ERR_REQUEST_CANCELED') {
         Alert.alert(r.errRegister, (e as Error).message);
@@ -254,38 +324,23 @@ export default function RegisterScreen() {
       >
         <LogoWordmark size={30} style={{ marginBottom: 6 }} />
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          {step === 'code' ? t.verifyPhone.codeSent.replace('{phone}', `+992${phoneLocal}`) : role ? r.subtitle : r.chooseTitle}
+          {step === 'code'
+            ? t.verifyPhone.codeSent.replace('{phone}', `+992${phoneLocal}`)
+            : step === 'role' ? r.chooseTitle : r.subtitle}
         </Text>
 
-        {!role ? (
+        {step === 'role' ? (
           <>
-            <View style={styles.choiceRow}>
-              {(['customer', 'provider'] as Role[]).map((rv) => (
-                <TouchableOpacity
-                  key={rv}
-                  style={[styles.choiceCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
-                  onPress={() => { Haptics.selectionAsync().catch(() => {}); setRole(rv); }}
-                  activeOpacity={0.8}
-                  accessibilityRole="button"
-                  accessibilityLabel={rv === 'customer' ? r.customerTitle : r.providerTitle}
-                  accessibilityHint={rv === 'customer' ? r.customerDesc : r.providerDesc}
-                >
-                  <View style={[styles.choiceIcon, { backgroundColor: rv === 'customer' ? '#EFF6FF' : '#FFF7ED' }]}>
-                    <Icon name={ROLE_ICONS[rv]} size={32} color={rv === 'customer' ? '#2563EB' : '#EA580C'} />
-                  </View>
-                  <Text style={[styles.choiceTitle, { color: colors.text }]}>
-                    {rv === 'customer' ? r.customerTitle : r.providerTitle}
-                  </Text>
-                  <Text style={[styles.choiceDesc, { color: colors.textSecondary }]}>
-                    {rv === 'customer' ? r.customerDesc : r.providerDesc}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-            <Text style={[styles.choiceHint, { color: colors.textSecondary }]}>{r.advertiseHint}</Text>
-            <Link href="/(auth)/login" style={styles.link}>
-              {r.hasAccount} <Text style={styles.linkBold}>{r.loginLink}</Text>
-            </Link>
+            {!pendingOAuth && (
+              <View style={styles.verifiedRow}>
+                <Icon name="checkmark-circle" size={18} color="#059669" />
+                <Text style={styles.verifiedText}>{r.phoneVerified}</Text>
+              </View>
+            )}
+            <RoleChoice onPick={handlePickRole} busyRole={busyRole} />
+            <TouchableOpacity onPress={leaveRoleStep} disabled={busyRole !== null} accessibilityRole="button">
+              <Text style={styles.link}>{t.navigation.back}</Text>
+            </TouchableOpacity>
           </>
         ) : step === 'code' ? (
           <>
@@ -306,12 +361,12 @@ export default function RegisterScreen() {
               style={[styles.button, (loading || code.length < 6) && styles.buttonDisabled]}
               onPress={handleVerify}
               disabled={loading || code.length < 6}
-              accessibilityLabel={r.btn}
+              accessibilityLabel={t.verifyPhone.verify}
               accessibilityRole="button"
             >
               {loading
                 ? <ActivityIndicator color="#fff" />
-                : <Text style={styles.buttonText}>{r.btn}</Text>}
+                : <Text style={styles.buttonText}>{t.verifyPhone.verify}</Text>}
             </GradientButton>
             <TouchableOpacity onPress={handleResend} disabled={loading} accessibilityRole="button">
               <Text style={styles.link}><Text style={styles.linkBold}>{r.resendCode}</Text></Text>
@@ -323,28 +378,12 @@ export default function RegisterScreen() {
         ) : (
           <>
 
-        {/* Chosen role, with a way back to the choice */}
-        <View style={[styles.roleChip, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Icon name={ROLE_ICONS[role]} size={22} color={role === 'customer' ? '#2563EB' : '#EA580C'} />
-          <Text style={[styles.roleChipText, { color: colors.text }]} numberOfLines={2}>
-            {role === 'customer' ? r.customerTitle : r.providerTitle}
-          </Text>
-          <TouchableOpacity
-            onPress={() => setRole(null)}
-            disabled={loading || googleLoading || appleLoading}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            accessibilityRole="button"
-          >
-            <Text style={styles.linkBold}>{r.changeRole}</Text>
-          </TouchableOpacity>
-        </View>
-
         {/* OAuth */}
         {googleConfigured && (
           <TouchableOpacity
             style={[styles.oauthBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}
             onPress={handleGoogleRegister}
-            disabled={googleLoading}
+            disabled={googleLoading || appleLoading}
           >
             {googleLoading
               ? <ActivityIndicator color={colors.text} />
@@ -496,21 +535,8 @@ const styles = StyleSheet.create({
 
   langBtn: { position: 'absolute', right: 16, zIndex: 10, height: 34 },
 
-  /* Role choice */
-  choiceRow: { flexDirection: 'row', gap: 12, marginBottom: 16 },
-  choiceCard: {
-    flex: 1, minHeight: 240, borderWidth: 1.5, borderRadius: 18,
-    paddingVertical: 20, paddingHorizontal: 12, alignItems: 'center',
-  },
-  choiceIcon: { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
-  choiceTitle: { fontSize: 16, fontWeight: '700', textAlign: 'center', marginBottom: 8 },
-  choiceDesc: { fontSize: 13, lineHeight: 18, textAlign: 'center' },
-  choiceHint: { fontSize: 13, lineHeight: 18, textAlign: 'center' },
-  roleChip: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    borderWidth: 1, borderRadius: 12, paddingVertical: 12, paddingHorizontal: 14, marginBottom: 18,
-  },
-  roleChipText: { flex: 1, fontSize: 14, fontWeight: '600' },
+  verifiedRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: -12, marginBottom: 16 },
+  verifiedText: { fontSize: 13, fontWeight: '600', color: '#059669' },
 
   /* OAuth */
   oauthBtn: {

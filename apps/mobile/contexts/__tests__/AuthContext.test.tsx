@@ -203,6 +203,60 @@ describe('AuthContext', () => {
       }));
       expect(getByTestId('user').props.children).toBe('apple@test.com');
     });
+
+    it('asks the server to hold a new account until the role is picked', async () => {
+      mockApi.post.mockResolvedValue({ roleRequired: true });
+      (SecureStore.setItemAsync as jest.Mock).mockClear();
+
+      let authRef: ReturnType<typeof useAuth>;
+      const { getByTestId } = renderWithAuth((auth) => { authRef = auth; });
+      await waitFor(() => expect(getByTestId('loading').props.children).toBe('false'));
+
+      let result: string | undefined;
+      await act(async () => {
+        result = await authRef!.loginWithGoogle('google-access-token');
+      });
+
+      expect(result).toBe('role-required');
+      expect(mockApi.post).toHaveBeenCalledWith('/api/auth/google/mobile', {
+        accessToken: 'google-access-token',
+        deferRole: true,
+      });
+      expect(SecureStore.setItemAsync).not.toHaveBeenCalledWith('auth_token', expect.anything());
+      expect(getByTestId('user').props.children).toBe('null');
+    });
+
+    it('sends the picked role, and no deferRole, on the second call', async () => {
+      mockApi.post.mockResolvedValue({ token: 'a-jwt', user: { id: 'a1', email: 'apple@test.com' } });
+
+      let authRef: ReturnType<typeof useAuth>;
+      const { getByTestId } = renderWithAuth((auth) => { authRef = auth; });
+      await waitFor(() => expect(getByTestId('loading').props.children).toBe('false'));
+
+      let result: string | undefined;
+      await act(async () => {
+        result = await authRef!.loginWithApple('apple-identity-token', 'apple@test.com', 'Apple User', 'provider');
+      });
+
+      expect(result).toBe('signed-in');
+      expect(mockApi.post).toHaveBeenCalledWith('/api/auth/apple/mobile', {
+        identityToken: 'apple-identity-token',
+        email: 'apple@test.com',
+        fullName: 'Apple User',
+        role: 'provider',
+      });
+      expect(SecureStore.setItemAsync).toHaveBeenCalledWith('auth_token', 'a-jwt');
+    });
+
+    it('fails loudly on a response with neither a token nor roleRequired', async () => {
+      mockApi.post.mockResolvedValue({});
+
+      let authRef: ReturnType<typeof useAuth>;
+      const { getByTestId } = renderWithAuth((auth) => { authRef = auth; });
+      await waitFor(() => expect(getByTestId('loading').props.children).toBe('false'));
+
+      await expect(authRef!.loginWithGoogle('t')).rejects.toThrow();
+    });
   });
 
   describe('useAuth guard', () => {

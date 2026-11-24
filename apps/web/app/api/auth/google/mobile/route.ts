@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
-import { upsertOAuthUser } from '@/lib/oauth';
+import { oauthAccountExists, upsertOAuthUser } from '@/lib/oauth';
 import { mustVerifyPhoneFirst } from '@/lib/phone-gate';
 import { getClientIP } from '@/lib/rate-limit';
 
 export async function POST(request: Request) {
     try {
-        const { accessToken, role } = await request.json();
+        const { accessToken, role, deferRole } = await request.json();
 
         if (!accessToken) {
             return NextResponse.json({ error: 'Требуется токен доступа' }, { status: 400 });
@@ -23,6 +23,16 @@ export async function POST(request: Request) {
 
         if (!googleUser.sub || !googleUser.email) {
             return NextResponse.json({ error: 'Неполный профиль Google' }, { status: 401 });
+        }
+
+        // The app (JS from late November 2026) signs in first and asks for the
+        // role after, and only for a new account: it sends `deferRole` and no
+        // role. Older JS always sends one (defaulting to customer), so it never
+        // sees this answer.
+        if (!role && deferRole && !(await oauthAccountExists({
+            provider: 'google', providerId: googleUser.sub, email: googleUser.email,
+        }))) {
+            return NextResponse.json({ roleRequired: true });
         }
 
         const { user, token } = await upsertOAuthUser({

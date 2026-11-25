@@ -84,11 +84,12 @@ export const E2E_SEED_TASK = 'E2E-SEED Собрать шкаф-купе';
 export const WRITE_RUN_ENV = {
     NEXT_PUBLIC_SUBSCRIPTIONS_ENABLED: 'false',
     SUBSCRIPTION_GATE_ENABLED: 'false',
-    // Test credentials, so the payment webhook checks real signatures.
-    SMARTPAY_MERCHANT_ID: 'e2e-merchant',
-    SMARTPAY_SECRET_KEY: 'e2e-smartpay-secret',
-    // Without it the webhook skips the signature check outside production, and the forgery test proves nothing.
-    SMARTPAY_WEBHOOK_SECRET: 'e2e-smartpay-webhook-secret',
+    // A made-up Alif terminal, so notices are signature-checked (without one the webhook accepts
+    // unsigned notices outside production, and the forgery test proves nothing). Alif itself is
+    // played by e2e/support/fake-providers.js at this host; tests set its answers with alifSays().
+    ALIF_TERMINAL_ID: '999001',
+    ALIF_TERMINAL_PASSWORD: 'e2e-alif-password',
+    ALIF_API_URL: 'https://alif.e2e.test',
     CRON_SECRET: 'e2e-cron-secret',
 };
 

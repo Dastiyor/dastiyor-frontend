@@ -171,9 +171,9 @@ export default async function PaymentHistoryPage() {
                                             }}>
                                                 {payment.amount} {payment.currency}
                                             </div>
-                                            {payment.smartpayOrderId && (
+                                            {payment.orderId && (
                                                 <div style={{ fontSize: '0.8rem', color: 'var(--text-light)', marginTop: '4px' }}>
-                                                    {payment.smartpayOrderId}
+                                                    {payment.orderId}
                                                 </div>
                                             )}
                                         </div>

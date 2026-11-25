@@ -75,7 +75,7 @@ describe('RevenueCat', () => {
             });
         });
 
-        it('store expiry earlier than an existing SmartPay endDate leaves it', async () => {
+        it('store expiry earlier than an existing web (Alif) endDate leaves it', async () => {
             fetchMock.mockReturnValue(subscriber({ pro: { expires_date: inDays(5) } }));
             prismaMock.subscription.findUnique.mockResolvedValue({ userId: 'u1', plan: 'business', isActive: true, endDate: new Date(inDays(20)), source: 'web' } as never);
 

@@ -12,7 +12,7 @@ export async function GET() {
         categories: await getCategories(),
         cities: CITIES,
         estimatedTimes: ESTIMATED_TIMES,
-        // The app can sell plans before the website does (website checkout needs SmartPay).
+        // The app can sell plans before the website does (website checkout needs the Alif terminal).
         subscriptionsEnabled: SUBSCRIPTIONS_ENABLED || mobilePurchaseEnabled,
         // Kill switch for the in-app purchase screens until the store products are approved.
         mobilePurchaseEnabled,

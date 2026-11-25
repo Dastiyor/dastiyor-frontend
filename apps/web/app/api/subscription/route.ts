@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { PLANS, isValidPlan, createSmartPayOrder, generateOrderId } from '@/lib/payments';
+import { PLANS, isValidPlan, createAlifPayment, generateOrderId } from '@/lib/payments';
 import { requireAuth } from '@/lib/require-auth';
 import { SUBSCRIPTIONS_ENABLED } from '@/lib/features';
 import { subscriptionView } from '@/lib/payments/subscription-view';
@@ -36,7 +36,7 @@ export async function GET(request: Request) {
     }
 }
 
-// POST - Initiate subscription payment via SmartPay
+// POST - Start a subscription payment with Alif
 export async function POST(request: Request) {
     try {
         // Subscriptions are temporarily hidden — see lib/features.ts
@@ -60,13 +60,13 @@ export async function POST(request: Request) {
         const planConfig = PLANS[plan];
         const orderId = generateOrderId();
 
-        // Payer phone and name prefill the SmartPay invoice
+        // Payer phone and email prefill Alif's payment form
         const user = await prisma.user.findUnique({
             where: { id: userId },
-            select: { phone: true, fullName: true }
+            select: { phone: true, email: true }
         });
 
-        // Create a pending payment record in our DB
+        // A pending payment record; Alif's notice (or the status check) completes it.
         const payment = await prisma.payment.create({
             data: {
                 userId,
@@ -76,22 +76,21 @@ export async function POST(request: Request) {
                 type: 'SUBSCRIPTION',
                 description: `Подписка ${planConfig.name}`,
                 plan,
-                smartpayOrderId: orderId,
+                orderId,
             }
         });
 
-        // Create order with SmartPay
-        const smartPayResult = await createSmartPayOrder({
+        const result = await createAlifPayment({
             orderId,
             amount: planConfig.price,
             description: `Dastiyor — Подписка ${planConfig.name} (${planConfig.durationDays} дн.)`,
             returnUrl: `${APP_URL}/payment/result?orderId=${orderId}`,
-            customerPhone: user?.phone || undefined,
-            customerName: user?.fullName || undefined,
+            callbackUrl: `${APP_URL}/api/webhooks/alif`,
+            phone: user?.phone || undefined,
+            email: user?.email || undefined,
         });
 
-        if (!smartPayResult.success) {
-            // Mark payment as failed
+        if (!result.success) {
             await prisma.payment.update({
                 where: { id: payment.id },
                 data: { status: 'FAILED' }
@@ -102,15 +101,9 @@ export async function POST(request: Request) {
             );
         }
 
-        // Save SmartPay transaction ID
-        await prisma.payment.update({
-            where: { id: payment.id },
-            data: { transactionId: smartPayResult.transactionId }
-        });
-
-        // Return the payment URL for the frontend to redirect to
+        // The frontend redirects to Alif's payment form
         return NextResponse.json({
-            paymentUrl: smartPayResult.paymentUrl,
+            paymentUrl: result.paymentUrl,
             orderId,
             paymentId: payment.id,
         });

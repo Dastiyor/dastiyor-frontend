@@ -69,7 +69,7 @@ describe('SubscriptionPlans', () => {
 
         (global.fetch as jest.Mock).mockResolvedValue({
             ok: true,
-            json: () => Promise.resolve({ paymentUrl: 'https://smartpay.tj/checkout/abc', orderId: 'ORDER-001', paymentId: 'pay-1' }),
+            json: () => Promise.resolve({ paymentUrl: 'https://test-web.alif.tj?payment=abc', orderId: 'ORDER-001', paymentId: 'pay-1' }),
         });
 
         render(<SubscriptionPlans {...defaultProps} />);
@@ -89,7 +89,7 @@ describe('SubscriptionPlans', () => {
         });
 
         await waitFor(() => {
-            expect(mockAssign).toHaveBeenCalledWith('https://smartpay.tj/checkout/abc');
+            expect(mockAssign).toHaveBeenCalledWith('https://test-web.alif.tj?payment=abc');
         });
     });
 });

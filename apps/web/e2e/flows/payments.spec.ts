@@ -2,12 +2,14 @@ import { test, expect, loginAs, newSession } from '../support/test';
 import { createTask, createUser, prisma, type E2EUser } from '../support/db';
 import { WRITE_RUN_ENV } from '../support/env';
 import { createHmac, randomUUID } from 'crypto';
+import { alifSays } from '../support/providers';
 
 // Paid plans are switched off for launch, and the server here runs with the
 // launch flags (WRITE_RUN_ENV). So this checks two things: that the product
 // really is free and the purchase closed, and that the payment plumbing which
-// stays live behind the flag — SmartPay's webhook and the nightly expiry job —
-// behaves. SmartPay's own checkout page is theirs and is not exercised.
+// stays live behind the flag — Alif's payment notice and the nightly expiry job —
+// behaves. Alif's own payment form is theirs and is not exercised; its /checktxn
+// is played by e2e/support/fake-providers.js.
 
 test.describe('at launch', () => {
     test('a provider with no subscription can respond to tasks', async ({ page }) => {
@@ -39,7 +41,7 @@ test.describe('at launch', () => {
     });
 });
 
-test.describe('SmartPay webhook', () => {
+test.describe('Alif payment notice', () => {
     async function pendingPayment(user: E2EUser, plan = 'pro', amount = 49) {
         return prisma.payment.create({
             data: {
@@ -48,36 +50,33 @@ test.describe('SmartPay webhook', () => {
                 type: 'SUBSCRIPTION',
                 description: 'E2E subscription payment',
                 plan,
-                smartpayOrderId: `e2e-order-${randomUUID()}`,
+                orderId: `e2e-order-${randomUUID()}`,
             },
         });
     }
 
-    /** SmartPay's payment webhook body: amounts in dirams, HMAC over date|amount|order|bank|invoice. */
-    function callback(orderId: string, somoni: number, secret = WRITE_RUN_ENV.SMARTPAY_WEBHOOK_SECRET) {
-        const body = {
-            payment_date: new Date().toISOString(),
-            amount: somoni * 100,
-            order_id: orderId,
-            bank_id: 1,
-            invoice_uuid: randomUUID(),
-            payment_id: `e2e-tx-${randomUUID()}`,
-            bank: 'Alif',
+    const hmac = (key: string, msg: string) => createHmac('sha256', key).update(msg).digest('hex');
+    const token = (fields: string[], password = WRITE_RUN_ENV.ALIF_TERMINAL_PASSWORD) =>
+        hmac(hmac(WRITE_RUN_ENV.ALIF_TERMINAL_ID, password), fields.join(''));
+
+    /** Alif's payment notice: signed over orderId + status + transactionId (not the amount). */
+    function notice(orderId: string, status: string, transactionId = '777001', password?: string) {
+        return {
+            orderId, transactionId, status, event: 'payment', amount: 49,
+            account: '505827******9872', transaction_type: 'korti_milli',
+            token: token([orderId, status, transactionId], password),
         };
-        const date = body.payment_date.replace('T', ' ').slice(0, 19);
-        const signature = createHmac('sha256', secret)
-            .update(`${date}|${body.amount}|${body.order_id}|${body.bank_id}|${body.invoice_uuid}`)
-            .digest('hex');
-        return { ...body, signature };
     }
 
-    test('a paid callback activates the plan, once', async ({ request }) => {
+    test('a paid notice activates the plan, once', async ({ request }) => {
         const provider = await createUser('PROVIDER', { subscription: false });
         const payment = await pendingPayment(provider);
-        const body = callback(payment.smartpayOrderId!, 49);
+        alifSays(payment.orderId!, { status: 'ok', amount: 49, transactionId: '777001' });
+        const body = notice(payment.orderId!, 'ok');
 
-        expect((await request.post('/api/webhooks/smartpay', { data: body })).status()).toBe(200);
-        expect((await prisma.payment.findUniqueOrThrow({ where: { id: payment.id } })).status).toBe('COMPLETED');
+        expect((await request.post('/api/webhooks/alif', { data: body })).status()).toBe(200);
+        const completed = await prisma.payment.findUniqueOrThrow({ where: { id: payment.id } });
+        expect(completed).toMatchObject({ status: 'COMPLETED', transactionId: '777001', paymentMethod: 'korti_milli' });
 
         const subscription = await prisma.subscription.findUniqueOrThrow({ where: { userId: provider.id } });
         expect(subscription).toMatchObject({ plan: 'pro', isActive: true });
@@ -86,30 +85,41 @@ test.describe('SmartPay webhook', () => {
         expect(days).toBeLessThan(30.1);
         expect(await prisma.notification.count({ where: { userId: provider.id } })).toBe(1);
 
-        // SmartPay retries callbacks; a repeat must not add a second month.
-        await request.post('/api/webhooks/smartpay', { data: body });
+        // Alif may deliver a notice twice; a repeat must not add a second month.
+        expect((await request.post('/api/webhooks/alif', { data: body })).status()).toBe(200);
         const after = await prisma.subscription.findUniqueOrThrow({ where: { userId: provider.id } });
         expect(after.endDate.getTime()).toBe(subscription.endDate.getTime());
         expect(await prisma.notification.count({ where: { userId: provider.id } })).toBe(1);
     });
 
-    test('a forged callback changes nothing', async ({ request }) => {
+    test('a forged notice changes nothing', async ({ request }) => {
         const provider = await createUser('PROVIDER', { subscription: false });
         const payment = await pendingPayment(provider);
-        const orderId = payment.smartpayOrderId!;
+        const orderId = payment.orderId!;
+        alifSays(orderId, { status: 'pending', amount: 49 });
 
         const forgeries = [
-            callback(orderId, 49, 'not-the-secret'),
-            { ...callback(orderId, 49), signature: '' },
-            // Signed for 1 somoni, replayed as 49.
-            { ...callback(orderId, 1), amount: 4900 },
+            notice(orderId, 'ok', '777001', 'not-the-password'),
+            { ...notice(orderId, 'ok'), token: '' },
+            // Signed as failed, replayed as ok.
+            { ...notice(orderId, 'failed'), status: 'ok' },
             // Signed for another order.
-            { ...callback('e2e-other-order', 49), order_id: orderId },
+            { ...notice('e2e-other-order', 'ok'), orderId },
         ];
         for (const body of forgeries) {
-            expect((await request.post('/api/webhooks/smartpay', { data: body })).status()).toBe(403);
+            expect((await request.post('/api/webhooks/alif', { data: body })).status()).toBe(403);
         }
 
+        expect((await prisma.payment.findUniqueOrThrow({ where: { id: payment.id } })).status).toBe('PENDING');
+        expect(await prisma.subscription.count({ where: { userId: provider.id } })).toBe(0);
+    });
+
+    test('a signed ok notice that Alif does not confirm grants nothing', async ({ request }) => {
+        const provider = await createUser('PROVIDER', { subscription: false });
+        const payment = await pendingPayment(provider);
+        alifSays(payment.orderId!, { status: 'pending', amount: 49 });
+
+        expect((await request.post('/api/webhooks/alif', { data: notice(payment.orderId!, 'ok') })).status()).toBe(200);
         expect((await prisma.payment.findUniqueOrThrow({ where: { id: payment.id } })).status).toBe('PENDING');
         expect(await prisma.subscription.count({ where: { userId: provider.id } })).toBe(0);
     });
@@ -117,17 +127,41 @@ test.describe('SmartPay webhook', () => {
     test('a payment for the wrong amount grants nothing', async ({ request }) => {
         const provider = await createUser('PROVIDER', { subscription: false });
         const payment = await pendingPayment(provider);
+        // Alif confirms 1 somoni paid for a 49 somoni plan.
+        alifSays(payment.orderId!, { status: 'ok', amount: 1 });
 
-        // Correctly signed, but SmartPay says 50 somoni were paid for a 49 somoni plan.
-        const res = await request.post('/api/webhooks/smartpay', { data: callback(payment.smartpayOrderId!, 50) });
+        const res = await request.post('/api/webhooks/alif', { data: notice(payment.orderId!, 'ok') });
         expect(res.status()).toBe(200);
         expect((await prisma.payment.findUniqueOrThrow({ where: { id: payment.id } })).status).toBe('PENDING');
         expect(await prisma.subscription.count({ where: { userId: provider.id } })).toBe(0);
     });
 
-    test('a callback for an order we never created is a 404', async ({ request }) => {
-        const res = await request.post('/api/webhooks/smartpay', { data: callback('e2e-no-such-order', 49) });
-        expect(res.status()).toBe(404);
+    test('a failed notice marks the payment failed', async ({ request }) => {
+        const provider = await createUser('PROVIDER', { subscription: false });
+        const payment = await pendingPayment(provider);
+
+        expect((await request.post('/api/webhooks/alif', { data: notice(payment.orderId!, 'failed') })).status()).toBe(200);
+        expect((await prisma.payment.findUniqueOrThrow({ where: { id: payment.id } })).status).toBe('FAILED');
+    });
+
+    test('a notice for an order we never created is answered, and changes nothing', async ({ request }) => {
+        const res = await request.post('/api/webhooks/alif', { data: notice('e2e-no-such-order', 'ok') });
+        expect(res.status()).toBe(200);
+        expect(await res.json()).toMatchObject({ ok: false, message: 'Payment not found' });
+    });
+
+    test('the status check completes a paid order whose notice never arrived', async ({ page }) => {
+        const provider = await createUser('PROVIDER', { subscription: false });
+        const payment = await pendingPayment(provider);
+        await loginAs(page, provider);
+
+        const before = await page.request.get(`/api/payments/status?orderId=${payment.orderId}`);
+        expect(await before.json()).toMatchObject({ status: 'PENDING' });
+
+        alifSays(payment.orderId!, { status: 'ok', amount: 49 });
+        const after = await page.request.get(`/api/payments/status?orderId=${payment.orderId}`);
+        expect(await after.json()).toMatchObject({ status: 'COMPLETED', planName: 'PRO' });
+        expect(await prisma.subscription.findUniqueOrThrow({ where: { userId: provider.id } })).toMatchObject({ plan: 'pro', isActive: true });
     });
 
     test('only the payer can look up a payment', async ({ page, browser }) => {
@@ -135,11 +169,11 @@ test.describe('SmartPay webhook', () => {
         const payment = await pendingPayment(provider);
         await loginAs(page, provider);
 
-        const mine = await page.request.get(`/api/payments/status?orderId=${payment.smartpayOrderId}`);
+        const mine = await page.request.get(`/api/payments/status?orderId=${payment.orderId}`);
         expect(await mine.json()).toMatchObject({ status: 'PENDING' });
 
         const { context, page: strangerPage } = await newSession(browser, await createUser('PROVIDER'));
-        const theirs = await strangerPage.request.get(`/api/payments/status?orderId=${payment.smartpayOrderId}`);
+        const theirs = await strangerPage.request.get(`/api/payments/status?orderId=${payment.orderId}`);
         expect(theirs.status()).toBe(403);
         await context.close();
     });

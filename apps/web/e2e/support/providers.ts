@@ -6,6 +6,17 @@ import { E2E_EMAIL_DOMAIN } from './env';
 // The test side of e2e/support/fake-providers.js: makes the Google tokens it
 // decodes and signs the Apple tokens its key verifies.
 
+/** What the fake Alif answers to /checktxn, per order id (see alifSays()). */
+export const ALIF_LEDGER_FILE = path.resolve(__dirname, '../../node_modules/.cache/e2e-alif-ledger.json');
+
+/** Make the fake Alif report this transaction for an order, as /checktxn would. */
+export function alifSays(orderId: string, txn: { status: string; amount: number; transactionId?: string }) {
+    fs.mkdirSync(path.dirname(ALIF_LEDGER_FILE), { recursive: true });
+    const ledger = fs.existsSync(ALIF_LEDGER_FILE) ? JSON.parse(fs.readFileSync(ALIF_LEDGER_FILE, 'utf8')) : {};
+    ledger[orderId] = { transactionId: String(Date.now()), ...txn };
+    fs.writeFileSync(ALIF_LEDGER_FILE, JSON.stringify(ledger));
+}
+
 export const APPLE_KEY_FILE = path.resolve(__dirname, '../../node_modules/.cache/e2e-apple-key.pem');
 
 /** Values the e2e server is started with (playwright.config.ts). */

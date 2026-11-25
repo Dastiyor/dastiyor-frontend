@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
 import * as storage from '@/lib/storage';
 import { router } from 'expo-router';
 import { api, setOnUnauthorized } from '@/lib/api-client';
@@ -82,11 +82,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (user?.id) identifyPurchases(user.id);
   }, [user?.id]);
 
+  // True until the stored session has been checked on launch.
+  const bootingRef = useRef(true);
+
   useEffect(() => {
     setOnUnauthorized(async () => {
       await storage.deleteItem('auth_token');
       setUser(null);
-      router.replace('/(auth)/login');
+      // A session revoked while the app was closed (logout elsewhere, password
+      // change) answers 401 on launch. Navigating then replaces app/index, the
+      // only screen that hides the splash, before it runs -- the splash stayed
+      // up for good. On launch, app/index routes the signed-out user itself.
+      if (!bootingRef.current) router.replace('/(auth)/login');
     });
   }, []);
 
@@ -104,6 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch {
         await storage.deleteItem('auth_token');
       } finally {
+        bootingRef.current = false;
         setLoading(false);
       }
     })();

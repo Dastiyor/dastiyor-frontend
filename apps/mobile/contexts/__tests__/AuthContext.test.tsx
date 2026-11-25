@@ -3,7 +3,7 @@ import { render, act, waitFor } from '@testing-library/react-native';
 import { Text } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
-import { api } from '@/lib/api-client';
+import { api, setOnUnauthorized } from '@/lib/api-client';
 import { AuthProvider, useAuth } from '../AuthContext';
 
 const mockApi = api as jest.Mocked<typeof api>;
@@ -141,6 +141,40 @@ describe('AuthContext', () => {
 
       expect(SecureStore.setItemAsync).toHaveBeenCalledWith('auth_token', 'reg-jwt');
       expect(getByTestId('user').props.children).toBe('new@test.com');
+    });
+  });
+
+  describe('revoked session (401)', () => {
+    const unauthorizedHandler = () =>
+      (setOnUnauthorized as jest.Mock).mock.calls.at(-1)![0] as () => Promise<void>;
+
+    it('does not navigate on launch, so app/index can hide the splash', async () => {
+      (SecureStore.getItemAsync as jest.Mock).mockResolvedValue('revoked-token');
+      // What api-client does on a 401: call the handler, then throw.
+      mockApi.get.mockImplementation(async () => {
+        await unauthorizedHandler()();
+        throw new Error('Сессия истекла. Войдите снова.');
+      });
+
+      const { getByTestId } = renderWithAuth();
+      await waitFor(() => expect(getByTestId('loading').props.children).toBe('false'));
+
+      expect(SecureStore.deleteItemAsync).toHaveBeenCalledWith('auth_token');
+      expect(getByTestId('user').props.children).toBe('null');
+      expect(mockRouter.replace).not.toHaveBeenCalled();
+    });
+
+    it('sends the user to login when it happens after launch', async () => {
+      (SecureStore.getItemAsync as jest.Mock).mockResolvedValue('token');
+      mockApi.get.mockResolvedValue({ id: 'u1', email: 'ali@test.com' });
+
+      const { getByTestId } = renderWithAuth();
+      await waitFor(() => expect(getByTestId('user').props.children).toBe('ali@test.com'));
+
+      await act(async () => { await unauthorizedHandler()(); });
+
+      expect(getByTestId('user').props.children).toBe('null');
+      expect(mockRouter.replace).toHaveBeenCalledWith('/(auth)/login');
     });
   });
 

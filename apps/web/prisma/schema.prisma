@@ -336,10 +336,10 @@ model Payment {
   type            String // SUBSCRIPTION
   description     String // Human-readable description
   plan            String? // Subscription plan if type=SUBSCRIPTION
-  // SmartPay fields
-  transactionId   String?  @unique // SmartPay transaction ID
-  paymentMethod   String? // e.g. 'visa', 'humo', 'dc_next'
-  smartpayOrderId String?  @unique // Our order ID sent to SmartPay
+  // Payment provider fields (Alif acquiring)
+  transactionId   String?  @unique // The provider's transaction ID
+  paymentMethod   String? // e.g. 'korti_milli', 'visa', 'wallet'
+  orderId         String?  @unique @map("smartpayOrderId") // Our order ID sent to the provider (column named from SmartPay days)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

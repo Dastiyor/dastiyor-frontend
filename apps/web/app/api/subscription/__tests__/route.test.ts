@@ -12,16 +12,16 @@ jest.mock('@/lib/auth', () => ({
 }));
 jest.mock('next/headers', () => ({ cookies: jest.fn() }));
 // Subscriptions are gated off in prod via SUBSCRIPTIONS_ENABLED; force it on
-// here so the POST tests still exercise the SmartPay payment flow.
+// here so the POST tests still exercise the Alif payment flow.
 jest.mock('@/lib/features', () => ({ SUBSCRIPTIONS_ENABLED: true }));
 jest.mock('@/lib/payments', () => ({
     PLANS: jest.requireActual('@/lib/plans').PLANS,
     isValidPlan: jest.requireActual('@/lib/plans').isValidPlan,
-    createSmartPayOrder: jest.fn(),
+    createAlifPayment: jest.fn(),
     generateOrderId: jest.fn(() => 'ORDER-MOCK-001'),
 }));
 
-import { createSmartPayOrder } from '@/lib/payments';
+import { createAlifPayment } from '@/lib/payments';
 
 describe('/api/subscription', () => {
     const mockUserId = 'user-1';
@@ -163,7 +163,7 @@ describe('/api/subscription', () => {
             expect(res2.status).toBe(400);
         });
 
-        it('should initiate SmartPay payment and return paymentUrl', async () => {
+        it('starts an Alif payment and returns the payment form URL', async () => {
             prismaMock.user.findUnique.mockResolvedValue({
                 id: mockUserId,
                 email: 'user@test.com',
@@ -173,13 +173,12 @@ describe('/api/subscription', () => {
                 id: 'pay-1',
                 userId: mockUserId,
                 status: 'PENDING',
-                smartpayOrderId: 'ORDER-MOCK-001',
+                orderId: 'ORDER-MOCK-001',
             } as any);
             prismaMock.payment.update.mockResolvedValue({} as any);
-            (createSmartPayOrder as jest.Mock).mockResolvedValue({
+            (createAlifPayment as jest.Mock).mockResolvedValue({
                 success: true,
-                paymentUrl: 'https://smartpay.tj/checkout/abc123',
-                transactionId: 'sp_tx_001',
+                paymentUrl: 'https://test-web.alif.tj?payment=abc123',
             });
 
             const request = new NextRequest('http://localhost/api/subscription', {
@@ -191,7 +190,15 @@ describe('/api/subscription', () => {
             const data = await response.json();
 
             expect(response.status).toBe(200);
-            expect(data.paymentUrl).toBe('https://smartpay.tj/checkout/abc123');
+            expect(data.paymentUrl).toBe('https://test-web.alif.tj?payment=abc123');
+            expect(createAlifPayment).toHaveBeenCalledWith(expect.objectContaining({
+                orderId: 'ORDER-MOCK-001',
+                amount: 49,
+                returnUrl: expect.stringMatching(/\/payment\/result\?orderId=ORDER-MOCK-001$/),
+                callbackUrl: expect.stringMatching(/\/api\/webhooks\/alif$/),
+                phone: '+992901234567',
+                email: 'user@test.com',
+            }));
             expect(data.orderId).toBe('ORDER-MOCK-001');
             expect(data.paymentId).toBe('pay-1');
             expect(prismaMock.payment.create).toHaveBeenCalledWith(
@@ -202,6 +209,7 @@ describe('/api/subscription', () => {
                         amount: 49,
                         status: 'PENDING',
                         currency: 'TJS',
+                        orderId: 'ORDER-MOCK-001',
                     }),
                 })
             );
@@ -215,7 +223,7 @@ describe('/api/subscription', () => {
             expect(response.status).toBe(400);
         });
 
-        it('should return 502 when SmartPay order creation fails', async () => {
+        it('returns 502 and marks the payment FAILED when Alif refuses it', async () => {
             prismaMock.user.findUnique.mockResolvedValue({
                 id: mockUserId,
                 email: 'user@test.com',
@@ -223,11 +231,10 @@ describe('/api/subscription', () => {
             } as any);
             prismaMock.payment.create.mockResolvedValue({ id: 'pay-1' } as any);
             prismaMock.payment.update.mockResolvedValue({} as any);
-            (createSmartPayOrder as jest.Mock).mockResolvedValue({
+            (createAlifPayment as jest.Mock).mockResolvedValue({
                 success: false,
                 paymentUrl: '',
-                transactionId: '',
-                error: 'Gateway error',
+                error: 'Неверный токен',
             });
 
             const request = new NextRequest('http://localhost/api/subscription', {

@@ -20,7 +20,7 @@ type Props = {
     signedIn?: boolean;
 };
 
-/** FREE, PRO, PRO+ and BUSINESS side by side, with SmartPay checkout and the general rules. */
+/** FREE, PRO, PRO+ and BUSINESS side by side, with Alif checkout and the general rules. */
 export default function SubscriptionPlans({ currentPlan, signedIn = true }: Props) {
     const [loading, setLoading] = useState<string | null>(null);
     const { t, tError } = useTranslation();

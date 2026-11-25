@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 import path from 'path';
 import { E2E_SMS_CODE, E2E_SMS_PHONE, loadE2EEnv, usesLocalDatabase, WRITE_RUN_ENV } from './e2e/support/env';
-import { APPLE_KEY_FILE, OAUTH_ENV } from './e2e/support/providers';
+import { ALIF_LEDGER_FILE, APPLE_KEY_FILE, OAUTH_ENV } from './e2e/support/providers';
 
 loadE2EEnv();
 
@@ -111,8 +111,9 @@ export default defineConfig({
                     ? {
                         ...WRITE_RUN_ENV,
                         ...OAUTH_ENV,
-                        // Google and Apple are played by e2e/support/fake-providers.js.
+                        // Google, Apple and Alif are played by e2e/support/fake-providers.js.
                         E2E_APPLE_KEY_FILE: APPLE_KEY_FILE,
+                        E2E_ALIF_LEDGER_FILE: ALIF_LEDGER_FILE,
                         NODE_OPTIONS: [
                             process.env.NODE_OPTIONS,
                             `--require ${path.resolve(__dirname, 'e2e/support/fake-providers.js')}`,

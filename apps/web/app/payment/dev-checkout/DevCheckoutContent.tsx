@@ -11,27 +11,22 @@ function DevCheckoutContent() {
     const router = useRouter();
     const orderId = searchParams.get('orderId');
     const amount = searchParams.get('amount');
-    const txId = searchParams.get('txId');
-
-    // Mimics SmartPay: a webhook only for a successful payment (amount in dirams,
-    // unsigned — accepted outside production only). A failed payment sends nothing.
+    // Mimics Alif: a notice for success and for failure, unsigned — accepted only
+    // while no Alif terminal is configured, and never in production.
     const simulatePayment = async (status: 'success' | 'failed') => {
-        if (status === 'success') {
-            await fetch('/api/webhooks/smartpay', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    payment_date: new Date().toISOString(),
-                    amount: Number(amount) * 100,
-                    order_id: orderId,
-                    bank_id: 0,
-                    invoice_uuid: txId,
-                    payment_id: txId,
-                    bank: 'dev_simulated',
-                    signature: '',
-                }),
-            });
-        }
+        await fetch('/api/webhooks/alif', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                orderId,
+                transactionId: `dev_${Date.now()}`,
+                status: status === 'success' ? 'ok' : 'failed',
+                event: 'payment',
+                amount: Number(amount),
+                transaction_type: 'dev_simulated',
+                token: '',
+            }),
+        });
 
         router.push(`/payment/result?orderId=${orderId}`);
     };
@@ -62,7 +57,7 @@ function DevCheckoutContent() {
                     color: '#92400E',
                     fontWeight: '600',
                 }}>
-                    DEV MODE — SmartPay Simulator
+                    DEV MODE — Alif Simulator
                 </div>
 
                 <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '24px', textAlign: 'center' }}>

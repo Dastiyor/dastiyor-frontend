@@ -14,9 +14,13 @@ jest.mock('next/headers', () => ({
 jest.mock('@/lib/payments', () => ({
     PLANS: jest.requireActual('@/lib/plans').PLANS,
     normalizePlan: jest.requireActual('@/lib/plans').normalizePlan,
-    getSmartPayOrderStatus: jest.fn(async () => null),
+    sameAmount: jest.requireActual('@/lib/payments/alif').sameAmount,
+    isAlifConfigured: jest.fn(() => true),
+    checkAlifTransaction: jest.fn(async () => null),
+    completePayment: jest.fn(async () => true),
+    failPayment: jest.fn(async () => undefined),
 }));
-import { getSmartPayOrderStatus } from '@/lib/payments';
+import { isAlifConfigured, checkAlifTransaction, completePayment, failPayment } from '@/lib/payments';
 
 const makeRequest = (orderId?: string) =>
     new Request(`http://localhost/api/payments/status${orderId ? `?orderId=${orderId}` : ''}`);
@@ -158,36 +162,77 @@ describe('/api/payments/status', () => {
         expect(data.error).toBe('Internal Server Error');
     });
 
-    describe('pending payment and SmartPay', () => {
-        const pending = { id: 'pay-1', userId: 'user-1', smartpayOrderId: 'ORDER-001', status: 'PENDING', plan: 'pro', amount: 99, currency: 'TJS' };
+    describe('pending payment and Alif', () => {
+        const pending = { id: 'pay-1', userId: 'user-1', orderId: 'ORDER-001', status: 'PENDING', plan: 'pro', amount: 49, currency: 'TJS' };
+        const txn = (status: string, amount = 49) => ({ orderId: 'ORDER-001', transactionId: '26136', status, amount });
 
-        it('marks a voided invoice as FAILED', async () => {
+        beforeEach(() => {
+            (isAlifConfigured as jest.Mock).mockReturnValue(true);
             prismaMock.payment.findUnique.mockResolvedValue(pending as any);
-            (getSmartPayOrderStatus as jest.Mock).mockResolvedValue('void');
-            prismaMock.payment.updateMany.mockResolvedValue({ count: 1 });
+        });
+
+        it('completes a payment Alif reports ok, for the right amount', async () => {
+            (checkAlifTransaction as jest.Mock).mockResolvedValue(txn('ok'));
 
             const data = await (await GET(makeRequest('ORDER-001'))).json();
 
-            expect(data.status).toBe('FAILED');
-            expect(prismaMock.payment.updateMany).toHaveBeenCalledWith({
-                where: { id: 'pay-1', status: 'PENDING' }, data: { status: 'FAILED' },
-            });
+            expect(data.status).toBe('COMPLETED');
+            expect(checkAlifTransaction).toHaveBeenCalledWith('ORDER-001');
+            expect(completePayment).toHaveBeenCalledWith('pay-1', { transactionId: '26136' });
         });
 
-        it('keeps PENDING when the invoice is open or SmartPay is unreachable', async () => {
-            prismaMock.payment.findUnique.mockResolvedValue(pending as any);
-            (getSmartPayOrderStatus as jest.Mock).mockResolvedValue(null);
+        it('does not complete an ok transaction for a different amount', async () => {
+            (checkAlifTransaction as jest.Mock).mockResolvedValue(txn('ok', 50));
 
             const data = await (await GET(makeRequest('ORDER-001'))).json();
 
             expect(data.status).toBe('PENDING');
-            expect(prismaMock.payment.updateMany).not.toHaveBeenCalled();
+            expect(completePayment).not.toHaveBeenCalled();
         });
 
-        it('does not ask SmartPay about a finished payment', async () => {
+        it('marks a failed transaction as FAILED', async () => {
+            (checkAlifTransaction as jest.Mock).mockResolvedValue(txn('failed'));
+
+            const data = await (await GET(makeRequest('ORDER-001'))).json();
+
+            expect(data.status).toBe('FAILED');
+            expect(failPayment).toHaveBeenCalledWith('pay-1');
+        });
+
+        it.each([['pending'], ['to_approve']])('keeps PENDING while Alif says %s', async (status) => {
+            (checkAlifTransaction as jest.Mock).mockResolvedValue(txn(status));
+
+            const data = await (await GET(makeRequest('ORDER-001'))).json();
+
+            expect(data.status).toBe('PENDING');
+            expect(completePayment).not.toHaveBeenCalled();
+            expect(failPayment).not.toHaveBeenCalled();
+        });
+
+        it('keeps PENDING when Alif has no such transaction yet', async () => {
+            (checkAlifTransaction as jest.Mock).mockResolvedValue(null);
+            expect((await (await GET(makeRequest('ORDER-001'))).json()).status).toBe('PENDING');
+        });
+
+        it('keeps PENDING when Alif is unreachable', async () => {
+            (checkAlifTransaction as jest.Mock).mockRejectedValue(new Error('timeout'));
+
+            const response = await GET(makeRequest('ORDER-001'));
+
+            expect(response.status).toBe(200);
+            expect((await response.json()).status).toBe('PENDING');
+        });
+
+        it('does not ask Alif about a finished payment', async () => {
             prismaMock.payment.findUnique.mockResolvedValue({ ...pending, status: 'COMPLETED' } as any);
             await GET(makeRequest('ORDER-001'));
-            expect(getSmartPayOrderStatus).not.toHaveBeenCalled();
+            expect(checkAlifTransaction).not.toHaveBeenCalled();
+        });
+
+        it('does not ask Alif when no terminal is configured', async () => {
+            (isAlifConfigured as jest.Mock).mockReturnValue(false);
+            expect((await (await GET(makeRequest('ORDER-001'))).json()).status).toBe('PENDING');
+            expect(checkAlifTransaction).not.toHaveBeenCalled();
         });
     });
 });

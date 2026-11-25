@@ -46,7 +46,7 @@ export async function getStoreEntitlement(userId: string): Promise<{ plan: PlanI
 
 /**
  * Mirror the user's store subscription into Subscription without ever shortening
- * a longer web (SmartPay) subscription, and deactivate a store one that lapsed.
+ * a longer web (Alif) subscription, and deactivate a store one that lapsed.
  */
 export async function syncStoreSubscription(userId: string): Promise<void> {
     const [entitlement, existing] = await Promise.all([

@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { PLANS, normalizePlan, getSmartPayOrderStatus } from '@/lib/payments';
+import {
+    PLANS, normalizePlan, isAlifConfigured, checkAlifTransaction, sameAmount, completePayment, failPayment,
+} from '@/lib/payments';
 import { requireAuth } from '@/lib/require-auth';
 
-// GET - Check payment status by orderId
+// GET - Check payment status by orderId (the result page polls this)
 export async function GET(request: Request) {
     try {
         const payload = await requireAuth(request);
@@ -19,7 +21,7 @@ export async function GET(request: Request) {
         }
 
         const payment = await prisma.payment.findUnique({
-            where: { smartpayOrderId: orderId }
+            where: { orderId }
         });
 
         if (!payment) {
@@ -31,12 +33,24 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        // SmartPay only sends a webhook for successful payments, so a voided (expired or
-        // cancelled) invoice is learned here. Activation stays webhook-only.
+        // Still pending: ask Alif directly. The notice normally settles it first, but a lost
+        // or late notice must not leave a paid order pending. completePayment() activates once,
+        // whichever of the two gets there first.
         let status = payment.status;
-        if (status === 'PENDING' && await getSmartPayOrderStatus(orderId) === 'void') {
-            await prisma.payment.updateMany({ where: { id: payment.id, status: 'PENDING' }, data: { status: 'FAILED' } });
-            status = 'FAILED';
+        if (status === 'PENDING' && isAlifConfigured()) {
+            try {
+                const txn = await checkAlifTransaction(orderId);
+                if (txn?.status === 'ok' && sameAmount(txn.amount, payment.amount)) {
+                    await completePayment(payment.id, { transactionId: txn.transactionId });
+                    status = 'COMPLETED';
+                } else if (txn?.status === 'failed') {
+                    await failPayment(payment.id);
+                    status = 'FAILED';
+                }
+            } catch (error) {
+                // Alif unreachable: report what we know; the page polls again.
+                console.error('[Payment Status] checktxn failed:', error);
+            }
         }
 
         const plan = normalizePlan(payment.plan);

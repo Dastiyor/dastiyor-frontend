@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import type { Metadata } from 'next';
 import { prisma } from '@/lib/prisma';
 import TaskInfo from '@/components/tasks/TaskInfo';
@@ -9,7 +9,6 @@ import RecommendedProviders from '@/components/tasks/RecommendedProviders';
 import { cookies } from 'next/headers';
 import { verifyJWT } from '@/lib/auth';
 import Link from 'next/link';
-import { PREVIEW_TASKS } from '@/lib/landing-tasks';
 import { MapPin, Clock, Wallet } from 'lucide-react';
 import { getServerTranslation } from '@/lib/i18n/server';
 
@@ -32,12 +31,15 @@ type Props = {
     params: Promise<{ id: string }>;
 };
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://dastiyor.com';
+/**
+ * The home page once showed made-up example tasks at /tasks/preview-0, -1, -2.
+ * Shared and indexed links to them go to the real list.
+ */
+const OLD_PREVIEW_ID = /^preview-\d$/;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { id } = await params;
-    // Preview tasks don't have DB records
-    if (/^preview-\d$/.test(id)) return {};
+    if (OLD_PREVIEW_ID.test(id)) permanentRedirect('/tasks');
 
     const task = await prisma.task.findUnique({
         where: { id },
@@ -52,11 +54,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
         title,
         description: desc,
+        alternates: { canonical: `/tasks/${id}` },
         openGraph: {
             title,
             description: desc,
-            url: `${BASE_URL}/tasks/${id}`,
-            images: [{ url: `${BASE_URL}/opengraph-image.png`, width: 1200, height: 630 }],
+            url: `/tasks/${id}`,
+            images: [{ url: '/opengraph-image', width: 1200, height: 630 }],
         },
         twitter: {
             card: 'summary_large_image',
@@ -70,77 +73,7 @@ export default async function TaskDetailsPage({ params }: Props) {
     const { id } = await params;
     const { t, tr } = await getServerTranslation();
 
-    // Handle static preview links from landing (e.g. /tasks/preview-0, preview-1, preview-2)
-    const previewMatch = id.match(/^preview-(\d)$/);
-    if (previewMatch) {
-        const index = parseInt(previewMatch[1], 10);
-        if (index >= 0 && index < PREVIEW_TASKS.length) {
-            const task = PREVIEW_TASKS[index];
-            return (
-                <div style={{ backgroundColor: 'var(--secondary)', minHeight: '100vh', padding: '40px 0' }}>
-                    <div className="container">
-                        <div style={{ marginBottom: '24px', fontSize: '0.9rem', color: 'var(--text-light)' }}>
-                            <Link href="/" style={{ color: 'var(--primary)', textDecoration: 'none' }}>{t('common.home')}</Link>
-                            {' / '}
-                            <Link href="/tasks" style={{ color: 'var(--primary)', textDecoration: 'none' }}>{t('tasks.tasksBreadcrumb')}</Link>
-                            {' / '}
-                            <span>{task.title}</span>
-                        </div>
-                        <div style={{
-                            backgroundColor: 'white',
-                            borderRadius: '16px',
-                            padding: '40px',
-                            border: '1px solid var(--border)',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
-                            maxWidth: '720px',
-                        }}>
-                            <span style={{
-                                backgroundColor: '#EFF6FF',
-                                color: 'var(--primary)',
-                                fontSize: '0.8rem',
-                                fontWeight: '600',
-                                padding: '4px 12px',
-                                borderRadius: '20px',
-                            }}>
-                                {tr(task.category)}
-                            </span>
-                            <h1 style={{ fontSize: '1.75rem', fontWeight: '700', marginTop: '16px', marginBottom: '24px' }}>
-                                {task.title}
-                            </h1>
-                            <p style={{ color: 'var(--text)', lineHeight: '1.6', marginBottom: '24px' }}>
-                                {task.description}
-                            </p>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginBottom: '24px', color: 'var(--text-light)' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    <MapPin size={18} />
-                                    {task.location}
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    <Clock size={18} />
-                                    {task.deadline}
-                                </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#059669', fontWeight: '700' }}>
-                                    <Wallet size={18} />
-                                    {tr(task.budget)}
-                                </div>
-                            </div>
-                            <p style={{ fontSize: '0.9rem', color: 'var(--text-light)', marginBottom: '24px' }}>
-                                {task.timeAgo}
-                            </p>
-                            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                                <Link href="/tasks" className="btn btn-primary">
-                                    {t('tasks.viewAllTasks')}
-                                </Link>
-                                <Link href="/register" className="btn btn-outline">
-                                    {t('common.register')}
-                                </Link>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-    }
+    if (OLD_PREVIEW_ID.test(id)) permanentRedirect('/tasks');
 
     const task = await prisma.task.findUnique({
         where: { id },

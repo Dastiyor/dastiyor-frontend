@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import TaskFilterSidebar from '@/components/tasks/TaskFilterSidebar';
@@ -11,6 +12,8 @@ import { getCategories } from '@/lib/categories';
 import { cookies } from 'next/headers';
 import { verifyJWT } from '@/lib/auth';
 import { alertPlan } from '@/lib/task-alerts';
+
+export const metadata: Metadata = { alternates: { canonical: '/tasks' } };
 
 type Viewer = { role: 'CUSTOMER' | 'PROVIDER' | null; hasTaskAlerts: boolean };
 

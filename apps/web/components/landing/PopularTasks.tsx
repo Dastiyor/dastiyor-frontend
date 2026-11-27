@@ -1,7 +1,6 @@
 import Link from 'next/link';
-import { MapPin, Clock, Wallet, Star } from 'lucide-react';
+import { MapPin, Wallet, Star } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
-import { PREVIEW_TASKS } from '@/lib/landing-tasks';
 import { getServerTranslation } from '@/lib/i18n/server';
 import { formatBudget } from '@/lib/format-budget';
 import { formatTaskDate } from '@/lib/format-date';
@@ -12,21 +11,19 @@ type CardTask = {
     timeAgo: string;
     title: string;
     location: string;
-    deadline?: string;
     budget: string;
     featured: boolean;
 };
 
 /**
- * The featured strip. Falls back to the static PREVIEW_TASKS when nothing is
- * promoted, so the section is never empty. Capped at 3 — the same cap the apps
- * and the DB trigger enforce.
+ * Three real open tasks: featured ones first (capped at 3, the same cap the apps
+ * and the DB trigger enforce), then the newest. Never made-up examples.
  */
-async function getFeaturedCards(): Promise<CardTask[]> {
+async function getCards(): Promise<CardTask[]> {
     try {
         const tasks = await prisma.task.findMany({
-            where: { status: 'OPEN', featured: true },
-            orderBy: [{ featuredAt: { sort: 'desc', nulls: 'last' } }, { createdAt: 'desc' }],
+            where: { status: 'OPEN' },
+            orderBy: [{ featured: 'desc' }, { featuredAt: { sort: 'desc', nulls: 'last' } }, { createdAt: 'desc' }],
             take: 3,
         });
         return tasks.map((task) => ({
@@ -36,9 +33,10 @@ async function getFeaturedCards(): Promise<CardTask[]> {
             title: task.title,
             location: task.city,
             budget: formatBudget(task.budgetType, task.budgetAmount),
-            featured: true,
+            featured: task.featured,
         }));
-    } catch {
+    } catch (error) {
+        console.error('Home page tasks:', error);
         return [];
     }
 }
@@ -46,19 +44,9 @@ async function getFeaturedCards(): Promise<CardTask[]> {
 export default async function PopularTasks() {
     const { t, tr } = await getServerTranslation();
 
-    const featured = await getFeaturedCards();
-    const cards: CardTask[] = featured.length > 0
-        ? featured
-        : PREVIEW_TASKS.slice(0, 3).map((task, index) => ({
-            href: `/tasks/preview-${index}`,
-            category: task.category,
-            timeAgo: task.timeAgo,
-            title: task.title,
-            location: task.location,
-            deadline: task.deadline,
-            budget: task.budget,
-            featured: false,
-        }));
+    const cards = await getCards();
+    // No open tasks: no section.
+    if (cards.length === 0) return null;
 
     return (
         <section className="popular-tasks-section" style={{ padding: '100px 0', backgroundColor: '#F9FAFB' }}>
@@ -133,12 +121,6 @@ export default async function PopularTasks() {
                                     <MapPin size={16} />
                                     {tr(task.location)}
                                 </div>
-                                {task.deadline && (
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                        <Clock size={16} />
-                                        {task.deadline}
-                                    </div>
-                                )}
                             </div>
 
                             <div style={{

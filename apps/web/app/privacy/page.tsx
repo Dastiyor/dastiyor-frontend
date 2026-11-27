@@ -4,6 +4,7 @@ import { getServerTranslation } from '@/lib/i18n/server';
 export async function generateMetadata(): Promise<Metadata> {
     const { t } = await getServerTranslation();
     return {
+        alternates: { canonical: '/privacy' },
         title: t('privacyPage.title'),
         description: t('privacyPage.desc'),
     };

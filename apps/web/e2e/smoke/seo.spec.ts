@@ -54,3 +54,19 @@ test('no link on the home page is dead', async ({ page, request }) => {
         expect(res.status(), href).toBeLessThan(400);
     }
 });
+
+test('each page names itself, on the www host, as canonical', async ({ page }) => {
+    for (const path of ['/', '/tasks', '/professionals', '/how-it-works', '/help', '/safety', '/terms', '/privacy']) {
+        await page.goto(path);
+        const href = await page.locator('link[rel="canonical"]').getAttribute('href');
+        expect(href?.replace(/\/$/, ''), path).toBe(`https://www.dastiyor.com${path.replace(/\/$/, '')}`);
+    }
+    // No canonical is better than another page's.
+    await page.goto('/login');
+    await expect(page.locator('link[rel="canonical"]')).toHaveCount(0);
+});
+
+test('an old example-task link goes to the task list', async ({ page }) => {
+    await page.goto('/tasks/preview-0');
+    await expect(page).toHaveURL(/\/tasks$/);
+});

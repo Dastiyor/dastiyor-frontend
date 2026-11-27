@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
+    alternates: { canonical: '/help' },
     title: 'Центр помощи | Dastiyor',
     description: 'Ответы на частые вопросы о работе платформы Dastiyor.',
 };

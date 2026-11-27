@@ -23,11 +23,10 @@ export const metadata: Metadata = {
   // deployment's own *.vercel.app address.
   metadataBase: new URL("https://www.dastiyor.com"),
   title: "Дастиёр — Маркетплейс услуг в Таджикистане",
-  description: "Найдите профессионалов для любых задач. Лучший маркетплейс услуг в Таджикистане.",
+  description: "Найдите профессионалов для любых задач. Маркетплейс услуг в Таджикистане.",
   openGraph: {
     title: "Дастиёр — Маркетплейс услуг",
     description: "Найдите профессионалов для любых задач в Таджикистане.",
-    url: "https://dastiyor.com",
     siteName: "Дастиёр",
     locale: "ru_TJ",
     type: "website",
@@ -36,9 +35,6 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Дастиёр — Маркетплейс услуг",
     description: "Найдите профессионалов для любых задач в Таджикистане.",
-  },
-  alternates: {
-    canonical: "https://dastiyor.com",
   },
 };
 

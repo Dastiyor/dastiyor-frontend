@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
+    alternates: { canonical: '/terms' },
     title: 'Условия использования | Dastiyor',
     description: 'Условия использования платформы Dastiyor — правила для заказчиков и исполнителей.',
 };

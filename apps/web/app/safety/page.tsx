@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
+    alternates: { canonical: '/safety' },
     title: 'Безопасность | Dastiyor',
     description: 'Как Dastiyor обеспечивает безопасность заказчиков и исполнителей на платформе.',
 };
@@ -10,8 +11,8 @@ export default function SafetyPage() {
         <div className="container" style={{ padding: '60px 20px', maxWidth: '800px' }}>
             <h1 className="heading-lg" style={{ marginBottom: '16px' }}>Безопасность на Dastiyor</h1>
             <p style={{ fontSize: '1.1rem', color: 'var(--text-light)', marginBottom: '48px', lineHeight: '1.7' }}>
-                Безопасность участников — наш главный приоритет. Мы создали систему проверок и инструментов,
-                которые защищают как заказчиков, так и исполнителей.
+                Подтверждение телефона по SMS, отзывы и переписка на платформе помогают защитить
+                и заказчиков, и исполнителей.
             </p>
 
             <section style={{ marginBottom: '40px' }}>
@@ -26,14 +27,14 @@ export default function SafetyPage() {
             <section style={{ marginBottom: '40px' }}>
                 <h2 className="heading-md" style={{ marginBottom: '12px' }}>Система отзывов и рейтингов</h2>
                 <p style={{ color: 'var(--text-light)', lineHeight: '1.7' }}>
-                    После завершения задания заказчик может оставить отзыв и оценить работу исполнителя. Рейтинг
-                    формируется на основе реальных выполненных заданий — подставные отзывы невозможны. Перед
+                    После завершения задания заказчик может оставить отзыв и оценить работу исполнителя. Отзыв
+                    можно оставить только по завершённому заданию. Перед
                     выбором исполнителя изучите его историю работ и отзывы других пользователей.
                 </p>
             </section>
 
             <section style={{ marginBottom: '40px' }}>
-                <h2 className="heading-md" style={{ marginBottom: '12px' }}>Безопасные платежи</h2>
+                <h2 className="heading-md" style={{ marginBottom: '12px' }}>Оплата</h2>
                 <p style={{ color: 'var(--text-light)', lineHeight: '1.7' }}>
                     Платежи за подписку исполнителей обрабатываются платёжным партнёром Dastiyor: данные карты
                     вводятся на его защищённой странице и не передаются Dastiyor. Все транзакции зашифрованы. Расчёты между заказчиком и исполнителем за выполнение

@@ -97,6 +97,10 @@ The logo and favicon inputs on that admin page are inert — bare `<input type="
 
 Cities have no table and stay static in `lib/config-fallback.ts`. Seed a fresh database with `prisma/seed-categories.ts`. Note `/api/config` has `revalidate = 3600` and mobile caches for 10 minutes, so a newly added category can take up to an hour to appear.
 
+### SEO and public claims
+
+The canonical host is `https://www.dastiyor.com` (`lib/site-url.ts`, used by the sitemap and robots). Each indexable page sets its own relative `alternates.canonical`; never put one in the root layout, every page would inherit it. Marketing copy states only what the product does: no ranking, user-count, document-check or payment-protection claims. Support hours are daily 9:00–22:00 Dushanbe time, as the Help and Safety pages say. The home page shows real open tasks or no task section.
+
 ### Before hydration
 
 On a slow phone the server-rendered page is visible for seconds before React attaches, and people use it. Three rules, each pinned by `e2e/smoke/before-hydration.spec.ts`:

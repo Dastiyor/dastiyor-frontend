@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { BadgeCheck, MapPin, Star } from 'lucide-react';
 import { getServerTranslation } from '@/lib/i18n/server';
@@ -7,6 +8,8 @@ import { parseSearchParams, searchProfessionals } from '@/lib/professionals';
 import TierBadge, { tierCardStyle } from '@/components/TierBadge';
 import Filters from './Filters';
 import styles from './professionals.module.css';
+
+export const metadata: Metadata = { alternates: { canonical: '/professionals' } };
 
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
 

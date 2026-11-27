@@ -1,4 +1,7 @@
+import type { Metadata } from 'next';
 import { FileText, MessageCircle, CheckCircle, Sparkles } from 'lucide-react';
+
+export const metadata: Metadata = { alternates: { canonical: '/how-it-works' } };
 
 export default function HowItWorksPage() {
     const steps = [
@@ -10,7 +13,7 @@ export default function HowItWorksPage() {
         },
         {
             title: "2. Получите предложения",
-            description: "Получайте отклики от проверенных специалистов. Сравнивайте их профили, рейтинги и цены.",
+            description: "Получайте отклики от специалистов. Сравнивайте их профили, рейтинги и цены.",
             icon: MessageCircle,
             color: '#0EA5E9'
         },

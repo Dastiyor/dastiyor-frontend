@@ -36,7 +36,7 @@ export function ScreenHeader({ title, unreadCount = 0, onNotificationsOpen, show
           accessibilityRole="button"
           accessibilityLabel={backLabel}
         >
-          <Icon name="chevron-back" size={24} color={colors.accent} />
+          <Icon name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
       ) : (
         <View style={styles.actions}>

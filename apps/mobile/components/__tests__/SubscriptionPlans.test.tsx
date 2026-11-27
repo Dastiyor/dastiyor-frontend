@@ -56,7 +56,7 @@ describe('SubscriptionPlans', () => {
 
     await waitFor(() => expect(post).toHaveBeenCalledWith('/api/subscription/sync'));
     expect(P.purchasePackage).toHaveBeenCalledWith(offerings.current.availablePackages[2]);
-    expect(Alert.alert).toHaveBeenCalledWith('Subscribed', 'PRO+');
+    expect(Alert.alert).toHaveBeenCalledWith('Subscribed', 'PRO+', undefined, { icon: 'success' });
   });
 
   it('user cancel shows no error', async () => {

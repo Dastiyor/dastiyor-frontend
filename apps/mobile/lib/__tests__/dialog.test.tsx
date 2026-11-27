@@ -3,6 +3,9 @@ import { render, screen, fireEvent, act } from '@testing-library/react-native';
 import { Alert, DialogHost } from '@/lib/dialog';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import { getTranslations } from '@/lib/i18n';
+
+const common = getTranslations('ru').common;
 
 function host() {
   return render(
@@ -31,6 +34,54 @@ describe('themed Alert', () => {
     act(() => { Alert.alert('T'); });
     expect(dismiss).toHaveBeenCalled();
     dismiss.mockRestore();
+  });
+
+  it('puts a success badge on a "done" dialog and centres its text', async () => {
+    host();
+    act(() => { Alert.alert(common.done, 'Задание опубликовано'); });
+    expect(await screen.findByText(common.done)).toHaveStyle({ textAlign: 'center' });
+    expect(screen.getByText('Задание опубликовано')).toHaveStyle({ textAlign: 'center' });
+  });
+
+  it('takes an explicit success icon for a dialog titled otherwise', async () => {
+    host();
+    act(() => { Alert.alert('Код отправлен', 'Проверьте SMS', undefined, { icon: 'success' }); });
+    expect(await screen.findByText('Код отправлен')).toHaveStyle({ textAlign: 'center' });
+  });
+
+  it('says what went wrong and offers to try again, not a bare "Error" and "OK"', async () => {
+    host();
+    act(() => { Alert.alert(common.error, 'Неверный или просроченный код'); });
+    expect(await screen.findByText(common.errorTitle)).toHaveStyle({ textAlign: 'center' });
+    expect(screen.queryByText(common.error)).toBeNull();
+    expect(screen.getByText(common.errorRetry)).toBeTruthy();
+    expect(screen.queryByText(common.ok)).toBeNull();
+  });
+
+  it('gives a success dialog a "Continue" button', async () => {
+    host();
+    act(() => { Alert.alert(common.done, 'Пароль изменён'); });
+    expect(await screen.findByText(common.continue)).toBeTruthy();
+  });
+
+  it('shows a badge dialog\'s cancel as a text link under the main action', async () => {
+    const onCreate = jest.fn();
+    host();
+    act(() => {
+      Alert.alert('Этот номер не зарегистрирован', 'Создайте аккаунт', [
+        { text: 'Отмена', style: 'cancel' },
+        { text: 'Создать аккаунт', onPress: onCreate },
+      ], { icon: 'error' });
+    });
+    fireEvent.press(await screen.findByText('Создать аккаунт'));
+    flushFrame();
+    expect(onCreate).toHaveBeenCalled();
+  });
+
+  it('keeps a plain dialog plain', async () => {
+    host();
+    act(() => { Alert.alert('Удалить задание?', 'Это нельзя отменить'); });
+    expect(await screen.findByText('Удалить задание?')).not.toHaveStyle({ textAlign: 'center' });
   });
 
   it('renders the title, message and buttons in-app', async () => {

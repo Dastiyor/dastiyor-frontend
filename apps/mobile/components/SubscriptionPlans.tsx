@@ -76,7 +76,7 @@ export function SubscriptionPlans({ labels: l, storeReady, locale = 'ru' }: { la
     try {
       await Purchases.purchasePackage(pkg);
       const sub = await sync();
-      Alert.alert(l.success, sub ? nameOf(sub.plan) : '');
+      Alert.alert(l.success, sub ? nameOf(sub.plan) : '', undefined, { icon: 'success' });
     } catch (e) {
       if (!isUserCancel(e)) Alert.alert(l.error, (e as Error).message);
     } finally {

@@ -14,6 +14,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { FONT_FAMILY } from '@/components/AppText';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { DialogHost } from '@/lib/dialog';
+import { HeaderBackArrow } from '@/components/HeaderBackArrow';
 import { initErrorReporting } from '@/lib/errorReporting';
 import { initAnalytics, track, AnalyticsEvent } from '@/lib/analytics';
 import { initNotificationHandlers } from '@/lib/notifications-handler';
@@ -52,6 +53,13 @@ function ThemedStack() {
     if (Platform.OS === 'android') NavigationBar.setStyle(isDark && !onOnboarding ? 'dark' : 'light');
   }, [isDark, onOnboarding]);
 
+  // Pushed screens show a plain "←" instead of the platform's "‹ Back" (see
+  // HeaderBackArrow). Modal screens close by swiping down and get none.
+  const back = {
+    headerBackVisible: false,
+    headerLeft: ({ tintColor }: { tintColor?: string }) => <HeaderBackArrow tintColor={tintColor} label={nav.back} />,
+  };
+
   return (
     <>
     {/* Follow the in-app theme, not the system one: Info.plist pins the system
@@ -71,25 +79,25 @@ function ThemedStack() {
       <Stack.Screen name="(onboarding)" options={{ headerShown: false, animation: 'none' }} />
       <Stack.Screen name="(auth)" options={{ headerShown: false, presentation: 'modal' }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="task/[id]" options={{ title: nav.task }} />
+      <Stack.Screen name="task/[id]" options={{ title: nav.task, ...back }} />
       <Stack.Screen name="respond/[id]" options={{ title: nav.respond, presentation: 'modal' }} />
-      <Stack.Screen name="chat/[partnerId]" options={{}} />
+      <Stack.Screen name="chat/[partnerId]" options={{ ...back }} />
       <Stack.Screen name="create-task" options={{ title: nav.createTask, presentation: 'modal' }} />
       {/* Native headers, like every pushed screen: a headerless screen under one with a header
           intermittently left the upper screen's back button and swipe-back dead on iOS. */}
-      <Stack.Screen name="notifications" options={{ title: nav.notifications }} />
-      <Stack.Screen name="profile" options={{ title: t.tabs.profile }} />
-      <Stack.Screen name="about" options={{ title: nav.about }} />
-      <Stack.Screen name="contact" options={{ title: nav.contact }} />
+      <Stack.Screen name="notifications" options={{ title: nav.notifications, ...back }} />
+      <Stack.Screen name="profile" options={{ title: t.tabs.profile, ...back }} />
+      <Stack.Screen name="about" options={{ title: nav.about, ...back }} />
+      <Stack.Screen name="contact" options={{ title: nav.contact, ...back }} />
       <Stack.Screen name="review/[taskId]" options={{ title: nav.review, presentation: 'modal' }} />
-      <Stack.Screen name="provider/[id]" options={{ title: nav.provider }} />
-      <Stack.Screen name="change-password" options={{ title: nav.changePassword }} />
-      <Stack.Screen name="switch-role" options={{ title: nav.switchRole }} />
-      <Stack.Screen name="change-email" options={{ title: nav.changeEmail }} />
+      <Stack.Screen name="provider/[id]" options={{ title: nav.provider, ...back }} />
+      <Stack.Screen name="change-password" options={{ title: nav.changePassword, ...back }} />
+      <Stack.Screen name="switch-role" options={{ title: nav.switchRole, ...back }} />
+      <Stack.Screen name="change-email" options={{ title: nav.changeEmail, ...back }} />
       <Stack.Screen name="edit-profile" options={{ title: nav.editProfile, presentation: 'modal' }} />
-      <Stack.Screen name="portfolio" options={{ title: nav.portfolio }} />
-      <Stack.Screen name="subscription" options={{ title: nav.subscription }} />
-      <Stack.Screen name="analytics" options={{ title: t.analytics.title }} />
+      <Stack.Screen name="portfolio" options={{ title: nav.portfolio, ...back }} />
+      <Stack.Screen name="subscription" options={{ title: nav.subscription, ...back }} />
+      <Stack.Screen name="analytics" options={{ title: t.analytics.title, ...back }} />
       {/* Forced (see the guard above) it is a plain card with no way back. As a
           modal, the replace to the tabs afterwards left them drawn inside the
           sheet. Keyed on the route param, which unlike the user flag does not

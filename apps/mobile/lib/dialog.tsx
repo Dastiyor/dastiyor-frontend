@@ -28,9 +28,25 @@ export interface DialogButton {
     style?: DialogButtonStyle;
 }
 
+export type DialogIcon = 'success' | 'error';
+
 export interface DialogOptions {
     onDismiss?: () => void;
+    /**
+     * A round badge above the title (✓ on blue / ✕ on red), with the text
+     * centred under it. Without it, a dialog titled with t.common.done gets
+     * 'success' and one titled t.common.error gets 'error', so most call sites
+     * need nothing; pass it for a success titled anything else.
+     */
+    icon?: DialogIcon;
 }
+
+// success: white ✓ in a solid blue circle. error: a red outlined "!" on a soft
+// red circle, no fill -- calmer than a red cross for something usually fixable.
+const BADGE: Record<DialogIcon, { ring: string; ringDark: string; fill: string | null; glyph: 'checkmark' | 'alert-circle-outline'; glyphColor: string; glyphSize: number }> = {
+    success: { ring: '#DBEAFE', ringDark: 'rgba(37,99,235,0.25)', fill: '#2563EB', glyph: 'checkmark', glyphColor: '#FFFFFF', glyphSize: 30 },
+    error: { ring: '#FDECEC', ringDark: 'rgba(220,38,38,0.22)', fill: null, glyph: 'alert-circle-outline', glyphColor: '#DC2626', glyphSize: 40 },
+};
 
 interface DialogRequest {
     title: string;
@@ -89,13 +105,26 @@ export function DialogHost() {
 
     if (!current) return null;
 
+    // Titles that mean "this went wrong" across the app; they get the error badge.
+    const errorTitles: string[] = [t.common.error, t.login.errTitle, t.login.errOauth, t.register.errRegister];
+    const icon: DialogIcon | undefined = current.options?.icon
+        ?? (current.title === t.common.done ? 'success' : errorTitles.includes(current.title) ? 'error' : undefined);
+    const badge = icon ? BADGE[icon] : null;
+    // A bare "Error" says nothing the badge doesn't; say what happened instead.
+    const title = icon === 'error' && current.title === t.common.error ? t.common.errorTitle : current.title;
+
+    // With no buttons given, one that says what it does rather than "OK".
+    const defaultLabel = icon === 'success' ? t.common.continue : icon === 'error' ? t.common.errorRetry : t.common.ok;
     const buttons: DialogButton[] = current.buttons.length
         ? current.buttons
-        : [{ text: t.common.ok, style: 'default' }];
+        : [{ text: defaultLabel, style: 'default' }];
     const cancelButton = buttons.find((b) => b.style === 'cancel');
     // Match RN: tapping outside cancels only when there is something to cancel.
     const dismiss = () => close(cancelButton ? cancelButton.onPress : current.options?.onDismiss);
-    const stacked = buttons.length > 2;
+    // A badge dialog lays its buttons out like a sheet: actions full width, a
+    // cancel as a text link under them. Plain dialogs keep the side-by-side row.
+    const stacked = !!badge || buttons.length > 2;
+    const actions = badge ? buttons.filter((b) => b.style !== 'cancel') : buttons;
 
     return (
         <DialogPortal onRequestClose={dismiss}>
@@ -105,13 +134,24 @@ export function DialogHost() {
             >
                 {/* Swallow taps on the card itself. */}
                 <Pressable style={[styles.card, { backgroundColor: colors.surface }]} onPress={() => {}}>
-                    <Text style={[styles.title, { color: colors.text }]}>{current.title}</Text>
+                    {badge ? (
+                        <View
+                            style={[styles.badgeRing, { backgroundColor: isDark ? badge.ringDark : badge.ring }]}
+                            accessibilityElementsHidden
+                            importantForAccessibility="no-hide-descendants"
+                        >
+                            <View style={[styles.badge, badge.fill ? { backgroundColor: badge.fill } : null]}>
+                                <Icon name={badge.glyph} size={badge.glyphSize} color={badge.glyphColor} />
+                            </View>
+                        </View>
+                    ) : null}
+                    <Text style={[styles.title, { color: colors.text }, badge && styles.centred]}>{title}</Text>
                     {current.message ? (
-                        <Text style={[styles.message, { color: colors.textSecondary }]}>{current.message}</Text>
+                        <Text style={[styles.message, { color: colors.textSecondary }, badge && styles.centred]}>{current.message}</Text>
                     ) : null}
 
-                    <View style={[styles.actions, stacked && styles.actionsStacked]}>
-                        {buttons.map((b, i) => {
+                    <View style={[styles.actions, stacked && styles.actionsStacked, badge && styles.actionsBadge]}>
+                        {actions.map((b, i) => {
                             const destructive = b.style === 'destructive';
                             const cancel = b.style === 'cancel';
                             const bg = destructive ? '#DC2626' : cancel ? 'transparent' : colors.accent;
@@ -136,7 +176,15 @@ export function DialogHost() {
                         })}
                     </View>
 
-                    {!cancelButton ? null : (
+                    {badge && cancelButton ? (
+                        <Pressable onPress={dismiss} accessibilityRole="button" style={styles.cancelLink} hitSlop={8}>
+                            <Text style={[styles.cancelLinkText, { color: colors.textSecondary }]}>
+                                {cancelButton.text ?? t.common.cancel}
+                            </Text>
+                        </Pressable>
+                    ) : null}
+
+                    {!cancelButton || badge ? null : (
                         <Pressable
                             onPress={dismiss}
                             hitSlop={10}
@@ -195,6 +243,9 @@ const styles = StyleSheet.create({
     },
     title: { fontSize: 18, fontWeight: '800', marginBottom: 8, paddingRight: 24 },
     message: { fontSize: 14, lineHeight: 21, marginBottom: 4 },
+    badgeRing: { alignSelf: 'center', width: 84, height: 84, borderRadius: 42, alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
+    badge: { width: 60, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center' },
+    centred: { textAlign: 'center', paddingRight: 0 },
     // Two buttons sit side by side in call order (cancel first, so it lands on
     // the left). Three or more stack, reversed, so cancel ends up at the bottom
     // the way the platform alerts put it.
@@ -208,6 +259,10 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     buttonStacked: { flex: 0, width: '100%' },
+    // Badge dialogs: actions top-down in call order (no reversal), full width.
+    actionsBadge: { flexDirection: 'column', marginTop: 22 },
+    cancelLink: { alignSelf: 'center', marginTop: 14, paddingVertical: 4 },
+    cancelLinkText: { fontSize: 15, fontWeight: '600' },
     buttonText: { fontSize: 15, fontWeight: '700' },
     close: { position: 'absolute', top: 14, right: 14, padding: 4 },
 });

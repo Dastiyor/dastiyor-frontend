@@ -70,7 +70,7 @@ export default function ResetPasswordScreen() {
       });
       Alert.alert(t.common.ok, rp.success, [
         { text: t.common.ok, onPress: () => router.replace('/(auth)/login') },
-      ]);
+      ], { icon: 'success' });
     } catch (e) {
       Alert.alert(t.common.error, (e as Error).message);
     } finally {

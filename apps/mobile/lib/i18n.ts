@@ -132,6 +132,7 @@ const translations = {
       guestCta: 'Log In / Register',
     },
     common: {
+      continue: 'Continue',
       fieldRequired: 'Fill in this field',
       phoneFormatHint: 'e.g. 90 123 4567, with or without +992',
       error: 'Error',
@@ -506,6 +507,7 @@ const translations = {
       consentRequired: 'Please accept the Terms and Privacy Policy',
     },
     login: {
+      notFoundHint: 'Create an account with it: it takes a minute.',
       subtitle: 'Sign in to your account',
       identifierPh: 'Phone or email',
       passPh: 'Password',
@@ -803,6 +805,7 @@ const translations = {
       guestCta: 'Войти / Регистрация',
     },
     common: {
+      continue: 'Продолжить',
       fieldRequired: 'Заполните это поле',
       phoneFormatHint: 'Например, 90 123 4567, можно с +992 или без',
       error: 'Ошибка',
@@ -1176,6 +1179,7 @@ const translations = {
       consentRequired: 'Примите Условия и Политику конфиденциальности',
     },
     login: {
+      notFoundHint: 'Создайте аккаунт с этим номером — это займёт минуту.',
       subtitle: 'Войдите в аккаунт',
       identifierPh: 'Телефон или email',
       passPh: 'Пароль',
@@ -1473,6 +1477,7 @@ const translations = {
       guestCta: 'Ворид / Бақайдгирӣ',
     },
     common: {
+      continue: 'Идома',
       fieldRequired: 'Ин майдонро пур кунед',
       phoneFormatHint: 'Масалан, 90 123 4567, бо +992 ё бе он',
       error: 'Хато',
@@ -1847,6 +1852,7 @@ const translations = {
       consentRequired: 'Лутфан Шартҳо ва Сиёсати махфиятро қабул кунед',
     },
     login: {
+      notFoundHint: 'Бо ин рақам ҳисоб эҷод кунед — як дақиқа вақт мегирад.',
       subtitle: 'Ба ҳисоби худ ворид шавед',
       identifierPh: 'Телефон ё email',
       passPh: 'Парол',

@@ -118,7 +118,7 @@ export default function EditProfileScreen() {
         } : {}),
       });
       await refreshUser();
-      Alert.alert(ep.saved, ep.profileUpdated, [{ text: t.common.ok, onPress: () => goBack() }]);
+      Alert.alert(ep.saved, ep.profileUpdated, [{ text: t.common.ok, onPress: () => goBack() }], { icon: 'success' });
     } catch (e) {
       Alert.alert(t.common.error, (e as Error).message);
     } finally {

@@ -49,7 +49,7 @@ export default function ForgotPasswordScreen() {
       await api.post('/api/auth/forgot-password/mobile', { identifier: value });
       Alert.alert(t.common.ok, fp.sent, [
         { text: t.common.ok, onPress: () => router.push({ pathname: '/(auth)/reset-password', params: { identifier: value } }) },
-      ]);
+      ], { icon: 'success' });
     } catch (e) {
       Alert.alert(t.common.error, (e as Error).message);
     } finally {

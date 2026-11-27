@@ -3,6 +3,7 @@ import Svg, { Path } from 'react-native-svg';
 import type { Icon as IconsaxIcon, IconProps } from 'iconsax-react-native';
 import Add from 'iconsax-react-native/dist/cjs/Add';
 import ArrowDown from 'iconsax-react-native/dist/cjs/ArrowDown';
+import ArrowLeft from 'iconsax-react-native/dist/cjs/ArrowLeft';
 import ArrowLeft2 from 'iconsax-react-native/dist/cjs/ArrowLeft2';
 import ArrowRight from 'iconsax-react-native/dist/cjs/ArrowRight';
 import ArrowRight2 from 'iconsax-react-native/dist/cjs/ArrowRight2';
@@ -107,6 +108,9 @@ const ICONS = {
   'checkbox': [TickSquare, 'Bold'],
   'square-outline': [Stop, 'Linear'],
   'checkmark-circle': [TickCircle, 'Bold'],
+  'arrow-back': [ArrowLeft, 'Linear'],
+  // A circled "!" (Iconsax has only a hexagon one): circle, bar, dot.
+  'alert-circle-outline': [Stroke('M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM12 7.5v5.5M12 16.5v.01'), 'Linear'],
   'chevron-back': [ArrowLeft2, 'Linear'],
   'chevron-forward': [ArrowRight2, 'Linear'],
   'clipboard': [ClipboardText, 'Bulk'],

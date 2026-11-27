@@ -110,10 +110,11 @@ export default function LoginScreen() {
     } catch (e) {
       // No account for that number or email: offer signup right there.
       if ((e as { code?: string }).code === 'ACCOUNT_NOT_FOUND') {
-        Alert.alert(L.errTitle, (e as Error).message, [
+        // The server's message is the headline ("This number is not registered").
+        Alert.alert((e as Error).message, L.notFoundHint, [
           { text: t.common.cancel, style: 'cancel' },
           { text: L.createAccount, onPress: () => router.push('/(auth)/register') },
-        ]);
+        ], { icon: 'error' });
       } else {
         Alert.alert(L.errTitle, (e as Error).message);
       }

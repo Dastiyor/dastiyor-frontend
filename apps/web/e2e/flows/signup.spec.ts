@@ -20,7 +20,7 @@ async function fillSignupForm(page: Page, role: 'customer' | 'provider', email: 
     await page.locator('#reg-email').fill(email);
     await page.locator('#reg-phone').fill(LOCAL_PHONE);
     await page.locator('#reg-password').fill(E2E_PASSWORD);
-    await page.getByRole('button', { name: 'Отправить код' }).click();
+    await page.getByRole('button', { name: 'Создать аккаунт' }).click();
 }
 
 test('a customer signs up: form, SMS code, signed in', async ({ page }) => {

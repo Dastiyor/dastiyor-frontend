@@ -212,7 +212,6 @@
     "verifyPhoneSendCode": "Отправить код",
     "verifyPhoneSending": "Отправка…",
     "verifyPhoneCodeLabel": "Код из SMS",
-    "verifyPhoneCodePlaceholder": "6-значный код",
     "verifyPhoneVerify": "Подтвердить",
     "verifyPhoneVerifying": "Проверка…",
     "verifyPhoneCodeSent": "Код отправлен на номер {phone}",
@@ -222,7 +221,7 @@
     "resendSending": "Отправляем код…",
     "resendCodeIn": "Отправить код ещё раз через {time}",
     "createAccountQuestion": "Создать аккаунт?",
-    "identifierPlaceholder": "+992 90 123 4567 или name@example.com",
+    "identifierPlaceholder": "Телефон или email",
     "identifierLabel": "Телефон или email",
     "validatingResetLink": "Проверяем ссылку...",
     "resetLinkInvalidTitle": "Ссылка недействительна или истекла",
@@ -238,7 +237,8 @@
     "showPassword": "Показать пароль",
     "hidePassword": "Скрыть пароль",
     "forgotPasswordIdentifierLabel": "Email или номер телефона",
-    "forgotPasswordIdentifierPlaceholder": "name@example.com или +992XXXXXXXXX"
+    "forgotPasswordIdentifierPlaceholder": "Телефон или email",
+    "phoneFormatHint": "Например, 90 123 4567, можно с +992 или без"
   },
   "customer": {
     "dashboard": "Панель заказчика",

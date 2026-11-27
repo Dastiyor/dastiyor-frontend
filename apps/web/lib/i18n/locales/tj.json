@@ -212,7 +212,6 @@
     "verifyPhoneSendCode": "Фиристодани рамз",
     "verifyPhoneSending": "Фиристода истодааст…",
     "verifyPhoneCodeLabel": "Рамз аз SMS",
-    "verifyPhoneCodePlaceholder": "Рамзи 6-рақама",
     "verifyPhoneVerify": "Тасдиқ кардан",
     "verifyPhoneVerifying": "Тафтиш…",
     "verifyPhoneCodeSent": "Рамз ба рақами {phone} фиристода шуд",
@@ -222,7 +221,7 @@
     "resendSending": "Рамз фиристода мешавад…",
     "resendCodeIn": "Рамзро дубора фиристед баъди {time}",
     "createAccountQuestion": "Ҳисоб эҷод кунед?",
-    "identifierPlaceholder": "+992 90 123 4567 ё name@example.com",
+    "identifierPlaceholder": "Телефон ё email",
     "identifierLabel": "Телефон ё email",
     "validatingResetLink": "Пайванд санҷида мешавад...",
     "resetLinkInvalidTitle": "Пайванд нодуруст аст ё мӯҳлаташ гузаштааст",
@@ -238,7 +237,8 @@
     "showPassword": "Намоиши рамз",
     "hidePassword": "Пинҳон кардани рамз",
     "forgotPasswordIdentifierLabel": "Email ё рақами телефон",
-    "forgotPasswordIdentifierPlaceholder": "name@example.com ё +992XXXXXXXXX"
+    "forgotPasswordIdentifierPlaceholder": "Телефон ё email",
+    "phoneFormatHint": "Масалан, 90 123 4567, бо +992 ё бе он"
   },
   "customer": {
     "dashboard": "Панели фармоишгар",

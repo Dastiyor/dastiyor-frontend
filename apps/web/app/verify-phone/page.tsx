@@ -6,6 +6,7 @@ import AuthLayout from '@/components/auth/AuthLayout';
 import { useTranslation } from '@/lib/i18n';
 import { useAdoptTypedValue } from '@/lib/useHydrated';
 import ResendCodeButton from '@/components/auth/ResendCodeButton';
+import OtpInput from '@/components/auth/OtpInput';
 
 function VerifyPhoneContent() {
     const router = useRouter();
@@ -143,16 +144,7 @@ function VerifyPhoneContent() {
                         <label htmlFor="vp-code" style={{ fontWeight: '500', fontSize: '0.9rem' }}>
                             {t('auth.verifyPhoneCodeLabel')}
                         </label>
-                        <input
-                            id="vp-code"
-                            type="text"
-                            inputMode="numeric"
-                            placeholder={t('auth.verifyPhoneCodePlaceholder')}
-                            required
-                            value={code}
-                            onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                            style={inputStyle}
-                        />
+                        <OtpInput id="vp-code" value={code} onChange={setCode} autoFocus />
                     </div>
                     <button
                         type="submit"

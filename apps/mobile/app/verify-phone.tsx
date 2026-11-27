@@ -15,6 +15,7 @@ import { useKeyboardOffset } from '@/lib/useKeyboardOffset';
 import { useKeyboardAwareScroll } from '@/lib/useKeyboardAwareScroll';
 import { api } from '@/lib/api-client';
 import { ResendCodeButton } from '@/components/ResendCodeButton';
+import { OtpInput } from '@/components/OtpInput';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { formatPhone } from '@/lib/phone';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -65,14 +66,14 @@ export default function VerifyPhoneScreen() {
   }
 
   async function sendCode() {
-    if (phone.length < 9) { Alert.alert(t.common.error, vp.errPhone); return; }
+    if (phone.length < 9) return; // the button stays disabled until the number is complete
     setBusy(true);
     if (await requestCode()) setStep('code');
     setBusy(false);
   }
 
   async function verifyCode() {
-    if (code.length < 6) { Alert.alert(t.common.error, vp.errCode); return; }
+    if (code.length < 6) return; // the button stays disabled until all 6 digits are in
     setBusy(true);
     try {
       await api.post('/api/auth/verify-phone', { phone: fullPhone, code });
@@ -135,16 +136,7 @@ export default function VerifyPhoneScreen() {
           <>
             <Text style={[styles.sent, { color: colors.textSecondary }]}>{vp.codeSent.replace('{phone}', formatPhone(fullPhone))}</Text>
 
-            <Text style={[styles.label, { color: colors.text }]}>{vp.codeLabel}</Text>
-            <Input
-              style={[styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]}
-              value={code}
-              onChangeText={(v) => setCode(v.replace(/\D/g, '').slice(0, 6))}
-              keyboardType="number-pad"
-              placeholder={vp.codePlaceholder}
-              placeholderTextColor={colors.textTertiary}
-              maxLength={6}
-            />
+            <OtpInput value={code} onChangeText={setCode} autoFocus label={vp.codeLabel} />
 
             <GradientButton
               style={[styles.btn, (busy || code.length < 6) && styles.btnDisabled]}

@@ -30,6 +30,8 @@ import { LogoWordmark } from '@/components/Logo';
 import { openPrivacyPolicy, openTermsOfService } from '@/lib/legal';
 import { passwordStrength } from '@/lib/validation';
 import { ResendCodeButton } from '@/components/ResendCodeButton';
+import { OtpInput } from '@/components/OtpInput';
+import { FieldError, FIELD_ERROR_COLOR } from '@/components/FieldError';
 import type { Locale } from '@/lib/i18n';
 import { Alert } from '@/lib/dialog';
 import { GradientButton, Input } from '@/components/Premium';
@@ -65,6 +67,11 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [pwIssues, setPwIssues] = useState<string[]>([]);
+  // Problems found on submit, shown in red under each field (no alert). A
+  // field's message clears as soon as it is edited.
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<'name' | 'phone' | 'password' | 'consent', string>>>({});
+  const clearError = (field: keyof typeof fieldErrors) =>
+    setFieldErrors((prev) => (prev[field] ? { ...prev, [field]: undefined } : prev));
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
@@ -135,30 +142,28 @@ export default function RegisterScreen() {
   function handlePhoneChange(text: string) {
     const digits = text.replace(/\D/g, '').slice(0, 9);
     setPhoneLocal(digits);
+    clearError('phone');
   }
 
   function handlePasswordChange(text: string) {
     setPassword(text);
+    clearError('password');
     if (text) setPwIssues(passwordStrength(text, r));
     else setPwIssues([]);
   }
 
   async function handleRegister() {
-    if (!fullName.trim() || !phoneLocal || !password) {
-      Alert.alert(t.common.error, r.errRequired);
-      return;
-    }
-    if (phoneLocal.length !== 9) {
-      Alert.alert(t.common.error, r.errPhone);
-      return;
-    }
     const issues = passwordStrength(password, r);
-    if (issues.length > 0) {
-      Alert.alert(t.common.error, issues.join(', '));
-      return;
-    }
-    if (!legalAccepted) {
-      Alert.alert(t.common.error, t.legal.consentRequired);
+    const found: typeof fieldErrors = {
+      name: fullName.trim() ? undefined : t.common.fieldRequired,
+      phone: !phoneLocal ? t.common.fieldRequired : phoneLocal.length !== 9 ? r.errPhone : undefined,
+      // A short password is already listed under the field as it is typed.
+      password: !password ? t.common.fieldRequired : issues.length > 0 ? issues[0] : undefined,
+      consent: legalAccepted ? undefined : t.legal.consentRequired,
+    };
+    setFieldErrors(found);
+    if (Object.values(found).some(Boolean)) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
       return;
     }
     // Came back from the role step to fix the name or password: the number is
@@ -344,19 +349,7 @@ export default function RegisterScreen() {
           </>
         ) : step === 'code' ? (
           <>
-            <Text style={[styles.fieldLabel, { color: colors.text }]}>{t.verifyPhone.codeLabel}</Text>
-            <Input
-              style={[styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]}
-              placeholder={t.verifyPhone.codePlaceholder}
-              placeholderTextColor={colors.textTertiary}
-              value={code}
-              onChangeText={(v) => setCode(v.replace(/\D/g, '').slice(0, 6))}
-              keyboardType="number-pad"
-              autoComplete="sms-otp"
-              textContentType="oneTimeCode"
-              autoFocus
-              maxLength={6}
-            />
+            <OtpInput value={code} onChangeText={setCode} autoFocus label={t.verifyPhone.codeLabel} />
             <GradientButton
               style={[styles.button, (loading || code.length < 6) && styles.buttonDisabled]}
               onPress={handleVerify}
@@ -410,19 +403,24 @@ export default function RegisterScreen() {
 
         {/* Full name */}
         <Text style={[styles.fieldLabel, { color: colors.text }]}>{r.fullName}</Text>
-        <Input
-          style={[styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]}
-          placeholder={r.fullNamePh}
-          placeholderTextColor={colors.textTertiary}
-          value={fullName}
-          onChangeText={setFullName}
-          autoComplete="name"
-          maxLength={100}
-        />
+        <View style={[styles.iconRow, { backgroundColor: colors.surfaceAlt, borderColor: fieldErrors.name ? FIELD_ERROR_COLOR : colors.border }]}>
+          <Icon name="person-outline" size={20} color={colors.textTertiary} style={styles.fieldIcon} />
+          <Input
+            style={[styles.iconRowInput, { color: colors.text }]}
+            placeholder={r.fullNamePh}
+            placeholderTextColor={colors.textTertiary}
+            value={fullName}
+            onChangeText={(v) => { setFullName(v); clearError('name'); }}
+            autoComplete="name"
+            maxLength={100}
+            accessibilityLabel={r.fullName}
+          />
+        </View>
+        <FieldError message={fieldErrors.name} />
 
         {/* Phone with +992 prefix */}
         <Text style={[styles.fieldLabel, { color: colors.text }]}>{r.phone}</Text>
-        <View style={[styles.phoneRow, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
+        <View style={[styles.phoneRow, { backgroundColor: colors.surfaceAlt, borderColor: fieldErrors.phone ? FIELD_ERROR_COLOR : colors.border }]}>
           <View style={styles.phonePrefix}>
             <View style={styles.flagImg}>
               <View style={{ flex: 1, backgroundColor: '#BE0027' }} />
@@ -442,10 +440,12 @@ export default function RegisterScreen() {
             maxLength={9}
           />
         </View>
+        <FieldError message={fieldErrors.phone} />
 
         {/* Password */}
         <Text style={[styles.fieldLabel, { color: colors.text }]}>{r.password}</Text>
-        <View style={[styles.passwordRow, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }]}>
+        <View style={[styles.passwordRow, { backgroundColor: colors.surfaceAlt, borderColor: fieldErrors.password || (password.length > 0 && !pwOk) ? FIELD_ERROR_COLOR : colors.border }]}>
+          <Icon name="lock-closed-outline" size={20} color={colors.textTertiary} style={styles.fieldIcon} />
           <Input
             style={[styles.passwordInput, { color: colors.text }]}
             placeholder={r.passwordHint}
@@ -468,7 +468,8 @@ export default function RegisterScreen() {
             />
           </TouchableOpacity>
         </View>
-        {/* Password feedback */}
+        {/* Password feedback: an empty password on submit, else the live rule check */}
+        {!password && fieldErrors.password ? <Text style={styles.pwErr}>{fieldErrors.password}</Text> : null}
         {password.length > 0 && (
           pwOk
             ? <Text style={styles.pwOk}>✓ {r.passwordStrong ?? 'Надёжный пароль'}</Text>
@@ -479,7 +480,7 @@ export default function RegisterScreen() {
 
         <TouchableOpacity
           style={styles.legalRow}
-          onPress={() => setLegalAccepted((v) => !v)}
+          onPress={() => { setLegalAccepted((v) => !v); clearError('consent'); }}
           accessibilityRole="checkbox"
           accessibilityState={{ checked: legalAccepted }}
         >
@@ -495,17 +496,18 @@ export default function RegisterScreen() {
             </Text>
           </Text>
         </TouchableOpacity>
+        <FieldError message={fieldErrors.consent} style={styles.consentError} />
 
         <GradientButton
           style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleRegister}
           disabled={loading}
-          accessibilityLabel={t.verifyPhone.sendCode}
+          accessibilityLabel={r.verifyPhoneBtn}
           accessibilityRole="button"
         >
           {loading
             ? <ActivityIndicator color="#fff" />
-            : <Text style={styles.buttonText}>{t.verifyPhone.sendCode}</Text>}
+            : <Text style={styles.buttonText}>{r.verifyPhoneBtn}</Text>}
         </GradientButton>
 
         <Link href="/(auth)/login" style={styles.link}>
@@ -555,6 +557,18 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB',
   },
 
+  /* Full name: input with a leading icon, same box as the password row */
+  iconRow: {
+    flexDirection: 'row', alignItems: 'center',
+    borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 10,
+    backgroundColor: '#F9FAFB', marginBottom: 14,
+  },
+  iconRowInput: {
+    flex: 1, padding: 13, paddingLeft: 10, fontSize: 15, color: '#111827',
+    backgroundColor: 'transparent',
+  },
+  fieldIcon: { marginLeft: 13 },
+
   /* Phone */
   phoneRow: {
     flexDirection: 'row', borderWidth: 1, borderColor: '#E5E7EB',
@@ -580,10 +594,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#F9FAFB', marginBottom: 6,
   },
   passwordInput: {
-    flex: 1, padding: 13, fontSize: 15, color: '#111827',
+    flex: 1, padding: 13, paddingLeft: 10, fontSize: 15, color: '#111827',
     backgroundColor: 'transparent', letterSpacing: 0,
   },
   eyeBtn: { paddingHorizontal: 14 },
+  consentError: { marginTop: -4 },
   pwOk: { fontSize: 12, color: '#059669', fontWeight: '500', marginBottom: 14 },
   pwErr: { fontSize: 12, color: '#DC2626', marginBottom: 2 },
 

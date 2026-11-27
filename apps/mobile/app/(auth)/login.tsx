@@ -19,6 +19,7 @@ import { Icon } from '@/components/Icon';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Haptics from 'expo-haptics';
 import { GoogleIcon } from '@/components/GoogleIcon';
+import { FieldError, FIELD_ERROR_COLOR } from '@/components/FieldError';
 import { googleConfigured, signInWithGoogle } from '@/lib/google-signin';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -46,6 +47,8 @@ export default function LoginScreen() {
   const L = t.login;
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
+  // Empty fields found on submit, shown in red under each field (no alert).
+  const [fieldErrors, setFieldErrors] = useState<{ identifier?: string; password?: string }>({});
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
@@ -93,10 +96,12 @@ export default function LoginScreen() {
   }
 
   async function handleLogin() {
-    if (!identifier.trim() || !password) {
-      Alert.alert(L.errTitle, L.errRequired);
-      return;
-    }
+    const found = {
+      identifier: identifier.trim() ? undefined : t.common.fieldRequired,
+      password: password ? undefined : t.common.fieldRequired,
+    };
+    setFieldErrors(found);
+    if (found.identifier || found.password) return;
     setLoading(true);
     try {
       await login(identifier.trim(), password);
@@ -231,26 +236,35 @@ export default function LoginScreen() {
         )}
 
         <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>{L.emailLabel}</Text>
-        <Input
-          style={[styles.input, { backgroundColor: colors.inputBg, borderColor: identifier ? colors.inputBorder : colors.border, color: colors.text }]}
-          placeholder={L.identifierPh}
-          placeholderTextColor={colors.textTertiary}
-          value={identifier}
-          onChangeText={setIdentifier}
-          autoCapitalize="none"
-          keyboardType="default"
-          autoComplete="username"
-          maxLength={255}
-        />
+        <View style={[styles.passwordRow, { backgroundColor: colors.inputBg, borderColor: fieldErrors.identifier ? FIELD_ERROR_COLOR : identifier ? colors.inputBorder : colors.border }]}>
+          <Icon name="person-outline" size={20} color={colors.textTertiary} style={styles.fieldIcon} />
+          <Input
+            style={[styles.passwordInput, { color: colors.text }]}
+            placeholder={L.identifierPh}
+            placeholderTextColor={colors.textTertiary}
+            value={identifier}
+            onChangeText={(v) => { setIdentifier(v); setFieldErrors((e) => ({ ...e, identifier: undefined })); }}
+            autoCapitalize="none"
+            keyboardType="default"
+            autoComplete="username"
+            maxLength={255}
+            accessibilityLabel={L.emailLabel}
+          />
+        </View>
+        {/* The server takes +992 90 123 4567, 992901234567 or the 9 digits alone. */}
+        {fieldErrors.identifier
+          ? <FieldError message={fieldErrors.identifier} style={styles.loginFieldError} />
+          : <Text style={[styles.hint, { color: colors.textTertiary }]}>{t.common.phoneFormatHint}</Text>}
 
         <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>{L.passLabel}</Text>
-        <View style={[styles.passwordRow, { backgroundColor: colors.inputBg, borderColor: password ? colors.inputBorder : colors.border }]}>
+        <View style={[styles.passwordRow, { backgroundColor: colors.inputBg, borderColor: fieldErrors.password ? FIELD_ERROR_COLOR : password ? colors.inputBorder : colors.border }]}>
+          <Icon name="lock-closed-outline" size={20} color={colors.textTertiary} style={styles.fieldIcon} />
           <Input
             style={[styles.passwordInput, { color: colors.text }]}
             placeholder={L.passPh}
             placeholderTextColor={colors.textTertiary}
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(v) => { setPassword(v); setFieldErrors((e) => ({ ...e, password: undefined })); }}
             secureTextEntry={!showPassword}
             autoComplete="password"
             maxLength={128}
@@ -263,6 +277,7 @@ export default function LoginScreen() {
             <Icon name={showPassword ? 'eye-outline' : 'eye-off-outline'} size={20} color={colors.textTertiary} />
           </TouchableOpacity>
         </View>
+        <FieldError message={fieldErrors.password} style={styles.loginFieldError} />
 
         <GradientButton
           style={[styles.button, loading && styles.buttonDisabled]}
@@ -313,17 +328,17 @@ const styles = StyleSheet.create({
   dividerLine: { flex: 1, height: 1 },
   dividerText: { marginHorizontal: 12, fontSize: 13 },
   fieldLabel: { fontSize: 13, fontWeight: '500', marginBottom: 6 },
-  input: {
-    borderWidth: 1.5, borderRadius: 14,
-    padding: 14, fontSize: 16, marginBottom: 16, letterSpacing: 0,
-  },
   passwordRow: {
     flexDirection: 'row', alignItems: 'center',
     borderWidth: 1.5, borderRadius: 14, marginBottom: 16,
   },
+  // Shared by the phone-or-email and password rows: a leading icon, then the input.
   passwordInput: {
-    flex: 1, fontSize: 16, padding: 14, backgroundColor: 'transparent',
+    flex: 1, fontSize: 16, padding: 14, paddingLeft: 10, backgroundColor: 'transparent', letterSpacing: 0,
   },
+  fieldIcon: { marginLeft: 14 },
+  hint: { fontSize: 12, marginTop: -10, marginBottom: 14, marginLeft: 4 },
+  loginFieldError: { marginTop: -10, marginBottom: 14 },
   eyeBtn: { paddingHorizontal: 14 },
   button: {
     backgroundColor: '#2563EB', borderRadius: 14, padding: 16,

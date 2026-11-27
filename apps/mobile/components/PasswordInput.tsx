@@ -11,6 +11,8 @@ type Props = Omit<TextInputProps, 'secureTextEntry'> & {
   onToggleVisible?: () => void;
   /** Render the eye. Off for the other fields in a shared group. */
   showToggle?: boolean;
+  /** Red border: the field has an error, shown by a FieldError under it. */
+  hasError?: boolean;
 };
 
 /**
@@ -22,7 +24,7 @@ type Props = Omit<TextInputProps, 'secureTextEntry'> & {
  * `onToggleVisible` to every field and `showToggle` to just the first.
  * Used alone (one field, no props), it manages its own state.
  */
-export function PasswordInput({ visible, onToggleVisible, showToggle = true, ...props }: Props) {
+export function PasswordInput({ visible, onToggleVisible, showToggle = true, hasError = false, ...props }: Props) {
   const { colors } = useTheme();
   const { t } = useLanguage();
   const [ownVisible, setOwnVisible] = useState(false);
@@ -33,7 +35,7 @@ export function PasswordInput({ visible, onToggleVisible, showToggle = true, ...
   const glow = useFocusGlow(props.onFocus, props.onBlur);
 
   return (
-    <View style={[styles.row, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }, glow.style]}>
+    <View style={[styles.row, { backgroundColor: colors.surfaceAlt, borderColor: colors.border }, glow.style, hasError && { borderColor: '#DC2626' }]}>
       <Input
         {...props}
         {...glow.handlers}

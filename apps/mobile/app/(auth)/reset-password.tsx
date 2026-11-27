@@ -19,8 +19,10 @@ import { LogoWordmark } from '@/components/Logo';
 import { PasswordInput } from '@/components/PasswordInput';
 import { passwordStrength } from '@/lib/validation';
 import { Alert } from '@/lib/dialog';
-import { GradientButton, Input } from '@/components/Premium';
+import { GradientButton } from '@/components/Premium';
 import { ResendCodeButton } from '@/components/ResendCodeButton';
+import { OtpInput } from '@/components/OtpInput';
+import { FieldError } from '@/components/FieldError';
 
 export default function ResetPasswordScreen() {
   const { t } = useLanguage();
@@ -34,6 +36,9 @@ export default function ResetPasswordScreen() {
   const [confirm, setConfirm] = useState('');
   const [loading, setLoading] = useState(false);
   const [pwVisible, setPwVisible] = useState(false);
+  // Problems found on submit, shown in red under each field (no alert).
+  const [fieldErrors, setFieldErrors] = useState<{ code?: string; password?: string; confirm?: string }>({});
+  const clearError = (field: 'code' | 'password' | 'confirm') => setFieldErrors((e) => ({ ...e, [field]: undefined }));
   const share = { visible: pwVisible, onToggleVisible: () => setPwVisible((v) => !v) };
 
   /** Sends the reset code again (SMS or email, by the shape of the identifier). */
@@ -48,19 +53,14 @@ export default function ResetPasswordScreen() {
   }
 
   async function handleReset() {
-    if (!code.trim() || !password || !confirm) {
-      Alert.alert(t.common.error, rp.errFill);
-      return;
-    }
     const issues = passwordStrength(password, rp);
-    if (issues.length > 0) {
-      Alert.alert(t.common.error, issues.join(', '));
-      return;
-    }
-    if (password !== confirm) {
-      Alert.alert(t.common.error, rp.errMatch);
-      return;
-    }
+    const found = {
+      code: code.length === 6 ? undefined : code ? t.verifyPhone.errCode : t.common.fieldRequired,
+      password: !password ? t.common.fieldRequired : issues[0],
+      confirm: !confirm ? t.common.fieldRequired : password && confirm !== password ? rp.errMatch : undefined,
+    };
+    setFieldErrors(found);
+    if (found.code || found.password || found.confirm) return;
     setLoading(true);
     try {
       await api.post('/api/auth/reset-password/mobile', {
@@ -86,32 +86,27 @@ export default function ResetPasswordScreen() {
         <Text style={[styles.title, { color: colors.text }]}>{rp.title}</Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{rp.subtitle}</Text>
 
-        <Input
-          style={[styles.input, styles.codeInput, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]}
-          placeholder={rp.codePh}
-          placeholderTextColor={colors.textTertiary}
-          value={code}
-          onChangeText={setCode}
-          keyboardType="number-pad"
-          maxLength={6}
-          textAlign="center"
-        />
+        <OtpInput value={code} onChangeText={(v) => { setCode(v); clearError('code'); }} label={rp.codeLabel} error={fieldErrors.code} />
 
         <PasswordInput
           {...share}
           placeholder={rp.newPh}
           value={password}
-          onChangeText={setPassword}
+          onChangeText={(v) => { setPassword(v); clearError('password'); }}
           autoComplete="new-password"
+          hasError={!!fieldErrors.password}
         />
+        <FieldError message={fieldErrors.password} />
 
         <PasswordInput
           {...share}
           showToggle={false}
           placeholder={rp.confirmPh}
           value={confirm}
-          onChangeText={setConfirm}
+          onChangeText={(v) => { setConfirm(v); clearError('confirm'); }}
+          hasError={!!fieldErrors.confirm}
         />
+        <FieldError message={fieldErrors.confirm} />
 
         <GradientButton
           style={[styles.button, loading && styles.buttonDisabled]}
@@ -139,12 +134,6 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12,
     padding: 14, fontSize: 16, color: '#111827', marginBottom: 12, backgroundColor: '#F9FAFB', letterSpacing: 0,
-  },
-  // RN styles the placeholder with the input's own font, so codePh is a 6-slot
-  // mask rather than a sentence -- prose here renders at 24px/ls-3 and overflows.
-  codeInput: {
-    fontSize: 24, fontWeight: '700', letterSpacing: 3,
-    color: '#111827', marginBottom: 20,
   },
   button: {
     backgroundColor: '#2563EB', borderRadius: 12, padding: 16,

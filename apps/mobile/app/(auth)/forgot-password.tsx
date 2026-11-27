@@ -21,6 +21,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { LogoWordmark } from '@/components/Logo';
 import { Alert } from '@/lib/dialog';
+import { FieldError, FIELD_ERROR_COLOR } from '@/components/FieldError';
 import { GradientButton, Input } from '@/components/Premium';
 
 export default function ForgotPasswordScreen() {
@@ -35,11 +36,12 @@ export default function ForgotPasswordScreen() {
   // goes out by SMS for them. The server decides which by the shape of this.
   const [identifier, setIdentifier] = useState('');
   const [loading, setLoading] = useState(false);
+  const [identifierError, setIdentifierError] = useState<string | undefined>();
 
   async function handleSend() {
     const value = identifier.trim();
     if (!value) {
-      Alert.alert(t.common.error, fp.errEmail);
+      setIdentifierError(fp.errEmail); // shown in red under the field, not as an alert
       return;
     }
     setLoading(true);
@@ -68,16 +70,21 @@ export default function ForgotPasswordScreen() {
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{fp.subtitle}</Text>
 
         <Input
-          style={[styles.input, { backgroundColor: colors.surfaceAlt, borderColor: colors.border, color: colors.text }]}
+          style={[styles.input, { backgroundColor: colors.surfaceAlt, borderColor: identifierError ? FIELD_ERROR_COLOR : colors.border, color: colors.text }]}
           placeholder={fp.emailPh}
           placeholderTextColor={colors.textTertiary}
           value={identifier}
-          onChangeText={setIdentifier}
+          onChangeText={(v) => { setIdentifier(v); setIdentifierError(undefined); }}
           autoCapitalize="none"
           autoCorrect={false}
           autoComplete="username"
           maxLength={255}
+          accessibilityLabel={fp.subtitle}
         />
+        {/* The server takes +992 90 123 4567, 992901234567 or the 9 digits alone. */}
+        {identifierError
+          ? <FieldError message={identifierError} style={styles.hint} />
+          : <Text style={[styles.hint, { color: colors.textTertiary }]}>{t.common.phoneFormatHint}</Text>}
 
         <GradientButton
           style={[styles.button, loading && styles.buttonDisabled]}
@@ -104,6 +111,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12,
     padding: 14, fontSize: 16, color: '#111827', marginBottom: 12, backgroundColor: '#F9FAFB',
   },
+  hint: { fontSize: 12, marginTop: -4, marginBottom: 12, marginLeft: 4 },
   button: {
     backgroundColor: '#2563EB', borderRadius: 12, padding: 16,
     alignItems: 'center', marginTop: 8,

@@ -6,6 +6,7 @@ import AuthLayout from '@/components/auth/AuthLayout';
 import { useTranslation } from '@/lib/i18n';
 import { useAdoptTypedValue, useHydrated } from '@/lib/useHydrated';
 import ResendCodeButton from '@/components/auth/ResendCodeButton';
+import OtpInput from '@/components/auth/OtpInput';
 
 /** Same shape the login form accepts, so anything you can log in with you can recover with. */
 function looksLikePhone(value: string): boolean {
@@ -175,17 +176,7 @@ export default function ForgotPasswordPage() {
                         <label htmlFor="fp-code" style={{ fontWeight: '500', fontSize: '0.9rem' }}>
                             {t('auth.verifyPhoneCodeLabel')}
                         </label>
-                        <input
-                            id="fp-code"
-                            type="text"
-                            inputMode="numeric"
-                            autoComplete="one-time-code"
-                            placeholder={t('auth.verifyPhoneCodePlaceholder')}
-                            required
-                            value={code}
-                            onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                            style={inputStyle}
-                        />
+                        <OtpInput id="fp-code" value={code} onChange={setCode} autoFocus />
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <label htmlFor="fp-password" style={{ fontWeight: '500', fontSize: '0.9rem' }}>
@@ -258,6 +249,8 @@ export default function ForgotPasswordPage() {
                         required
                         style={inputStyle}
                     />
+                    {/* The server takes +992 90 123 4567, 992901234567 or the 9 digits alone. */}
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>{t('auth.phoneFormatHint')}</span>
                 </div>
 
                 <button

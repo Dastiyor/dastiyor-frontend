@@ -6,6 +6,8 @@ import Link from 'next/link';
 import AuthLayout from '@/components/auth/AuthLayout';
 import { useTranslation } from '@/lib/i18n';
 import { useHydrated } from '@/lib/useHydrated';
+import FieldIcon, { FIELD_ICON_PADDING } from '@/components/auth/FieldIcon';
+import { Lock, User } from 'lucide-react';
 
 function EyeIcon({ open }: { open: boolean }) {
     return open ? (
@@ -189,25 +191,33 @@ function LoginContent() {
                     <label htmlFor="login-email" style={{ fontWeight: '500', fontSize: '0.9rem' }}>{t('auth.identifierLabel')}</label>
                     {/* type="text": type="email" made the browser refuse a phone number,
                         though the API has always accepted one. The id stays for the e2e specs. */}
-                    <input
-                        id="login-email"
-                        name="identifier"
-                        type="text"
-                        autoComplete="username"
-                        autoCapitalize="none"
-                        spellCheck={false}
-                        placeholder={t('auth.identifierPlaceholder')}
-                        required
-                        maxLength={254}
-                        style={{
-                            padding: '12px 16px',
-                            borderRadius: '8px',
-                            border: '1px solid var(--border)',
-                            fontSize: '1rem',
-                            outline: 'none',
-                            transition: 'border-color 0.2s',
-                        }}
-                    />
+                    <div style={{ position: 'relative' }}>
+                        <FieldIcon icon={User} />
+                        <input
+                            id="login-email"
+                            name="identifier"
+                            type="text"
+                            autoComplete="username"
+                            autoCapitalize="none"
+                            spellCheck={false}
+                            placeholder={t('auth.identifierPlaceholder')}
+                            required
+                            maxLength={254}
+                            style={{
+                                width: '100%',
+                                boxSizing: 'border-box',
+                                padding: '12px 16px',
+                                paddingLeft: FIELD_ICON_PADDING,
+                                borderRadius: '8px',
+                                border: '1px solid var(--border)',
+                                fontSize: '1rem',
+                                outline: 'none',
+                                transition: 'border-color 0.2s',
+                            }}
+                        />
+                    </div>
+                    {/* The server takes +992 90 123 4567, 992901234567 or the 9 digits alone. */}
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>{t('auth.phoneFormatHint')}</span>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -218,6 +228,7 @@ function LoginContent() {
                         </Link>
                     </div>
                     <div style={{ position: 'relative' }}>
+                        <FieldIcon icon={Lock} />
                         <input
                             id="login-password"
                             name="password"
@@ -226,7 +237,7 @@ function LoginContent() {
                             required
                             style={{
                                 width: '100%',
-                                padding: '12px 44px 12px 16px',
+                                padding: `12px 44px 12px ${FIELD_ICON_PADDING}`,
                                 borderRadius: '8px',
                                 border: '1px solid var(--border)',
                                 fontSize: '1rem',

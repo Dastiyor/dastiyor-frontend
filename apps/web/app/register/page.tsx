@@ -7,6 +7,9 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { checkPasswordStrength } from '@/lib/validation';
 import ResendCodeButton from '@/components/auth/ResendCodeButton';
+import OtpInput from '@/components/auth/OtpInput';
+import FieldIcon, { FIELD_ICON_PADDING } from '@/components/auth/FieldIcon';
+import { Lock, User } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 import { useAdoptTypedValue, useHydrated } from '@/lib/useHydrated';
 
@@ -322,24 +325,7 @@ function RegisterContent() {
                         <label htmlFor="reg-code" style={{ fontWeight: '500', fontSize: '0.9rem' }}>
                             {t('auth.verifyPhoneCodeLabel')}
                         </label>
-                        <input
-                            id="reg-code"
-                            type="text"
-                            inputMode="numeric"
-                            autoComplete="one-time-code"
-                            autoFocus
-                            placeholder={t('auth.verifyPhoneCodePlaceholder')}
-                            required
-                            value={code}
-                            onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                            style={{
-                                padding: '12px 16px',
-                                borderRadius: '8px',
-                                border: '1px solid var(--border)',
-                                fontSize: '1rem',
-                                outline: 'none',
-                            }}
-                        />
+                        <OtpInput id="reg-code" value={code} onChange={setCode} autoFocus />
                     </div>
                     <button
                         type="submit"
@@ -364,22 +350,28 @@ function RegisterContent() {
             <form method="post" onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <label htmlFor="reg-fullName" style={{ fontWeight: '500', fontSize: '0.9rem' }}>{t('auth.fullName')}</label>
-                    <input
-                        id="reg-fullName"
-                        name="fullName"
-                        type="text"
-                        placeholder={t('auth.fullNamePlaceholder')}
-                        defaultValue={pending?.fullName}
-                        required
-                        maxLength={100}
-                        style={{
-                            padding: '12px 16px',
-                            borderRadius: '8px',
-                            border: '1px solid var(--border)',
-                            fontSize: '1rem',
-                            outline: 'none',
-                        }}
-                    />
+                    <div style={{ position: 'relative' }}>
+                        <FieldIcon icon={User} />
+                        <input
+                            id="reg-fullName"
+                            name="fullName"
+                            type="text"
+                            placeholder={t('auth.fullNamePlaceholder')}
+                            defaultValue={pending?.fullName}
+                            required
+                            maxLength={100}
+                            style={{
+                                width: '100%',
+                                boxSizing: 'border-box',
+                                padding: '12px 16px',
+                                paddingLeft: FIELD_ICON_PADDING,
+                                borderRadius: '8px',
+                                border: '1px solid var(--border)',
+                                fontSize: '1rem',
+                                outline: 'none',
+                            }}
+                        />
+                    </div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -453,6 +445,7 @@ function RegisterContent() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <label htmlFor="reg-password" style={{ fontWeight: '500', fontSize: '0.9rem' }}>{t('auth.passwordLabel')}</label>
                     <div style={{ position: 'relative' }}>
+                        <FieldIcon icon={Lock} />
                         <input
                             id="reg-password"
                             ref={passwordRef}
@@ -465,7 +458,7 @@ function RegisterContent() {
                             onChange={(e) => setPassword(e.target.value)}
                             style={{
                                 width: '100%',
-                                padding: '12px 44px 12px 16px',
+                                padding: `12px 44px 12px ${FIELD_ICON_PADDING}`,
                                 borderRadius: '8px',
                                 border: `1px solid ${passwordFeedback.length > 0 ? '#ef4444' : 'var(--border)'}`,
                                 fontSize: '1rem',
@@ -524,7 +517,7 @@ function RegisterContent() {
                     className="btn btn-primary"
                     style={{ width: '100%', marginTop: '8px', opacity: isLoading ? 0.7 : 1 }}
                 >
-                    {isLoading ? t('auth.verifyPhoneSending') : t('auth.verifyPhoneSendCode')}
+                    {isLoading ? t('auth.verifyPhoneSending') : t('auth.createAccount')}
                 </button>
             </form>
 

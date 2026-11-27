@@ -66,7 +66,7 @@ test.describe('typed before the page hydrates', () => {
         await expect(page.locator('#reg-phone')).toHaveValue('901234567');
         await expect(page.getByText(/^✓/)).toBeVisible();
 
-        await page.getByRole('button', { name: 'Отправить код' }).click();
+        await page.getByRole('button', { name: 'Создать аккаунт' }).click();
         await expect.poll(() => sentPhone).toBe('+992901234567');
     });
 

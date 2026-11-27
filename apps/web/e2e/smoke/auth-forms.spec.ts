@@ -45,7 +45,7 @@ test('signup asks for a role first, then shows the matching form', async ({ page
     for (const id of ['#reg-fullName', '#reg-email', '#reg-phone', '#reg-password']) {
         await expect(page.locator(id)).toBeVisible();
     }
-    await expect(page.getByRole('button', { name: 'Отправить код' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Создать аккаунт' })).toBeVisible();
 });
 
 test('signup links preselect the role', async ({ page }) => {

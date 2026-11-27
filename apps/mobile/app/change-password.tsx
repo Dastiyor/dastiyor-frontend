@@ -17,6 +17,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { PasswordInput } from '@/components/PasswordInput';
 import { useTheme } from '@/contexts/ThemeContext';
 import { passwordStrength } from '@/lib/validation';
+import { FieldError } from '@/components/FieldError';
 import { Alert } from '@/lib/dialog';
 import { GradientButton } from '@/components/Premium';
 
@@ -33,14 +34,20 @@ export default function ChangePasswordScreen() {
   const [pwIssues, setPwIssues] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [pwVisible, setPwVisible] = useState(false);
+  // Problems found on submit, shown in red under each field (no alert).
+  const [fieldErrors, setFieldErrors] = useState<{ current?: string; next?: string; confirm?: string }>({});
+  const clearError = (field: 'current' | 'next' | 'confirm') => setFieldErrors((e) => ({ ...e, [field]: undefined }));
   const share = { visible: pwVisible, onToggleVisible: () => setPwVisible((v) => !v) };
 
   async function handleSave() {
-    if (!current || !next || !confirm) { Alert.alert(t.common.error, cp.errFill); return; }
-    if (next.length < 8) { Alert.alert(t.common.error, cp.errLength); return; }
-    const issues = passwordStrength(next, cp);
-    if (issues.length > 0) { Alert.alert(t.common.error, issues.join(', ')); return; }
-    if (next !== confirm) { Alert.alert(t.common.error, cp.errMatch); return; }
+    const found = {
+      current: current ? undefined : t.common.fieldRequired,
+      // A short new password is already listed under the field as it is typed.
+      next: next ? undefined : t.common.fieldRequired,
+      confirm: !confirm ? t.common.fieldRequired : next && confirm !== next ? cp.errMatch : undefined,
+    };
+    setFieldErrors(found);
+    if (found.current || found.next || found.confirm || passwordStrength(next, cp).length > 0) return;
     setSaving(true);
     try {
       await api.post('/api/auth/change-password', { currentPassword: current, newPassword: next });
@@ -56,17 +63,20 @@ export default function ChangePasswordScreen() {
     <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView {...kbScroll} contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 40 + keyboardOffset }]} keyboardShouldPersistTaps="handled">
         <Text style={[styles.label, { color: colors.text }]}>{cp.current}</Text>
-        <PasswordInput {...share} value={current} onChangeText={setCurrent} autoComplete="password" placeholder="••••••••" />
+        <PasswordInput {...share} value={current} onChangeText={(v) => { setCurrent(v); clearError('current'); }} autoComplete="password" placeholder="••••••••" hasError={!!fieldErrors.current} />
+        <FieldError message={fieldErrors.current} />
 
         <Text style={[styles.label, { color: colors.text }]}>{cp.new}</Text>
         <PasswordInput
           {...share}
           showToggle={false}
           value={next}
-          onChangeText={(v) => { setNext(v); setPwIssues(v ? passwordStrength(v, cp) : []); }}
+          onChangeText={(v) => { setNext(v); setPwIssues(v ? passwordStrength(v, cp) : []); clearError('next'); }}
           autoComplete="new-password"
           placeholder={cp.newPh}
+          hasError={!!fieldErrors.next || pwIssues.length > 0}
         />
+        <FieldError message={fieldErrors.next} />
         {next.length > 0 && (
           pwIssues.length === 0
             ? <Text style={styles.pwOk}>✓ {cp.passwordStrong}</Text>
@@ -74,7 +84,8 @@ export default function ChangePasswordScreen() {
         )}
 
         <Text style={[styles.label, { color: colors.text }]}>{cp.confirm}</Text>
-        <PasswordInput {...share} showToggle={false} value={confirm} onChangeText={setConfirm} placeholder={cp.confirmPh} />
+        <PasswordInput {...share} showToggle={false} value={confirm} onChangeText={(v) => { setConfirm(v); clearError('confirm'); }} placeholder={cp.confirmPh} hasError={!!fieldErrors.confirm} />
+        <FieldError message={fieldErrors.confirm} />
 
         <GradientButton style={[styles.btn, saving && styles.btnDisabled]} onPress={handleSave} disabled={saving} accessibilityLabel={cp.btn} accessibilityRole="button">
           {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>{cp.btn}</Text>}

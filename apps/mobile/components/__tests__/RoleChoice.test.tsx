@@ -25,24 +25,37 @@ describe('RoleChoice', () => {
     expect(screen.getByText(r.advertiseHint)).toBeTruthy();
   });
 
-  it('picks the role that was tapped', () => {
+  it('selects a tapped card without submitting, and lets the choice change', () => {
+    const { onPick, screen } = setup();
+    expect(screen.getByTestId('role-submit')).toBeDisabled();
+    fireEvent.press(screen.getByTestId('role-provider'));
+    expect(onPick).not.toHaveBeenCalled();
+    expect(screen.getByTestId('role-provider')).toHaveProp('accessibilityState', expect.objectContaining({ selected: true }));
+    fireEvent.press(screen.getByTestId('role-customer'));
+    expect(screen.getByTestId('role-customer')).toHaveProp('accessibilityState', expect.objectContaining({ selected: true }));
+    expect(screen.getByTestId('role-provider')).toHaveProp('accessibilityState', expect.objectContaining({ selected: false }));
+  });
+
+  it('submits the selected role with "Get started"', () => {
     const { onPick, screen } = setup();
     fireEvent.press(screen.getByTestId('role-provider'));
+    expect(screen.getByTestId('role-submit')).toBeEnabled();
+    fireEvent.press(screen.getByText(r.getStarted));
     expect(onPick).toHaveBeenCalledWith('provider');
-    fireEvent.press(screen.getByTestId('role-customer'));
-    expect(onPick).toHaveBeenCalledWith('customer');
   });
 
   it('takes no second pick while one is being submitted', () => {
     const { onPick, screen } = setup('customer');
     fireEvent.press(screen.getByTestId('role-provider'));
+    expect(screen.getByTestId('role-submit')).toBeDisabled();
+    fireEvent.press(screen.getByTestId('role-submit'));
     expect(onPick).not.toHaveBeenCalled();
   });
 
   it('has the step text in every language', () => {
     for (const locale of ['en', 'ru', 'tj'] as const) {
       const reg = getTranslations(locale).register;
-      for (const v of [reg.chooseTitle, reg.phoneVerified, reg.customerTitle, reg.providerTitle, reg.advertiseHint]) {
+      for (const v of [reg.chooseTitle, reg.phoneVerified, reg.customerTitle, reg.providerTitle, reg.advertiseHint, reg.getStarted]) {
         expect(v).toBeTruthy();
       }
     }

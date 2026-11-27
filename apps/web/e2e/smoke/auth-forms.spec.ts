@@ -14,7 +14,7 @@ test('login rejects an unknown account with a readable error', async ({ page }) 
 
     await expect(page.getByText('Аккаунт с таким email не найден')).toBeVisible();
     await expect(page.getByRole('link', { name: 'Создать аккаунт?' })).toHaveAttribute('href', '/register');
-    await expect(page).toHaveURL(/\/login$/);
+    await expect(page).toHaveURL(/\/login\?method=password$/);
 });
 
 test('login takes a phone number and says when it has no account', async ({ page }) => {
@@ -42,7 +42,8 @@ test('login asks for a phone number first and offers a password instead', async 
 });
 
 test('login offers Google, Apple, password recovery and signup', async ({ page }) => {
-    await open(page, '/login');
+    // Password recovery sits with the password form.
+    await open(page, '/login?method=password');
     await expect(page.getByText('Продолжить с Google')).toBeVisible();
     await expect(page.getByText('Продолжить с Apple')).toBeVisible();
     await expect(page.locator('a[href="/forgot-password"]')).toBeVisible();

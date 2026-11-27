@@ -75,21 +75,35 @@ test('a forgotten password is reset with an SMS code, and the old one stops work
     expect((await login(NEW_PASSWORD)).status()).toBe(200);
 });
 
-test('a provider signs up and lands in the provider dashboard', async ({ page }) => {
+test('a provider signs up with a name and phone only, and signs back in by SMS code', async ({ page }) => {
     // Frees the designated number for a second account.
     await prisma.actionLog.deleteMany({ where: { user: { email: customerEmail } } });
     await prisma.user.delete({ where: { email: customerEmail } });
 
-    const email = providerEmail = e2eEmail('signup-provider');
-    await fillSignupForm(page, 'provider', email);
+    await open(page, '/register?type=provider');
+    await page.locator('#reg-fullName').fill('E2E Только Телефон');
+    await page.locator('#reg-phone').fill(LOCAL_PHONE);
+    await page.getByRole('button', { name: 'Создать аккаунт' }).click();
     await page.locator('#reg-code').fill(E2E_SMS_CODE);
     await page.getByRole('button', { name: 'Создать аккаунт' }).click();
     await page.waitForURL(url => url.pathname === '/');
 
-    const user = await prisma.user.findUniqueOrThrow({ where: { email } });
-    expect(user).toMatchObject({ role: 'PROVIDER', phoneVerified: true });
+    const user = await prisma.user.findFirstOrThrow({ where: { phone: E2E_SMS_PHONE } });
+    expect(user).toMatchObject({ role: 'PROVIDER', password: null, phoneVerified: true });
+    // A placeholder address is outside purgeE2EData(); move it inside.
+    providerEmail = e2eEmail('signup-provider');
+    await prisma.user.update({ where: { id: user.id }, data: { email: providerEmail } });
 
-    await page.goto('/provider');
+    await page.context().clearCookies();
+    await open(page, '/login');
+    await page.locator('#login-phone').fill(LOCAL_PHONE);
+    await page.getByRole('button', { name: 'Получить код' }).click();
+    await page.locator('#login-code').fill('000000');
+    await page.getByRole('button', { name: 'Войти', exact: true }).click();
+    await expect(page.getByText('Неверный или просроченный код')).toBeVisible();
+
+    await page.locator('#login-code').fill(E2E_SMS_CODE);
+    await page.getByRole('button', { name: 'Войти', exact: true }).click();
     await expect(page).toHaveURL(/\/provider$/);
 });
 

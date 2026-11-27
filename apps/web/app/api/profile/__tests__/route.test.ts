@@ -320,6 +320,16 @@ describe('/api/profile', () => {
                 expect(data.error).toBe('Текущий пароль неверен');
             });
 
+            it('tells a phone account without a password to set one before changing the email', async () => {
+                prismaMock.user.findUnique.mockResolvedValueOnce({ ...mockUser, password: null } as any);
+
+                const response = await PUT(makeRequest({ fullName: 'Ali', email: 'new@test.com' }));
+
+                expect(response.status).toBe(400);
+                expect((await response.json()).error).toContain('сначала задайте пароль');
+                expect(prismaMock.user.update).not.toHaveBeenCalled();
+            });
+
             it('returns 400 when account has no password (social sign-in)', async () => {
                 prismaMock.user.findUnique
                     .mockResolvedValueOnce({ ...mockUser, password: null, googleId: 'g-1' } as any);

@@ -103,4 +103,34 @@ describe('/api/auth/verify-send', () => {
             expect((prismaMock.verificationCode.create as jest.Mock).mock.calls[0][0].data.code).not.toBe(TEST_CODE);
         });
     });
+
+    it('refuses a type it does not send', async () => {
+        const response = await POST(req({ phone: '+992900000009', type: 'RESET_PASSWORD' }));
+
+        expect(response.status).toBe(400);
+        expect(sendVerificationCode).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        ['an unknown number', [null, null], 'ACCOUNT_NOT_FOUND'],
+        ['an unverified number', [null, { id: 'u1' }], 'PASSWORD_REQUIRED'],
+    ])('sends no login code to %s', async (_name, [verified, any], code) => {
+        (prismaMock.user.findFirst as jest.Mock).mockResolvedValueOnce(verified).mockResolvedValueOnce(any);
+
+        const response = await POST(req({ phone: '+992900000009', type: 'LOGIN' }));
+
+        expect(response.status).toBe(404);
+        expect((await response.json()).code).toBe(code);
+        expect(sendVerificationCode).not.toHaveBeenCalled();
+        expect(prismaMock.verificationCode.create).not.toHaveBeenCalled();
+    });
+
+    it('sends a login code to a verified number', async () => {
+        (prismaMock.user.findFirst as jest.Mock).mockResolvedValue({ id: 'u1' });
+
+        const response = await POST(req({ phone: '+992900000009', type: 'LOGIN' }));
+
+        expect(response.status).toBe(200);
+        expect((prismaMock.verificationCode.create as jest.Mock).mock.calls[0][0].data.type).toBe('LOGIN');
+    });
 });

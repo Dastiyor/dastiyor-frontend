@@ -75,6 +75,15 @@ describe('/api/auth/change-password', () => {
         expect(data.error).toBe('Пользователь не найден');
     });
 
+    it('tells a phone account without a password how to set one', async () => {
+        prismaMock.user.findUnique.mockResolvedValue({ id: mockUserId, password: null } as any);
+
+        const response = await POST(makeRequest({ currentPassword: 'anything', newPassword: 'newpass123' }));
+
+        expect(response.status).toBe(400);
+        expect((await response.json()).error).toContain('ещё нет пароля');
+    });
+
     it('returns 400 when user has no password (OAuth account)', async () => {
         prismaMock.user.findUnique.mockResolvedValue({
             id: mockUserId,

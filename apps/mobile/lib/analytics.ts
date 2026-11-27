@@ -22,6 +22,11 @@ export const AnalyticsEvent = {
   ResponseSubmitted: 'response_submitted',
   MessageSent: 'message_sent',
   OfferAccepted: 'offer_accepted',
+  TaskCreateValidationFailed: 'task_create_validation_failed',
+  JobCompleted: 'job_completed',
+  ReviewLeft: 'review_left',
+  SubscriptionPurchased: 'subscription_purchased',
+  PushPermissionGranted: 'push_permission_granted',
 } as const;
 
 export interface AnalyticsTransport {

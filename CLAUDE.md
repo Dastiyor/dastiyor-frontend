@@ -63,7 +63,7 @@ Cookie/Bearer JWT (jose HS256, 30 days — `SESSION_MAX_AGE`) signed in `lib/aut
 - **Dashboard layouts** (`app/customer/layout.tsx`, `app/provider/layout.tsx`) each do their own server-side check — read cookie, verify, load the user, compare `tokenVersion`, `redirect('/login')` on any failure. `middleware.ts` only sets the CSP and security headers; auth lives in the layout or the route.
 - **OAuth** (`lib/oauth.ts`): matches on `googleId`/`appleId`, then falls back to matching by email and linking. The requested `role` (carried in the base64url OAuth `state` on web, in the POST body on mobile) is only honored when creating a brand-new user; an existing account keeps its stored role silently.
 - **Login is by SMS code first** (web and mobile), password second. `verify-send` type `LOGIN`, then `POST /api/auth/login/code` (`lib/sms-login.ts`); the path stays under `/api/auth/login` so mobile does not read its 401 as an expired session. Only an account with `phoneVerified: true` can sign in this way (oldest first); an unverified one gets `PASSWORD_REQUIRED`, and password login answers `PASSWORD_NOT_SET` for a phone account without a password. On web, `/login?method=password` is the password form.
-- **Returning after sign-in (web)**: `?redirect=` is honoured by login, signup, `/verify-phone` and both OAuth flows (carried in `state`). Read it only through `safeRedirect()` (`lib/safe-redirect.ts`). Guests fill in `/create-task` and are asked to sign in at "Publish" (or when adding a photo, since uploads need an account); the `task_draft` in localStorage carries the form across.
+- **Returning after sign-in (web)**: `?redirect=` is honoured by login, signup, `/verify-phone` and both OAuth flows (carried in `state`). Read it only through `safeRedirect()` (`lib/safe-redirect.ts`). Guests fill in `/create-task` and are asked to sign in at "Publish" (or when adding a photo, since uploads need an account); the `task_draft` in localStorage carries the form across. The app does the same (`lib/task-draft.ts`, `lib/auth-return.ts`; sign-in screens leave through `leaveAuth()`).
 - **SMS codes** (`lib/otp.ts`): a resend does not cancel earlier codes (a slow SMS must still work); the newest 3 stay valid for 10 minutes and using one spends all of them. Refusals are logged and audited as `OTP_REJECTED` with `expired`, `wrong_code` or `no_code`, never the code or full number. Check codes only through `consumeOtp()`.
 - **Password and email are optional at signup.** Such an account has `password: null` and, without an email, a `@phone.dastiyor.local` placeholder; "forgot password" by phone is how it sets a password (needed to change the email).
 - **Signup requires an SMS code**: `POST /api/auth/register` rejects a request without a phone and a valid `code` issued by `/api/auth/verify-send` (type `REGISTRATION`), and creates the user with `phoneVerified: true`. Not flag-gated. Web runs form → send-code → enter-code → role (since 2026-11-27, same as mobile; a `?type=` link skips the role step).
@@ -175,7 +175,7 @@ Supabase (required). Optional, each degrading gracefully when unset: Brevo (emai
 
 **PostHog data warehouse.** PostHog syncs the `analytics` schema daily (views over User/Task/Response/Payment/Subscription/SourcingRequest with no email, phone or message text) through the read-only `posthog_ro` role, which can read only those views. Synced tables are named `postgres.dastiyor.<view>` with **snake_case** columns (`created_at`, `task_id`); a view with no rows gets no table until it has one, so a query on it errors "Unknown table" until then. Setup SQL and the dashboard queries live in `docs/analytics/posthog.sql`. posthog-js ignores automated browsers (`navigator.webdriver`), so verify web events from a real browser, not Playwright/DevTools.
 
-**Web events.** `lib/analytics.ts` sends the app's event names with `platform: 'web'`; keep names and properties in step with `apps/mobile/lib/analytics.ts` (web adds `task_create_validation_failed`). Google/Apple web sign-ins are recorded through the `auth_event` cookie the callback sets (`lib/oauth-response.ts` → `components/Analytics.tsx`).
+**Web events.** `lib/analytics.ts` sends the app's event names with `platform: 'web'`; keep names and properties in step with `apps/mobile/lib/analytics.ts` (both send `task_create_validation_failed` with the same rule names). Google/Apple web sign-ins are recorded through the `auth_event` cookie the callback sets (`lib/oauth-response.ts` → `components/Analytics.tsx`).
 
 ### Mobile release builds
 
@@ -193,3 +193,31 @@ The iOS subscriptions (group "Dastiyor Provider Plans": `dastiyor_pro_monthly`, 
 - **Subscription availability must cover the storefronts where the app is sold.** Apple reviews in a sandbox outside Tajikistan; a Tajikistan-only subscription loads no products there, and review fails with 2.1(b) "cannot locate the In-App Purchases". All three are available in all 175 countries.
 - **The plans are provider-only** (Profile → Подписка shows only for `PROVIDER`, with both config switches on and `EXPO_PUBLIC_REVENUECAT_IOS_KEY` in the build). The review sign-in is the customer demo account, so the top of the App Review notes must say: log in with the PROVIDER demo account → Profile → Подписка.
 - A new subscription goes to review together with an app version. After a rejection, click **Update Review** on the version page first; only then is **Resubmit to App Review** enabled.
+
+## Still open (website review)
+
+From "Dastiyor website issues for development" (25 Nov 2026). State as of 27 Nov 2026, after commit `ec9f6eb`. Item numbers in brackets are the PDF's section and item. Delete a line when it is done.
+
+**Not yet verified on production**
+- A real SMS signup and login: request a code, resend, enter the first code.
+- Web analytics events arriving in PostHog (check Live events from a real browser).
+- Rejected SMS codes: read the `OTP_REJECTED` reasons in the action log after a few days (4.7).
+
+**Needs the user or the client**
+- App review (25 Nov 2026): Android push likely never worked (no `google-services.json`; needs Firebase, an FCM key in EAS and a new build); free new-task alerts need the client's decision.
+- Telegram or WhatsApp support handle; support is still an email link (4.12).
+- Human legal translation of Terms and Privacy; both are Russian only.
+- Native-speaker proofreading of the new Tajik: `lib/i18n/pages/`, task templates, home page, `/mobile-app`, `/sourcing`.
+- Confirm support is staffed daily 9:00–22:00, as the site says.
+- Cancel the ad-like task "Сантехник" in the admin panel if still open (it showed on the home page).
+- Resubmit `https://www.dastiyor.com/sitemap.xml` in Google Search Console.
+- Local hero photo (2.5); Russian and Tajik store listings (5.2); a fresh Google Play release (5.1); ad campaign comparison (3.4); UTM links (6.5); team accounts in the PostHog test cohort (6.6).
+
+**Code, when asked**
+- Help answers are outdated: they say Pro is bought through the payment partner and passwords are reset by email.
+- `robots.txt` disallows `/provider/`, so public specialist profiles are not crawlable.
+- Guests still sign in before writing a response (rest of 1.2).
+- Website analytics for specialist selected, job done and review left (the app sends these and purchases); subscription renewed and cancelled, from the RevenueCat webhook (6.4); install attribution (6.5).
+- Session replay in the app, likely needs a store build (6.1).
+- `/mobile-app` screenshots show the app in Tajik; make Russian ones with `apps/mobile/goldie`.
+- Low priority: login state across tabs (4.8), loading states (4.9), Instagram in-app browser errors (4.10, read the error in PostHog first), banner at 360 px (4.14), menu opening `/mobile-app` (4.15), header rage clicks (4.16), category + city SEO pages (rest of 4.1).

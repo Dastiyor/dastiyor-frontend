@@ -10,6 +10,9 @@ import {
 } from 'react-native';
 import { Text } from '@/components/AppText';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useAuth } from '@/contexts/AuthContext';
+import { returnToTaskAfterSignIn } from '@/lib/auth-return';
+import { loadTaskDraft, saveTaskDraft, clearTaskDraft, type TaskDraft } from '@/lib/task-draft';
 import { looksLikeServiceAd } from '@/lib/service-ad';
 import { goBack, replaceFromModal } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -24,10 +27,23 @@ import { useConfig } from '@/lib/useConfig';
 import { Alert } from '@/lib/dialog';
 import { ChipGroup } from '@/components/ChipGroup';
 import { GradientButton, Input, PressScale, useChipStyle } from '@/components/Premium';
-import { taskFieldErrors, TASK_DESCRIPTION_MAX, TASK_TITLE_MAX, type TaskField } from '@/lib/task-rules';
+import { taskFieldErrors, TASK_DESCRIPTION_MAX, TASK_TITLE_MAX, type TaskField, type TaskFieldError } from '@/lib/task-rules';
 
 // Cities are canonical Russian strings; most tasks are in the capital, so it is preselected.
 const DEFAULT_CITY = 'Душанбе';
+const DRAFT_SAVE_DELAY_MS = 500;
+
+// Analytics rule names, the same as the website's (apps/web/app/create-task/page.tsx).
+const RULE_NAMES: Record<TaskFieldError, string> = {
+  errTitleShort: 'title_too_short',
+  errTitleLong: 'title_too_long',
+  errDescLong: 'description_too_long',
+  errCategory: 'category_missing',
+  errCity: 'city_unknown',
+  errBudget: 'budget_missing',
+  errBudgetInvalid: 'budget_invalid',
+  errBudgetTooHigh: 'budget_too_high',
+};
 
 
 export default function CreateTaskScreen() {
@@ -35,6 +51,7 @@ export default function CreateTaskScreen() {
   const { colors } = useTheme();
   const chipStyle = useChipStyle();
   const ct = t.createTask;
+  const { user, loading: authLoading } = useAuth();
   const { config } = useConfig();
   const insets = useSafeAreaInsets();
   const keyboardOffset = useKeyboardOffset();
@@ -71,15 +88,53 @@ export default function CreateTaskScreen() {
   const touch = (field: TaskField) => setTouched((prev) => ({ ...prev, [field]: true }));
   const remember = (field: TaskField) => (e: { nativeEvent: { layout: { y: number } } }) => { fieldY.current[field] = e.nativeEvent.layout.y; };
 
-  // Funnel: mark that the user opened the create-task flow.
+  // Bring back the unpublished task, without overwriting anything typed meanwhile
+  // or the category the screen was opened with.
+  const [draftLoaded, setDraftLoaded] = useState(false);
   useEffect(() => {
-    track(AnalyticsEvent.TaskCreateStarted);
+    loadTaskDraft().then((d) => {
+      // Funnel: the form was opened; `resumed` tells a return to a draft from a new start.
+      track(AnalyticsEvent.TaskCreateStarted, { resumed: !!d });
+      if (d) {
+        setTitle((v) => v || d.title || '');
+        setDescription((v) => v || d.description || '');
+        setCategory((v) => v || d.category || '');
+        setCity((v) => (v === DEFAULT_CITY && d.city ? d.city : v));
+        setBudgetType((v) => (d.budgetType === 'fixed' ? 'fixed' : v));
+        setAmount((v) => v || d.amount || '');
+        setUrgency((v) => (v === 'normal' && d.urgency ? d.urgency : v));
+        setAddress((v) => v || d.address || '');
+      }
+      setDraftLoaded(true);
+    });
   }, []);
+
+  // Save shortly after the last change, or on closing if that has not happened yet.
+  // Not before the stored draft is read (it would be erased), nor after publishing.
+  const draft: TaskDraft = { title, description, category, city, budgetType, amount, urgency, address };
+  const latestDraft = useRef<TaskDraft | null>(null);
+  latestDraft.current = draftLoaded ? draft : null;
+  const published = useRef(false);
+  const unsaved = useRef(false);
+  const persist = () => {
+    if (!unsaved.current || !latestDraft.current || published.current) return;
+    unsaved.current = false;
+    saveTaskDraft(latestDraft.current);
+  };
+  useEffect(() => {
+    unsaved.current = true;
+    const timer = setTimeout(persist, DRAFT_SAVE_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [draftLoaded, title, description, category, city, budgetType, amount, urgency, address]);
+  useEffect(() => persist, []);
 
   async function handleCreate(adConfirmed = false) {
     const order: TaskField[] = ['title', 'description', 'category', 'city', 'amount'];
     const firstBad = order.find((f) => errors[f]);
     if (firstBad) {
+      for (const [field, rule] of Object.entries(ruleErrors) as [TaskField, TaskFieldError][]) {
+        track(AnalyticsEvent.TaskCreateValidationFailed, { field, rule: RULE_NAMES[rule] });
+      }
       setSubmitAttempted(true);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
       kbScroll.ref.current?.scrollTo({ y: Math.max(0, (fieldY.current[firstBad] ?? 0) - 24), animated: true });
@@ -92,6 +147,15 @@ export default function CreateTaskScreen() {
         { text: t.adWarning.becomeProvider, onPress: () => router.push('/switch-role') },
         { text: t.adWarning.postAnyway, onPress: () => { handleCreate(true); } },
       ]);
+      return;
+    }
+    // A guest fills in the form first and signs in to publish it. The draft brings
+    // it back; they press Publish again themselves.
+    if (!user) {
+      if (authLoading) return;
+      await saveTaskDraft(draft);
+      returnToTaskAfterSignIn();
+      replaceFromModal('/(auth)/register');
       return;
     }
     setLoading(true);
@@ -108,6 +172,8 @@ export default function CreateTaskScreen() {
         address: address.trim() || undefined,
       });
       track(AnalyticsEvent.TaskCreateCompleted, { category, city, budgetType });
+      published.current = true;
+      clearTaskDraft();
       // Land on the new task, where the customer sees recommended providers.
       const newId = created?.task?.id;
       Alert.alert(t.common.done, ct.published, [{
@@ -115,15 +181,17 @@ export default function CreateTaskScreen() {
         onPress: () => (newId ? replaceFromModal({ pathname: '/task/[id]', params: { id: newId } }) : goBack()),
       }]);
     } catch (e) {
-      const err = e as { code?: string; message: string };
+      const err = e as { code?: string; message: string; status?: number; serverError?: string };
       const msg = err.message ?? '';
       if (err.code === 'PHONE_VERIFICATION_REQUIRED' || msg.includes('PHONE_VERIFICATION')) {
         Alert.alert(t.phoneVerify.required, t.phoneVerify.message, [
           { text: t.common.cancel, style: 'cancel' },
           { text: t.phoneVerify.openWebsite, onPress: () => { Linking.openURL('https://www.dastiyor.com/verify-phone').catch(() => {}); } },
-          { text: t.phoneVerify.verifyNow, onPress: () => router.push('/verify-phone?returnTo=/create-task') },
+          { text: t.phoneVerify.verifyNow, onPress: () => router.push('/verify-phone') },
         ]);
       } else {
+        // The server's own message: a fixed string, never what was typed.
+        if (err.status === 400) track(AnalyticsEvent.TaskCreateValidationFailed, { field: 'server', rule: err.serverError });
         Alert.alert(t.common.error, msg);
       }
     } finally {

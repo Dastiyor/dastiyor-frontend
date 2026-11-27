@@ -14,6 +14,7 @@ import { goBack } from '@/lib/nav';
 import { Icon } from '@/components/Icon';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '@/lib/api-client';
+import { track, AnalyticsEvent } from '@/lib/analytics';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -84,6 +85,11 @@ export default function TaskDetailScreen() {
     COMPLETED:   { label: t.status.COMPLETED,   color: '#6B7280', bg: '#F3F4F6' },
     CANCELLED:   { label: t.status.CANCELLED,   color: '#EF4444', bg: '#FEE2E2' },
   };
+
+  // Once per task opened; the poll and pull-to-refresh keep the same id.
+  useEffect(() => {
+    if (task?.id) track(AnalyticsEvent.TaskViewed, { taskId: task.id, category: task.category });
+  }, [task?.id]);
 
   async function loadTask() {
     if (!id) return;
@@ -164,6 +170,7 @@ export default function TaskDetailScreen() {
         setActionLoading(response.id);
         try {
           await api.post('/api/tasks/accept', { taskId: task!.id, providerId: response.provider.id });
+          track(AnalyticsEvent.OfferAccepted, { taskId: task!.id });
           const newTask = await loadTask();
           if (newTask) await loadResponses(newTask);
         } catch (e) {
@@ -385,6 +392,7 @@ export default function TaskDetailScreen() {
                   setTaskActionLoading('complete');
                   try {
                     await api.post('/api/tasks/complete', { taskId: task.id });
+                    track(AnalyticsEvent.JobCompleted, { taskId: task.id });
                     const d = await loadTask();
                     if (d) await loadResponses(d);
                   } catch (e) { Alert.alert(t.common.error, (e as Error).message); }

@@ -198,7 +198,7 @@ function RegisterContent() {
     }
 
     function signedUp(newRole: string | undefined) {
-        track(AnalyticsEvent.SignUpCompleted, { method: 'password', role: newRole }, { leavingPage: true });
+        track(AnalyticsEvent.SignUpCompleted, { method: password ? 'password' : 'sms', role: newRole }, { leavingPage: true });
         // Use full page reload to ensure server components refresh
         // This ensures the Header component re-renders with the new auth state
         window.location.href = redirect || '/';

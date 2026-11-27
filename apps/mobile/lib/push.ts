@@ -8,6 +8,7 @@
  */
 
 import { api } from '@/lib/api-client';
+import { track, AnalyticsEvent } from '@/lib/analytics';
 
 export type PushPermission = 'granted' | 'denied' | 'unavailable';
 
@@ -69,6 +70,8 @@ export async function getExpoPushToken(): Promise<string | null> {
     if (status !== 'granted') {
       const req = await Notifications.requestPermissionsAsync();
       status = req?.status;
+      // Only an answer to the prompt, not every launch of an already-allowed app.
+      if (status === 'granted') track(AnalyticsEvent.PushPermissionGranted);
     }
     if (status !== 'granted') return null;
 

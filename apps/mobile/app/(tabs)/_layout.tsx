@@ -30,7 +30,7 @@ export default function TabLayout() {
   const { t } = useLanguage();
   const { popupsEnabled } = useNotifPrefs();
   // Guests are shown the customer-flavoured label: signing up as a customer is
-  // the default path, and tapping it routes to registration either way. Reading
+  // the default path, and "+" opens the task form (sign-in is asked at Publish). Reading
   // this as `=== 'CUSTOMER'` left a logged-out visitor looking at "Responses".
   const isCustomer = !user || user.role === 'CUSTOMER';
   const [unreadMessages, setUnreadMessages] = useState(0);
@@ -115,7 +115,7 @@ export default function TabLayout() {
         <TabBar
           {...props}
           order={isCustomer ? CUSTOMER_TABS : PROVIDER_TABS}
-          onCreate={isCustomer ? () => router.push(user ? '/create-task' : '/(auth)/register') : undefined}
+          onCreate={isCustomer ? () => router.push('/create-task') : undefined}
           createLabel={t.my.createTask}
         />
       )}

@@ -5,6 +5,8 @@ import { api, setOnUnauthorized } from '@/lib/api-client';
 import { registerForPushNotifications, unregisterPushNotifications } from '@/lib/push';
 import { signOutFromGoogle } from '@/lib/google-signin';
 import { identifyPurchases, resetPurchases } from '@/lib/purchases';
+import { noteSignedInRole } from '@/lib/auth-return';
+import { clearTaskDraft } from '@/lib/task-draft';
 import { setUser as setErrorUser } from '@/lib/errorReporting';
 import { track, identify, reset as resetAnalytics, AnalyticsEvent } from '@/lib/analytics';
 import { syncStoredLocale } from '@/contexts/LanguageContext';
@@ -127,6 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     method: string,
   ) {
     setUser(res.user);
+    noteSignedInRole(res.user.role);
     // The sign-in responses carry only id, email, name and role; the phone, photo and
     // phone-verification flag come from /api/auth/me, which otherwise only ran on app start.
     refreshUser();
@@ -155,7 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function register(data: RegisterData) {
     const res = await api.post<{ token: string; user: ApiUser }>('/api/auth/register', data);
     await storage.setItem('auth_token', res.token);
-    onAuthenticated(res, AnalyticsEvent.SignUpCompleted, 'password');
+    onAuthenticated(res, AnalyticsEvent.SignUpCompleted, data.password ? 'password' : 'sms');
   }
 
   // Sign in first, ask the role after: with no role the server signs an
@@ -220,6 +223,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await signOutFromGoogle();
     await resetPurchases();
     await storage.deleteItem('auth_token');
+    await clearTaskDraft();
     setUser(null);
     setErrorUser(null);
     track(AnalyticsEvent.Logout);
@@ -235,6 +239,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await signOutFromGoogle();
     await resetPurchases();
     await storage.deleteItem('auth_token');
+    await clearTaskDraft();
     setUser(null);
     setErrorUser(null);
     track(AnalyticsEvent.Logout);

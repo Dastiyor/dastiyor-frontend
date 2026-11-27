@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { View, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, ActivityIndicator, Platform } from 'react-native';
 import { Text } from '@/components/AppText';
 import Purchases, { type PurchasesPackage } from 'react-native-purchases';
 import type { SubscriptionTier } from '@dastiyor/types';
 import { api } from '@/lib/api-client';
+import { track, AnalyticsEvent } from '@/lib/analytics';
 import { Alert } from '@/lib/dialog';
 import { isUserCancel } from '@/lib/purchases';
 import { formatDate } from '@/lib/intl';
@@ -75,6 +76,7 @@ export function SubscriptionPlans({ labels: l, storeReady, locale = 'ru' }: { la
     setBusy(true);
     try {
       await Purchases.purchasePackage(pkg);
+      track(AnalyticsEvent.SubscriptionPurchased, { plan: planOf(pkg), platform: Platform.OS });
       const sub = await sync();
       Alert.alert(l.success, sub ? nameOf(sub.plan) : '', undefined, { icon: 'success' });
     } catch (e) {

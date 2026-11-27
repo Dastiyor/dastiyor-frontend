@@ -15,8 +15,11 @@ const UPLOAD_TIMEOUT_MS = 60_000; // images are slow on TJ mobile networks
 export class ApiError extends Error {
   status: number;
   code?: string;
-  constructor(message: string, status: number, code?: string) {
+  /** The server's own Russian text, untranslated: what analytics records, as the website does. */
+  serverError?: string;
+  constructor(message: string, status: number, code?: string, serverError?: string) {
     super(message);
+    this.serverError = serverError;
     this.name = 'ApiError';
     this.status = status;
     this.code = code;
@@ -117,7 +120,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   if (!res.ok) {
     const serverError = typeof data.error === 'string' ? data.error : undefined;
     const code = typeof data.code === 'string' ? data.code : undefined;
-    throw new ApiError(sanitizeApiError(res.status, serverError), res.status, code);
+    throw new ApiError(sanitizeApiError(res.status, serverError), res.status, code, serverError);
   }
 
   return data as T;

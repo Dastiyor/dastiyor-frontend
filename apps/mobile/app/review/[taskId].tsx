@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardOffset } from '@/lib/useKeyboardOffset';
 import { useKeyboardAwareScroll } from '@/lib/useKeyboardAwareScroll';
 import { api } from '@/lib/api-client';
+import { track, AnalyticsEvent } from '@/lib/analytics';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -44,6 +45,7 @@ export default function ReviewScreen() {
     setLoading(true);
     try {
       await api.post('/api/reviews', { taskId, rating, comment: comment.trim() || undefined });
+      track(AnalyticsEvent.ReviewLeft, { taskId: String(taskId), rating });
       // Same reason as respond/[id]: this modal sits over the polling task/[id]
       // screen, and dismissing from inside an Alert callback can strand it.
       toast.show(rv.published, 'success');

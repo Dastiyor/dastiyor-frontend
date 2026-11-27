@@ -17,6 +17,7 @@ import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { api } from '@/lib/api-client';
+import { track, AnalyticsEvent } from '@/lib/analytics';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -164,6 +165,7 @@ export default function ChatScreen() {
 
     try {
       await api.post('/api/messages', { receiverId: partnerId, content, taskId: taskId || undefined });
+      track(AnalyticsEvent.MessageSent);
       await fetchMessages(false);
       if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
       scrollTimerRef.current = setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);

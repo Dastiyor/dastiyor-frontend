@@ -14,7 +14,7 @@ const translations = {
       features: [
         { title: 'Find a specialist', body: 'Repair, cleaning, delivery, IT and dozens of other categories.' },
         { title: 'Communicate directly', body: 'Chat with the executor without intermediaries and hidden fees.' },
-        { title: 'Reliable', body: 'Real reviews, ratings and verified profiles.' }
+        { title: 'Reliable', body: 'Real reviews, ratings and work portfolios.' }
       ],
       cta: 'Start',
       langTitle: 'Choose language',
@@ -692,7 +692,7 @@ const translations = {
       features: [
         { title: 'Найдите мастера', body: 'Ремонт, уборка, доставка, IT и десятки других категорий.' },
         { title: 'Общайтесь напрямую', body: 'Чат с исполнителем без посредников и скрытых комиссий.' },
-        { title: 'Надёжно', body: 'Реальные отзывы, рейтинги и проверенные профили.' }
+        { title: 'Надёжно', body: 'Реальные отзывы, рейтинги и примеры работ.' }
       ],
       cta: 'Начать',
       langTitle: 'Выберите язык',
@@ -1369,7 +1369,7 @@ const translations = {
       features: [
         { title: 'Устоеро ёбед', body: 'Таъмир, тозакорӣ, расонидан, IT ва даҳҳо категорияи дигар.' },
         { title: 'Мустақим муошират', body: 'Чат бо иҷрокунанда бе миёнарав ва комиссияи пинҳон.' },
-        { title: 'Боэтимод', body: 'Шарҳҳои воқеӣ, рейтингҳо ва профилҳои санҷидашуда.' }
+        { title: 'Боэтимод', body: 'Шарҳҳои воқеӣ, рейтингҳо ва намунаҳои корҳо.' }
       ],
       cta: 'Оғоз кардан',
       langTitle: 'Забонро интихоб кунед',

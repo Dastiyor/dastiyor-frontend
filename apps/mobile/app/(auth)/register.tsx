@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import { Text } from '@/components/AppText';
 import { Link } from 'expo-router';
-import { goBack, replaceFromModal } from '@/lib/nav';
+import { goBack } from '@/lib/nav';
+import { leaveAuth } from '@/lib/auth-return';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardOffset } from '@/lib/useKeyboardOffset';
 import { AUTH_CLOSE_SIZE, useAuthTopSpacing } from '@/lib/authLayout';
@@ -112,7 +113,7 @@ export default function RegisterScreen() {
   async function finishSignup() {
     await storage.setItem('onboarding_done', '1');
     await storage.deleteItem(DRAFT_KEY);
-    replaceFromModal('/(tabs)');
+    leaveAuth();
   }
 
   function askRole(pending: PendingOAuth) {

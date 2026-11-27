@@ -16,7 +16,8 @@ import { OfflineBanner } from '@/components/OfflineBanner';
 import { DialogHost } from '@/lib/dialog';
 import { HeaderBackArrow } from '@/components/HeaderBackArrow';
 import { initErrorReporting } from '@/lib/errorReporting';
-import { initAnalytics, track, AnalyticsEvent } from '@/lib/analytics';
+import { initAnalytics, track, screen, AnalyticsEvent } from '@/lib/analytics';
+import { screenName } from '@/lib/screen-name';
 import { initNotificationHandlers } from '@/lib/notifications-handler';
 
 SplashScreen.preventAutoHideAsync();
@@ -38,6 +39,10 @@ function ThemedStack() {
   // sign-in, cold start, or backing out of the screen.
   const { user } = useAuth();
   const segments = useSegments();
+  const currentScreen = screenName(segments);
+  useEffect(() => {
+    screen(currentScreen);
+  }, [currentScreen]);
   const mustVerifyPhone = !!user?.phoneVerificationRequired;
   const onVerifyPhone = (segments[0] as string | undefined) === 'verify-phone';
   useEffect(() => {

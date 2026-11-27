@@ -1,96 +1,26 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import { getServerTranslation } from '@/lib/i18n/server';
+import { helpContent } from '@/lib/i18n/pages/help';
 
-export const metadata: Metadata = {
-    alternates: { canonical: '/help' },
-    title: 'Центр помощи | Dastiyor',
-    description: 'Ответы на частые вопросы о работе платформы Dastiyor.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+    const { locale } = await getServerTranslation();
+    const { title, description } = helpContent[locale];
+    return { alternates: { canonical: '/help' }, title, description };
+}
 
-const faqs = [
-    {
-        section: 'Для заказчиков',
-        items: [
-            {
-                q: 'Как создать задание?',
-                a: 'Нажмите «Создать задание» в верхнем меню, заполните название, описание, категорию и бюджет. После публикации исполнители начнут присылать отклики.',
-            },
-            {
-                q: 'Сколько стоит размещение задания?',
-                a: 'Размещение заданий для заказчиков полностью бесплатно. Плата взимается только с исполнителей за подписку Pro.',
-            },
-            {
-                q: 'Как выбрать подходящего исполнителя?',
-                a: 'Изучите профиль исполнителя: рейтинг, отзывы предыдущих заказчиков, описание опыта. Пообщайтесь в чате, чтобы уточнить детали, прежде чем принять отклик.',
-            },
-            {
-                q: 'Как оплатить работу исполнителю?',
-                a: 'Оплата за выполнение задания производится напрямую исполнителю по договорённости — наличными или переводом. Dastiyor не удерживает комиссию с расчётов между пользователями.',
-            },
-            {
-                q: 'Что делать, если я недоволен результатом?',
-                a: 'Сначала попробуйте решить вопрос с исполнителем через чат на платформе. Если договориться не удаётся, обратитесь в поддержку: support[at]dastiyor.com — мы поможем разобраться.',
-            },
-            {
-                q: 'Можно ли отменить задание?',
-                a: 'Да. Пока задание в статусе «Открыто» и исполнитель не принят, вы можете закрыть его в личном кабинете. Если работа уже началась, договоритесь об отмене с исполнителем напрямую.',
-            },
-        ],
-    },
-    {
-        section: 'Для исполнителей',
-        items: [
-            {
-                q: 'Как начать принимать заказы?',
-                a: 'Зарегистрируйтесь как исполнитель, заполните профиль (фото, описание, опыт) и перейдите в раздел «Задания». На бесплатном тарифе можно откликаться на задания без ограничений по количеству.',
-            },
-            {
-                q: 'Чем отличается тариф Pro?',
-                a: 'На тарифе Pro ваш профиль отображается выше в поиске, и вы получаете значок «Pro» на аватаре. Это увеличивает доверие заказчиков и помогает получать больше заказов.',
-            },
-            {
-                q: 'Как оформить подписку Pro?',
-                a: 'Перейдите в раздел «Планы» или в настройки аккаунта. Оплата производится через платёжного партнёра Dastiyor на его защищённой странице оплаты.',
-            },
-            {
-                q: 'Берёт ли Dastiyor комиссию с дохода?',
-                a: 'Нет. Dastiyor не берёт комиссию с ваших заработков. Вы получаете полную сумму, согласованную с заказчиком.',
-            },
-            {
-                q: 'Что делать, если заказчик не платит?',
-                a: 'Рекомендуем фиксировать договорённости об оплате в чате на платформе до начала работы. Если заказчик отказывается платить, обратитесь в поддержку — мы рассмотрим ситуацию.',
-            },
-        ],
-    },
-    {
-        section: 'Аккаунт и безопасность',
-        items: [
-            {
-                q: 'Забыл пароль. Что делать?',
-                a: 'На странице входа нажмите «Забыли пароль?», введите email — мы отправим ссылку для сброса.',
-            },
-            {
-                q: 'Как изменить номер телефона или email?',
-                a: 'Перейдите в настройки профиля в личном кабинете. При изменении контактных данных потребуется подтверждение по SMS или email.',
-            },
-            {
-                q: 'Как удалить аккаунт?',
-                a: 'Напишите на support[at]dastiyor.com с темой «Удаление аккаунта». Мы удалим ваш аккаунт и персональные данные в течение 7 рабочих дней.',
-            },
-        ],
-    },
-];
+export default async function HelpPage() {
+    const { locale } = await getServerTranslation();
+    const page = helpContent[locale];
 
-export default function HelpPage() {
     return (
         <div className="container" style={{ padding: '60px 20px', maxWidth: '800px' }}>
-            <h1 className="heading-lg" style={{ marginBottom: '16px' }}>Центр помощи</h1>
+            <h1 className="heading-lg" style={{ marginBottom: '16px' }}>{page.heading}</h1>
             <p style={{ fontSize: '1.1rem', color: 'var(--text-light)', marginBottom: '48px' }}>
-                Ответы на частые вопросы. Не нашли нужного?{' '}
-                <a href="mailto:support@dastiyor.com" rel="nofollow" style={{ color: 'var(--primary)' }}>Напишите нам</a>.
+                {page.intro}{' '}
+                <a href="mailto:support@dastiyor.com" rel="nofollow" style={{ color: 'var(--primary)' }}>{page.writeUs}</a>.
             </p>
 
-            {faqs.map((group) => (
+            {page.sections.map((group) => (
                 <div key={group.section} style={{ marginBottom: '48px' }}>
                     <h2 className="heading-md" style={{ marginBottom: '24px', paddingBottom: '12px', borderBottom: '2px solid var(--border)' }}>
                         {group.section}
@@ -107,12 +37,12 @@ export default function HelpPage() {
             ))}
 
             <div style={{ padding: '32px', backgroundColor: 'var(--background)', borderRadius: '12px', border: '1px solid var(--border)', textAlign: 'center' }}>
-                <p style={{ fontWeight: '600', marginBottom: '8px' }}>Остались вопросы?</p>
+                <p style={{ fontWeight: '600', marginBottom: '8px' }}>{page.moreTitle}</p>
                 <p style={{ color: 'var(--text-light)', marginBottom: '20px' }}>
-                    Служба поддержки работает ежедневно с 9:00 до 22:00 (UTC+5).
+                    {page.hours}
                 </p>
                 <a href="mailto:support@dastiyor.com" rel="nofollow" className="btn btn-primary" style={{ display: 'inline-block', padding: '12px 28px' }}>
-                    Написать в поддержку
+                    {page.contact}
                 </a>
             </div>
         </div>

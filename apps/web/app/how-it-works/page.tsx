@@ -1,43 +1,34 @@
 import type { Metadata } from 'next';
 import { FileText, MessageCircle, CheckCircle, Sparkles } from 'lucide-react';
+import { getServerTranslation } from '@/lib/i18n/server';
+import { howItWorksContent } from '@/lib/i18n/pages/how-it-works';
 
-export const metadata: Metadata = { alternates: { canonical: '/how-it-works' } };
+export async function generateMetadata(): Promise<Metadata> {
+    const { locale } = await getServerTranslation();
+    const { title, description } = howItWorksContent[locale];
+    return { alternates: { canonical: '/how-it-works' }, title, description };
+}
 
-export default function HowItWorksPage() {
-    const steps = [
-        {
-            title: "1. Создайте задание",
-            description: "Опишите, что нужно сделать, укажите бюджет и выберите удобное время.",
-            icon: FileText,
-            color: 'var(--primary)'
-        },
-        {
-            title: "2. Получите предложения",
-            description: "Получайте отклики от специалистов. Сравнивайте их профили, рейтинги и цены.",
-            icon: MessageCircle,
-            color: '#0EA5E9'
-        },
-        {
-            title: "3. Выберите исполнителя",
-            description: "Выберите лучшего специалиста для вашей задачи и обсудите детали в чате.",
-            icon: CheckCircle,
-            color: '#10B981'
-        },
-        {
-            title: "4. Закройте сделку",
-            description: "Специалист выполняет задание. Вы оплачиваете работу напрямую и оставляете отзыв.",
-            icon: Sparkles,
-            color: '#F59E0B'
-        }
-    ];
+/** Icon and colour of each step, in the order of the text. */
+const STEP_STYLE = [
+    { icon: FileText, color: 'var(--primary)' },
+    { icon: MessageCircle, color: '#0EA5E9' },
+    { icon: CheckCircle, color: '#10B981' },
+    { icon: Sparkles, color: '#F59E0B' },
+];
+
+export default async function HowItWorksPage() {
+    const { locale } = await getServerTranslation();
+    const page = howItWorksContent[locale];
+    const steps = page.steps.map((step, index) => ({ ...step, ...STEP_STYLE[index] }));
 
     return (
         <div style={{ padding: '60px 0' }}>
             <div className="container">
                 <div style={{ textAlign: 'center', maxWidth: '700px', margin: '0 auto 60px' }}>
-                    <h1 className="heading-lg" style={{ marginBottom: '24px' }}>Как работает Dastiyor</h1>
+                    <h1 className="heading-lg" style={{ marginBottom: '24px' }}>{page.heading}</h1>
                     <p style={{ fontSize: '1.2rem', color: 'var(--text-light)' }}>
-                        Найти помощь легко. Следуйте этим простым шагам, чтобы выполнить ваши задачи.
+                        {page.intro}
                     </p>
                 </div>
 
@@ -89,9 +80,9 @@ export default function HowItWorksPage() {
                     padding: '60px',
                     textAlign: 'center'
                 }}>
-                    <h2 className="heading-lg" style={{ color: 'white', marginBottom: '24px' }}>Готовы начать?</h2>
+                    <h2 className="heading-lg" style={{ color: 'white', marginBottom: '24px' }}>{page.ctaTitle}</h2>
                     <p style={{ fontSize: '1.2rem', marginBottom: '32px', opacity: 0.9 }}>
-                        Опубликуйте своё первое задание за секунды и найдите необходимую помощь.
+                        {page.ctaText}
                     </p>
                     <a href="/create-task" className="btn" style={{
                         backgroundColor: 'white',
@@ -100,7 +91,7 @@ export default function HowItWorksPage() {
                         fontSize: '1.1rem',
                         display: 'inline-block'
                     }}>
-                        Создать задание
+                        {page.cta}
                     </a>
                 </div>
             </div>

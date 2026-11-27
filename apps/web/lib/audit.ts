@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 export type AuditAction =
     | 'LOGIN'
     | 'LOGIN_FAILED'
+    | 'OTP_REJECTED'
     | 'LOGIN_OAUTH'
     | 'LOGIN_OAUTH_LINKED'
     | 'REGISTER'

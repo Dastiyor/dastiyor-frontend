@@ -182,3 +182,29 @@ describe('TaskCard', () => {
         });
     });
 });
+
+describe('TaskCard favorites', () => {
+    const task: Task = {
+        id: 't9', title: 'Кран', category: 'Ремонт', budget: '100 TJS', city: 'Душанбе',
+        postedAt: '2026-11-01', description: '',
+    };
+    beforeEach(() => {
+        jest.clearAllMocks();
+        (global.fetch as jest.Mock).mockResolvedValue({ json: async () => ({ isFavorite: true }) });
+    });
+
+    it('asks nothing for a guest', async () => {
+        await act(async () => { render(<TaskCard task={task} signedIn={false} />); });
+        expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it('asks nothing when the feed already says', async () => {
+        await act(async () => { render(<TaskCard task={{ ...task, isFavorite: false }} />); });
+        expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it('asks when a signed-in list does not say', async () => {
+        await act(async () => { render(<TaskCard task={task} />); });
+        expect(global.fetch).toHaveBeenCalledWith('/api/tasks/favorite?taskId=t9');
+    });
+});

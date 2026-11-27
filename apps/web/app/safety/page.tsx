@@ -1,81 +1,70 @@
 import type { Metadata } from 'next';
+import { getServerTranslation } from '@/lib/i18n/server';
+import { safetyContent } from '@/lib/i18n/pages/safety';
 
-export const metadata: Metadata = {
-    alternates: { canonical: '/safety' },
-    title: 'Безопасность | Dastiyor',
-    description: 'Как Dastiyor обеспечивает безопасность заказчиков и исполнителей на платформе.',
-};
+export async function generateMetadata(): Promise<Metadata> {
+    const { locale } = await getServerTranslation();
+    const { title, description } = safetyContent[locale];
+    return { alternates: { canonical: '/safety' }, title, description };
+}
 
-export default function SafetyPage() {
+export default async function SafetyPage() {
+    const { locale } = await getServerTranslation();
+    const page = safetyContent[locale];
+
     return (
         <div className="container" style={{ padding: '60px 20px', maxWidth: '800px' }}>
-            <h1 className="heading-lg" style={{ marginBottom: '16px' }}>Безопасность на Dastiyor</h1>
+            <h1 className="heading-lg" style={{ marginBottom: '16px' }}>{page.heading}</h1>
             <p style={{ fontSize: '1.1rem', color: 'var(--text-light)', marginBottom: '48px', lineHeight: '1.7' }}>
-                Подтверждение телефона по SMS, отзывы и переписка на платформе помогают защитить
-                и заказчиков, и исполнителей.
+                {page.intro}
             </p>
 
             <section style={{ marginBottom: '40px' }}>
-                <h2 className="heading-md" style={{ marginBottom: '12px' }}>Проверка исполнителей</h2>
+                <h2 className="heading-md" style={{ marginBottom: '12px' }}>{page.checks.title}</h2>
                 <p style={{ color: 'var(--text-light)', lineHeight: '1.7' }}>
-                    Все исполнители проходят регистрацию с указанием реального номера телефона, который верифицируется
-                    через SMS-код. Мы рекомендуем исполнителям добавлять фотографию профиля и описание опыта работы —
-                    это повышает доверие заказчиков и помогает получать больше откликов.
+                    {page.checks.text}
                 </p>
             </section>
 
             <section style={{ marginBottom: '40px' }}>
-                <h2 className="heading-md" style={{ marginBottom: '12px' }}>Система отзывов и рейтингов</h2>
+                <h2 className="heading-md" style={{ marginBottom: '12px' }}>{page.reviews.title}</h2>
                 <p style={{ color: 'var(--text-light)', lineHeight: '1.7' }}>
-                    После завершения задания заказчик может оставить отзыв и оценить работу исполнителя. Отзыв
-                    можно оставить только по завершённому заданию. Перед
-                    выбором исполнителя изучите его историю работ и отзывы других пользователей.
+                    {page.reviews.text}
                 </p>
             </section>
 
             <section style={{ marginBottom: '40px' }}>
-                <h2 className="heading-md" style={{ marginBottom: '12px' }}>Оплата</h2>
+                <h2 className="heading-md" style={{ marginBottom: '12px' }}>{page.payment.title}</h2>
                 <p style={{ color: 'var(--text-light)', lineHeight: '1.7' }}>
-                    Платежи за подписку исполнителей обрабатываются платёжным партнёром Dastiyor: данные карты
-                    вводятся на его защищённой странице и не передаются Dastiyor. Все транзакции зашифрованы. Расчёты между заказчиком и исполнителем за выполнение
-                    задания происходят напрямую по договорённости сторон.
+                    {page.payment.text}
                 </p>
             </section>
 
             <section style={{ marginBottom: '40px' }}>
-                <h2 className="heading-md" style={{ marginBottom: '12px' }}>Советы по безопасности для заказчиков</h2>
+                <h2 className="heading-md" style={{ marginBottom: '12px' }}>{page.customers.title}</h2>
                 <ul style={{ color: 'var(--text-light)', lineHeight: '1.9', paddingLeft: '20px' }}>
-                    <li>Выбирайте исполнителей с высоким рейтингом и положительными отзывами.</li>
-                    <li>Перед встречей обсудите детали задания в чате на платформе — вся переписка сохраняется.</li>
-                    <li>Не переводите предоплату незнакомым исполнителям без письменных договорённостей.</li>
-                    <li>Первую встречу назначайте в общественном месте или в дневное время.</li>
-                    <li>После завершения работы оставьте честный отзыв — это помогает другим пользователям.</li>
+                    {page.customers.list.map((item) => <li key={item}>{item}</li>)}
                 </ul>
             </section>
 
             <section style={{ marginBottom: '40px' }}>
-                <h2 className="heading-md" style={{ marginBottom: '12px' }}>Советы по безопасности для исполнителей</h2>
+                <h2 className="heading-md" style={{ marginBottom: '12px' }}>{page.providers.title}</h2>
                 <ul style={{ color: 'var(--text-light)', lineHeight: '1.9', paddingLeft: '20px' }}>
-                    <li>Уточняйте все детали задания до начала работы, чтобы избежать недопонимания.</li>
-                    <li>Фиксируйте договорённости об оплате в переписке на платформе.</li>
-                    <li>Не соглашайтесь на задания, которые кажутся подозрительными или незаконными.</li>
-                    <li>Сообщайте нам о нарушениях — мы разберёмся оперативно.</li>
+                    {page.providers.list.map((item) => <li key={item}>{item}</li>)}
                 </ul>
             </section>
 
             <section style={{ marginBottom: '40px' }}>
-                <h2 className="heading-md" style={{ marginBottom: '12px' }}>Разрешение споров</h2>
+                <h2 className="heading-md" style={{ marginBottom: '12px' }}>{page.disputes.title}</h2>
                 <p style={{ color: 'var(--text-light)', lineHeight: '1.7' }}>
-                    Если между заказчиком и исполнителем возник конфликт, обратитесь в службу поддержки Dastiyor.
-                    Наша команда рассмотрит ситуацию и поможет найти справедливое решение на основе переписки
-                    и истории задания на платформе.
+                    {page.disputes.text}
                 </p>
             </section>
 
             <section style={{ padding: '32px', backgroundColor: 'var(--background)', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                <h2 className="heading-md" style={{ marginBottom: '12px' }}>Служба поддержки</h2>
+                <h2 className="heading-md" style={{ marginBottom: '12px' }}>{page.support.title}</h2>
                 <p style={{ color: 'var(--text-light)', lineHeight: '1.7', marginBottom: '12px' }}>
-                    Наша поддержка работает каждый день с 9:00 до 22:00 (время Душанбе, UTC+5).
+                    {page.support.text}
                 </p>
                 <p style={{ color: 'var(--text-light)', lineHeight: '1.7' }}>
                     Email: <a href="mailto:support@dastiyor.com" rel="nofollow" style={{ color: 'var(--primary)' }}>support[at]dastiyor.com</a>

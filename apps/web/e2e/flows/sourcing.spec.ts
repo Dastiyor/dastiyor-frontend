@@ -38,8 +38,12 @@ test('a company sends a request and sees the proposed professionals', async ({ p
 });
 
 test('the request form needs a signed-in user and refuses a bad request', async ({ page, request }) => {
+    // A visitor reads the offer; the form appears after sign-in.
     await page.goto('/sourcing');
-    await expect(page).toHaveURL(/\/login\?redirect=%2Fsourcing|\/login\?redirect=\/sourcing/);
+    await expect(page).toHaveURL(/\/sourcing$/);
+    await expect(page.locator('#sr-category')).toHaveCount(0);
+    await expect(page.getByRole('link', { name: 'Войдите, чтобы отправить запрос' }))
+        .toHaveAttribute('href', '/login?redirect=/sourcing');
 
     expect((await request.post('/api/sourcing', { data: {} })).status()).toBe(401);
 

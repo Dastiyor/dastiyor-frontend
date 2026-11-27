@@ -143,7 +143,7 @@ export default async function TaskDetailsPage({ params }: Props) {
                         <>
                             {' / '}
                             <Link href={`/tasks?category=${encodeURIComponent(getCategoryLabel(task.category))}`} style={{ color: 'var(--primary)', textDecoration: 'none' }}>
-                                {getCategoryLabel(task.category)}
+                                {tr(getCategoryLabel(task.category))}
                             </Link>
                         </>
                     )}

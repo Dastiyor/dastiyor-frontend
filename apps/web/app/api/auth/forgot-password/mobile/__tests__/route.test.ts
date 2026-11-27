@@ -30,6 +30,7 @@ describe('phone account recovery', () => {
         (sendVerificationCode as jest.Mock).mockResolvedValue(true);
         (prismaMock.verificationCode.deleteMany as jest.Mock).mockResolvedValue({ count: 0 });
         (prismaMock.verificationCode.create as jest.Mock).mockResolvedValue({});
+        (prismaMock.verificationCode.findMany as jest.Mock).mockResolvedValue([]);
     });
 
     it('texts a code when the identifier is a phone number', async () => {
@@ -100,17 +101,14 @@ describe('phone account recovery', () => {
     it('resets the password against the SMS code and revokes existing sessions', async () => {
         (prismaMock.user.findFirst as jest.Mock).mockResolvedValue({ id: 'user-1', phone: PHONE });
         (prismaMock.verificationCode.findFirst as jest.Mock).mockResolvedValue({ id: 'code-1' });
-        (prismaMock.verificationCode.update as jest.Mock).mockResolvedValue({});
-        (prismaMock.verificationCode.delete as jest.Mock).mockResolvedValue({});
+        (prismaMock.verificationCode.deleteMany as jest.Mock).mockResolvedValue({ count: 1 });
         (prismaMock.$transaction as unknown as jest.Mock).mockResolvedValue([]);
 
         const response = await POST_reset({ identifier: PHONE, code: '123456', password: 'Dastiyor2026' });
 
         expect(response.status).toBe(200);
         // The code is burned, not just read
-        expect(prismaMock.verificationCode.update).toHaveBeenCalledWith({
-            where: { id: 'code-1' }, data: { used: true },
-        });
+        expect(prismaMock.verificationCode.deleteMany).toHaveBeenCalledWith({ where: { id: 'code-1' } });
         expect(prismaMock.user.update).toHaveBeenCalledWith(expect.objectContaining({
             data: expect.objectContaining({ tokenVersion: { increment: 1 } }),
         }));

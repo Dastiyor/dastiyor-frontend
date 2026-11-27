@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { requireAuth } from '@/lib/require-auth';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 import { isValidPhone, normalizePhone } from '@/lib/validation';
+import { consumeOtp } from '@/lib/otp';
 
 const VERIFY_TYPE = 'PHONE_VERIFY';
 
@@ -38,6 +39,15 @@ export async function POST(request: Request) {
         const normalizedPhone = normalizePhone(String(phone));
         const userId = payload.id as string;
 
+        // Guesses are capped per phone as well as per IP, on this flow's own count.
+        const codeLimit = await checkRateLimit(`verify-phone-otp:${normalizedPhone}`, 'sms');
+        if (!codeLimit.allowed) {
+            return NextResponse.json(
+                { error: 'Слишком много попыток подтверждения. Попробуйте через 15 минут.' },
+                { status: 429 }
+            );
+        }
+
         // Phone must not already belong to a different account
         const phoneOwner = await prisma.user.findFirst({
             where: { phone: normalizedPhone, NOT: { id: userId } },
@@ -50,24 +60,9 @@ export async function POST(request: Request) {
             );
         }
 
-        // Validate the OTP
-        const validCode = await prisma.verificationCode.findFirst({
-            where: {
-                phone: normalizedPhone,
-                code: String(code),
-                type: VERIFY_TYPE,
-                used: false,
-                expiresAt: { gt: new Date() },
-            },
-        });
-        if (!validCode) {
+        if (!(await consumeOtp(normalizedPhone, String(code), VERIFY_TYPE))) {
             return NextResponse.json({ error: 'Неверный или просроченный код' }, { status: 400 });
         }
-
-        // Consume the code and verify the user's phone
-        await prisma.verificationCode.deleteMany({
-            where: { phone: normalizedPhone, type: VERIFY_TYPE },
-        });
         await prisma.user.update({
             where: { id: userId },
             data: { phone: normalizedPhone, phoneVerified: true },

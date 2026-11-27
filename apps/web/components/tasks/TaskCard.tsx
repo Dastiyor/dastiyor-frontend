@@ -6,6 +6,7 @@ import { MapPin, Clock, MessageCircle, Zap, Heart, Share2, Star } from 'lucide-r
 import { formatTaskDate } from '@/lib/format-date';
 import { toast } from '@/components/ui/Toast';
 import { useTranslation } from '@/lib/i18n';
+import { withRedirect } from '@/lib/safe-redirect';
 
 export type Task = {
     id: string;
@@ -21,6 +22,7 @@ export type Task = {
     status?: string;
     hasPremiumResponse?: boolean;
     featured?: boolean;
+    isFavorite?: boolean;
 };
 
 const urgencyColors: Record<string, { color: string; bg: string }> = {
@@ -36,8 +38,10 @@ const statusColors: Record<string, { bg: string; text: string }> = {
     'OPEN': { bg: '#e8f5e9', text: '#2e7d32' },
 };
 
-export default function TaskCard({ task }: { task: Task }) {
-    const [isFavorite, setIsFavorite] = useState(false);
+export default function TaskCard({ task, signedIn = true }: { task: Task; signedIn?: boolean }) {
+    const [isFavorite, setIsFavorite] = useState(task.isFavorite ?? false);
+    // The feed says whether a task is saved; other lists leave it to be asked.
+    const askFavorite = signedIn && task.isFavorite === undefined;
     const [isLoading, setIsLoading] = useState(false);
     const { t, tr } = useTranslation();
 
@@ -63,16 +67,23 @@ export default function TaskCard({ task }: { task: Task }) {
     const showPremium = task.hasPremiumResponse && status === 'OPEN';
 
     useEffect(() => {
-        // Check if task is favorited
+        if (!askFavorite) return;
         fetch(`/api/tasks/favorite?taskId=${task.id}`)
             .then(res => res.json())
             .then(data => setIsFavorite(data.isFavorite || false))
             .catch(() => { });
-    }, [task.id]);
+    }, [task.id, askFavorite]);
+
+    /** A guest saving a task signs in first and comes back to this list. */
+    const signIn = () => {
+        const here = `${window.location.pathname}${window.location.search}`;
+        window.location.assign(withRedirect('/login', here));
+    };
 
     const handleFavorite = async (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
+        if (!signedIn) return signIn();
         setIsLoading(true);
         try {
             const res = await fetch('/api/tasks/favorite', {

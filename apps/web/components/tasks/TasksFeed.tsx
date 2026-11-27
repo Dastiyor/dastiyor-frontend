@@ -6,7 +6,7 @@ import Link from 'next/link';
 import TaskCard, { type Task } from '@/components/tasks/TaskCard';
 import { useTranslation } from '@/lib/i18n';
 
-const PAGE_SIZE = 6;
+import { FEED_PAGE_SIZE as PAGE_SIZE } from '@/lib/feed-page-size';
 
 function buildQueryString(searchParams: URLSearchParams, pageNum: number): string {
     const params = new URLSearchParams();
@@ -29,17 +29,23 @@ function buildQueryString(searchParams: URLSearchParams, pageNum: number): strin
     return params.toString();
 }
 
-export default function TasksFeed({ viewerRole = null, providerHasTaskAlerts = false }: {
+export default function TasksFeed({ viewerRole = null, providerHasTaskAlerts = false, initial = null }: {
+    /**
+     * Page 1 as the server rendered it. Give the component a `key` per filter
+     * set, so new filters start from their own first page. Null (the server
+     * query failed) makes the feed fetch it itself.
+     */
+    initial?: { tasks: Task[]; hasMore: boolean } | null;
     viewerRole?: 'CUSTOMER' | 'PROVIDER' | null;
     /** The provider's plan includes new-task alerts (PRO and up). */
     providerHasTaskAlerts?: boolean;
 }) {
     const searchParams = useSearchParams();
     const { t, tError } = useTranslation();
-    const [tasks, setTasks] = useState<Task[]>([]);
+    const [tasks, setTasks] = useState<Task[]>(initial?.tasks ?? []);
     const [page, setPage] = useState(1);
-    const [hasMore, setHasMore] = useState(true);
-    const [loading, setLoading] = useState(true);
+    const [hasMore, setHasMore] = useState(initial?.hasMore ?? true);
+    const [loading, setLoading] = useState(!initial);
     const [loadingMore, setLoadingMore] = useState(false);
     const [fetchError, setFetchError] = useState<string | null>(null);
     const abortRef = useRef<AbortController | null>(null);
@@ -72,6 +78,7 @@ export default function TasksFeed({ viewerRole = null, providerHasTaskAlerts = f
     };
 
     useEffect(() => {
+        if (initial) return;
         abortRef.current?.abort();
         abortRef.current = new AbortController();
         setLoading(true);
@@ -153,7 +160,7 @@ export default function TasksFeed({ viewerRole = null, providerHasTaskAlerts = f
         <>
             <div style={{ display: 'grid', gap: '16px' }}>
                 {tasks.map((task) => (
-                    <TaskCard key={task.id} task={task} />
+                    <TaskCard key={task.id} task={task} signedIn={viewerRole !== null} />
                 ))}
             </div>
             {hasMore && (

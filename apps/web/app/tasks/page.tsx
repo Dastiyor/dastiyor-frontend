@@ -12,6 +12,8 @@ import { getCategories } from '@/lib/categories';
 import { cookies } from 'next/headers';
 import { verifyJWT } from '@/lib/auth';
 import { alertPlan } from '@/lib/task-alerts';
+import { getTaskFeed } from '@/lib/task-feed';
+import { FEED_PAGE_SIZE } from '@/lib/feed-page-size';
 
 export const metadata: Metadata = { alternates: { canonical: '/tasks' } };
 
@@ -23,16 +25,17 @@ type Viewer = { role: 'CUSTOMER' | 'PROVIDER' | null; hasTaskAlerts: boolean };
  * plan is looked up because new-task alerts are paid-only: a FREE provider is
  * not offered alerts they cannot get.
  */
-async function viewer(): Promise<Viewer> {
+async function viewer(): Promise<Viewer & { id?: string }> {
     const token = (await cookies()).get('token')?.value;
     const payload = token ? await verifyJWT(token) : null;
-    if (payload?.role === 'CUSTOMER') return { role: 'CUSTOMER', hasTaskAlerts: false };
+    const id = typeof payload?.id === 'string' ? payload.id : undefined;
+    if (payload?.role === 'CUSTOMER') return { role: 'CUSTOMER', hasTaskAlerts: false, id };
     if (payload?.role !== 'PROVIDER' || typeof payload.id !== 'string') return { role: null, hasTaskAlerts: false };
     const user = await prisma.user.findUnique({
         where: { id: payload.id },
         select: { subscription: { select: { plan: true, isActive: true, endDate: true } } },
     }).catch(() => null);
-    return { role: 'PROVIDER', hasTaskAlerts: alertPlan(user?.subscription) !== null };
+    return { role: 'PROVIDER', hasTaskAlerts: alertPlan(user?.subscription) !== null, id };
 }
 
 type Props = {
@@ -66,6 +69,13 @@ export default async function TasksPage({ searchParams }: Props) {
         ];
     }
 
+    const feedParams = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+        if (typeof value === 'string' && value) feedParams.set(key, value);
+    }
+    feedParams.set('page', '1');
+    feedParams.set('limit', String(FEED_PAGE_SIZE));
+
     const [categoryCounts, totalOpenTasks, categories, who] = await Promise.all([
         prisma.task.groupBy({ by: ['category'], where: categoryCountWhere, _count: true }),
         prisma.task.count({ where: { status: 'OPEN' } }),
@@ -73,41 +83,15 @@ export default async function TasksPage({ searchParams }: Props) {
         viewer(),
     ]);
 
-    // Build filtered count matching the API query logic
+    // Page 1 is rendered here, so the tasks are in the HTML. If the query fails
+    // the feed asks the API itself and shows its own error and retry.
+    const feed = await getTaskFeed(feedParams, who.id).catch((error) => {
+        console.error('Task feed:', error);
+        return null;
+    });
+
     const hasFilter = category || city || minBudget || maxBudget || urgency || query;
-    let filteredCount = totalOpenTasks;
-    if (hasFilter) {
-        const where: Prisma.TaskWhereInput = { status: 'OPEN' };
-        if (category) where.category = category;
-        if (city) where.city = { contains: city, mode: 'insensitive' };
-        if (urgency) {
-            const vals = urgency.split(',').filter(Boolean);
-            if (vals.length) where.urgency = { in: vals };
-        }
-        if (query) {
-            where.OR = [
-                { title: { contains: query, mode: 'insensitive' } },
-                { description: { contains: query, mode: 'insensitive' } },
-                { category: { contains: query, mode: 'insensitive' } },
-            ];
-        }
-        if (minBudget || maxBudget) {
-            where.AND = where.AND || [];
-            (where.AND as Prisma.TaskWhereInput[]).push({
-                OR: [
-                    { budgetType: 'negotiable' },
-                    {
-                        budgetType: 'fixed',
-                        budgetAmountNum: {
-                            ...(minBudget ? { gte: parseInt(minBudget, 10) } : {}),
-                            ...(maxBudget ? { lte: parseInt(maxBudget, 10) } : {}),
-                        },
-                    },
-                ],
-            });
-        }
-        filteredCount = await prisma.task.count({ where });
-    }
+    const filteredCount = hasFilter && feed ? feed.pagination.total : totalOpenTasks;
 
     // Build active filters display
     const activeFilters: string[] = [];
@@ -219,7 +203,12 @@ export default async function TasksPage({ searchParams }: Props) {
                             <Suspense fallback={
                                 <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--text-light)' }}>{t('common.loading')}</div>
                             }>
-                                <TasksFeed viewerRole={who.role} providerHasTaskAlerts={who.hasTaskAlerts} />
+                                <TasksFeed
+                                    key={feedParams.toString()}
+                                    initial={feed && { tasks: feed.tasks, hasMore: feed.pagination.hasMore }}
+                                    viewerRole={who.role}
+                                    providerHasTaskAlerts={who.hasTaskAlerts}
+                                />
                             </Suspense>
                         </div>
                     </main>

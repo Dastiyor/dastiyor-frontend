@@ -14,5 +14,6 @@ export function formatTaskDate(value: string): string {
 
     const date = new Date(value);
     if (isNaN(date.getTime())) return value;
-    return date.toLocaleDateString('ru-RU');
+    // Fixed to Dushanbe: the server (UTC) and the browser must print the same day.
+    return date.toLocaleDateString('ru-RU', { timeZone: 'Asia/Dushanbe' });
 }

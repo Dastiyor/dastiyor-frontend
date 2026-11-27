@@ -30,6 +30,7 @@ describe('/api/auth/verify-send', () => {
         delete process.env.SMS_TEST_CODE;
         (prismaMock.verificationCode.deleteMany as jest.Mock).mockResolvedValue({ count: 0 });
         (prismaMock.verificationCode.create as jest.Mock).mockResolvedValue({});
+        (prismaMock.verificationCode.findMany as jest.Mock).mockResolvedValue([]);
         (sendVerificationCode as jest.Mock).mockResolvedValue(true);
     });
 

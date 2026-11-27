@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, act, fireEvent } from '@testing-library/react';
 import TasksFeed from '../TasksFeed';
 
 let search = new URLSearchParams();
@@ -49,5 +49,24 @@ describe('TasksFeed empty state', () => {
         render(<TasksFeed viewerRole="PROVIDER" />);
         expect(await screen.findByText('tasks.alertsPaidOnly')).toBeInTheDocument();
         expect(screen.queryByText('tasks.emptySeeAllTasks')).toBeNull();
+    });
+});
+
+describe('TasksFeed server-rendered first page', () => {
+    const task = {
+        id: 's1', title: 'Починить кран', category: 'Ремонт', budget: '100 TJS', city: 'Душанбе',
+        postedAt: '2026-11-01T10:00:00.000Z', description: '',
+    };
+
+    it('shows it without asking the API', () => {
+        render(<TasksFeed initial={{ tasks: [task], hasMore: false }} />);
+        expect(screen.getByText('Починить кран')).toBeInTheDocument();
+        expect(global.fetch).not.toHaveBeenCalled();
+    });
+
+    it('asks the API for the second page', async () => {
+        render(<TasksFeed initial={{ tasks: [task], hasMore: true }} />);
+        await act(async () => { fireEvent.click(screen.getByText('tasks.loadMore')); });
+        expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('page=2&limit=6'), expect.anything());
     });
 });

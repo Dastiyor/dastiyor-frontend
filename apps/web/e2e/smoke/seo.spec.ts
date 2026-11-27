@@ -70,3 +70,9 @@ test('an old example-task link goes to the task list', async ({ page }) => {
     await page.goto('/tasks/preview-0');
     await expect(page).toHaveURL(/\/tasks$/);
 });
+
+test('the task list arrives with its tasks in the HTML', async ({ request }) => {
+    const { pagination } = await (await request.get('/api/tasks?limit=1')).json();
+    test.skip(pagination.total === 0, 'no open tasks');
+    expect(await (await request.get('/tasks')).text()).toMatch(/href="\/tasks\/[a-z0-9]{20,}"/);
+});

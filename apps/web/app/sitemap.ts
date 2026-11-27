@@ -11,6 +11,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         { url: `${SITE_URL}/tasks`, lastModified: now, changeFrequency: 'hourly', priority: 0.9 },
         { url: `${SITE_URL}/how-it-works`, lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
         { url: `${SITE_URL}/professionals`, lastModified: now, changeFrequency: 'daily', priority: 0.8 },
+        { url: `${SITE_URL}/sourcing`, lastModified: now, changeFrequency: 'monthly', priority: 0.5 },
         // Subscriptions are temporarily hidden — see lib/features.ts
         ...(SUBSCRIPTIONS_ENABLED
             ? [{ url: `${SITE_URL}/subscription`, lastModified: now, changeFrequency: 'monthly' as const, priority: 0.6 }]

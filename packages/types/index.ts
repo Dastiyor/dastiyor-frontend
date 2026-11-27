@@ -52,6 +52,8 @@ export interface FeedTask {
   status: string;
   /** Editorially promoted. Clients surface these first and cap the strip at 3. */
   featured: boolean;
+  /** Whether the caller saved it. Absent for a caller with no session. */
+  isFavorite?: boolean;
 }
 
 /** GET /api/tasks/category-counts: open tasks per canonical category name; categories with none are absent. */

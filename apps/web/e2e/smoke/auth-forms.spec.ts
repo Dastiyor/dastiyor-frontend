@@ -50,16 +50,21 @@ test('login offers Google, Apple, password recovery and signup', async ({ page }
     await expect(page.locator('main a[href="/register"], form ~ * a[href="/register"]').first()).toBeVisible();
 });
 
-test('signup asks for a role first, then shows the matching form', async ({ page }) => {
+test('signup shows the form first and leaves the role for the end', async ({ page }) => {
     await open(page, '/register');
     await expect(page.getByRole('heading', { name: 'Присоединяйтесь к Dastiyor' })).toBeVisible();
-
-    await page.getByRole('link', { name: /Я предлагаю услуги/ }).click();
-    await expect(page.getByRole('heading', { name: 'Регистрация как Исполнитель' })).toBeVisible();
     for (const id of ['#reg-fullName', '#reg-email', '#reg-phone', '#reg-password']) {
         await expect(page.locator(id)).toBeVisible();
     }
     await expect(page.getByRole('button', { name: 'Создать аккаунт' })).toBeVisible();
+    await expect(page.getByText('Мне нужен специалист')).toHaveCount(0);
+});
+
+test('Google signup without a role asks for it before leaving the site', async ({ page }) => {
+    await open(page, '/register');
+    await page.getByRole('link', { name: 'Продолжить с Google' }).click();
+    await expect(page.getByRole('link', { name: /Я предлагаю услуги/ })).toHaveAttribute('href', '/api/auth/google?role=provider');
+    await expect(page.getByRole('link', { name: /Мне нужен специалист/ })).toHaveAttribute('href', '/api/auth/google?role=customer');
 });
 
 test('signup links preselect the role', async ({ page }) => {

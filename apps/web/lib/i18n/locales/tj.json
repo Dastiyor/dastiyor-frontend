@@ -225,6 +225,7 @@
     "loginByPassword": "Бо парол ворид шавед",
     "getCode": "Гирифтани рамз",
     "codeLoginSubtitle": "Рақами телефонро ворид кунед — мо рамзро бо SMS мефиристем",
+    "phoneConfirmedLastStep": "Рақам тасдиқ шуд. Қадами охирин:",
     "createAccountQuestion": "Ҳисоб эҷод кунед?",
     "identifierPlaceholder": "Телефон ё email",
     "identifierLabel": "Телефон ё email",

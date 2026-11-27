@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import AuthLayout from '@/components/auth/AuthLayout';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
+import RoleCards, { type SignupRole } from '@/components/auth/RoleCards';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { checkPasswordStrength } from '@/lib/validation';
 import ResendCodeButton from '@/components/auth/ResendCodeButton';
@@ -15,13 +16,15 @@ import { Lock, User } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 import { useAdoptTypedValue, useHydrated } from '@/lib/useHydrated';
 
-function OAuthButtons({ role }: { role?: string }) {
+/** Without a role yet, each button leads to the role choice first: the server would default to customer. */
+function OAuthButtons({ role }: { role: Role }) {
     const { t } = useTranslation();
-    const roleParam = role ? `?role=${role}` : '';
+    const href = (provider: 'google' | 'apple') =>
+        role ? `/api/auth/${provider}?role=${role}` : `/register?via=${provider}`;
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <a
-                href={`/api/auth/google${roleParam}`}
+                href={href('google')}
                 style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
                     padding: '11px 16px', borderRadius: '8px', border: '1px solid var(--border)',
@@ -38,7 +41,7 @@ function OAuthButtons({ role }: { role?: string }) {
                 {t('auth.continueWithGoogle')}
             </a>
             <a
-                href={`/api/auth/apple${roleParam}`}
+                href={href('apple')}
                 style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
                     padding: '11px 16px', borderRadius: '8px', border: '1px solid #000',
@@ -66,7 +69,7 @@ function OAuthDivider() {
     );
 }
 
-type Role = 'customer' | 'provider' | null;
+type Role = SignupRole | null;
 
 export default function RegisterPage() {
     return (
@@ -79,9 +82,12 @@ export default function RegisterPage() {
 function RegisterContent() {
     const searchParams = useSearchParams();
     const typeParam = searchParams.get('type');
-    // The role lives in the URL, not in state: the choice cards are plain links
-    // (they work before hydration), and Back returns to the choice.
+    // A link such as "become a provider" carries the role, and then it is not
+    // asked. Otherwise it is the last step: form, SMS code, role.
     const role: Role = typeParam === 'provider' ? 'provider' : typeParam === 'customer' ? 'customer' : null;
+    const viaParam = searchParams.get('via');
+    // Google / Apple chosen before a role: ask it, then go there.
+    const via = !role && (viaParam === 'google' || viaParam === 'apple') ? viaParam : null;
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [password, setPassword] = useState('');
@@ -98,7 +104,9 @@ function RegisterContent() {
     // The form as submitted, held while the SMS code is being entered. The
     // account is only created once the code comes back with it.
     const [pending, setPending] = useState<{ fullName: string; email: string; phone: string } | null>(null);
-    const [step, setStep] = useState<'form' | 'code'>('form');
+    const [step, setStep] = useState<'form' | 'code' | 'role'>('form');
+    // From verify-check: proof the number passed its code, sent with the role.
+    const [ticket, setTicket] = useState<{ phone: string; value: string } | null>(null);
     const [code, setCode] = useState('');
     const router = useRouter();
     const { t, tError } = useTranslation();
@@ -142,6 +150,14 @@ function RegisterContent() {
             phone: `+992${phoneLocal}`,
         };
 
+        // Came back from the role step to fix something: the number is already
+        // confirmed, so no second SMS.
+        if (!role && ticket?.phone === data.phone) {
+            setPending(data);
+            setStep('role');
+            return;
+        }
+
         setIsLoading(true);
         try {
             await sendCode(data.phone);
@@ -168,6 +184,21 @@ function RegisterContent() {
         }
     }
 
+    async function post(url: string, body: object) {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+        });
+        return { ok: res.ok, status: res.status, json: await res.json() };
+    }
+
+    function signedUp() {
+        // Use full page reload to ensure server components refresh
+        // This ensures the Header component re-renders with the new auth state
+        window.location.href = '/';
+    }
+
     async function handleVerify(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         if (isLoading || !pending) return;
@@ -175,134 +206,67 @@ function RegisterContent() {
         setIsLoading(true);
 
         try {
-            const res = await fetch('/api/auth/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...pending, password: password || undefined, role, code }),
-            });
+            // With the role known the code creates the account. Without it, check
+            // the code now, so a typo is caught here and not after the role.
+            const res = role
+                ? await post('/api/auth/register', { ...pending, password: password || undefined, role, code })
+                : await post('/api/auth/verify-check', { phone: pending.phone, code, type: 'REGISTRATION' });
 
-            if (!res.ok) {
-                const json = await res.json();
-                throw new Error(tError(json.error) || t('common.somethingWentWrong'));
+            if (!res.ok || (!role && !res.json.ticket)) {
+                throw new Error(tError(res.json.error) || t('common.somethingWentWrong'));
             }
+            if (role) return signedUp();
 
-            // Use full page reload to ensure server components refresh
-            // This ensures the Header component re-renders with the new auth state
-            window.location.href = '/';
+            setTicket({ phone: pending.phone, value: res.json.ticket });
+            setStep('role');
         } catch (err) {
             setError(err instanceof Error ? err.message : String(err));
-            setIsLoading(false);
         }
+        setIsLoading(false);
     }
 
-    if (!role) {
-        const cardStyle: React.CSSProperties = {
-                            backgroundColor: 'var(--white)',
-                            border: '2px solid transparent',
-                            borderRadius: '16px',
-                            padding: '40px',
-                            textAlign: 'center',
-                            textDecoration: 'none',
-                            color: 'inherit',
-                            transition: 'all 0.2s',
-                            boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            gap: '16px'
-                        };
-        const iconStyle: React.CSSProperties = {
-            width: '80px',
-            height: '80px',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '2rem'
-        };
-        return (
-            <div style={{
-                minHeight: 'calc(100vh - 80px)', // Full height minus header
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '24px 16px 40px',
-                backgroundColor: 'var(--secondary)'
-            }}>
-                <div style={{ width: '100%', maxWidth: '800px', display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
-                    <LanguageSwitcher />
-                </div>
+    async function handlePickRole(picked: SignupRole) {
+        if (isLoading || !pending || !ticket) return;
+        setError('');
+        setIsLoading(true);
 
-                <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-                    <h1 className="heading-lg">{t('auth.joinDastiyor')}</h1>
-                    <p style={{ color: 'var(--text-light)', fontSize: '1.1rem' }}>{t('auth.chooseRole')}</p>
-                </div>
+        try {
+            const res = await post('/api/auth/register', {
+                ...pending, password: password || undefined, role: picked, ticket: ticket.value,
+            });
+            if (res.ok) return signedUp();
 
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-                    gap: '24px',
-                    width: '100%',
-                    maxWidth: '800px'
-                }}>
-                    <Link
-                        href="/register?type=customer"
-                        className="role-card"
-                        style={cardStyle}
-                        onMouseOver={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
-                        onMouseOut={(e) => e.currentTarget.style.borderColor = 'transparent'}
-                    >
-                        <div style={{ ...iconStyle, backgroundColor: '#e8f0fe', color: 'var(--primary)' }}>
-                            👤
-                        </div>
-                        <h2 style={{ fontSize: '1.5rem', fontWeight: '700', margin: 0 }}>{t('auth.iWantToFind')}</h2>
-                        <p style={{ color: 'var(--text-light)', margin: 0 }}>{t('auth.iWantToFindDesc')}</p>
-                    </Link>
-
-                    <Link
-                        href="/register?type=provider"
-                        className="role-card"
-                        style={cardStyle}
-                        onMouseOver={(e) => e.currentTarget.style.borderColor = 'var(--accent)'}
-                        onMouseOut={(e) => e.currentTarget.style.borderColor = 'transparent'}
-                    >
-                        <div style={{ ...iconStyle, backgroundColor: '#fff3e0', color: 'var(--accent)' }}>
-                            💼
-                        </div>
-                        <h2 style={{ fontSize: '1.5rem', fontWeight: '700', margin: 0 }}>{t('auth.iWantToWork')}</h2>
-                        <p style={{ color: 'var(--text-light)', margin: 0 }}>{t('auth.iWantToWorkDesc')}</p>
-                    </Link>
-                </div>
-
-                <p style={{ maxWidth: '640px', marginTop: '24px', textAlign: 'center', color: 'var(--text-light)', fontSize: '0.95rem' }}>
-                    {t('auth.roleAdvertiseHint')}
-                </p>
-
-                <div style={{ marginTop: '24px' }}>
-                    {t('auth.haveAccount')} <Link href="/login" style={{ color: 'var(--primary)', fontWeight: '600' }}>{t('common.login')}</Link>
-                </div>
-                <style>{`
-                    @media (max-width: 480px) {
-                        .role-card { padding: 28px 20px !important; }
-                    }
-                `}</style>
-            </div>
-        );
+            setError(tError(res.json.error) || t('common.somethingWentWrong'));
+            // The form was turned down (email taken, say): back to it to fix that.
+            // A server or rate-limit error keeps the role step, to try again.
+            if (res.status === 400) {
+                // An expired confirmation needs a new code.
+                if (res.json.error === 'Неверный или просроченный код') setTicket(null);
+                setStep('form');
+            }
+        } catch {
+            setError(t('auth.networkError'));
+        }
+        setIsLoading(false);
     }
+
+    // A role link followed from the role step makes the choice itself.
+    const view = via ? 'oauth' : step === 'role' && role ? 'form' : step;
 
     return (
         <AuthLayout
-            title={role === 'customer' ? t('auth.signUpCustomer') : t('auth.signUpProvider')}
-            subtitle={t('auth.createAccountSubtitle')}
+            title={t(role === 'customer' ? 'auth.signUpCustomer' : role === 'provider' ? 'auth.signUpProvider' : 'auth.joinDastiyor')}
+            subtitle={t(view === 'role' || view === 'oauth' ? 'auth.chooseRole' : 'auth.createAccountSubtitle')}
         >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '20px' }}>
-                <Link
-                    href="/register"
-                    style={{ color: 'var(--text-light)', fontSize: '0.9rem', textDecoration: 'none' }}
-                >
-                    {t('auth.changeRole')}
-                </Link>
+                {role || via ? (
+                    <Link
+                        href="/register"
+                        style={{ color: 'var(--text-light)', fontSize: '0.9rem', textDecoration: 'none' }}
+                    >
+                        {t(via ? 'common.back' : 'auth.changeRole')}
+                    </Link>
+                ) : <span />}
                 <LanguageSwitcher />
             </div>
 
@@ -319,7 +283,24 @@ function RegisterContent() {
                 </div>
             )}
 
-            {step === 'code' && pending ? (
+            {view === 'oauth' ? (
+                <RoleCards hrefFor={(picked) => `/api/auth/${via}?role=${picked}`} />
+            ) : view === 'role' ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <p style={{ margin: 0, textAlign: 'center', color: '#059669', fontWeight: 600 }}>
+                        ✓ {t('auth.phoneConfirmedLastStep')}
+                    </p>
+                    <RoleCards onPick={handlePickRole} disabled={isLoading} />
+                    <button
+                        type="button"
+                        onClick={() => { setStep('form'); setError(''); }}
+                        disabled={isLoading}
+                        style={{ background: 'none', border: 'none', color: 'var(--text-light)', fontSize: '0.9rem', cursor: 'pointer' }}
+                    >
+                        {t('common.back')}
+                    </button>
+                </div>
+            ) : view === 'code' && pending ? (
                 <form onSubmit={handleVerify} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <p style={{ color: 'var(--text-light)', fontSize: '0.9rem', margin: 0 }}>
                         {t('auth.verifyPhoneCodeSent', { phone: pending.phone })}
@@ -336,7 +317,9 @@ function RegisterContent() {
                         className="btn btn-primary"
                         style={{ width: '100%', opacity: isLoading || code.length < 6 ? 0.7 : 1 }}
                     >
-                        {isLoading ? t('auth.creatingAccount') : t('auth.createAccount')}
+                        {role
+                            ? t(isLoading ? 'auth.creatingAccount' : 'auth.createAccount')
+                            : t(isLoading ? 'auth.verifyPhoneVerifying' : 'auth.verifyPhoneVerify')}
                     </button>
                     <ResendCodeButton onResend={handleResend} disabled={isLoading} />
                     <button

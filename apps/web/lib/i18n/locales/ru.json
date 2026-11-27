@@ -225,6 +225,7 @@
     "loginByPassword": "Войти по паролю",
     "getCode": "Получить код",
     "codeLoginSubtitle": "Введите номер телефона — мы пришлём код в SMS",
+    "phoneConfirmedLastStep": "Номер подтверждён. Последний шаг:",
     "createAccountQuestion": "Создать аккаунт?",
     "identifierPlaceholder": "Телефон или email",
     "identifierLabel": "Телефон или email",

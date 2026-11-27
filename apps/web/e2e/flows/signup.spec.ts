@@ -14,8 +14,8 @@ const NEW_PASSWORD = 'E2e-N3w-Passw0rd!';
 let customerEmail: string;
 let providerEmail: string;
 
-async function fillSignupForm(page: Page, role: 'customer' | 'provider', email: string) {
-    await open(page, `/register?type=${role}`);
+async function fillSignupForm(page: Page, role: 'customer' | 'provider' | null, email: string) {
+    await open(page, role ? `/register?type=${role}` : '/register');
     await page.locator('#reg-fullName').fill(role === 'provider' ? 'E2E Новый Исполнитель' : 'E2E Новый Заказчик');
     await page.locator('#reg-email').fill(email);
     await page.locator('#reg-phone').fill(LOCAL_PHONE);
@@ -23,20 +23,23 @@ async function fillSignupForm(page: Page, role: 'customer' | 'provider', email: 
     await page.getByRole('button', { name: 'Создать аккаунт' }).click();
 }
 
-test('a customer signs up: form, SMS code, signed in', async ({ page }) => {
+test('a customer signs up: form, SMS code, role, signed in', async ({ page }) => {
     customerEmail = e2eEmail('signup-customer');
-    await fillSignupForm(page, 'customer', customerEmail);
+    await fillSignupForm(page, null, customerEmail);
 
     await expect(page.locator('#reg-code')).toBeVisible();
     await expect(page.getByText(E2E_SMS_PHONE)).toBeVisible();
 
     await page.locator('#reg-code').fill('000000');
-    await page.getByRole('button', { name: 'Создать аккаунт' }).click();
+    await page.getByRole('button', { name: 'Подтвердить', exact: true }).click();
     await expect(page.getByText('Неверный или просроченный код')).toBeVisible();
-    expect(await prisma.user.count({ where: { email: customerEmail } })).toBe(0);
 
     await page.locator('#reg-code').fill(E2E_SMS_CODE);
-    await page.getByRole('button', { name: 'Создать аккаунт' }).click();
+    await page.getByRole('button', { name: 'Подтвердить', exact: true }).click();
+    // The role comes last, and nothing exists until it is picked.
+    await expect(page.getByText('Номер подтверждён. Последний шаг:')).toBeVisible();
+    expect(await prisma.user.count({ where: { email: customerEmail } })).toBe(0);
+    await page.getByRole('button', { name: /Мне нужен специалист/ }).click();
     await page.waitForURL(url => url.pathname === '/');
 
     const me = await (await page.request.get('/api/auth/me')).json();

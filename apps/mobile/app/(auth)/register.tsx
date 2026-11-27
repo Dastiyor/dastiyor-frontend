@@ -153,12 +153,13 @@ export default function RegisterScreen() {
   }
 
   async function handleRegister() {
-    const issues = passwordStrength(password, r);
+    // The password is optional; one that was typed still has to pass.
+    const issues = password ? passwordStrength(password, r) : [];
     const found: typeof fieldErrors = {
       name: fullName.trim() ? undefined : t.common.fieldRequired,
       phone: !phoneLocal ? t.common.fieldRequired : phoneLocal.length !== 9 ? r.errPhone : undefined,
       // A short password is already listed under the field as it is typed.
-      password: !password ? t.common.fieldRequired : issues.length > 0 ? issues[0] : undefined,
+      password: issues[0],
       consent: legalAccepted ? undefined : t.legal.consentRequired,
     };
     setFieldErrors(found);
@@ -236,7 +237,7 @@ export default function RegisterScreen() {
         await register({
           fullName: fullName.trim(),
           phone: `+992${phoneLocal}`,
-          password,
+          password: password || undefined,
           role,
           ticket: ticket.value,
         });
@@ -443,7 +444,7 @@ export default function RegisterScreen() {
         <FieldError message={fieldErrors.phone} />
 
         {/* Password */}
-        <Text style={[styles.fieldLabel, { color: colors.text }]}>{r.password}</Text>
+        <Text style={[styles.fieldLabel, { color: colors.text }]}>{r.password} ({r.optional})</Text>
         <View style={[styles.passwordRow, { backgroundColor: colors.surfaceAlt, borderColor: fieldErrors.password || (password.length > 0 && !pwOk) ? FIELD_ERROR_COLOR : colors.border }]}>
           <Icon name="lock-closed-outline" size={20} color={colors.textTertiary} style={styles.fieldIcon} />
           <Input
@@ -468,8 +469,7 @@ export default function RegisterScreen() {
             />
           </TouchableOpacity>
         </View>
-        {/* Password feedback: an empty password on submit, else the live rule check */}
-        {!password && fieldErrors.password ? <Text style={styles.pwErr}>{fieldErrors.password}</Text> : null}
+        {/* Password feedback: the live rule check, only once something is typed */}
         {password.length > 0 && (
           pwOk
             ? <Text style={styles.pwOk}>✓ {r.passwordStrong ?? 'Надёжный пароль'}</Text>

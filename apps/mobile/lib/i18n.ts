@@ -151,6 +151,7 @@ const translations = {
     },
     time: { justNow: 'just now', min: 'min', h: 'h', d: 'd' },
     register: {
+      optional: 'optional',
       getStarted: 'Get Started',
       verifyPhoneBtn: 'Create account',
       subtitle: 'Create an account',
@@ -507,6 +508,10 @@ const translations = {
       consentRequired: 'Please accept the Terms and Privacy Policy',
     },
     login: {
+      byCode: 'Sign in with an SMS code',
+      byPassword: 'Sign in with a password',
+      getCode: 'Get code',
+      codeSubtitle: 'Enter your number and we will text you a code',
       notFoundHint: 'Create an account with it: it takes a minute.',
       subtitle: 'Sign in to your account',
       identifierPh: 'Phone or email',
@@ -824,6 +829,7 @@ const translations = {
     },
     time: { justNow: 'только что', min: 'мин', h: 'ч', d: 'д' },
     register: {
+      optional: 'необязательно',
       getStarted: 'Начать',
       verifyPhoneBtn: 'Создать аккаунт',
       subtitle: 'Создайте аккаунт',
@@ -1179,6 +1185,10 @@ const translations = {
       consentRequired: 'Примите Условия и Политику конфиденциальности',
     },
     login: {
+      byCode: 'Войти по коду из SMS',
+      byPassword: 'Войти по паролю',
+      getCode: 'Получить код',
+      codeSubtitle: 'Введите номер телефона — мы пришлём код в SMS',
       notFoundHint: 'Создайте аккаунт с этим номером — это займёт минуту.',
       subtitle: 'Войдите в аккаунт',
       identifierPh: 'Телефон или email',
@@ -1496,6 +1506,7 @@ const translations = {
     },
     time: { justNow: 'ҳозир', min: 'дақ', h: 'с', d: 'р' },
     register: {
+      optional: 'ихтиёрӣ',
       getStarted: 'Оғоз кардан',
       verifyPhoneBtn: 'Сохтани аккаунт',
       subtitle: 'Ҳисоб эҷод кунед',
@@ -1852,6 +1863,10 @@ const translations = {
       consentRequired: 'Лутфан Шартҳо ва Сиёсати махфиятро қабул кунед',
     },
     login: {
+      byCode: 'Бо рамзи SMS ворид шавед',
+      byPassword: 'Бо парол ворид шавед',
+      getCode: 'Гирифтани рамз',
+      codeSubtitle: 'Рақами телефонро ворид кунед — мо рамзро бо SMS мефиристем',
       notFoundHint: 'Бо ин рақам ҳисоб эҷод кунед — як дақиқа вақт мегирад.',
       subtitle: 'Ба ҳисоби худ ворид шавед',
       identifierPh: 'Телефон ё email',

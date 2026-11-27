@@ -36,7 +36,8 @@ async function clearPushRegistration() {
 interface RegisterData {
   phone: string;
   email?: string;
-  password: string;
+  /** Without one, the account signs in with an SMS code. */
+  password?: string;
   fullName: string;
   role: 'customer' | 'provider';
   /**
@@ -60,6 +61,7 @@ interface AuthState {
   user: ApiUser | null;
   loading: boolean;
   login: (identifier: string, password: string) => Promise<void>;
+  loginWithCode: (phone: string, code: string) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   /** Without a role, a new person gets 'role-required' instead of an account. */
   loginWithGoogle: (accessToken: string, role?: 'customer' | 'provider') => Promise<OAuthResult>;
@@ -142,6 +144,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const res = await api.post<{ token: string; user: ApiUser }>('/api/auth/login', { identifier, password });
     await storage.setItem('auth_token', res.token);
     onAuthenticated(res, AnalyticsEvent.LoginCompleted, 'password');
+  }
+
+  async function loginWithCode(phone: string, code: string) {
+    const res = await api.post<{ token: string; user: ApiUser }>('/api/auth/login/code', { phone, code });
+    await storage.setItem('auth_token', res.token);
+    onAuthenticated(res, AnalyticsEvent.LoginCompleted, 'sms');
   }
 
   async function register(data: RegisterData) {
@@ -235,7 +243,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, loginWithGoogle, loginWithApple, logout, deleteAccount, refreshUser, switchRole }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithCode, register, loginWithGoogle, loginWithApple, logout, deleteAccount, refreshUser, switchRole }}>
       {children}
     </AuthContext.Provider>
   );

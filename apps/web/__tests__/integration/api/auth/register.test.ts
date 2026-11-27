@@ -201,6 +201,22 @@ describe('/api/auth/register Route', () => {
         expect(cookieHeader).toContain('token=mock-jwt-token');
     });
 
+    it('creates an account with no password and no email', async () => {
+        prismaMock.user.findUnique.mockResolvedValue(null);
+        prismaMock.user.create.mockResolvedValue({ id: 'p1', fullName: 'New User', role: 'CUSTOMER' } as any);
+        const { email: _email, password: _password, ...phoneOnly } = valid;
+
+        const response = await POST(new Request('http://localhost/api/auth/register', {
+            method: 'POST',
+            body: JSON.stringify({ ...phoneOnly, password: '' }),
+        }));
+
+        expect(response.status).toBe(201);
+        expect(prismaMock.user.create).toHaveBeenCalledWith({
+            data: expect.objectContaining({ password: null, phoneVerified: true }),
+        });
+    });
+
     it('rejects a malformed email', async () => {
         // Registration accepted these while PUT /api/profile rejected them, so
         // an account could be created with an address that never receives a

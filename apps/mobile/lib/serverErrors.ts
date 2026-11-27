@@ -18,6 +18,11 @@ import type { Locale } from './i18n';
 const ERRORS: Record<string, readonly [en: string, tj: string]> = {
     // --- auth ---
     'Неверный пароль': ['Incorrect password', 'Парол нодуруст аст'],
+    'Этот номер не подтверждён. Войдите по паролю.': ['This number is not verified. Sign in with your password.', 'Ин рақам тасдиқ нашудааст. Бо парол ворид шавед.'],
+    'Для этого аккаунта пароль не задан. Войдите по коду из SMS.': ['This account has no password. Sign in with an SMS code.', 'Барои ин ҳисоб парол муқаррар нашудааст. Бо рамзи SMS ворид шавед.'],
+    'У этого аккаунта ещё нет пароля. Задайте его через «Забыли пароль?»': ['This account has no password yet. Set one with “Forgot password?”', 'Ин ҳисоб ҳоло парол надорад. Онро тавассути «Паролро фаромӯш кардед?» муқаррар кунед'],
+    'Чтобы изменить email, сначала задайте пароль через «Забыли пароль?»': ['To change the email, first set a password with “Forgot password?”', 'Барои иваз кардани email аввал паролро тавассути «Паролро фаромӯш кардед?» муқаррар кунед'],
+    'Некорректный запрос': ['Invalid request', 'Дархости нодуруст'],
     'Этот номер не зарегистрирован': ['This number is not registered', 'Ин рақам сабт нашудааст'],
     'Аккаунт с таким email не найден': ['No account with this email', 'Ҳисоб бо чунин email ёфт нашуд'],
     'Аккаунт временно заблокирован. Попробуйте позже.': ['Account temporarily locked. Try again later.', 'Ҳисоб муваққатан баста аст. Баъдтар кӯшиш кунед.'],

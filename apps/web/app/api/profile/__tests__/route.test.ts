@@ -322,7 +322,7 @@ describe('/api/profile', () => {
 
             it('returns 400 when account has no password (social sign-in)', async () => {
                 prismaMock.user.findUnique
-                    .mockResolvedValueOnce({ ...mockUser, password: null } as any);
+                    .mockResolvedValueOnce({ ...mockUser, password: null, googleId: 'g-1' } as any);
 
                 const response = await PUT(makeRequest({
                     fullName: 'Ali',

@@ -24,7 +24,10 @@ export async function POST(request: Request) {
         const body = await request.json();
         const { email, password, fullName, phone, role, code, ticket } = body;
 
-        if (!password || !fullName) {
+        // Password and email are optional: without a password the account signs
+        // in with an SMS code.
+        const hasPassword = password !== undefined && password !== null && password !== '';
+        if (!fullName) {
             return NextResponse.json({ error: 'Заполнены не все обязательные поля' }, { status: 400 });
         }
 
@@ -63,9 +66,11 @@ export async function POST(request: Request) {
             );
         }
 
-        const passwordValidation = validatePassword(String(password));
-        if (!passwordValidation.valid) {
-            return NextResponse.json({ error: passwordValidation.error }, { status: 400 });
+        if (hasPassword) {
+            const passwordValidation = validatePassword(String(password));
+            if (!passwordValidation.valid) {
+                return NextResponse.json({ error: passwordValidation.error }, { status: 400 });
+            }
         }
 
         const normalizedPhone = normalizePhone(String(phone));
@@ -108,7 +113,7 @@ export async function POST(request: Request) {
             }
         }
 
-        const hashedPassword = await bcrypt.hash(password, 12);
+        const hashedPassword = hasPassword ? await bcrypt.hash(String(password), 12) : null;
 
         const user = await prisma.user.create({
             data: {

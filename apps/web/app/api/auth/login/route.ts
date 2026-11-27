@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
-import { persistRequestLocale } from '@/lib/persist-locale';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
-import { signJWT, SESSION_MAX_AGE } from '@/lib/auth';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 import { logAction, getRequestIP } from '@/lib/audit';
 import { normalizePhone } from '@/lib/validation';
+import { signedInResponse } from '@/lib/signed-in-response';
 
 export async function POST(request: Request) {
     try {
@@ -54,6 +53,13 @@ export async function POST(request: Request) {
         }
 
         if (!user.password) {
+            // Signed up with a phone number and no password.
+            if (!user.googleId && !user.appleId) {
+                return NextResponse.json(
+                    { error: 'Для этого аккаунта пароль не задан. Войдите по коду из SMS.', code: 'PASSWORD_NOT_SET' },
+                    { status: 401 }
+                );
+            }
             const provider = user.googleId ? 'Google' : user.appleId ? 'Apple' : 'OAuth';
             return NextResponse.json(
                 { error: `Этот аккаунт использует вход через ${provider}. Нажмите кнопку ниже.` },
@@ -94,56 +100,7 @@ export async function POST(request: Request) {
             );
         }
 
-        // Reset attempts on successful login
-        await prisma.user.update({
-            where: { id: user.id },
-            data: { loginAttempts: 0, lockedUntil: null },
-        });
-
-        // Generate Token (tv = tokenVersion for revocation support)
-        const token = await signJWT({
-            id: user.id,
-            email: user.email,
-            role: user.role,
-            tv: user.tokenVersion,
-        });
-
-        const response = NextResponse.json(
-            {
-                message: 'Login successful',
-                token,
-                user: {
-                    id: user.id,
-                    email: user.email,
-                    fullName: user.fullName,
-                    role: user.role
-                }
-            },
-            { status: 200 }
-        );
-
-        // Sign-in is where a language chosen while signed out reaches the account.
-        await persistRequestLocale(request, user.id, user.locale)
-            .catch(err => console.error('Locale persist error:', err));
-
-        logAction({
-            action: 'LOGIN',
-            userId: user.id,
-            entity: 'User',
-            entityId: user.id,
-            ipAddress: getRequestIP(request),
-        });
-
-        // Set cookie
-        response.cookies.set('token', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: SESSION_MAX_AGE,
-            path: '/',
-        });
-
-        return response;
+        return await signedInResponse(request, user, 'password');
 
     } catch (error) {
         console.error('Login Error:', error);

@@ -29,6 +29,9 @@ export async function POST(request: Request) {
         }
 
         if (!user.password) {
+            if (!user.googleId && !user.appleId) {
+                return NextResponse.json({ error: 'У этого аккаунта ещё нет пароля. Задайте его через «Забыли пароль?»' }, { status: 400 });
+            }
             return NextResponse.json({ error: 'Этот аккаунт использует вход через Google или Apple и не имеет пароля' }, { status: 400 });
         }
 

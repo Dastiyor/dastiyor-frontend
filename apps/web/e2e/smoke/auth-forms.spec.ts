@@ -5,7 +5,7 @@ import { E2E_EMAIL_DOMAIN } from '../support/env';
 // before it writes anything or sends an SMS.
 
 test('login rejects an unknown account with a readable error', async ({ page }) => {
-    await open(page, '/login');
+    await open(page, '/login?method=password');
     await expect(page.getByRole('heading', { name: 'С возвращением' })).toBeVisible();
 
     await page.locator('#login-email').fill(`nobody${E2E_EMAIL_DOMAIN}`);
@@ -18,7 +18,7 @@ test('login rejects an unknown account with a readable error', async ({ page }) 
 });
 
 test('login takes a phone number and says when it has no account', async ({ page }) => {
-    await open(page, '/login');
+    await open(page, '/login?method=password');
     // 000 is not a real operator prefix, so no account has this number.
     await page.locator('#login-email').fill('+992 000 000 009');
     await page.locator('#login-password').fill('Wrong-Passw0rd!');
@@ -26,6 +26,19 @@ test('login takes a phone number and says when it has no account', async ({ page
 
     await expect(page.getByText('Этот номер не зарегистрирован')).toBeVisible();
     await expect(page.getByRole('link', { name: 'Создать аккаунт?' })).toBeVisible();
+});
+
+test('login asks for a phone number first and offers a password instead', async ({ page }) => {
+    await open(page, '/login');
+    await page.locator('#login-phone').fill('000000009');
+    // Rejected before anything is written or sent.
+    await page.getByRole('button', { name: 'Получить код' }).click();
+    await expect(page.getByText('Этот номер не зарегистрирован')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Создать аккаунт?' })).toBeVisible();
+
+    await page.getByRole('link', { name: 'Войти по паролю' }).click();
+    await expect(page.locator('#login-password')).toBeVisible();
+    await expect(page.getByText('Этот номер не зарегистрирован')).toHaveCount(0);
 });
 
 test('login offers Google, Apple, password recovery and signup', async ({ page }) => {

@@ -3,7 +3,7 @@ import { createUser, prisma } from '../support/db';
 import type { Page } from '@playwright/test';
 
 async function signInThroughForm(page: Page, email: string, password: string) {
-    await open(page, '/login');
+    await open(page, '/login?method=password');
     await page.locator('#login-email').fill(email);
     await page.locator('#login-password').fill(password);
     await page.getByRole('button', { name: 'Войти', exact: true }).click();

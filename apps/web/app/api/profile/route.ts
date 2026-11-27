@@ -105,13 +105,18 @@ export async function PUT(request: Request) {
             }
 
             // Email change requires password confirmation to prevent account takeover
+            const userForPwCheck = await prisma.user.findUnique({
+                where: { id: payload.id as string },
+                select: { password: true, googleId: true, appleId: true },
+            });
+            // Signed up by phone without a password: say how to get one, rather
+            // than asking for a password that does not exist.
+            if (userForPwCheck && !userForPwCheck.password && !userForPwCheck.googleId && !userForPwCheck.appleId) {
+                return NextResponse.json({ error: 'Чтобы изменить email, сначала задайте пароль через «Забыли пароль?»' }, { status: 400 });
+            }
             if (!currentPassword) {
                 return NextResponse.json({ error: 'Введите текущий пароль, чтобы подтвердить смену email' }, { status: 400 });
             }
-            const userForPwCheck = await prisma.user.findUnique({
-                where: { id: payload.id as string },
-                select: { password: true },
-            });
             if (!userForPwCheck?.password) {
                 return NextResponse.json({ error: 'Этот аккаунт использует вход через соцсети — email так изменить нельзя' }, { status: 400 });
             }

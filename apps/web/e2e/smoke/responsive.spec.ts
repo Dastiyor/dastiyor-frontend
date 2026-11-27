@@ -22,7 +22,7 @@ test('the mobile menu opens and navigates', async ({ page }) => {
 
 test('the login form is usable on a phone', async ({ page }) => {
     await page.goto('/login');
-    await expect(page.locator('#login-email')).toBeInViewport();
-    await expect(page.locator('#login-password')).toBeVisible();
+    await expect(page.locator('#login-phone')).toBeInViewport();
+    await expect(page.getByRole('link', { name: 'Войти по паролю' })).toBeVisible();
     await expect(page.locator('form button[type="submit"]')).toBeVisible();
 });

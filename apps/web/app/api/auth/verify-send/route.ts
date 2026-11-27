@@ -3,6 +3,10 @@ import { prisma } from '@/lib/prisma';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 import { isValidPhone, normalizePhone } from '@/lib/validation';
 import { issueOtp, isDesignatedTestPhone } from '@/lib/otp';
+import { findSmsLoginUser } from '@/lib/sms-login';
+
+/** RESET_PASSWORD codes are issued by the forgot-password routes only. */
+const SENDABLE_TYPES = ['REGISTRATION', 'PHONE_VERIFY', 'LOGIN'];
 
 export async function POST(request: Request) {
     try {
@@ -14,6 +18,10 @@ export async function POST(request: Request) {
                 { error: 'Укажите номер телефона' },
                 { status: 400 }
             );
+        }
+
+        if (!SENDABLE_TYPES.includes(type)) {
+            return NextResponse.json({ error: 'Некорректный запрос' }, { status: 400 });
         }
 
         if (!isValidPhone(String(phone))) {
@@ -46,6 +54,12 @@ export async function POST(request: Request) {
                     { status: 400 }
                 );
             }
+        }
+
+        // Likewise a login code for a number that cannot sign in with one.
+        if (type === 'LOGIN') {
+            const { refusal } = await findSmsLoginUser(normalizedPhone);
+            if (refusal) return NextResponse.json(refusal, { status: 404 });
         }
 
         // 2. Phone-based SMS rate limiting. The test number sends no SMS, and this

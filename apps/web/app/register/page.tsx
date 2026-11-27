@@ -8,6 +8,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { checkPasswordStrength } from '@/lib/validation';
 import ResendCodeButton from '@/components/auth/ResendCodeButton';
 import OtpInput from '@/components/auth/OtpInput';
+import PhoneField from '@/components/auth/PhoneField';
+import { localPhoneDigits } from '@/lib/phone-input';
 import FieldIcon, { FIELD_ICON_PADDING } from '@/components/auth/FieldIcon';
 import { Lock, User } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
@@ -91,7 +93,7 @@ function RegisterContent() {
     const hydrated = useHydrated();
     const phoneRef = useRef<HTMLInputElement>(null);
     const passwordRef = useRef<HTMLInputElement>(null);
-    useAdoptTypedValue(phoneRef, value => setPhoneLocal(value.replace(/\D/g, '').slice(0, 9)));
+    useAdoptTypedValue(phoneRef, value => setPhoneLocal(localPhoneDigits(value)));
     useAdoptTypedValue(passwordRef, setPassword);
     // The form as submitted, held while the SMS code is being entered. The
     // account is only created once the code comes back with it.
@@ -131,7 +133,8 @@ function RegisterContent() {
         const formData = new FormData(e.currentTarget);
         // passwordFeedback is derived from `password`, so the list under the
         // field is already showing exactly what is missing.
-        if (!passwordCheck?.isStrong) return;
+        // The password is optional; one that was typed still has to pass.
+        if (passwordCheck && !passwordCheck.isStrong) return;
 
         const data = {
             fullName: String(formData.get('fullName') ?? ''),
@@ -175,7 +178,7 @@ function RegisterContent() {
             const res = await fetch('/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...pending, password, role, code }),
+                body: JSON.stringify({ ...pending, password: password || undefined, role, code }),
             });
 
             if (!res.ok) {
@@ -375,14 +378,13 @@ function RegisterContent() {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <label htmlFor="reg-email" style={{ fontWeight: '500', fontSize: '0.9rem' }}>{t('auth.emailLabel')}</label>
+                    <label htmlFor="reg-email" style={{ fontWeight: '500', fontSize: '0.9rem' }}>{t('auth.emailLabel')} <span style={{ color: 'var(--text-light)', fontWeight: 400 }}>({t('auth.optional')})</span></label>
                     <input
                         id="reg-email"
                         name="email"
                         type="email"
                         placeholder={t('auth.emailPlaceholder')}
                         defaultValue={pending?.email}
-                        required
                         maxLength={254}
                         style={{
                             padding: '12px 16px',
@@ -396,54 +398,11 @@ function RegisterContent() {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <label htmlFor="reg-phone" style={{ fontWeight: '500', fontSize: '0.9rem' }}>{t('auth.phone')}</label>
-                    <div style={{
-                        display: 'flex',
-                        borderRadius: '8px',
-                        border: '1px solid var(--border)',
-                        overflow: 'hidden',
-                    }}>
-                        <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            padding: '12px 14px',
-                            backgroundColor: '#f5f7fa',
-                            borderRight: '1px solid var(--border)',
-                            whiteSpace: 'nowrap',
-                            fontSize: '1rem',
-                            color: '#374151',
-                            fontWeight: '500',
-                            userSelect: 'none',
-                            flexShrink: 0,
-                        }}>
-                            🇹🇯 +992
-                        </div>
-                        <input
-                            id="reg-phone"
-                            ref={phoneRef}
-                            type="tel"
-                            inputMode="numeric"
-                            placeholder="XX XXX XXXX"
-                            required
-                            minLength={9}
-                            maxLength={9}
-                            value={phoneLocal}
-                            onChange={(e) => setPhoneLocal(e.target.value.replace(/\D/g, '').slice(0, 9))}
-                            style={{
-                                flex: 1,
-                                padding: '12px 16px',
-                                border: 'none',
-                                fontSize: '1rem',
-                                outline: 'none',
-                                backgroundColor: 'transparent',
-                                minWidth: 0,
-                            }}
-                        />
-                    </div>
+                    <PhoneField id="reg-phone" ref={phoneRef} value={phoneLocal} onChange={setPhoneLocal} />
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <label htmlFor="reg-password" style={{ fontWeight: '500', fontSize: '0.9rem' }}>{t('auth.passwordLabel')}</label>
+                    <label htmlFor="reg-password" style={{ fontWeight: '500', fontSize: '0.9rem' }}>{t('auth.passwordLabel')} <span style={{ color: 'var(--text-light)', fontWeight: 400 }}>({t('auth.optional')})</span></label>
                     <div style={{ position: 'relative' }}>
                         <FieldIcon icon={Lock} />
                         <input
@@ -452,7 +411,6 @@ function RegisterContent() {
                             name="password"
                             type={showPassword ? 'text' : 'password'}
                             placeholder={t('auth.passwordHint')}
-                            required
                             minLength={8}
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}

@@ -31,7 +31,7 @@ test('server errors are translated for Tajik readers', async ({ browser }) => {
     await context.addCookies([{ name: 'dastiyor_locale', value: 'tj', url: test.info().project.use.baseURL! }]);
     const page = await context.newPage();
 
-    await open(page, '/login');
+    await open(page, '/login?method=password');
     await page.locator('#login-email').fill('nobody@e2e.dastiyor.test');
     await page.locator('#login-password').fill('Wrong-Passw0rd!');
     await page.locator('form button[type="submit"]').click();

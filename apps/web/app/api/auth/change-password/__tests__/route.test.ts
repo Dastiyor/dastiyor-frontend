@@ -79,6 +79,7 @@ describe('/api/auth/change-password', () => {
         prismaMock.user.findUnique.mockResolvedValue({
             id: mockUserId,
             password: null,
+            googleId: 'g-1',
         } as any);
 
         const response = await POST(makeRequest({ currentPassword: 'anything', newPassword: 'newpass123' }));

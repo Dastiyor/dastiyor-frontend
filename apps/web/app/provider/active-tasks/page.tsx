@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Clock, MapPin, DollarSign, User, MessageSquare, Briefcase } from 'lucide-react';
 import { getServerTranslation } from '@/lib/i18n/server';
+import { hasFixedAmount } from '@/lib/format-budget';
 
 export default async function ActiveTasksPage() {
     const cookieStore = await cookies();
@@ -140,7 +141,7 @@ export default async function ActiveTasksPage() {
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                             <DollarSign size={14} />
                                             <span style={{ fontWeight: '600', color: accentColor }}>
-                                                {task.budgetType === 'fixed' ? `${task.budgetAmount} TJS` : t('common.negotiable')}
+                                                {hasFixedAmount(task.budgetType, task.budgetAmount) ? `${task.budgetAmount} TJS` : t('common.negotiable')}
                                             </span>
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>

@@ -1,4 +1,4 @@
-import { formatBudget, formatMoney } from '../format-budget';
+import { formatBudget, formatMoney, hasFixedAmount } from '../format-budget';
 
 describe('formatBudget', () => {
   it('formats a fixed amount', () => {
@@ -35,4 +35,19 @@ describe('formatMoney', () => {
     expect(formatMoney(null)).toBe('');
     expect(formatMoney('')).toBe('');
   });
+});
+
+describe('hasFixedAmount', () => {
+    it('is true only for a fixed price above 0', () => {
+        expect(hasFixedAmount('fixed', '250')).toBe(true);
+        expect(hasFixedAmount('fixed', 250)).toBe(true);
+        expect(hasFixedAmount('fixed', '0')).toBe(false);
+        expect(hasFixedAmount('fixed', '')).toBe(false);
+        expect(hasFixedAmount('fixed', null)).toBe(false);
+        expect(hasFixedAmount('negotiable', '250')).toBe(false);
+    });
+
+    it('keeps old "Фикс. цена" tasks with 0 from showing as "0 TJS"', () => {
+        expect(formatBudget('fixed', '0')).toBe('Договорная');
+    });
 });

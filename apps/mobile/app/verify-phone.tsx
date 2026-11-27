@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardOffset } from '@/lib/useKeyboardOffset';
 import { useKeyboardAwareScroll } from '@/lib/useKeyboardAwareScroll';
 import { api } from '@/lib/api-client';
+import { ResendCodeButton } from '@/components/ResendCodeButton';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { formatPhone } from '@/lib/phone';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -52,17 +53,22 @@ export default function VerifyPhoneScreen() {
 
   const fullPhone = `+992${phone}`;
 
+  /** Sends a code; shows the error and resolves false if none went out. */
+  async function requestCode(): Promise<boolean> {
+    try {
+      await api.post('/api/auth/verify-send', { phone: fullPhone, type: 'PHONE_VERIFY' });
+      return true;
+    } catch (e) {
+      Alert.alert(t.common.error, (e as Error).message);
+      return false;
+    }
+  }
+
   async function sendCode() {
     if (phone.length < 9) { Alert.alert(t.common.error, vp.errPhone); return; }
     setBusy(true);
-    try {
-      await api.post('/api/auth/verify-send', { phone: fullPhone, type: 'PHONE_VERIFY' });
-      setStep('code');
-    } catch (e) {
-      Alert.alert(t.common.error, (e as Error).message);
-    } finally {
-      setBusy(false);
-    }
+    if (await requestCode()) setStep('code');
+    setBusy(false);
   }
 
   async function verifyCode() {
@@ -149,6 +155,7 @@ export default function VerifyPhoneScreen() {
             >
               {busy ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>{vp.verify}</Text>}
             </GradientButton>
+            <ResendCodeButton onResend={requestCode} disabled={busy} />
           </>
         )}
 

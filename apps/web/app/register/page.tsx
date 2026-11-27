@@ -6,6 +6,7 @@ import AuthLayout from '@/components/auth/AuthLayout';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { checkPasswordStrength } from '@/lib/validation';
+import ResendCodeButton from '@/components/auth/ResendCodeButton';
 import { useTranslation } from '@/lib/i18n';
 import { useAdoptTypedValue, useHydrated } from '@/lib/useHydrated';
 
@@ -148,16 +149,16 @@ function RegisterContent() {
         }
     }
 
-    async function handleResend() {
-        if (isLoading || !pending) return;
+    /** ResendCodeButton disables itself while this runs and for 60 s after it succeeds. */
+    async function handleResend(): Promise<boolean> {
+        if (!pending) return false;
         setError('');
-        setIsLoading(true);
         try {
             await sendCode(pending.phone);
+            return true;
         } catch (err) {
             setError(err instanceof Error ? err.message : String(err));
-        } finally {
-            setIsLoading(false);
+            return false;
         }
     }
 
@@ -348,14 +349,7 @@ function RegisterContent() {
                     >
                         {isLoading ? t('auth.creatingAccount') : t('auth.createAccount')}
                     </button>
-                    <button
-                        type="button"
-                        onClick={handleResend}
-                        disabled={isLoading}
-                        style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '0.9rem', cursor: 'pointer' }}
-                    >
-                        {t('auth.resendCode')}
-                    </button>
+                    <ResendCodeButton onResend={handleResend} disabled={isLoading} />
                     <button
                         type="button"
                         onClick={() => { setStep('form'); setCode(''); setError(''); }}
@@ -514,7 +508,7 @@ function RegisterContent() {
                     {passwordFeedback.length > 0 ? (
                         <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '0.85rem', color: '#c62828' }}>
                             {passwordFeedback.map((msg, i) => (
-                                <li key={i}>{msg}</li>
+                                <li key={i}>{tError(msg)}</li>
                             ))}
                         </ul>
                     ) : password ? (

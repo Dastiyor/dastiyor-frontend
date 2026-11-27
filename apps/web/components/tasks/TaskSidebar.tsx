@@ -4,7 +4,7 @@ import { usePathname } from 'next/navigation';
 import { toast } from '@/components/ui/Toast';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useTranslation } from '@/lib/i18n';
-import { formatMoney } from '@/lib/format-budget';
+import { formatMoney, hasFixedAmount } from '@/lib/format-budget';
 
 type TaskSidebarProps = {
     task: {
@@ -27,11 +27,9 @@ export default function TaskSidebar({ task, isOwner, canRespond, isLoggedIn }: T
     const pathname = usePathname();
     const { t } = useTranslation();
 
-    const budgetDisplay = task.budgetType === 'fixed'
-        ? `${formatMoney(task.budgetAmount || '0')} TJS`
-        : t('common.negotiable');
-
-    const budgetLabel = task.budgetType === 'fixed' ? t('tasks.fixedPrice') : t('tasks.openToOffers');
+    const fixed = hasFixedAmount(task.budgetType, task.budgetAmount);
+    const budgetDisplay = fixed ? `${formatMoney(task.budgetAmount)} TJS` : t('common.negotiable');
+    const budgetLabel = fixed ? t('tasks.fixedPrice') : t('tasks.openToOffers');
 
     const initials = task.user.fullName
         .split(' ')

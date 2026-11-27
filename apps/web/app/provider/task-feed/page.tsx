@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { MapPin, Clock, DollarSign, Users, Calendar, Filter, Search, Star } from 'lucide-react';
 import { Prisma } from '@prisma/client';
 import { getServerTranslation } from '@/lib/i18n/server';
-import { formatMoney } from '@/lib/format-budget';
+import { formatMoney, hasFixedAmount } from '@/lib/format-budget';
 
 export const dynamic = 'force-dynamic';
 
@@ -196,7 +196,7 @@ export default async function TaskFeedPage({
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                                 <DollarSign size={16} color="#16A34A" />
                                                 <span style={{ fontWeight: '600', color: '#16A34A', fontSize: '1rem' }}>
-                                                    {task.budgetType === 'fixed' ? `${formatMoney(task.budgetAmount)} TJS` : t('common.negotiable')}
+                                                    {hasFixedAmount(task.budgetType, task.budgetAmount) ? `${formatMoney(task.budgetAmount)} TJS` : t('common.negotiable')}
                                                 </span>
                                             </div>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>

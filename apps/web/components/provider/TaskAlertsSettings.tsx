@@ -48,7 +48,8 @@ export default function TaskAlertsSettings({ initialEnabled, plan }: { initialEn
         : plan === 'pro' ? t('taskAlerts.hintPro') : t('taskAlerts.hintInstant');
 
     return (
-        <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '16px', border: '1px solid #E2E8F0', marginBottom: '24px' }}>
+        // id: the empty task feed links here ("Получать уведомления о новых заданиях").
+        <div id="task-alerts" style={{ backgroundColor: 'white', padding: '20px', borderRadius: '16px', border: '1px solid #E2E8F0', marginBottom: '24px', scrollMarginTop: '96px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', justifyContent: 'space-between', flexWrap: 'wrap' }}>
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', flex: 1, minWidth: '220px' }}>
                     <BellRing size={20} color="var(--primary)" style={{ flexShrink: 0, marginTop: '2px' }} />

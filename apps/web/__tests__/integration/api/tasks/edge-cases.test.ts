@@ -84,7 +84,8 @@ describe('Tasks API Edge Cases & Error Handling', () => {
         expect(response.status).toBe(400);
         // Ensure the errors were aggregated by validateTaskInput
         expect(data.error).toContain('Заголовок должен содержать');
-        expect(data.error).toContain('Описание должно содержать');
+        // The description is optional, so it is not among the missing fields.
+        expect(data.error).not.toContain('Описание');
         expect(data.error).toContain('Выберите категорию');
         expect(data.error).toContain('Укажите город');
         expect(data.error).toContain('Бюджет должен быть положительным');

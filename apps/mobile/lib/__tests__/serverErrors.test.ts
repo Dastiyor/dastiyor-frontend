@@ -20,8 +20,8 @@ describe('translateServerError', () => {
     it('translates validation errors joined by the server', () => {
         expect(translateServerError('Выберите категорию, Укажите город', 'en'))
             .toBe('Choose a category, Enter a city');
-        expect(translateServerError('Добавьте заглавную букву. Добавьте цифру', 'en'))
-            .toBe('Add an uppercase letter. Add a number');
+        expect(translateServerError('Заголовок должен содержать минимум 5 символов, Выберите категорию', 'en'))
+            .toBe('The title must be at least 5 characters, Choose a category');
     });
 
     it('leaves a partly-unknown joined message alone rather than half-translating it', () => {

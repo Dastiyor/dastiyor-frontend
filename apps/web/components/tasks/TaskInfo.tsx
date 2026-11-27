@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslation } from '@/lib/i18n';
-import { formatMoney } from '@/lib/format-budget';
+import { formatMoney, hasFixedAmount } from '@/lib/format-budget';
 
 type TaskInfoProps = {
     task: {
@@ -64,7 +64,7 @@ export default function TaskInfo({ task }: TaskInfoProps) {
                     </span>
                     <span style={{ color: 'var(--text-light)', fontSize: '0.9rem' }}>•</span>
                     <span style={{ color: 'var(--text-light)', fontSize: '0.9rem' }}>
-                        {task.budgetType === 'fixed' ? `${formatMoney(task.budgetAmount)} TJS` : t('common.negotiable')}
+                        {hasFixedAmount(task.budgetType, task.budgetAmount) ? `${formatMoney(task.budgetAmount)} TJS` : t('common.negotiable')}
                     </span>
                 </div>
 
@@ -82,13 +82,15 @@ export default function TaskInfo({ task }: TaskInfoProps) {
                 </div>
             </div>
 
-            {/* Description */}
-            <div>
-                <h3 className="heading-md">{t('tasks.description')}</h3>
-                <p style={{ lineHeight: '1.7', color: 'var(--text-light)', whiteSpace: 'pre-wrap' }}>
-                    {task.description}
-                </p>
-            </div>
+            {/* Description (optional, so it may be empty) */}
+            {task.description.trim() && (
+                <div>
+                    <h3 className="heading-md">{t('tasks.description')}</h3>
+                    <p style={{ lineHeight: '1.7', color: 'var(--text-light)', whiteSpace: 'pre-wrap' }}>
+                        {task.description}
+                    </p>
+                </div>
+            )}
 
             {/* Photos */}
             {task.images && (() => {

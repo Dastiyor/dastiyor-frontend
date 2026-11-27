@@ -17,7 +17,9 @@ import type { Locale } from './i18n';
  */
 const ERRORS: Record<string, readonly [en: string, tj: string]> = {
     // --- auth ---
-    'Неверный логин или пароль': ['Incorrect login or password', 'Логин ё парол нодуруст аст'],
+    'Неверный пароль': ['Incorrect password', 'Парол нодуруст аст'],
+    'Этот номер не зарегистрирован': ['This number is not registered', 'Ин рақам сабт нашудааст'],
+    'Аккаунт с таким email не найден': ['No account with this email', 'Ҳисоб бо чунин email ёфт нашуд'],
     'Аккаунт временно заблокирован. Попробуйте позже.': ['Account temporarily locked. Try again later.', 'Ҳисоб муваққатан баста аст. Баъдтар кӯшиш кунед.'],
     'Заполнены не все обязательные поля': ['Some required fields are missing', 'Ҳамаи майдонҳои ҳатмӣ пур нашудаанд'],
     'Заполнены не все поля': ['Some fields are missing', 'Ҳамаи майдонҳо пур нашудаанд'],
@@ -178,12 +180,12 @@ const ERRORS: Record<string, readonly [en: string, tj: string]> = {
     // These arrive joined with ', ', which translateServerError splits.
     'Заголовок должен содержать минимум 5 символов': ['The title must be at least 5 characters', 'Ном бояд ҳадди аққал 5 аломат дошта бошад'],
     'Заголовок не должен превышать 200 символов': ['The title must not exceed 200 characters', 'Ном набояд аз 200 аломат зиёд бошад'],
-    'Описание должно содержать минимум 20 символов': ['The description must be at least 20 characters', 'Тавсиф бояд ҳадди аққал 20 аломат дошта бошад'],
     'Описание не должно превышать 5000 символов': ['The description must not exceed 5000 characters', 'Тавсиф набояд аз 5000 аломат зиёд бошад'],
     'Выберите категорию': ['Choose a category', 'Категорияро интихоб кунед'],
     'Неизвестная категория': ['Unknown category', 'Категорияи номаълум'],
     'Укажите город': ['Enter a city', 'Шаҳрро нишон диҳед'],
     'Неизвестный город': ['Unknown city', 'Шаҳри номаълум'],
+    'Укажите сумму бюджета': ['Enter the budget amount', 'Маблағи буҷетро нишон диҳед'],
     'Неизвестная срочность': ['Unknown urgency', 'Фавриятнокии номаълум'],
     'Бюджет должен быть положительным числом': ['The budget must be a positive number', 'Буҷет бояд адади мусбат бошад'],
     'Бюджет не может превышать 10,000,000': ['The budget cannot exceed 10,000,000', 'Буҷет наметавонад аз 10,000,000 зиёд бошад'],
@@ -193,9 +195,6 @@ const ERRORS: Record<string, readonly [en: string, tj: string]> = {
     'Цена не может превышать 10,000,000': ['The price cannot exceed 10,000,000', 'Нарх наметавонад аз 10,000,000 зиёд бошад'],
     'Пароль должен содержать минимум 8 символов': ['The password must be at least 8 characters', 'Парол бояд ҳадди аққал 8 аломат дошта бошад'],
     'Пароль не должен превышать 70 символов': ['The password must not exceed 70 characters', 'Парол набояд аз 70 аломат зиёд бошад'],
-    'Добавьте заглавную букву': ['Add an uppercase letter', 'Ҳарфи калон илова кунед'],
-    'Добавьте строчную букву': ['Add a lowercase letter', 'Ҳарфи хурд илова кунед'],
-    'Добавьте цифру': ['Add a number', 'Рақам илова кунед'],
 
     // --- profile promotions (web lib/promotions.ts) ---
     'Продвигать профиль могут только исполнители': ['Only providers can promote a profile', 'Профилро танҳо иҷрокунандагон пешбарӣ карда метавонанд'],

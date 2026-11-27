@@ -103,7 +103,15 @@ export default function LoginScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       replaceFromModal('/(tabs)');
     } catch (e) {
-      Alert.alert(L.errOauth, (e as Error).message);
+      // No account for that number or email: offer signup right there.
+      if ((e as { code?: string }).code === 'ACCOUNT_NOT_FOUND') {
+        Alert.alert(L.errTitle, (e as Error).message, [
+          { text: t.common.cancel, style: 'cancel' },
+          { text: L.createAccount, onPress: () => router.push('/(auth)/register') },
+        ]);
+      } else {
+        Alert.alert(L.errTitle, (e as Error).message);
+      }
     } finally {
       setLoading(false);
     }

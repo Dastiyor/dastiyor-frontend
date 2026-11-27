@@ -44,7 +44,7 @@ test('signing in by phone number works on the API the mobile app uses', async ({
 test('a wrong password is refused and the fifth one locks the account', async ({ page }) => {
     const customer = await createUser('CUSTOMER');
     await signInThroughForm(page, customer.email, 'Wrong-Passw0rd!');
-    await expect(page.getByText('Неверный логин или пароль')).toBeVisible();
+    await expect(page.getByText('Неверный пароль')).toBeVisible();
 
     const attempt = () => page.request.post('/api/auth/login', {
         data: { identifier: customer.email, password: 'Wrong-Passw0rd!' },

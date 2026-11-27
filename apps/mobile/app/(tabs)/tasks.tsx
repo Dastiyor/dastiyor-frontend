@@ -22,9 +22,12 @@ import { EmptyState } from '@/components/EmptyState';
 import { useToast } from '@/contexts/ToastContext';
 import { FilterSheet, DEFAULT_FILTERS, hasActiveFilters } from '@/components/FilterSheet';
 import type { FilterState } from '@/components/FilterSheet';
-import type { FeedTask } from '@dastiyor/types';
+import type { FeedTask, TaskCategoryCountsResponse } from '@dastiyor/types';
 import { useConfig } from '@/lib/useConfig';
 import { CATEGORY_ICONS } from '@/lib/categoryIcons';
+import { sortByOpenTasks } from '@/lib/categoryOrder';
+import { emptyFeed } from '@/lib/emptyFeed';
+import { useAuth } from '@/contexts/AuthContext';
 import { Input, useFocusGlow, PressScale, FadeIn, useChipStyle } from '@/components/Premium';
 
 const URGENCY_COLORS: Record<string, string> = {
@@ -46,6 +49,7 @@ export default function TaskBrowseScreen() {
   const { config } = useConfig();
   const insets = useSafeAreaInsets();
   const toast = useToast();
+  const { user } = useAuth();
   const params = useLocalSearchParams<{
     category?: string; query?: string; urgency?: string;
     city?: string; minBudget?: string; maxBudget?: string; sort?: string;
@@ -66,6 +70,10 @@ export default function TaskBrowseScreen() {
     maxBudget: params.maxBudget ?? '',
     sort: params.sort ?? 'newest',
   });
+  // Open tasks per category, shown on the chips; null until (or unless) the server answers.
+  const [categoryCounts, setCategoryCounts] = useState<Record<string, number> | null>(null);
+  // A provider's alert tier ('free' has no new-task alerts); null until known or for customers.
+  const [alertPlan, setAlertPlan] = useState<string | null>(null);
   const page = useRef(1);
   // Monotonic token: each reset (filter/search change, refresh) bumps it so a
   // load-more or stale reset still in flight is ignored when it resolves.
@@ -113,6 +121,24 @@ export default function TaskBrowseScreen() {
     }
     setHasMore(res.pagination.hasMore);
   }
+
+  useFocusEffect(
+    useCallback(() => {
+      const ps = filters.city ? `?city=${encodeURIComponent(filters.city)}` : '';
+      api.get<TaskCategoryCountsResponse>(`/api/tasks/category-counts${ps}`)
+        .then((res) => setCategoryCounts(res.counts))
+        .catch(() => { /* chips just show no counts */ });
+    }, [filters.city])
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      if (user?.role !== 'PROVIDER') { setAlertPlan(null); return; }
+      api.get<{ plan: string }>('/api/profile/task-alerts')
+        .then((res) => setAlertPlan(res.plan))
+        .catch(() => { /* unknown: treated as no alerts */ });
+    }, [user?.role])
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -185,9 +211,27 @@ export default function TaskBrowseScreen() {
   }, [t, tr, locale, colors]);
 
   const categories = useMemo(() => [
-    { name: t.categories.all, value: '' },
-    ...config.categories.map((c) => ({ name: tr(c), value: c })),
-  ], [t.categories.all, config.categories, tr]);
+    { name: t.categories.all, value: '', count: undefined as number | undefined },
+    ...sortByOpenTasks(config.categories, categoryCounts).map((c) => ({
+      name: tr(c), value: c, count: categoryCounts ? (categoryCounts[c] ?? 0) : undefined,
+    })),
+  ], [t.categories.all, config.categories, categoryCounts, tr]);
+
+  // What an empty feed offers depends on who is looking (lib/emptyFeed.ts).
+  const narrowed = !!debouncedQuery.trim() || !!filters.city || !!filters.urgency || !!filters.minBudget || !!filters.maxBudget;
+  const empty = emptyFeed({ role: user?.role, alertPlan, category: filters.category, narrowed, text: t.task });
+  const emptyActions = {
+    createTask: {
+      label: t.task.emptyCreateFirst,
+      onPress: () => router.push(filters.category
+        ? { pathname: '/create-task', params: { category: filters.category } }
+        : '/create-task'),
+    },
+    taskAlerts: { label: t.task.emptyGetNotified, onPress: () => router.push('/profile') },
+    seeAllTasks: { label: t.task.emptySeeAllTasks, onPress: () => setFilters((prev) => ({ ...prev, category: '' })) },
+  };
+  const emptyAction = empty.action ? emptyActions[empty.action] : null;
+  const emptySubtitle = empty.subtitle;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
@@ -247,11 +291,12 @@ export default function TaskBrowseScreen() {
                 style={[styles.catChip, chipStyle.box(isActive)]}
                 onPress={() => setFilters((prev) => ({ ...prev, category: cat.value }))}
                 accessibilityRole="button"
-                accessibilityLabel={cat.name}
+                accessibilityLabel={cat.count === undefined ? cat.name : `${cat.name}, ${cat.count}`}
                 accessibilityState={{ selected: isActive }}
               >
-                <Text style={[styles.catChipText, chipStyle.text(isActive)]}>
+                <Text style={[styles.catChipText, chipStyle.text(isActive), cat.count === 0 && !isActive && styles.catChipEmpty]}>
                   {cat.name}
+                  {cat.count !== undefined ? <Text style={styles.catChipCount}>{`  ${cat.count}`}</Text> : null}
                 </Text>
               </PressScale>
             );
@@ -293,7 +338,9 @@ export default function TaskBrowseScreen() {
             <EmptyState
               icon="clipboard-outline"
               title={t.home.empty}
-              subtitle={t.task.noTasksFilterHint}
+              subtitle={emptySubtitle}
+              actionLabel={emptyAction?.label}
+              onAction={emptyAction?.onPress}
             />
           }
           ListFooterComponent={loadingMore ? <ActivityIndicator color="#2563EB" style={{ margin: 16 }} /> : null}
@@ -342,6 +389,8 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   catChipText: { fontSize: 13, color: '#374151', fontWeight: '500' },
+  catChipEmpty: { opacity: 0.55 },
+  catChipCount: { fontSize: 12, fontWeight: '700', opacity: 0.7 },
 
   list: { padding: 16, paddingBottom: 24 },
 

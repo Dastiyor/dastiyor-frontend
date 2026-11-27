@@ -5,6 +5,7 @@ import Link from 'next/link';
 import AuthLayout from '@/components/auth/AuthLayout';
 import { useTranslation } from '@/lib/i18n';
 import { useAdoptTypedValue, useHydrated } from '@/lib/useHydrated';
+import ResendCodeButton from '@/components/auth/ResendCodeButton';
 
 /** Same shape the login form accepts, so anything you can log in with you can recover with. */
 function looksLikePhone(value: string): boolean {
@@ -66,6 +67,24 @@ export default function ForgotPasswordPage() {
         } finally {
             setLoading(false);
         }
+    };
+
+    /** Sends the phone reset code again; shows the error and resolves false if none went out. */
+    const resendResetCode = async (): Promise<boolean> => {
+        setError('');
+        try {
+            const res = await fetch('/api/auth/forgot-password/mobile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ identifier: identifier.trim() }),
+            });
+            if (res.ok) return true;
+            const data = await res.json();
+            setError(tError(data.error) || t('common.somethingWentWrong'));
+        } catch {
+            setError(t('auth.networkError'));
+        }
+        return false;
     };
 
     const handleReset = async (e: React.FormEvent) => {
@@ -206,6 +225,7 @@ export default function ForgotPasswordPage() {
                     >
                         {loading ? t('auth.resetting') : t('auth.resetPasswordBtn')}
                     </button>
+                    <ResendCodeButton onResend={resendResetCode} disabled={loading} />
                     <button
                         type="button"
                         onClick={() => { setStep('ask'); setCode(''); setError(''); }}

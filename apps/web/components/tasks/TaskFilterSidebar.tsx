@@ -1,37 +1,49 @@
 'use client';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import { LayoutGrid, Wrench, Monitor, SprayCan, Truck, Zap, Clock, Calendar, Camera, Palette, PartyPopper, Scale, Bot, Cpu, Laptop, Droplets, BookOpen, Sparkles } from 'lucide-react';
+import { LayoutGrid, Wrench, Monitor, SprayCan, Truck, Zap, Clock, Calendar, Camera, Palette, PartyPopper, Scale, Bot, Cpu, Laptop, Droplets, BookOpen, Sparkles, Briefcase, type LucideIcon } from 'lucide-react';
 import { useState, useCallback, useTransition } from 'react';
 import { useTranslation } from '@/lib/i18n';
-import { CITIES } from '@/lib/config-fallback';
+import { CATEGORIES, CITIES } from '@/lib/config-fallback';
 
-const CATEGORIES = [
-    { nameKey: 'categories.allTasks', value: '', icon: LayoutGrid },
-    { nameKey: 'categories.repair', value: 'Ремонт', icon: Wrench },
-    { nameKey: 'categories.cleaning', value: 'Уборка', icon: SprayCan },
-    { nameKey: 'categories.delivery', value: 'Доставка', icon: Truck },
-    { nameKey: 'categories.plumbing', value: 'Сантехника', icon: Droplets },
-    { nameKey: 'categories.electrician', value: 'Электрик', icon: Zap },
-    { nameKey: 'categories.education', value: 'Обучение', icon: BookOpen },
-    { nameKey: 'categories.beauty', value: 'Красота', icon: Sparkles },
-    { nameKey: 'categories.itWeb', value: 'IT и Веб', icon: Monitor },
-    { nameKey: 'categories.computerHelp', value: 'Компьютерная помощь', icon: Laptop },
-    { nameKey: 'categories.applianceRepair', value: 'Ремонт техники', icon: Cpu },
-    { nameKey: 'categories.photoVideo', value: 'Фото и видео', icon: Camera },
-    { nameKey: 'categories.design', value: 'Дизайн', icon: Palette },
-    { nameKey: 'categories.events', value: 'Мероприятия', icon: PartyPopper },
-    { nameKey: 'categories.legal', value: 'Юридические услуги', icon: Scale },
-    { nameKey: 'categories.virtualAssistant', value: 'Виртуальный помощник', icon: Bot },
-];
+// Icons for the launch categories; one added in dastiyor-admin gets the generic icon.
+const CATEGORY_ICONS: Record<string, LucideIcon> = {
+    'Ремонт': Wrench,
+    'Уборка': SprayCan,
+    'Доставка': Truck,
+    'Сантехника': Droplets,
+    'Электрик': Zap,
+    'Обучение': BookOpen,
+    'Красота': Sparkles,
+    'IT и Веб': Monitor,
+    'Компьютерная помощь': Laptop,
+    'Ремонт техники': Cpu,
+    'Фото и видео': Camera,
+    'Дизайн': Palette,
+    'Мероприятия': PartyPopper,
+    'Юридические услуги': Scale,
+    'Виртуальный помощник': Bot,
+};
 
-
+/**
+ * Categories with open tasks first, most tasks on top, so a visitor does not
+ * open five empty ones before finding work. Ties (and the empty ones) keep the
+ * admin's order.
+ */
+export function sortByOpenTasks(categories: readonly string[], countOf: (category: string) => number): string[] {
+    return categories
+        .map((name, index) => ({ name, index, count: countOf(name) }))
+        .sort((a, b) => b.count - a.count || a.index - b.index)
+        .map(c => c.name);
+}
 
 interface TaskFilterSidebarProps {
+    /** From getCategories() on the server: the same list the task form offers. */
+    categories?: readonly string[];
     categoryCounts?: Array<{ category: string; _count: number }>;
     totalOpenTasks?: number;
 }
 
-export default function TaskFilterSidebar({ categoryCounts = [], totalOpenTasks = 0 }: TaskFilterSidebarProps) {
+export default function TaskFilterSidebar({ categories = CATEGORIES, categoryCounts = [], totalOpenTasks = 0 }: TaskFilterSidebarProps) {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -146,7 +158,12 @@ export default function TaskFilterSidebar({ categoryCounts = [], totalOpenTasks 
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    {CATEGORIES.map((cat) => {
+                    {[
+                        { label: t('categories.allTasks'), value: '', icon: LayoutGrid },
+                        ...sortByOpenTasks(categories, getCategoryCount).map(name => ({
+                            label: tr(name), value: name, icon: CATEGORY_ICONS[name] ?? Briefcase,
+                        })),
+                    ].map((cat) => {
                         const Icon = cat.icon;
                         const isActive = currentCategory === cat.value;
                         const count = getCategoryCount(cat.value);
@@ -172,7 +189,7 @@ export default function TaskFilterSidebar({ categoryCounts = [], totalOpenTasks 
                             >
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                     <Icon size={18} style={{ color: isActive ? 'var(--primary)' : 'var(--text-light)' }} />
-                                    <span style={{ fontWeight: isActive ? '700' : '500', fontSize: '0.95rem' }}>{t(cat.nameKey)}</span>
+                                    <span style={{ fontWeight: isActive ? '700' : '500', fontSize: '0.95rem', textAlign: 'left' }}>{cat.label}</span>
                                 </div>
                                 <span style={{
                                     fontSize: '0.8rem',

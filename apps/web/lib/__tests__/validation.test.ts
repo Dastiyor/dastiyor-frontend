@@ -44,7 +44,18 @@ describe('Validation Utilities', () => {
         it('should identify strong passwords', () => {
             const result = checkPasswordStrength('StrongPass123!');
             expect(result.isStrong).toBe(true);
-            expect(result.score).toBeGreaterThanOrEqual(3);
+            expect(result.feedback).toEqual([]);
+        });
+
+        it('asks only for 8 characters: no uppercase or digit needed', () => {
+            expect(checkPasswordStrength('parolparol').isStrong).toBe(true);
+            expect(checkPasswordStrength('пароль12').isStrong).toBe(true);
+            expect(checkPasswordStrength('1234567').feedback).toEqual(['Пароль должен содержать минимум 8 символов']);
+        });
+
+        it('still caps the length for bcrypt', () => {
+            expect(checkPasswordStrength('x'.repeat(70)).isStrong).toBe(true);
+            expect(checkPasswordStrength('x'.repeat(71)).feedback).toEqual(['Пароль не должен превышать 70 символов']);
         });
 
         it('should identify weak passwords', () => {

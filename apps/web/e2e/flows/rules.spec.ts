@@ -21,15 +21,19 @@ test('only customers post tasks', async ({ page }) => {
     expect((await res.json()).code).toBe('CUSTOMER_REQUIRED');
 });
 
-test('a task needs a real title, description, category and city', async ({ page }) => {
+test('a task needs a real title, category and city; the description is optional', async ({ page }) => {
     await loginAs(page, await createUser('CUSTOMER'));
     const post = (patch: object) => page.request.post('/api/tasks', { data: { ...validTask(), ...patch } });
 
     expect((await post({ title: 'abc' })).status()).toBe(400);
-    expect((await post({ description: 'коротко' })).status()).toBe(400);
+    expect((await post({ description: 'x'.repeat(5001) })).status()).toBe(400);
     expect((await post({ category: 'Нет такой категории' })).status()).toBe(400);
     expect((await post({ city: 'Атлантида' })).status()).toBe(400);
     expect((await post({ urgency: 'yesterday' })).status()).toBe(400);
+    // A title alone is enough (customers were giving up at the old 20-character minimum).
+    const noDescription = await post({ description: undefined });
+    expect(noDescription.ok()).toBe(true);
+    expect((await noDescription.json()).task.description).toBe('');
 });
 
 test('every category the picker offers is accepted when posting', async ({ page }) => {

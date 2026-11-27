@@ -10,10 +10,18 @@
  * stored and filtered value stays constant.
  */
 export function formatBudget(budgetType: string | null, budgetAmount: string | null): string {
-    if (budgetType === 'fixed' && budgetAmount != null && String(budgetAmount).trim() !== '') {
-        return `${formatMoney(budgetAmount)} TJS`;
-    }
-    return 'Договорная';
+    return hasFixedAmount(budgetType, budgetAmount) ? `${formatMoney(budgetAmount)} TJS` : 'Договорная';
+}
+
+/**
+ * True when a task really has a price: 'fixed' with an amount above 0. Tasks
+ * posted as "Фикс. цена" with the amount left empty (or 0) -- possible on the
+ * website until Nov 2026 -- are shown as negotiable everywhere, not "0 TJS".
+ */
+export function hasFixedAmount(budgetType: string | null, budgetAmount: string | number | null | undefined): boolean {
+    if (budgetType !== 'fixed' || budgetAmount == null) return false;
+    const n = Number(String(budgetAmount).trim());
+    return String(budgetAmount).trim() !== '' && Number.isFinite(n) && n > 0;
 }
 
 /**

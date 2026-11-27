@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { PlusCircle } from 'lucide-react';
 import { getServerTranslation } from '@/lib/i18n/server';
+import { hasFixedAmount } from '@/lib/format-budget';
 
 export default async function CustomerMyTasksPage() {
     const { t } = await getServerTranslation();
@@ -116,7 +117,7 @@ export default async function CustomerMyTasksPage() {
                                     </h3>
                                 </Link>
                                 <div style={{ color: '#64748B', fontSize: '0.9rem' }}>
-                                    {task.budgetType === 'fixed' ? `${task.budgetAmount} ${t('common.somali')}` : t('common.negotiable')} • {t('customer.offersCount', { count: task._count.responses })}
+                                    {hasFixedAmount(task.budgetType, task.budgetAmount) ? `${task.budgetAmount} ${t('common.somali')}` : t('common.negotiable')} • {t('customer.offersCount', { count: task._count.responses })}
                                 </div>
                             </div>
 

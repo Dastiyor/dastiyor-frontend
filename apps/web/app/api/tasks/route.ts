@@ -193,6 +193,7 @@ export async function POST(request: Request) {
         // Validate Request using pre-defined schema
         const validation = validateTaskInput({
             title, description, category, city, budgetAmount: amount, urgency,
+            budgetType: typeof budget === 'string' ? budget.toLowerCase() : undefined,
             allowedCategories: await getCategories(),
             allowedCities: CITIES,
         });
@@ -220,7 +221,8 @@ export async function POST(request: Request) {
         const task = await prisma.task.create({
             data: {
                 title: sanitizeString(title),
-                description: sanitizeString(description),
+                // Optional since Nov 2026; the column is NOT NULL, so no description is ''.
+                description: typeof description === 'string' ? sanitizeString(description) : '',
                 category,
                 subcategory: subcategory ? sanitizeString(subcategory) : null,
                 budgetType: resolvedBudgetType,
@@ -246,7 +248,7 @@ export async function POST(request: Request) {
 
         // The clients warn before posting something that reads like a service ad;
         // record the ones that went out anyway, so they can be reviewed.
-        if (looksLikeServiceAd(String(title), String(description))) {
+        if (looksLikeServiceAd(String(title), String(description ?? ''))) {
             logAction({
                 action: 'TASK_LOOKS_LIKE_AD',
                 userId: payload.id as string,

@@ -20,7 +20,9 @@ test('a task goes from posted to reviewed', async ({ page: customerPage, browser
         await customerPage.locator('select').nth(0).selectOption('Сантехника');
         await customerPage.getByPlaceholder('Опишите проблему или задачу подробно...')
             .fill('Течёт смеситель на кухне, нужно заменить. Автоматический тест.');
-        await customerPage.locator('select').nth(1).selectOption('Душанбе');
+        // City left alone on purpose: the form defaults to Душанбе, and an untouched
+        // default once failed with "Неизвестный город".
+        await expect(customerPage.locator('#task-city')).toHaveValue('Душанбе');
         await customerPage.getByRole('button', { name: 'Фикс. цена' }).click();
         await customerPage.getByPlaceholder('0.00').fill('250');
         await customerPage.getByRole('button', { name: 'Опубликовать' }).click();

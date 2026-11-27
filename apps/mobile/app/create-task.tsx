@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -9,7 +9,7 @@ import {
   Linking,
 } from 'react-native';
 import { Text } from '@/components/AppText';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { looksLikeServiceAd } from '@/lib/service-ad';
 import { goBack, replaceFromModal } from '@/lib/nav';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -24,6 +24,10 @@ import { useConfig } from '@/lib/useConfig';
 import { Alert } from '@/lib/dialog';
 import { ChipGroup } from '@/components/ChipGroup';
 import { GradientButton, Input, PressScale, useChipStyle } from '@/components/Premium';
+import { taskFieldErrors, TASK_DESCRIPTION_MAX, TASK_TITLE_MAX, type TaskField } from '@/lib/task-rules';
+
+// Cities are canonical Russian strings; most tasks are in the capital, so it is preselected.
+const DEFAULT_CITY = 'Душанбе';
 
 
 export default function CreateTaskScreen() {
@@ -44,13 +48,28 @@ export default function CreateTaskScreen() {
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('');
-  const [city, setCity] = useState('');
-  const [budgetType, setBudgetType] = useState<'fixed' | 'negotiable'>('fixed');
+  // The empty task feed opens this with the category the customer was looking at.
+  const params = useLocalSearchParams<{ category?: string }>();
+  const [category, setCategory] = useState(params.category ?? '');
+  const [city, setCity] = useState(DEFAULT_CITY);
+  // Negotiable first: someone who doesn't know the price isn't asked for one.
+  const [budgetType, setBudgetType] = useState<'fixed' | 'negotiable'>('negotiable');
   const [amount, setAmount] = useState('');
   const [urgency, setUrgency] = useState('normal');
   const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(false);
+  // A field's error shows under it once the customer has left it, or after a
+  // publish attempt, and then follows every keystroke. No pop-ups.
+  const [touched, setTouched] = useState<Partial<Record<TaskField, boolean>>>({});
+  const [submitAttempted, setSubmitAttempted] = useState(false);
+  const fieldY = useRef<Partial<Record<TaskField, number>>>({});
+
+  const errors: Partial<Record<TaskField, string>> = {};
+  const ruleErrors = taskFieldErrors({ title, description, category, city, budget: budgetType, amount: budgetType === 'fixed' ? amount : '' });
+  for (const [field, key] of Object.entries(ruleErrors) as [TaskField, keyof typeof ct][]) errors[field] = ct[key] as string;
+  const errorFor = (field: TaskField) => ((touched[field] || submitAttempted) ? errors[field] : undefined);
+  const touch = (field: TaskField) => setTouched((prev) => ({ ...prev, [field]: true }));
+  const remember = (field: TaskField) => (e: { nativeEvent: { layout: { y: number } } }) => { fieldY.current[field] = e.nativeEvent.layout.y; };
 
   // Funnel: mark that the user opened the create-task flow.
   useEffect(() => {
@@ -58,14 +77,12 @@ export default function CreateTaskScreen() {
   }, []);
 
   async function handleCreate(adConfirmed = false) {
-    if (!title.trim()) { Alert.alert(t.common.error, ct.errRequired); return; }
-    if (title.trim().length < 5) { Alert.alert(t.common.error, ct.errTitleShort); return; }
-    if (!description.trim()) { Alert.alert(t.common.error, ct.errRequired); return; }
-    if (description.trim().length < 20) { Alert.alert(t.common.error, ct.errDescShort); return; }
-    if (!category) { Alert.alert(t.common.error, ct.errCategory); return; }
-    if (!city) { Alert.alert(t.common.error, ct.errCity); return; }
-    if (budgetType === 'fixed' && (!amount || isNaN(Number(amount)) || Number(amount) <= 0)) {
-      Alert.alert(t.common.error, ct.errBudget);
+    const order: TaskField[] = ['title', 'description', 'category', 'city', 'amount'];
+    const firstBad = order.find((f) => errors[f]);
+    if (firstBad) {
+      setSubmitAttempted(true);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      kbScroll.ref.current?.scrollTo({ y: Math.max(0, (fieldY.current[firstBad] ?? 0) - 24), animated: true });
       return;
     }
     if (!adConfirmed && looksLikeServiceAd(title, description)) {
@@ -82,7 +99,7 @@ export default function CreateTaskScreen() {
     try {
       const created = await api.post<{ task?: { id: string } }>('/api/tasks', {
         title: title.trim(),
-        description: description.trim(),
+        description: description.trim(), // optional; '' when left empty
         category,
         city,
         budget: budgetType,
@@ -119,18 +136,29 @@ export default function CreateTaskScreen() {
   return (
     <KeyboardAvoidingView style={[styles.container, { backgroundColor: colors.bg }]} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView {...kbScroll} contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 40 + keyboardOffset }]} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
-        <Text style={[styles.label, { color: colors.text }]}>{ct.titleLabel}</Text>
-        <Input style={inputStyle} placeholder={ct.titlePh} placeholderTextColor={colors.textTertiary} value={title} onChangeText={setTitle} maxLength={120} />
+        <View onLayout={remember('title')}>
+          <Text style={[styles.label, { color: colors.text }]}>{ct.titleLabel}</Text>
+          <Input style={[...inputStyle, styles.inputNoMb, errorFor('title') ? styles.inputBad : null]} placeholder={ct.titlePh} placeholderTextColor={colors.textTertiary} value={title} onChangeText={setTitle} onBlur={() => touch('title')} maxLength={TASK_TITLE_MAX} accessibilityLabel={ct.titleLabel} />
+          <FieldFooter error={errorFor('title')} count={`${title.length}/${TASK_TITLE_MAX}`} />
+        </View>
 
-        <Text style={[styles.label, { color: colors.text }]}>{ct.descLabel}</Text>
-        <Input style={[...inputStyle, styles.textareaNoMb]} placeholder={ct.descPh} placeholderTextColor={colors.textTertiary} value={description} onChangeText={setDescription} multiline textAlignVertical="top" maxLength={1000} />
-        <Text style={styles.charCount}>{description.length}/1000</Text>
+        <View onLayout={remember('description')}>
+          <Text style={[styles.label, { color: colors.text }]}>{ct.descLabel} <Text style={[styles.optional, { color: colors.textTertiary }]}>{ct.optional}</Text></Text>
+          <Input style={[...inputStyle, styles.textareaNoMb, errorFor('description') ? styles.inputBad : null]} placeholder={ct.descPh} placeholderTextColor={colors.textTertiary} value={description} onChangeText={setDescription} onBlur={() => touch('description')} multiline textAlignVertical="top" maxLength={TASK_DESCRIPTION_MAX} accessibilityLabel={ct.descLabel} />
+          <FieldFooter error={errorFor('description')} count={`${description.length}/${TASK_DESCRIPTION_MAX}`} />
+        </View>
 
-        <Text style={[styles.label, { color: colors.text }]}>{ct.categoryLabel}</Text>
-        <ChipGroup options={config.categories} value={category} onChange={setCategory} getLabel={(o) => tr(o as string)} colors={colors} />
+        <View onLayout={remember('category')}>
+          <Text style={[styles.label, { color: colors.text }]}>{ct.categoryLabel}</Text>
+          <ChipGroup options={config.categories} value={category} onChange={(v) => { setCategory(v); touch('category'); }} getLabel={(o) => tr(o as string)} colors={colors} />
+          <FieldFooter error={errorFor('category')} chips />
+        </View>
 
-        <Text style={[styles.label, { color: colors.text }]}>{ct.cityLabel}</Text>
-        <ChipGroup options={config.cities} value={city} onChange={setCity} getLabel={(o) => tr(o as string)} colors={colors} />
+        <View onLayout={remember('city')}>
+          <Text style={[styles.label, { color: colors.text }]}>{ct.cityLabel}</Text>
+          <ChipGroup options={config.cities} value={city} onChange={(v) => { setCity(v); touch('city'); }} getLabel={(o) => tr(o as string)} colors={colors} />
+          <FieldFooter error={errorFor('city')} chips />
+        </View>
 
         <Text style={[styles.label, { color: colors.text }]}>{ct.budgetLabel}</Text>
         <View style={[styles.segmented, { borderColor: colors.border }]}>
@@ -150,7 +178,10 @@ export default function CreateTaskScreen() {
         </View>
 
         {budgetType === 'fixed' ? (
-          <Input style={[...inputStyle, { marginBottom: 20 }]} placeholder={ct.amountPh} placeholderTextColor={colors.textTertiary} value={amount} onChangeText={setAmount} keyboardType="numeric" />
+          <View onLayout={remember('amount')}>
+            <Input style={[...inputStyle, styles.inputNoMb, errorFor('amount') ? styles.inputBad : null]} placeholder={ct.amountPh} placeholderTextColor={colors.textTertiary} value={amount} onChangeText={setAmount} onBlur={() => touch('amount')} keyboardType="numeric" accessibilityLabel={ct.amountPh} />
+            <FieldFooter error={errorFor('amount')} />
+          </View>
         ) : null}
 
         <Text style={[styles.label, { color: colors.text }]}>{ct.urgencyLabel}</Text>
@@ -174,13 +205,31 @@ export default function CreateTaskScreen() {
   );
 }
 
+/** The line under a field: its error (red) on the left, a character count on the right. */
+function FieldFooter({ error, count, chips }: { error?: string; count?: string; chips?: boolean }) {
+  if (chips && !error) return null;
+  return (
+    <View style={[styles.footer, chips && styles.footerChips]}>
+      <Text style={styles.fieldError} accessibilityLiveRegion="polite">{error ?? ''}</Text>
+      {count ? <Text style={styles.charCount}>{count}</Text> : null}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scroll: { padding: 20 },
   label: { fontSize: 13, fontWeight: '700', color: '#374151', marginBottom: 10 },
   input: { borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, padding: 14, fontSize: 15, color: '#111827', backgroundColor: '#F9FAFB', marginBottom: 20 },
   textareaNoMb: { minHeight: 110, lineHeight: 22, borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 12, padding: 14, fontSize: 15, color: '#111827', backgroundColor: '#F9FAFB', marginBottom: 4 },
-  charCount: { fontSize: 11, color: '#9CA3AF', textAlign: 'right', marginBottom: 20 },
+  inputNoMb: { marginBottom: 4 },
+  inputBad: { borderColor: '#DC2626' },
+  optional: { fontWeight: '400' },
+  footer: { flexDirection: 'row', justifyContent: 'space-between', gap: 12, marginBottom: 20, minHeight: 16 },
+  // ChipGroup already leaves 20 below itself.
+  footerChips: { marginTop: -14 },
+  fieldError: { flex: 1, fontSize: 12, color: '#DC2626' },
+  charCount: { fontSize: 11, color: '#9CA3AF', textAlign: 'right' },
   segmented: { flexDirection: 'row', borderRadius: 12, borderWidth: 1.5, borderColor: '#E5E7EB', overflow: 'hidden', marginBottom: 14 },
   segBtn: { flex: 1, padding: 12, alignItems: 'center', backgroundColor: '#F9FAFB' },
   segText: { fontSize: 13, fontWeight: '600', color: '#374151' },

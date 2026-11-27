@@ -35,6 +35,6 @@ test('server errors are translated for Tajik readers', async ({ browser }) => {
     await page.locator('#login-email').fill('nobody@e2e.dastiyor.test');
     await page.locator('#login-password').fill('Wrong-Passw0rd!');
     await page.locator('form button[type="submit"]').click();
-    await expect(page.getByText('Логин ё парол нодуруст аст')).toBeVisible();
+    await expect(page.getByText('Ҳисоб бо чунин email ёфт нашуд')).toBeVisible();
     await context.close();
 });

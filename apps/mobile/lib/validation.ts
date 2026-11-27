@@ -1,13 +1,13 @@
 interface PasswordStrengthMessages {
   errLength: string;
-  errNeedLetter: string;
-  errNeedDigit: string;
 }
 
+/**
+ * The password rule, same as the server's (apps/web/lib/validation.ts): at
+ * least 8 characters, nothing else. The letter-and-digit requirement was
+ * dropped in Nov 2026; people were giving up at signup over it. The 70-character
+ * cap is left to the server, whose message the app already translates.
+ */
 export function passwordStrength(pw: string, msgs: PasswordStrengthMessages): string[] {
-  const issues: string[] = [];
-  if (pw.length < 8) issues.push(msgs.errLength);
-  if (!/[A-Za-zА-Яа-яЁё]/.test(pw)) issues.push(msgs.errNeedLetter);
-  if (!/[0-9]/.test(pw)) issues.push(msgs.errNeedDigit);
-  return issues;
+  return pw.length < 8 ? [msgs.errLength] : [];
 }

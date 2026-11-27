@@ -151,7 +151,7 @@ test('errors reach the app as the Russian text its translations are keyed on', a
     const wrong = await request.post('/api/auth/login', {
         data: { identifier: '+992000000001', password: 'Wrong-Passw0rd!' },
     });
-    expect(await wrong.json()).toEqual({ error: 'Неверный логин или пароль' });
+    expect(await wrong.json()).toEqual({ error: 'Этот номер не зарегистрирован', code: 'ACCOUNT_NOT_FOUND' });
 
     const app = await mobileSession(baseURL!, await createUser('PROVIDER'));
     const post = await app.post('/api/tasks', { data: {} });

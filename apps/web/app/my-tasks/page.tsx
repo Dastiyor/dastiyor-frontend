@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getServerTranslation } from '@/lib/i18n/server';
-import { formatMoney } from '@/lib/format-budget';
+import { formatMoney, hasFixedAmount } from '@/lib/format-budget';
 
 export default async function MyTasksPage() {
     const { t } = await getServerTranslation();
@@ -86,7 +86,7 @@ export default async function MyTasksPage() {
                                         </h3>
                                     </Link>
                                     <div style={{ color: 'var(--text-light)' }}>
-                                        {task.budgetType === 'fixed' ? `${formatMoney(task.budgetAmount)} TJS` : t('common.negotiable')} • {t('tasks.responseCountLabel', { count: task._count.responses })}
+                                        {hasFixedAmount(task.budgetType, task.budgetAmount) ? `${formatMoney(task.budgetAmount)} TJS` : t('common.negotiable')} • {t('tasks.responseCountLabel', { count: task._count.responses })}
                                     </div>
                                 </div>
 

@@ -13,7 +13,7 @@ import {
     Rocket
 } from 'lucide-react';
 import { getServerTranslation } from '@/lib/i18n/server';
-import { formatMoney } from '@/lib/format-budget';
+import { formatMoney, hasFixedAmount } from '@/lib/format-budget';
 import PromotionCard from '@/components/provider/PromotionCard';
 import { getPromotionStatus, pinnableCategories } from '@/lib/promotions';
 
@@ -451,7 +451,7 @@ export default async function ProviderDashboard() {
                                         </div>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <div style={{ fontSize: '0.85rem', fontWeight: '600', color: accentColor }}>
-                                                {task.budgetType === 'fixed' ? `${formatMoney(task.budgetAmount)} - ${formatMoney(Number(task.budgetAmount || 0) + 50)} TJS` : t('common.negotiable')}
+                                                {hasFixedAmount(task.budgetType, task.budgetAmount) ? `${formatMoney(task.budgetAmount)} - ${formatMoney(Number(task.budgetAmount || 0) + 50)} TJS` : t('common.negotiable')}
                                             </div>
                                             <Link href={`/provider/tasks/${task.id}`} style={{
                                                 padding: '6px 12px',

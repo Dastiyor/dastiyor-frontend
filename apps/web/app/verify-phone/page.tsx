@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import AuthLayout from '@/components/auth/AuthLayout';
 import { useTranslation } from '@/lib/i18n';
 import { useAdoptTypedValue } from '@/lib/useHydrated';
+import ResendCodeButton from '@/components/auth/ResendCodeButton';
 
 function VerifyPhoneContent() {
     const router = useRouter();
@@ -25,11 +26,9 @@ function VerifyPhoneContent() {
 
     const fullPhone = phoneLocal ? `+992${phoneLocal}` : '';
 
-    async function sendCode(e: React.FormEvent) {
-        e.preventDefault();
-        if (loading) return;
+    /** Sends a code; shows the error and resolves false if none went out. */
+    async function requestCode(): Promise<boolean> {
         setError('');
-        setLoading(true);
         try {
             const res = await fetch('/api/auth/verify-send', {
                 method: 'POST',
@@ -38,12 +37,19 @@ function VerifyPhoneContent() {
             });
             const data = await res.json();
             if (!res.ok) throw new Error(tError(data.error) || t('auth.oauthFailed'));
-            setStep('code');
+            return true;
         } catch (err) {
             setError(err instanceof Error ? err.message : String(err));
-        } finally {
-            setLoading(false);
+            return false;
         }
+    }
+
+    async function sendCode(e: React.FormEvent) {
+        e.preventDefault();
+        if (loading) return;
+        setLoading(true);
+        if (await requestCode()) setStep('code');
+        setLoading(false);
     }
 
     async function verifyCode(e: React.FormEvent) {
@@ -156,6 +162,7 @@ function VerifyPhoneContent() {
                     >
                         {loading ? t('auth.verifyPhoneVerifying') : t('auth.verifyPhoneVerify')}
                     </button>
+                    <ResendCodeButton onResend={requestCode} disabled={loading} />
                     <button
                         type="button"
                         onClick={() => { setStep('phone'); setCode(''); setError(''); }}

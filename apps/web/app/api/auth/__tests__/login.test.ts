@@ -53,7 +53,21 @@ describe('/api/auth/login', () => {
         const data = await response.json();
 
         expect(response.status).toBe(401);
-        expect(data.error).toBe('Неверный логин или пароль');
+        expect(data).toEqual({ error: 'Аккаунт с таким email не найден', code: 'ACCOUNT_NOT_FOUND' });
+    });
+
+    it('says when a phone number has no account', async () => {
+        prismaMock.user.findFirst.mockResolvedValue(null);
+        const request = new NextRequest('http://localhost/api/auth/login', {
+            method: 'POST',
+            body: JSON.stringify({ identifier: '+992 90 123 4567', password: 'password123' }),
+        });
+
+        const response = await POST(request);
+
+        expect(response.status).toBe(401);
+        expect(await response.json()).toEqual({ error: 'Этот номер не зарегистрирован', code: 'ACCOUNT_NOT_FOUND' });
+        expect(prismaMock.user.findFirst).toHaveBeenCalledWith({ where: { phone: '+992901234567' } });
     });
 
     it('should return 401 for incorrect password', async () => {
@@ -78,7 +92,8 @@ describe('/api/auth/login', () => {
         const data = await response.json();
 
         expect(response.status).toBe(401);
-        expect(data.error).toBe('Неверный логин или пароль');
+        expect(data.error).toBe('Неверный пароль');
+        expect(data.code).toBeUndefined();
     });
 
     it('should return 200 and set cookie for valid credentials', async () => {

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import TaskCard from '@/components/tasks/TaskCard';
 import { Heart } from 'lucide-react';
 import { getServerTranslation } from '@/lib/i18n/server';
-import { formatMoney } from '@/lib/format-budget';
+import { formatMoney, hasFixedAmount } from '@/lib/format-budget';
 
 export default async function FavoritesPage() {
     const { t } = await getServerTranslation();
@@ -80,7 +80,7 @@ export default async function FavoritesPage() {
                                     id: fav.task.id,
                                     title: fav.task.title,
                                     category: fav.task.category,
-                                    budget: fav.task.budgetType === 'fixed' ? `${formatMoney(fav.task.budgetAmount)} TJS` : t('common.negotiable'),
+                                    budget: hasFixedAmount(fav.task.budgetType, fav.task.budgetAmount) ? `${formatMoney(fav.task.budgetAmount)} TJS` : t('common.negotiable'),
                                     budgetType: fav.task.budgetType,
                                     city: fav.task.city,
                                     postedAt: fav.task.createdAt.toISOString(),

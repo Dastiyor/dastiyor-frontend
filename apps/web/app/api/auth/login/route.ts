@@ -40,9 +40,15 @@ export async function POST(request: Request) {
             user = await prisma.user.findUnique({ where: { email: identifier.toLowerCase() } });
         }
 
+        // Say plainly that there is no such account, with a code the clients turn
+        // into a "create an account" link. Signup already tells anyone whether a
+        // number or email is taken, so this reveals nothing new.
         if (!user) {
             return NextResponse.json(
-                { error: 'Неверный логин или пароль' },
+                {
+                    error: looksLikePhone ? 'Этот номер не зарегистрирован' : 'Аккаунт с таким email не найден',
+                    code: 'ACCOUNT_NOT_FOUND',
+                },
                 { status: 401 }
             );
         }
@@ -83,7 +89,7 @@ export async function POST(request: Request) {
                 ipAddress: getRequestIP(request),
             });
             return NextResponse.json(
-                { error: lockout ? 'Аккаунт заблокирован на 15 минут из-за многократных неудачных попыток.' : 'Неверный логин или пароль' },
+                { error: lockout ? 'Аккаунт заблокирован на 15 минут из-за многократных неудачных попыток.' : 'Неверный пароль' },
                 { status: 401 }
             );
         }

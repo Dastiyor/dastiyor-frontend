@@ -20,6 +20,7 @@ import { PasswordInput } from '@/components/PasswordInput';
 import { passwordStrength } from '@/lib/validation';
 import { Alert } from '@/lib/dialog';
 import { GradientButton, Input } from '@/components/Premium';
+import { ResendCodeButton } from '@/components/ResendCodeButton';
 
 export default function ResetPasswordScreen() {
   const { t } = useLanguage();
@@ -34,6 +35,17 @@ export default function ResetPasswordScreen() {
   const [loading, setLoading] = useState(false);
   const [pwVisible, setPwVisible] = useState(false);
   const share = { visible: pwVisible, onToggleVisible: () => setPwVisible((v) => !v) };
+
+  /** Sends the reset code again (SMS or email, by the shape of the identifier). */
+  async function resendCode(): Promise<boolean> {
+    try {
+      await api.post('/api/auth/forgot-password/mobile', { identifier: identifier ?? '' });
+      return true;
+    } catch (e) {
+      Alert.alert(t.common.error, (e as Error).message);
+      return false;
+    }
+  }
 
   async function handleReset() {
     if (!code.trim() || !password || !confirm) {
@@ -108,6 +120,8 @@ export default function ResetPasswordScreen() {
         >
           {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{rp.btn}</Text>}
         </GradientButton>
+
+        {identifier ? <ResendCodeButton onResend={resendCode} disabled={loading} /> : null}
 
         <TouchableOpacity style={styles.backLink} onPress={() => router.replace('/(auth)/login')}>
           <Text style={styles.backLinkText}>{t.forgotPassword.backToLogin}</Text>

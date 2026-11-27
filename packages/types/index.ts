@@ -54,6 +54,11 @@ export interface FeedTask {
   featured: boolean;
 }
 
+/** GET /api/tasks/category-counts: open tasks per canonical category name; categories with none are absent. */
+export interface TaskCategoryCountsResponse {
+  counts: Record<string, number>;
+}
+
 export interface TaskDetail extends FeedTask {
   address?: string | null;
   images: string[];

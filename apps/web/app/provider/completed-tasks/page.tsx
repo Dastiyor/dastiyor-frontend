@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle, Star, DollarSign, Calendar } from 'lucide-react';
 import { getServerTranslation } from '@/lib/i18n/server';
-import { formatMoney } from '@/lib/format-budget';
+import { formatMoney, hasFixedAmount } from '@/lib/format-budget';
 
 export default async function CompletedTasksPage() {
     const cookieStore = await cookies();
@@ -155,7 +155,7 @@ export default async function CompletedTasksPage() {
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                             <DollarSign size={14} />
                                             <span style={{ fontWeight: '600', color: accentColor }}>
-                                                {task.budgetType === 'fixed' ? `${formatMoney(task.budgetAmount)} TJS` : t('common.negotiable')}
+                                                {hasFixedAmount(task.budgetType, task.budgetAmount) ? `${formatMoney(task.budgetAmount)} TJS` : t('common.negotiable')}
                                             </span>
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>

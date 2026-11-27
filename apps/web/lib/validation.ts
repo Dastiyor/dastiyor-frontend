@@ -1,4 +1,5 @@
 // Input validation and sanitization utilities
+import { TASK_DESCRIPTION_MAX, TASK_TITLE_MAX, TASK_TITLE_MIN } from './task-rules';
 
 /**
  * Phone-only signups have no email, so registration mints
@@ -36,64 +37,33 @@ export function normalizePhone(phone: string): string {
     return `+992${stripped}`;
 }
 
-// Password strength check
+export const PASSWORD_MIN = 8;
+/** bcrypt reads only the first 72 bytes, so longer passwords would be silently cut. */
+export const PASSWORD_MAX = 70;
+
+/**
+ * The password rule: 8 to 70 characters, nothing else. Since Nov 2026 there is
+ * no uppercase/lowercase/digit requirement -- people were giving up at signup
+ * over it. `feedback` lists what is wrong (empty when `isStrong`), in the API's
+ * Russian, so the form under the field and the server error read the same.
+ */
 export function checkPasswordStrength(password: string): {
     isStrong: boolean;
-    score: number;
     feedback: string[];
 } {
     const feedback: string[] = [];
-    let score = 0;
-
-    if (password.length >= 8) {
-        score += 1;
-    } else {
+    if (password.length < PASSWORD_MIN) {
         feedback.push('Пароль должен содержать минимум 8 символов');
+    } else if (password.length > PASSWORD_MAX) {
+        feedback.push('Пароль не должен превышать 70 символов');
     }
-
-    if (/[A-Z]/.test(password)) {
-        score += 1;
-    } else {
-        feedback.push('Добавьте заглавную букву');
-    }
-
-    if (/[a-z]/.test(password)) {
-        score += 1;
-    } else {
-        feedback.push('Добавьте строчную букву');
-    }
-
-    if (/[0-9]/.test(password)) {
-        score += 1;
-    } else {
-        feedback.push('Добавьте цифру');
-    }
-
-    if (/[^A-Za-z0-9]/.test(password)) {
-        score += 1;
-    }
-
-    return {
-        isStrong: score >= 3,
-        score,
-        feedback
-    };
+    return { isStrong: feedback.length === 0, feedback };
 }
 
-/** Validate password for registration and reset: min 8 chars, at least one letter and one number. */
+/** Validate password for registration, reset and change: 8 to 70 characters. */
 export function validatePassword(password: string): { valid: boolean; error?: string } {
-    if (!password || password.length < 8) {
-        return { valid: false, error: 'Пароль должен содержать минимум 8 символов' };
-    }
-    if (password.length > 70) {
-        return { valid: false, error: 'Пароль не должен превышать 70 символов' };
-    }
-    // Reuse the per-rule feedback rather than a second wording of the same rules.
-    const { isStrong, feedback } = checkPasswordStrength(password);
-    if (!isStrong) {
-        return { valid: false, error: feedback.join('. ') };
-    }
-    return { valid: true };
+    const { isStrong, feedback } = checkPasswordStrength(password ?? '');
+    return isStrong ? { valid: true } : { valid: false, error: feedback[0] };
 }
 
 // Sanitize string to prevent XSS
@@ -143,21 +113,23 @@ export function validateTaskInput(data: {
     category?: string;
     city?: string;
     budgetAmount?: string;
+    /** 'fixed' needs an amount above 0. Anything else (or absent: legacy clients) does not. */
+    budgetType?: string;
     urgency?: string;
     allowedCategories?: readonly string[];
     allowedCities?: readonly string[];
 }): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
 
-    if (!data.title || data.title.trim().length < 5) {
+    // Limits shared with the create form (lib/task-rules.ts); the messages are API strings.
+    if (!data.title || data.title.trim().length < TASK_TITLE_MIN) {
         errors.push('Заголовок должен содержать минимум 5 символов');
-    } else if (data.title.trim().length > 200) {
+    } else if (data.title.trim().length > TASK_TITLE_MAX) {
         errors.push('Заголовок не должен превышать 200 символов');
     }
 
-    if (!data.description || data.description.trim().length < 20) {
-        errors.push('Описание должно содержать минимум 20 символов');
-    } else if (data.description.trim().length > 5000) {
+    // Optional: a title alone is a task. Customers were giving up at the 20-character minimum.
+    if (typeof data.description === 'string' && data.description.trim().length > TASK_DESCRIPTION_MAX) {
         errors.push('Описание не должно превышать 5000 символов');
     }
 
@@ -177,7 +149,12 @@ export function validateTaskInput(data: {
         errors.push('Неизвестная срочность');
     }
 
-    if (data.budgetAmount) {
+    // Same order as taskFieldErrors() in lib/task-rules.ts: a missing (or 0) amount on a
+    // fixed price asks for one; a negative or non-numeric one is reported as invalid.
+    const amountText = String(data.budgetAmount ?? '').trim();
+    if (data.budgetType === 'fixed' && (amountText === '' || Number(amountText) === 0)) {
+        errors.push('Укажите сумму бюджета');
+    } else if (data.budgetAmount) {
         const budget = parseFloat(data.budgetAmount);
         if (isNaN(budget) || budget < 0) {
             errors.push('Бюджет должен быть положительным числом');

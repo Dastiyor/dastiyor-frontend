@@ -274,8 +274,13 @@ export default function TaskDetailScreen() {
           <Text style={[styles.budgetValue, isDark && { color: colors.text }]}>{tr(task.budget)}</Text>
         </View>
 
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>{tk.description}</Text>
-        <Text style={[styles.description, { color: colors.textSecondary }]}>{task.description}</Text>
+        {/* Optional since Nov 2026, so it may be empty. */}
+        {task.description?.trim() ? (
+          <>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{tk.description}</Text>
+            <Text style={[styles.description, { color: colors.textSecondary }]}>{task.description}</Text>
+          </>
+        ) : null}
 
         {task.address ? (
           <>

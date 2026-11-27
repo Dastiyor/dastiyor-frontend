@@ -2,14 +2,40 @@ import { render, screen } from '@testing-library/react';
 import MobileAppPage, { generateMetadata } from '../page';
 import { APP_STORE_URL, GOOGLE_PLAY_URL } from '@/lib/app-stores';
 
+let userAgent: string | null = null;
+jest.mock('next/headers', () => ({
+    headers: async () => ({ get: (name: string) => (name === 'user-agent' ? userAgent : null) }),
+}));
 jest.mock('next/link', () => ({ __esModule: true, default: ({ children, href }: { children: React.ReactNode; href: string }) => <a href={href}>{children}</a> }));
 jest.mock('@/lib/i18n/server', () => ({
     getServerTranslation: async () => ({ t: (k: string) => k, tr: (v: string) => v, locale: 'ru' }),
 }));
 
+const ANDROID = 'Mozilla/5.0 (Linux; Android 14; Pixel 7) Mobile Safari/537.36';
+const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_1 like Mac OS X) Mobile/15E148';
+const DESKTOP = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0 Safari/537.36';
+
 describe('/mobile-app', () => {
-    it('links to both store listings', async () => {
+    it('gives an Android phone one Google Play button, App Store only as a small link', async () => {
+        userAgent = ANDROID;
         render(await MobileAppPage());
+        expect(screen.getByTestId('primary-store')).toHaveAttribute('href', GOOGLE_PLAY_URL);
+        expect(screen.getByText('systemPages.mobileAppIos').closest('a')).toHaveAttribute('href', APP_STORE_URL);
+        expect(screen.queryByRole('img')).toBeNull();
+    });
+
+    it('gives an iPhone one App Store button', async () => {
+        userAgent = IPHONE;
+        render(await MobileAppPage());
+        expect(screen.getByTestId('primary-store')).toHaveAttribute('href', APP_STORE_URL);
+        expect(screen.getByText('systemPages.mobileAppAndroid').closest('a')).toHaveAttribute('href', GOOGLE_PLAY_URL);
+    });
+
+    it('shows a computer a QR code and both stores', async () => {
+        userAgent = DESKTOP;
+        render(await MobileAppPage());
+        expect(screen.getByRole('img', { name: 'systemPages.mobileAppScanQr' })).toHaveAttribute('src', '/mobile-app-qr.svg');
+        expect(screen.queryByTestId('primary-store')).toBeNull();
         expect(screen.getByText('systemPages.mobileAppIos').closest('a')).toHaveAttribute('href', APP_STORE_URL);
         expect(screen.getByText('systemPages.mobileAppAndroid').closest('a')).toHaveAttribute('href', GOOGLE_PLAY_URL);
     });

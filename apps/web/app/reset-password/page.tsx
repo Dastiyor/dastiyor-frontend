@@ -48,7 +48,7 @@ function ResetPasswordForm() {
 
         const { valid, error: validationError } = validatePassword(password);
         if (!valid) {
-            setError(validationError || t('auth.passwordHint'));
+            setError(tError(validationError ?? '') || t('auth.passwordHint'));
             return;
         }
 
@@ -263,7 +263,7 @@ function ResetPasswordForm() {
                         {passwordFeedback.length > 0 && (
                             <ul style={{ margin: '8px 0 0', paddingLeft: '18px', fontSize: '0.85rem', color: '#c62828' }}>
                                 {passwordFeedback.map((msg, i) => (
-                                    <li key={i}>{msg}</li>
+                                    <li key={i}>{tError(msg)}</li>
                                 ))}
                             </ul>
                         )}

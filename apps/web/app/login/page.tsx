@@ -77,6 +77,8 @@ function OAuthDivider() {
 function LoginContent() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    // The number or email has no account: the error box offers signup.
+    const [accountNotFound, setAccountNotFound] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const hydrated = useHydrated();
     const router = useRouter();
@@ -104,10 +106,12 @@ function LoginContent() {
         e.preventDefault();
         setIsLoading(true);
         setError('');
+        setAccountNotFound(false);
 
         const formData = new FormData(e.currentTarget);
         const data = {
-            email: formData.get('email'),
+            // A phone number or an email; the API tells them apart.
+            identifier: String(formData.get('identifier') ?? '').trim(),
             password: formData.get('password'),
         };
 
@@ -120,6 +124,7 @@ function LoginContent() {
 
             if (!res.ok) {
                 const json = await res.json();
+                setAccountNotFound(json.code === 'ACCOUNT_NOT_FOUND');
                 throw new Error(tError(json.error) || t('common.somethingWentWrong'));
             }
 
@@ -164,6 +169,15 @@ function LoginContent() {
                         : oauthError === 'oauth_unavailable'
                             ? t('auth.oauthUnavailable')
                             : t('auth.oauthFailed'))}
+                    {error && accountNotFound && (
+                        <>
+                            {/* The server's message has no full stop of its own. */}
+                            {'. '}
+                            <Link href="/register" style={{ color: '#c62828', fontWeight: 700, textDecoration: 'underline' }}>
+                                {t('auth.createAccountQuestion')}
+                            </Link>
+                        </>
+                    )}
                 </div>
             )}
 
@@ -172,12 +186,17 @@ function LoginContent() {
 
             <form method="post" onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <label htmlFor="login-email" style={{ fontWeight: '500', fontSize: '0.9rem' }}>{t('auth.emailLabel')}</label>
+                    <label htmlFor="login-email" style={{ fontWeight: '500', fontSize: '0.9rem' }}>{t('auth.identifierLabel')}</label>
+                    {/* type="text": type="email" made the browser refuse a phone number,
+                        though the API has always accepted one. The id stays for the e2e specs. */}
                     <input
                         id="login-email"
-                        name="email"
-                        type="email"
-                        placeholder={t('auth.emailPlaceholder')}
+                        name="identifier"
+                        type="text"
+                        autoComplete="username"
+                        autoCapitalize="none"
+                        spellCheck={false}
+                        placeholder={t('auth.identifierPlaceholder')}
                         required
                         maxLength={254}
                         style={{

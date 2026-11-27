@@ -29,6 +29,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { LogoWordmark } from '@/components/Logo';
 import { openPrivacyPolicy, openTermsOfService } from '@/lib/legal';
 import { passwordStrength } from '@/lib/validation';
+import { ResendCodeButton } from '@/components/ResendCodeButton';
 import type { Locale } from '@/lib/i18n';
 import { Alert } from '@/lib/dialog';
 import { GradientButton, Input } from '@/components/Premium';
@@ -182,15 +183,14 @@ export default function RegisterScreen() {
     return api.post('/api/auth/verify-send', { phone: `+992${phoneLocal}`, type: 'REGISTRATION' });
   }
 
-  async function handleResend() {
-    if (loading) return;
-    setLoading(true);
+  /** ResendCodeButton disables itself while this runs and for 60 s after it succeeds. */
+  async function handleResend(): Promise<boolean> {
     try {
       await sendCode();
+      return true;
     } catch (e) {
       Alert.alert(t.common.error, (e as Error).message);
-    } finally {
-      setLoading(false);
+      return false;
     }
   }
 
@@ -368,9 +368,7 @@ export default function RegisterScreen() {
                 ? <ActivityIndicator color="#fff" />
                 : <Text style={styles.buttonText}>{t.verifyPhone.verify}</Text>}
             </GradientButton>
-            <TouchableOpacity onPress={handleResend} disabled={loading} accessibilityRole="button">
-              <Text style={styles.link}><Text style={styles.linkBold}>{r.resendCode}</Text></Text>
-            </TouchableOpacity>
+            <ResendCodeButton onResend={handleResend} disabled={loading} style={styles.resend} />
             <TouchableOpacity onPress={() => { setStep('form'); setCode(''); }} disabled={loading} accessibilityRole="button">
               <Text style={styles.link}>{t.verifyPhone.changeNumber}</Text>
             </TouchableOpacity>
@@ -598,6 +596,7 @@ const styles = StyleSheet.create({
   buttonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
 
   link: { textAlign: 'center', marginTop: 20, color: '#6B7280', fontSize: 14 },
+  resend: { marginTop: 6 },
   linkBold: { color: '#2563EB', fontWeight: '600' },
   legalRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 16, marginTop: 4 },
   legalText: { flex: 1, fontSize: 13, lineHeight: 18 },

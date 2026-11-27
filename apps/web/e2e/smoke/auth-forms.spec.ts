@@ -12,8 +12,20 @@ test('login rejects an unknown account with a readable error', async ({ page }) 
     await page.locator('#login-password').fill('Wrong-Passw0rd!');
     await page.getByRole('button', { name: 'Войти', exact: true }).click();
 
-    await expect(page.getByText('Неверный логин или пароль')).toBeVisible();
+    await expect(page.getByText('Аккаунт с таким email не найден')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Создать аккаунт?' })).toHaveAttribute('href', '/register');
     await expect(page).toHaveURL(/\/login$/);
+});
+
+test('login takes a phone number and says when it has no account', async ({ page }) => {
+    await open(page, '/login');
+    // 000 is not a real operator prefix, so no account has this number.
+    await page.locator('#login-email').fill('+992 000 000 009');
+    await page.locator('#login-password').fill('Wrong-Passw0rd!');
+    await page.getByRole('button', { name: 'Войти', exact: true }).click();
+
+    await expect(page.getByText('Этот номер не зарегистрирован')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Создать аккаунт?' })).toBeVisible();
 });
 
 test('login offers Google, Apple, password recovery and signup', async ({ page }) => {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import TaskCard, { type Task } from '@/components/tasks/TaskCard';
 import { useTranslation } from '@/lib/i18n';
 
@@ -28,7 +29,11 @@ function buildQueryString(searchParams: URLSearchParams, pageNum: number): strin
     return params.toString();
 }
 
-export default function TasksFeed() {
+export default function TasksFeed({ viewerRole = null, providerHasTaskAlerts = false }: {
+    viewerRole?: 'CUSTOMER' | 'PROVIDER' | null;
+    /** The provider's plan includes new-task alerts (PRO and up). */
+    providerHasTaskAlerts?: boolean;
+}) {
     const searchParams = useSearchParams();
     const { t, tError } = useTranslation();
     const [tasks, setTasks] = useState<Task[]>([]);
@@ -138,9 +143,7 @@ export default function TasksFeed() {
                 }}>
                     <div style={{ fontSize: '3rem', marginBottom: '12px' }}>🔍</div>
                     <h3 className="heading-md" style={{ marginBottom: '8px' }}>{t('tasks.noTasksTitle')}</h3>
-                    <p style={{ color: 'var(--text-light)', fontSize: '0.95rem' }}>
-                        {t('tasks.noTasksDesc')}
-                    </p>
+                    <EmptyFeedAction viewerRole={viewerRole} providerHasTaskAlerts={providerHasTaskAlerts} category={searchParams.get('category')} />
                 </div>
             </>
         );
@@ -165,6 +168,71 @@ export default function TasksFeed() {
                         {loadingMore ? t('common.loading') : t('tasks.loadMore')}
                     </button>
                 </div>
+            )}
+        </>
+    );
+}
+
+const emptyText: React.CSSProperties = { color: 'var(--text-light)', fontSize: '0.95rem', marginBottom: '20px' };
+
+/**
+ * An empty feed offers the next step instead of a dead end: a customer is
+ * asked to post the first task (in the category they were looking at); a
+ * provider on PRO or above to switch on new-task alerts. A FREE provider gets
+ * no alerts, so they are sent to the whole feed instead and told, in a plain
+ * line, which plans have alerts. Anyone who is not a customer is also told the
+ * site is for one-off tasks, since job seekers land here looking for
+ * permanent work.
+ */
+function EmptyFeedAction({ viewerRole, providerHasTaskAlerts, category }: {
+    viewerRole: 'CUSTOMER' | 'PROVIDER' | null;
+    providerHasTaskAlerts: boolean;
+    category: string | null;
+}) {
+    const { t } = useTranslation();
+    const createHref = category ? `/create-task?category=${encodeURIComponent(category)}` : '/create-task';
+    const oneOffHint = (
+        <p style={{ color: 'var(--text-light)', fontSize: '0.85rem', marginTop: '20px', marginBottom: 0 }}>
+            {t('tasks.oneOffHint')}
+        </p>
+    );
+
+    if (viewerRole === 'PROVIDER' && !providerHasTaskAlerts) {
+        return (
+            <>
+                {/* Already on the unfiltered feed: there is nowhere wider to send them. */}
+                {category && (
+                    <Link href="/tasks" className="btn btn-primary">{t('tasks.emptySeeAllTasks')}</Link>
+                )}
+                <p style={{ ...emptyText, marginTop: category ? '16px' : 0, marginBottom: 0 }}>
+                    {t('tasks.alertsPaidOnly')}
+                </p>
+                {oneOffHint}
+            </>
+        );
+    }
+    if (viewerRole === 'PROVIDER') {
+        return (
+            <>
+                <p style={emptyText}>{t('tasks.emptyProviderDesc')}</p>
+                <Link href="/provider/profile#task-alerts" className="btn btn-primary">{t('tasks.emptyGetNotified')}</Link>
+                {oneOffHint}
+            </>
+        );
+    }
+    return (
+        <>
+            <p style={emptyText}>{t('tasks.emptyCustomerDesc')}</p>
+            <Link href={createHref} className="btn btn-primary">{t('tasks.emptyCreateFirst')}</Link>
+            {viewerRole === null && (
+                <>
+                    <p style={{ ...emptyText, marginTop: '16px', marginBottom: 0 }}>
+                        <Link href="/register?type=provider" style={{ color: 'var(--primary)', fontWeight: 600 }}>
+                            {t('tasks.emptyGuestProvider')}
+                        </Link>
+                    </p>
+                    {oneOffHint}
+                </>
             )}
         </>
     );

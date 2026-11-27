@@ -7,6 +7,30 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import { getServerTranslation } from '@/lib/i18n/server';
 import { SUBSCRIPTIONS_ENABLED } from '@/lib/features';
+import { getCategories } from '@/lib/categories';
+import { cookies } from 'next/headers';
+import { verifyJWT } from '@/lib/auth';
+import { alertPlan } from '@/lib/task-alerts';
+
+type Viewer = { role: 'CUSTOMER' | 'PROVIDER' | null; hasTaskAlerts: boolean };
+
+/**
+ * Who is looking, only to choose which action an empty feed offers. Not an
+ * auth check: a stale or revoked token just shows another button. A provider's
+ * plan is looked up because new-task alerts are paid-only: a FREE provider is
+ * not offered alerts they cannot get.
+ */
+async function viewer(): Promise<Viewer> {
+    const token = (await cookies()).get('token')?.value;
+    const payload = token ? await verifyJWT(token) : null;
+    if (payload?.role === 'CUSTOMER') return { role: 'CUSTOMER', hasTaskAlerts: false };
+    if (payload?.role !== 'PROVIDER' || typeof payload.id !== 'string') return { role: null, hasTaskAlerts: false };
+    const user = await prisma.user.findUnique({
+        where: { id: payload.id },
+        select: { subscription: { select: { plan: true, isActive: true, endDate: true } } },
+    }).catch(() => null);
+    return { role: 'PROVIDER', hasTaskAlerts: alertPlan(user?.subscription) !== null };
+}
 
 type Props = {
     searchParams: {
@@ -39,9 +63,11 @@ export default async function TasksPage({ searchParams }: Props) {
         ];
     }
 
-    const [categoryCounts, totalOpenTasks] = await Promise.all([
+    const [categoryCounts, totalOpenTasks, categories, who] = await Promise.all([
         prisma.task.groupBy({ by: ['category'], where: categoryCountWhere, _count: true }),
         prisma.task.count({ where: { status: 'OPEN' } }),
+        getCategories(),
+        viewer(),
     ]);
 
     // Build filtered count matching the API query logic
@@ -177,6 +203,7 @@ export default async function TasksPage({ searchParams }: Props) {
                     <aside className="tasks-sidebar">
                         <Suspense fallback={<div>{t('common.loading')}</div>}>
                             <TaskFilterSidebar
+                                categories={categories}
                                 categoryCounts={categoryCounts}
                                 totalOpenTasks={totalOpenTasks}
                             />
@@ -189,7 +216,7 @@ export default async function TasksPage({ searchParams }: Props) {
                             <Suspense fallback={
                                 <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--text-light)' }}>{t('common.loading')}</div>
                             }>
-                                <TasksFeed />
+                                <TasksFeed viewerRole={who.role} providerHasTaskAlerts={who.hasTaskAlerts} />
                             </Suspense>
                         </div>
                     </main>

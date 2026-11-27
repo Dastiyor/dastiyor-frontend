@@ -7,6 +7,15 @@ import { toast } from '@/components/ui/Toast';
 import { useTranslation } from '@/lib/i18n';
 import { CATEGORIES, CITIES } from '@/lib/config-fallback';
 import { looksLikeServiceAd } from '@/lib/service-ad';
+import { taskFieldErrors, TASK_DESCRIPTION_MAX, TASK_TITLE_MAX, type TaskField } from '@/lib/task-rules';
+
+// Cities are canonical Russian strings; the API rejects anything else.
+const DEFAULT_CITY = CITIES[0];
+
+const fieldLabel: React.CSSProperties = { display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' };
+const fieldError: React.CSSProperties = { color: '#DC2626', fontSize: '0.8rem', marginTop: '6px' };
+const counter: React.CSSProperties = { textAlign: 'right', fontSize: '0.75rem', color: '#9CA3AF', marginTop: '4px' };
+const border = (bad: boolean) => `1px solid ${bad ? '#DC2626' : '#D1D5DB'}`;
 
 export default function CreateTaskPage() {
     const { t, tr, tError } = useTranslation();
@@ -19,9 +28,11 @@ export default function CreateTaskPage() {
         category: '',
         title: '',
         description: '',
-        city: 'Dushanbe',
+        city: DEFAULT_CITY,
         address: '',
-        budget: 'fixed',
+        // Negotiable first: someone who doesn't know the price isn't asked for one.
+        // "Фикс. цена" then requires an amount (lib/task-rules.ts).
+        budget: 'negotiable',
         amount: '',
         urgency: 'normal',
         dueDate: '',
@@ -31,6 +42,14 @@ export default function CreateTaskPage() {
     // Shown once when the text reads like a provider's ad; "post anyway" goes on.
     const [adWarning, setAdWarning] = useState(false);
     const [hasDraft, setHasDraft] = useState(false);
+    // A field's error shows once the customer has left it, or after a publish
+    // attempt, and then follows every keystroke.
+    const [touched, setTouched] = useState<Partial<Record<TaskField, boolean>>>({});
+    const [submitAttempted, setSubmitAttempted] = useState(false);
+    const errors = taskFieldErrors(formData);
+    const errorFor = (field: TaskField) =>
+        (touched[field] || submitAttempted) && errors[field] ? t(`createTask.${errors[field]}`) : null;
+    const touch = (field: TaskField) => setTouched(prev => ({ ...prev, [field]: true }));
     // Categories are admin-managed; the static list is the first-paint value
     // until /api/config answers. Cities are static everywhere.
     const [categories, setCategories] = useState<string[]>(CATEGORIES);
@@ -63,6 +82,8 @@ export default function CreateTaskPage() {
         if (savedDraft) {
             try {
                 const draft = JSON.parse(savedDraft);
+                // Drafts saved before Nov 2026 hold the Latin 'Dushanbe', which the API rejects.
+                if (!CITIES.includes(draft.city)) draft.city = DEFAULT_CITY;
                 setFormData(prev => ({ ...prev, ...draft }));
                 setHasDraft(true);
             } catch (e) {
@@ -80,7 +101,8 @@ export default function CreateTaskPage() {
         }
         if (Object.keys(template).length) {
             setFormData(prev => ({ ...prev, ...template }));
-            toast.info(t('createTask.templateLoaded'));
+            // A category alone comes from the empty task feed, not a template.
+            if (template.title || template.description) toast.info(t('createTask.templateLoaded'));
         }
     }, []);
 
@@ -135,6 +157,12 @@ export default function CreateTaskPage() {
     };
 
     const handleSubmit = async (finalData: typeof formData, adConfirmed = false) => {
+        const invalid = Object.keys(taskFieldErrors(finalData)) as TaskField[];
+        if (invalid.length) {
+            setSubmitAttempted(true);
+            document.getElementById(`task-${invalid[0]}`)?.focus();
+            return;
+        }
         if (!adConfirmed && looksLikeServiceAd(finalData.title, finalData.description)) {
             setAdWarning(true);
             return;
@@ -223,40 +251,65 @@ export default function CreateTaskPage() {
                             <h2 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '24px', color: '#111827' }}>{t('createTask.generalInfo')}</h2>
 
                             <div style={{ marginBottom: '24px' }}>
-                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>{t('createTask.taskTitleLabel')}</label>
+                                <label htmlFor="task-title" style={fieldLabel}>{t('createTask.taskTitleLabel')}</label>
                                 <input
+                                    id="task-title"
                                     type="text"
                                     placeholder={t('createTask.taskTitlePlaceholder')}
                                     value={formData.title}
+                                    maxLength={TASK_TITLE_MAX}
                                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #D1D5DB', outline: 'none' }}
+                                    onBlur={() => touch('title')}
+                                    aria-invalid={!!errorFor('title')}
+                                    aria-describedby="task-title-error"
+                                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: border(!!errorFor('title')), outline: 'none' }}
                                 />
+                                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
+                                    <div id="task-title-error" role="alert" style={fieldError}>{errorFor('title')}</div>
+                                    <div style={counter}>{t('createTask.charCount', { count: formData.title.length, max: TASK_TITLE_MAX })}</div>
+                                </div>
                             </div>
 
                             <div style={{ marginBottom: '24px' }}>
-                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>{t('createTask.category')}</label>
+                                <label htmlFor="task-category" style={fieldLabel}>{t('createTask.category')}</label>
                                 <select
+                                    id="task-category"
                                     value={formData.category}
-                                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #D1D5DB', outline: 'none', backgroundColor: 'white' }}
+                                    onChange={(e) => { setFormData({ ...formData, category: e.target.value }); touch('category'); }}
+                                    onBlur={() => touch('category')}
+                                    aria-invalid={!!errorFor('category')}
+                                    aria-describedby="task-category-error"
+                                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: border(!!errorFor('category')), outline: 'none', backgroundColor: 'white' }}
                                 >
                                     <option value="">{t('createTask.selectCategory')}</option>
                                     {categories.map(cat => (
                                         <option key={cat} value={cat}>{tr(cat)}</option>
                                     ))}
                                 </select>
+                                <div id="task-category-error" role="alert" style={fieldError}>{errorFor('category')}</div>
                             </div>
 
                             <div>
-                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>{t('createTask.detailedDescription')}</label>
+                                <label htmlFor="task-description" style={fieldLabel}>
+                                    {t('createTask.detailedDescription')}{' '}
+                                    <span style={{ fontWeight: 400, color: '#9CA3AF' }}>{t('createTask.optional')}</span>
+                                </label>
                                 <textarea
+                                    id="task-description"
                                     placeholder={t('createTask.detailPlaceholder')}
                                     rows={5}
                                     value={formData.description}
+                                    maxLength={TASK_DESCRIPTION_MAX}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #D1D5DB', outline: 'none', resize: 'vertical' }}
+                                    onBlur={() => touch('description')}
+                                    aria-invalid={!!errorFor('description')}
+                                    aria-describedby="task-description-error"
+                                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: border(!!errorFor('description')), outline: 'none', resize: 'vertical' }}
                                 />
-                                <div style={{ textAlign: 'right', fontSize: '0.75rem', color: '#9CA3AF', marginTop: '4px' }}>{t('createTask.charCount', { count: formData.description.length })}</div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
+                                    <div id="task-description-error" role="alert" style={fieldError}>{errorFor('description')}</div>
+                                    <div style={counter}>{t('createTask.charCount', { count: formData.description.length, max: TASK_DESCRIPTION_MAX })}</div>
+                                </div>
                             </div>
 
                             {/* Image Upload Section */}
@@ -290,17 +343,21 @@ export default function CreateTaskPage() {
                             <h2 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '24px', color: '#111827' }}>{t('createTask.location')}</h2>
                             <div className="form-row-2" style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px', marginBottom: '24px' }}>
                                 <div>
-                                    <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>{t('createTask.cityLabel')}</label>
+                                    <label htmlFor="task-city" style={fieldLabel}>{t('createTask.cityLabel')}</label>
                                     <select
+                                        id="task-city"
                                         value={formData.city}
-                                        onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                                        style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #D1D5DB', outline: 'none', backgroundColor: 'white' }}
+                                        onChange={(e) => { setFormData({ ...formData, city: e.target.value }); touch('city'); }}
+                                        aria-invalid={!!errorFor('city')}
+                                        aria-describedby="task-city-error"
+                                        style={{ width: '100%', padding: '12px', borderRadius: '8px', border: border(!!errorFor('city')), outline: 'none', backgroundColor: 'white' }}
                                     >
                                         <option value="">{t('createTask.cityPlaceholder')}</option>
                                         {CITIES.map(c => (
                                             <option key={c} value={c}>{tr(c)}</option>
                                         ))}
                                     </select>
+                                    <div id="task-city-error" role="alert" style={fieldError}>{errorFor('city')}</div>
                                 </div>
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>{t('tasks.urgency')}</label>
@@ -390,18 +447,23 @@ export default function CreateTaskPage() {
                                 <div>
                                     <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>{t('filters.budgetTJS')}</label>
                                     <input
+                                        id="task-amount"
                                         type="number"
                                         placeholder="0.00"
                                         value={formData.amount}
                                         onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                                        onBlur={() => touch('amount')}
                                         disabled={formData.budget === 'negotiable'}
+                                        aria-invalid={!!errorFor('amount')}
+                                        aria-describedby="task-amount-error"
                                         style={{
-                                            width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #D1D5DB', outline: 'none',
+                                            width: '100%', padding: '12px', borderRadius: '8px', border: border(!!errorFor('amount')), outline: 'none',
                                             backgroundColor: formData.budget === 'negotiable' ? '#F3F4F6' : 'white',
                                             color: formData.budget === 'negotiable' ? '#9CA3AF' : 'inherit',
                                             cursor: formData.budget === 'negotiable' ? 'not-allowed' : 'auto',
                                         }}
                                     />
+                                    <div id="task-amount-error" role="alert" style={fieldError}>{errorFor('amount')}</div>
                                 </div>
                             </div>
                         </div>

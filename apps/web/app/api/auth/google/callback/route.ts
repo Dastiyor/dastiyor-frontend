@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { persistRequestLocale } from '@/lib/persist-locale';
-import { upsertOAuthUser, oauthCookieOptions } from '@/lib/oauth';
-import { mustVerifyPhoneFirst } from '@/lib/phone-gate';
+import { upsertOAuthUser } from '@/lib/oauth';
+import { oauthSignedInResponse, redirectFromState } from '@/lib/oauth-response';
+import { withRedirect } from '@/lib/safe-redirect';
 import { getClientIP } from '@/lib/rate-limit';
 import { cookies } from 'next/headers';
 
@@ -13,7 +14,7 @@ export async function GET(request: Request) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || url.origin;
 
     if (error || !code) {
-        return NextResponse.redirect(`${appUrl}/login?error=oauth_cancelled`);
+        return NextResponse.redirect(`${appUrl}${withRedirect('/login?error=oauth_cancelled', redirectFromState(state))}`);
     }
 
     const clientId = process.env.GOOGLE_CLIENT_ID;
@@ -70,7 +71,7 @@ export async function GET(request: Request) {
         if (!userRes.ok) throw new Error('Failed to get user info');
         const googleUser = await userRes.json();
 
-        const { user, token } = await upsertOAuthUser({
+        const { user, token, isNew } = await upsertOAuthUser({
             provider: 'google',
             providerId: googleUser.sub,
             email: googleUser.email,
@@ -83,13 +84,9 @@ export async function GET(request: Request) {
         await persistRequestLocale(request, user.id, user.locale)
             .catch(err => console.error('Locale persist error:', err));
 
-        const dashboard = user.role === 'PROVIDER' ? '/provider' : '/customer';
-        const destination = mustVerifyPhoneFirst(user) ? `/verify-phone?redirect=${dashboard}` : dashboard;
-        const response = NextResponse.redirect(`${appUrl}${destination}`);
-        response.cookies.set('token', token, oauthCookieOptions());
-        // Clear the CSRF nonce cookie
-        response.cookies.set('oauth_state_nonce', '', { maxAge: 0, path: '/' });
-        return response;
+        return oauthSignedInResponse({
+            appUrl, provider: 'google', user, token, isNew, redirect: redirectFromState(state),
+        });
 
     } catch (err) {
         console.error('Google OAuth callback error:', err);

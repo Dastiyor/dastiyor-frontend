@@ -40,6 +40,16 @@ describe('GET /api/auth/google', () => {
         expect(cookieHeader).toContain('oauth_state_nonce');
     });
 
+    it('carries a return path in the state, and drops one that leaves the site', async () => {
+        const stateFor = async (redirect: string) => {
+            const response = await GET(new NextRequest(`http://localhost:3000/api/auth/google?redirect=${encodeURIComponent(redirect)}`));
+            const state = new URL(response.headers.get('location')!).searchParams.get('state')!;
+            return JSON.parse(Buffer.from(state, 'base64url').toString());
+        };
+        expect((await stateFor('/create-task')).redirect).toBe('/create-task');
+        expect(await stateFor('//evil.com')).not.toHaveProperty('redirect');
+    });
+
     it('should fail gracefully if GOOGLE_CLIENT_ID is not configured', async () => {
         delete process.env.GOOGLE_CLIENT_ID;
         const request = new NextRequest('http://localhost:3000/api/auth/google');

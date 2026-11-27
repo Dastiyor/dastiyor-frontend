@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from '@/components/ui/Toast';
 import { useConfirm } from '@/components/ui/ConfirmDialog';
 import { useTranslation } from '@/lib/i18n';
+import { AnalyticsEvent, track } from '@/lib/analytics';
 import { ESTIMATED_TIMES } from '@/lib/config-fallback';
 import { CheckCircle } from 'lucide-react';
 import { formatMoney } from '@/lib/format-budget';
@@ -69,6 +70,7 @@ export default function ResponseList({ taskId, responses, currentUserId, current
             const json = await res.json();
 
             if (res.ok) {
+                track(AnalyticsEvent.ResponseSubmitted, { taskId, price: Number(data.price) }, { leavingPage: true });
                 toast.success(t('tasks.responseSent'));
                 setTimeout(() => window.location.reload(), 1000);
             } else if (json.code === 'PHONE_VERIFICATION_REQUIRED') {

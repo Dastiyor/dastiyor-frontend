@@ -7,10 +7,13 @@ import ResendCodeButton from '@/components/auth/ResendCodeButton';
 import { useTranslation } from '@/lib/i18n';
 import { useAdoptTypedValue, useHydrated } from '@/lib/useHydrated';
 import { localPhoneDigits } from '@/lib/phone-input';
-import { goToDashboard } from '@/lib/dashboard-redirect';
+import { finishLogin } from '@/lib/dashboard-redirect';
 
 /** Phone number, then the SMS code. No password. */
-export default function CodeLoginForm({ onError }: { onError: (message: string, code?: string) => void }) {
+export default function CodeLoginForm({ onError, redirect }: {
+    onError: (message: string, code?: string) => void;
+    redirect: string;
+}) {
     const [phone, setPhone] = useState('');
     const [step, setStep] = useState<'phone' | 'code'>('phone');
     const [code, setCode] = useState('');
@@ -21,8 +24,8 @@ export default function CodeLoginForm({ onError }: { onError: (message: string, 
     const { t, tError } = useTranslation();
     const fullPhone = `+992${phone}`;
 
-    /** True when the request succeeded; otherwise the error is already shown. */
-    async function post(url: string, body: object): Promise<boolean> {
+    /** The response when the request succeeded; otherwise null, the error already shown. */
+    async function post(url: string, body: object): Promise<Response | null> {
         onError('');
         try {
             const res = await fetch(url, {
@@ -30,16 +33,16 @@ export default function CodeLoginForm({ onError }: { onError: (message: string, 
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body),
             });
-            if (res.ok) return true;
+            if (res.ok) return res;
             const json = await res.json();
             onError(tError(json.error) || t('common.somethingWentWrong'), json.code);
         } catch {
             onError(t('auth.networkError'));
         }
-        return false;
+        return null;
     }
 
-    const sendCode = () => post('/api/auth/verify-send', { phone: fullPhone, type: 'LOGIN' });
+    const sendCode = async () => Boolean(await post('/api/auth/verify-send', { phone: fullPhone, type: 'LOGIN' }));
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -50,10 +53,14 @@ export default function CodeLoginForm({ onError }: { onError: (message: string, 
                 setCode('');
                 setStep('code');
             }
-        } else if (await post('/api/auth/login/code', { phone: fullPhone, code })) {
-            // Stays busy while the dashboard loads.
-            await goToDashboard();
-            return;
+        } else {
+            const res = await post('/api/auth/login/code', { phone: fullPhone, code });
+            if (res) {
+                // Signed in even if the body is lost. Stays busy while the next page loads.
+                const json = await res.json().catch(() => null);
+                finishLogin('sms', json?.user?.role, redirect);
+                return;
+            }
         }
         setIsLoading(false);
     }

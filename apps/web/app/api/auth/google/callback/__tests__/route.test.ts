@@ -100,7 +100,7 @@ describe('GET /api/auth/google/callback', () => {
 
         expect(response.status).toBe(307);
         // A Google account with no verified phone goes to verify one first
-        expect(response.headers.get('location')).toBe('http://localhost:3000/verify-phone?redirect=/provider');
+        expect(response.headers.get('location')).toBe('http://localhost:3000/verify-phone?redirect=%2Fprovider');
 
         expect(upsertOAuthUser).toHaveBeenCalledWith({
             provider: 'google',

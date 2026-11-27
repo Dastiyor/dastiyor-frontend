@@ -7,15 +7,14 @@ import { useTranslation } from '@/lib/i18n';
 import { useAdoptTypedValue } from '@/lib/useHydrated';
 import ResendCodeButton from '@/components/auth/ResendCodeButton';
 import OtpInput from '@/components/auth/OtpInput';
+import { safeRedirect } from '@/lib/safe-redirect';
 
 function VerifyPhoneContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { t, tError } = useTranslation();
 
-    const rawRedirect = searchParams.get('redirect') || '/';
-    // Only allow same-site relative redirects
-    const redirectTo = rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') ? rawRedirect : '/';
+    const redirectTo = safeRedirect(searchParams.get('redirect')) || '/';
 
     const [step, setStep] = useState<'phone' | 'code'>('phone');
     const [phoneLocal, setPhoneLocal] = useState('');

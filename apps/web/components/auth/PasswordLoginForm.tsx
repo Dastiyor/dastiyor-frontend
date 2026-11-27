@@ -6,7 +6,7 @@ import { Lock, User } from 'lucide-react';
 import FieldIcon, { FIELD_ICON_PADDING } from '@/components/auth/FieldIcon';
 import { useTranslation } from '@/lib/i18n';
 import { useHydrated } from '@/lib/useHydrated';
-import { goToDashboard } from '@/lib/dashboard-redirect';
+import { finishLogin } from '@/lib/dashboard-redirect';
 
 function EyeIcon({ open }: { open: boolean }) {
     return open ? (
@@ -20,7 +20,10 @@ function EyeIcon({ open }: { open: boolean }) {
     );
 }
 
-export default function PasswordLoginForm({ onError }: { onError: (message: string, code?: string) => void }) {
+export default function PasswordLoginForm({ onError, redirect }: {
+    onError: (message: string, code?: string) => void;
+    redirect: string;
+}) {
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const hydrated = useHydrated();
@@ -51,7 +54,9 @@ export default function PasswordLoginForm({ onError }: { onError: (message: stri
                 return;
             }
 
-            await goToDashboard();
+            // Signed in even if the body is lost.
+            const json = await res.json().catch(() => null);
+            finishLogin('password', json?.user?.role, redirect);
         } catch (err) {
             onError(err instanceof Error ? err.message : t('common.somethingWentWrong'));
         } finally {

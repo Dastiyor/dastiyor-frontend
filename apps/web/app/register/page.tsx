@@ -15,12 +15,14 @@ import FieldIcon, { FIELD_ICON_PADDING } from '@/components/auth/FieldIcon';
 import { Lock, User } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 import { useAdoptTypedValue, useHydrated } from '@/lib/useHydrated';
+import { safeRedirect, withRedirect } from '@/lib/safe-redirect';
+import { AnalyticsEvent, track } from '@/lib/analytics';
 
 /** Without a role yet, each button leads to the role choice first: the server would default to customer. */
-function OAuthButtons({ role }: { role: Role }) {
+function OAuthButtons({ role, redirect }: { role: Role; redirect: string }) {
     const { t } = useTranslation();
     const href = (provider: 'google' | 'apple') =>
-        role ? `/api/auth/${provider}?role=${role}` : `/register?via=${provider}`;
+        withRedirect(role ? `/api/auth/${provider}?role=${role}` : `/register?via=${provider}`, redirect);
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <a
@@ -86,6 +88,8 @@ function RegisterContent() {
     // asked. Otherwise it is the last step: form, SMS code, role.
     const role: Role = typeParam === 'provider' ? 'provider' : typeParam === 'customer' ? 'customer' : null;
     const viaParam = searchParams.get('via');
+    // Where the person was heading when they were asked to sign in.
+    const redirect = safeRedirect(searchParams.get('redirect'));
     // Google / Apple chosen before a role: ask it, then go there.
     const via = !role && (viaParam === 'google' || viaParam === 'apple') ? viaParam : null;
     const [isLoading, setIsLoading] = useState(false);
@@ -116,10 +120,10 @@ function RegisterContent() {
             if (res.ok) return res.json();
         }).then(data => {
             if (data?.role) {
-                router.replace(data.role === 'PROVIDER' ? '/provider' : '/customer');
+                router.replace(redirect || (data.role === 'PROVIDER' ? '/provider' : '/customer'));
             }
         }).catch(() => {});
-    }, [router]);
+    }, [router, redirect]);
 
     async function sendCode(phone: string) {
         const res = await fetch('/api/auth/verify-send', {
@@ -193,10 +197,11 @@ function RegisterContent() {
         return { ok: res.ok, status: res.status, json: await res.json() };
     }
 
-    function signedUp() {
+    function signedUp(newRole: string | undefined) {
+        track(AnalyticsEvent.SignUpCompleted, { method: 'password', role: newRole }, { leavingPage: true });
         // Use full page reload to ensure server components refresh
         // This ensures the Header component re-renders with the new auth state
-        window.location.href = '/';
+        window.location.href = redirect || '/';
     }
 
     async function handleVerify(e: React.FormEvent<HTMLFormElement>) {
@@ -215,7 +220,7 @@ function RegisterContent() {
             if (!res.ok || (!role && !res.json.ticket)) {
                 throw new Error(tError(res.json.error) || t('common.somethingWentWrong'));
             }
-            if (role) return signedUp();
+            if (role) return signedUp(res.json.user?.role);
 
             setTicket({ phone: pending.phone, value: res.json.ticket });
             setStep('role');
@@ -234,7 +239,7 @@ function RegisterContent() {
             const res = await post('/api/auth/register', {
                 ...pending, password: password || undefined, role: picked, ticket: ticket.value,
             });
-            if (res.ok) return signedUp();
+            if (res.ok) return signedUp(res.json.user?.role);
 
             setError(tError(res.json.error) || t('common.somethingWentWrong'));
             // The form was turned down (email taken, say): back to it to fix that.
@@ -261,7 +266,7 @@ function RegisterContent() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '20px' }}>
                 {role || via ? (
                     <Link
-                        href="/register"
+                        href={withRedirect('/register', redirect)}
                         style={{ color: 'var(--text-light)', fontSize: '0.9rem', textDecoration: 'none' }}
                     >
                         {t(via ? 'common.back' : 'auth.changeRole')}
@@ -284,7 +289,7 @@ function RegisterContent() {
             )}
 
             {view === 'oauth' ? (
-                <RoleCards hrefFor={(picked) => `/api/auth/${via}?role=${picked}`} />
+                <RoleCards hrefFor={(picked) => withRedirect(`/api/auth/${via}?role=${picked}`, redirect)} />
             ) : view === 'role' ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <p style={{ margin: 0, textAlign: 'center', color: '#059669', fontWeight: 600 }}>
@@ -465,7 +470,7 @@ function RegisterContent() {
             <div style={{ marginTop: '24px' }}>
                 <OAuthDivider />
                 <div style={{ marginTop: '12px' }}>
-                    <OAuthButtons role={role} />
+                    <OAuthButtons role={role} redirect={redirect} />
                 </div>
             </div>
             </>
@@ -473,7 +478,7 @@ function RegisterContent() {
 
             <div style={{ marginTop: '20px', textAlign: 'center', fontSize: '0.95rem' }}>
                 {t('auth.haveAccount')}{' '}
-                <Link href="/login" style={{ color: 'var(--primary)', fontWeight: '600' }}>
+                <Link href={withRedirect('/login', redirect)} style={{ color: 'var(--primary)', fontWeight: '600' }}>
                     {t('common.login')}
                 </Link>
             </div>

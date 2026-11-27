@@ -1,4 +1,4 @@
-import { test, expect } from '../support/test';
+import { test, expect, open } from '../support/test';
 
 const DASHBOARD_PAGES = [
     '/customer',
@@ -19,9 +19,15 @@ for (const path of DASHBOARD_PAGES) {
     });
 }
 
-test('create-task sends a signed-out visitor to login and remembers where they were going', async ({ page }) => {
-    await page.goto('/create-task');
+// POST /api/tasks answers 401 before it reads the body, so nothing is written.
+test('a signed-out visitor fills in a task and is asked to sign in at publish', async ({ page }) => {
+    await open(page, '/create-task');
+    await page.getByPlaceholder('например, Починить протекающий кран на кухне').fill('Починить кран на кухне');
+    await page.locator('select').nth(0).selectOption('Ремонт');
+    await page.getByRole('button', { name: 'Опубликовать' }).click();
     await expect(page).toHaveURL(/\/login\?redirect=(%2F|\/)create-task$/);
+    await expect(page.getByRole('link', { name: 'Зарегистрироваться' }).last())
+        .toHaveAttribute('href', '/register?type=customer&redirect=%2Fcreate-task');
 });
 
 const PRIVATE_API: Array<[method: 'get' | 'post' | 'put' | 'delete', path: string]> = [

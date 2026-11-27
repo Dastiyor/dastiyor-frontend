@@ -7,7 +7,9 @@ import { toast } from '@/components/ui/Toast';
 import { useTranslation } from '@/lib/i18n';
 import { CATEGORIES, CITIES } from '@/lib/config-fallback';
 import { looksLikeServiceAd } from '@/lib/service-ad';
-import { taskFieldErrors, TASK_DESCRIPTION_MAX, TASK_TITLE_MAX, type TaskField } from '@/lib/task-rules';
+import { taskFieldErrors, TASK_DESCRIPTION_MAX, TASK_TITLE_MAX, type TaskField, type TaskFieldError } from '@/lib/task-rules';
+import { useHydrated } from '@/lib/useHydrated';
+import { AnalyticsEvent, track } from '@/lib/analytics';
 
 // Cities are canonical Russian strings; the API rejects anything else.
 const DEFAULT_CITY = CITIES[0];
@@ -17,11 +19,25 @@ const fieldError: React.CSSProperties = { color: '#DC2626', fontSize: '0.8rem', 
 const counter: React.CSSProperties = { textAlign: 'right', fontSize: '0.75rem', color: '#9CA3AF', marginTop: '4px' };
 const border = (bad: boolean) => `1px solid ${bad ? '#DC2626' : '#D1D5DB'}`;
 
+/** Rule names sent with task_create_validation_failed. */
+const RULE_NAMES: Record<TaskFieldError, string> = {
+    errTitleShort: 'title_too_short',
+    errTitleLong: 'title_too_long',
+    errDescLong: 'description_too_long',
+    errCategory: 'category_missing',
+    errCity: 'city_unknown',
+    errBudget: 'budget_missing',
+    errBudgetInvalid: 'budget_invalid',
+    errBudgetTooHigh: 'budget_too_high',
+};
+
 export default function CreateTaskPage() {
     const { t, tr, tError } = useTranslation();
     const router = useRouter();
     const [uploading, setUploading] = useState(false);
-    const [authChecked, setAuthChecked] = useState(false);
+    // Anyone can fill in the form; signing in is asked for at "Publish". It is
+    // kept out of the server HTML, so nothing can be typed before React is there.
+    const hydrated = useHydrated();
     const DRAFT_KEY = 'task_draft';
 
     const [formData, setFormData] = useState({
@@ -65,16 +81,9 @@ export default function CreateTaskPage() {
             .catch(() => { /* keep the static list */ });
     }, []);
 
-    // Auth gate on mount — redirect to login before user fills the form
     useEffect(() => {
-        fetch('/api/auth/me').then(res => {
-            if (res.status === 401) {
-                router.replace('/login?redirect=/create-task');
-            } else {
-                setAuthChecked(true);
-            }
-        }).catch(() => setAuthChecked(true));
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+        track(AnalyticsEvent.TaskCreateStarted);
+    }, []);
 
     // Load draft or template on mount
     useEffect(() => {
@@ -127,6 +136,13 @@ export default function CreateTaskPage() {
         toast.info(t('createTask.draftCleared'));
     };
 
+    /** The draft carries the form through sign-in and back here. */
+    const signInToContinue = () => {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(formData));
+        toast.warning(t('createTask.loginRequired'));
+        router.push('/login?redirect=/create-task');
+    };
+
     // Add upload handlers
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
@@ -141,6 +157,10 @@ export default function CreateTaskPage() {
                 if (res.ok) {
                     const json = await res.json();
                     setFormData(prev => ({ ...prev, images: [...prev.images, json.url] }));
+                } else if (res.status === 401) {
+                    // Photos are stored under an account, so a guest signs in first.
+                    signInToContinue();
+                    break;
                 } else {
                     toast.error(t('createTask.uploadError'));
                 }
@@ -157,8 +177,12 @@ export default function CreateTaskPage() {
     };
 
     const handleSubmit = async (finalData: typeof formData, adConfirmed = false) => {
-        const invalid = Object.keys(taskFieldErrors(finalData)) as TaskField[];
+        const broken = taskFieldErrors(finalData);
+        const invalid = Object.keys(broken) as TaskField[];
         if (invalid.length) {
+            for (const field of invalid) {
+                track(AnalyticsEvent.TaskCreateValidationFailed, { field, rule: RULE_NAMES[broken[field]!] });
+            }
             setSubmitAttempted(true);
             document.getElementById(`task-${invalid[0]}`)?.focus();
             return;
@@ -177,8 +201,7 @@ export default function CreateTaskPage() {
             });
 
             if (res.status === 401) {
-                toast.warning(t('createTask.loginRequired'));
-                router.push('/login?redirect=/create-task');
+                signInToContinue();
                 return;
             }
 
@@ -190,10 +213,17 @@ export default function CreateTaskPage() {
                     router.push('/verify-phone?redirect=/create-task');
                     return;
                 }
+                if (res.status === 400) {
+                    // The server's own message: a fixed string, never what was typed.
+                    track(AnalyticsEvent.TaskCreateValidationFailed, { field: 'server', rule: errorData.error });
+                }
                 throw new Error(tError(errorData.error) || t('createTask.createFailed'));
             }
 
             const json = await res.json();
+            track(AnalyticsEvent.TaskCreateCompleted, {
+                category: finalData.category, city: finalData.city, budgetType: finalData.budget,
+            });
             // Clear draft on successful submission
             localStorage.removeItem(DRAFT_KEY);
             setHasDraft(false);
@@ -207,7 +237,7 @@ export default function CreateTaskPage() {
         }
     };
 
-    if (!authChecked) {
+    if (!hydrated) {
         return (
             <div style={{ textAlign: 'center', padding: '100px 20px', color: 'var(--text-light)' }}>
                 {t('common.loading')}

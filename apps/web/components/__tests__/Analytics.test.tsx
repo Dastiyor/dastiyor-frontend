@@ -7,6 +7,8 @@ jest.mock('posthog-js', () => ({
         __loaded: false,
         init: jest.fn(function (this: { __loaded: boolean }) { this.__loaded = true; }),
         identify: jest.fn(),
+        register: jest.fn(),
+        capture: jest.fn(),
         reset: jest.fn(),
         get_property: jest.fn(),
     },
@@ -14,7 +16,7 @@ jest.mock('posthog-js', () => ({
 
 const ph = posthog as unknown as {
     __loaded: boolean;
-    init: jest.Mock; identify: jest.Mock; reset: jest.Mock; get_property: jest.Mock;
+    init: jest.Mock; register: jest.Mock; capture: jest.Mock; identify: jest.Mock; reset: jest.Mock; get_property: jest.Mock;
 };
 
 import Analytics from '../Analytics';
@@ -71,4 +73,28 @@ test('starts only once', () => {
     const { rerender } = render(<Analytics userId={null} role={null} />);
     rerender(<Analytics userId="u1" role="CUSTOMER" />);
     expect(ph.init).toHaveBeenCalledTimes(1);
+});
+
+test('marks web events with the platform', () => {
+    const Analytics = load('phc_test');
+    render(<Analytics userId={null} role={null} />);
+    expect(ph.register).toHaveBeenCalledWith({ platform: 'web' });
+});
+
+test('sends a Google sign-up the callback recorded, once', () => {
+    const Analytics = load('phc_test');
+    document.cookie = 'auth_event=sign_up_completed.google; path=/';
+    const view = render(<Analytics userId="u1" role="CUSTOMER" />);
+    expect(ph.capture).toHaveBeenCalledWith('sign_up_completed', { method: 'google', role: 'CUSTOMER' }, undefined);
+    expect(document.cookie).not.toContain('auth_event');
+    view.unmount();
+    render(<Analytics userId="u1" role="CUSTOMER" />);
+    expect(ph.capture).toHaveBeenCalledTimes(1);
+});
+
+test('ignores an auth_event cookie that names another event', () => {
+    const Analytics = load('phc_test');
+    document.cookie = 'auth_event=anything.google; path=/';
+    render(<Analytics userId="u1" role="CUSTOMER" />);
+    expect(ph.capture).not.toHaveBeenCalled();
 });

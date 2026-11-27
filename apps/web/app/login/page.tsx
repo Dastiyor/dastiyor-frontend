@@ -7,14 +7,14 @@ import AuthLayout from '@/components/auth/AuthLayout';
 import { useTranslation } from '@/lib/i18n';
 import PasswordLoginForm from '@/components/auth/PasswordLoginForm';
 import CodeLoginForm from '@/components/auth/CodeLoginForm';
+import { safeRedirect, withRedirect } from '@/lib/safe-redirect';
 
-function OAuthButtons({ role }: { role?: string }) {
+function OAuthButtons({ redirect }: { redirect: string }) {
     const { t } = useTranslation();
-    const roleParam = role ? `?role=${role}` : '';
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <a
-                href={`/api/auth/google${roleParam}`}
+                href={withRedirect('/api/auth/google', redirect)}
                 style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
                     padding: '11px 16px', borderRadius: '8px', border: '1px solid var(--border)',
@@ -33,7 +33,7 @@ function OAuthButtons({ role }: { role?: string }) {
                 {t('auth.continueWithGoogle')}
             </a>
             <a
-                href={`/api/auth/apple${roleParam}`}
+                href={withRedirect('/api/auth/apple', redirect)}
                 style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
                     padding: '11px 16px', borderRadius: '8px', border: '1px solid #000',
@@ -71,9 +71,9 @@ function LoginContent() {
     const searchParams = useSearchParams();
     const { t } = useTranslation();
 
-    const rawRedirect = searchParams.get('redirect') || '';
-    // Validate redirect to prevent open redirect attacks — only allow same-origin paths
-    const redirect = rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') && !rawRedirect.includes('://') ? rawRedirect : '';
+    const redirect = safeRedirect(searchParams.get('redirect'));
+    // Only customers post tasks, so someone signing up from the task form is not asked.
+    const registerHref = withRedirect(redirect === '/create-task' ? '/register?type=customer' : '/register', redirect);
     const oauthError = searchParams.get('error');
     // SMS code by default. The other way in is a link, so it works before hydration.
     const byPassword = searchParams.get('method') === 'password';
@@ -125,7 +125,7 @@ function LoginContent() {
                         <>
                             {/* The server's message has no full stop of its own. */}
                             {'. '}
-                            <Link href="/register" style={{ color: '#c62828', fontWeight: 700, textDecoration: 'underline' }}>
+                            <Link href={registerHref} style={{ color: '#c62828', fontWeight: 700, textDecoration: 'underline' }}>
                                 {t('auth.createAccountQuestion')}
                             </Link>
                         </>
@@ -133,12 +133,12 @@ function LoginContent() {
                 </div>
             )}
 
-            <OAuthButtons />
+            <OAuthButtons redirect={redirect} />
             <OAuthDivider />
 
             {byPassword
-                ? <PasswordLoginForm onError={showError} />
-                : <CodeLoginForm onError={showError} />}
+                ? <PasswordLoginForm onError={showError} redirect={redirect} />
+                : <CodeLoginForm onError={showError} redirect={redirect} />}
 
             <div style={{ marginTop: '16px', textAlign: 'center' }}>
                 {/* An error belongs to the method it came from. */}
@@ -149,7 +149,7 @@ function LoginContent() {
 
             <div style={{ marginTop: '24px', textAlign: 'center', fontSize: '0.95rem' }}>
                 {t('auth.noAccount')}{' '}
-                <Link href="/register" style={{ color: 'var(--primary)', fontWeight: '600' }}>
+                <Link href={registerHref} style={{ color: 'var(--primary)', fontWeight: '600' }}>
                     {t('common.register')}
                 </Link>
             </div>

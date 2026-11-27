@@ -95,3 +95,29 @@ describe('/login', () => {
         expect(screen.queryByLabelText('auth.verifyPhoneCodeLabel')).toBeNull();
     });
 });
+
+describe('/login?redirect=', () => {
+    it('passes the target to signup and to Google and Apple, signing a poster up as a customer', async () => {
+        query = 'redirect=%2Fcreate-task';
+        render(<LoginPage />);
+        expect((await screen.findByText('common.register')).closest('a'))
+            .toHaveAttribute('href', '/register?type=customer&redirect=%2Fcreate-task');
+        expect(screen.getByText('auth.continueWithGoogle').closest('a'))
+            .toHaveAttribute('href', '/api/auth/google?redirect=%2Fcreate-task');
+        expect(screen.getByText('auth.continueWithApple').closest('a'))
+            .toHaveAttribute('href', '/api/auth/apple?redirect=%2Fcreate-task');
+    });
+
+    it('leaves the role to be chosen when answering a task', async () => {
+        query = 'redirect=%2Ftasks%2Fa1';
+        render(<LoginPage />);
+        expect((await screen.findByText('common.register')).closest('a'))
+            .toHaveAttribute('href', '/register?redirect=%2Ftasks%2Fa1');
+    });
+
+    it('drops a target on another site', async () => {
+        query = 'redirect=%2F%2Fevil.com';
+        render(<LoginPage />);
+        expect((await screen.findByText('common.register')).closest('a')).toHaveAttribute('href', '/register');
+    });
+});

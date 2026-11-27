@@ -91,3 +91,13 @@ describe('/register', () => {
         expect(screen.queryByLabelText('auth.fullName')).toBeNull();
     });
 });
+
+describe('/register?redirect=', () => {
+    it('keeps the target on the links to login and to Google', () => {
+        query = 'type=customer&redirect=%2Fcreate-task';
+        render(<RegisterPage />);
+        expect(screen.getByText('common.login').closest('a')).toHaveAttribute('href', '/login?redirect=%2Fcreate-task');
+        expect(screen.getByText('auth.continueWithGoogle').closest('a'))
+            .toHaveAttribute('href', '/api/auth/google?role=customer&redirect=%2Fcreate-task');
+    });
+});

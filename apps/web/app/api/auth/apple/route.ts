@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { randomBytes } from 'crypto';
+import { safeRedirect } from '@/lib/safe-redirect';
 
 export async function GET(request: Request) {
     const url = new URL(request.url);
@@ -13,9 +14,12 @@ export async function GET(request: Request) {
 
     const role = url.searchParams.get('role') || 'customer';
 
+    // Where to return to after sign-in; carried through the provider in `state`.
+    const redirect = safeRedirect(url.searchParams.get('redirect'));
+
     // CSRF protection: include a random nonce in state and store it in a short-lived cookie
     const nonce = randomBytes(16).toString('hex');
-    const state = Buffer.from(JSON.stringify({ role, nonce })).toString('base64url');
+    const state = Buffer.from(JSON.stringify({ role, nonce, ...(redirect ? { redirect } : {}) })).toString('base64url');
     const redirectUri = `${appUrl}/api/auth/apple/callback`;
 
     const params = new URLSearchParams({

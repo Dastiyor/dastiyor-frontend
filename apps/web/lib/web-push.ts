@@ -79,6 +79,12 @@ async function sendWebPush(userId: string, payload: PushPayload): Promise<void> 
 const EXPO_PUSH_ENDPOINT = 'https://exp.host/--/api/v2/push/send';
 
 /**
+ * The high-importance channel the app creates on Android (apps/mobile/lib/push.ts).
+ * Without it Android files the push under a fallback channel. iOS ignores it.
+ */
+const ANDROID_CHANNEL_ID = 'default';
+
+/**
  * Send an Expo push notification to all native device tokens for a user.
  * Prunes tokens Expo reports as DeviceNotRegistered.
  */
@@ -91,6 +97,7 @@ export async function sendExpoPush(userId: string, payload: PushPayload): Promis
         title: payload.title,
         body: payload.body,
         sound: 'default',
+        channelId: ANDROID_CHANNEL_ID,
         data: { url: payload.url || '/' },
     }));
 
@@ -191,7 +198,7 @@ async function sendExpoPushToMany(userIds: string[], byUser: Map<string, PushPay
         const chunk = devices.slice(i, i + EXPO_BATCH);
         const messages = chunk.map((d) => {
             const payload = byUser.get(d.userId)!;
-            return { to: d.token, title: payload.title, body: payload.body, sound: 'default', data: { url: payload.url || '/' } };
+            return { to: d.token, title: payload.title, body: payload.body, sound: 'default', channelId: ANDROID_CHANNEL_ID, data: { url: payload.url || '/' } };
         });
         let tickets: Array<{ status?: string; details?: { error?: string } }> = [];
         try {

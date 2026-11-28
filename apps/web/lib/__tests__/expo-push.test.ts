@@ -43,6 +43,7 @@ describe('sendExpoPush', () => {
     expect(sent).toHaveLength(2);
     expect(sent[0]).toMatchObject({ to: 'ExponentPushToken[a]', title: 'New offer' });
     expect(sent[0].data).toEqual({ url: '/tasks/1' });
+    expect(sent[0].channelId).toBe('default');
   });
 
   it('prunes tokens Expo reports as DeviceNotRegistered', async () => {

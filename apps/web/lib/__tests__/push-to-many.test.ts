@@ -101,7 +101,7 @@ describe('sendPushToMany', () => {
         expect(first.headers.Authorization).toBe('Bearer expo-token');
         const sent = JSON.parse(first.body);
         expect(sent).toHaveLength(100);
-        expect(sent[0]).toEqual({ to: 'T0', title: 'for u2', body: 'b', sound: 'default', data: { url: '/tasks/t1' } });
+        expect(sent[0]).toEqual({ to: 'T0', title: 'for u2', body: 'b', sound: 'default', channelId: 'default', data: { url: '/tasks/t1' } });
         expect(sent[1].title).toBe('for u1');
         expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toHaveLength(50);
         expect(prismaMock.deviceToken.deleteMany).toHaveBeenCalledWith({ where: { token: { in: ['T0'] } } });

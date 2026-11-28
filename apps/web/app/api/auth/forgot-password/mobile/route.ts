@@ -5,6 +5,7 @@ import { logAction, getRequestIP } from '@/lib/audit';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 import { isValidPhone, normalizePhone, isPlaceholderEmail } from '@/lib/validation';
 import { issueOtp, isDesignatedTestPhone } from '@/lib/otp';
+import { findPhoneResetAccount } from '@/lib/phone-account';
 import crypto from 'crypto';
 
 // HMAC the OTP code so DB breach doesn't expose valid codes
@@ -70,7 +71,7 @@ export async function POST(request: Request) {
         if (isValidPhone(identifier)) {
             const phone = normalizePhone(identifier);
 
-            const user = await prisma.user.findFirst({ where: { phone }, select: { id: true } });
+            const user = await findPhoneResetAccount(phone);
             if (!user) {
                 return NextResponse.json(
                     { error: 'Пользователь с таким номером телефона не найден' },

@@ -132,7 +132,11 @@ export default function LoginScreen() {
       setIdentifier(phone);
       switchMethod('password');
     }
-    Alert.alert(L.errTitle, message);
+    // Pointing to the other method is not a failure, so it names the method.
+    const title = reason === 'PASSWORD_REQUIRED' ? L.byPassword
+      : reason === 'PASSWORD_NOT_SET' ? L.byCode
+      : L.errTitle;
+    Alert.alert(title, message);
   }
 
   function sendCode() {

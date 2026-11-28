@@ -114,6 +114,47 @@ describe('phone account recovery', () => {
         }));
     });
 
+    it('marks the number verified after a reset by SMS code', async () => {
+        (prismaMock.user.findFirst as jest.Mock).mockResolvedValue({ id: 'user-1' });
+        (prismaMock.verificationCode.findFirst as jest.Mock).mockResolvedValue({ id: 'code-1' });
+        (prismaMock.verificationCode.deleteMany as jest.Mock).mockResolvedValue({ count: 1 });
+        (prismaMock.$transaction as unknown as jest.Mock).mockResolvedValue([]);
+
+        await POST_reset({ identifier: PHONE, code: '123456', password: 'Dastiyor2026' });
+
+        expect(prismaMock.user.update).toHaveBeenCalledWith({
+            where: { id: 'user-1' },
+            data: { password: 'new-hash', tokenVersion: { increment: 1 }, phoneVerified: true },
+        });
+    });
+
+    it('picks the verified, then oldest, account for both steps', async () => {
+        (prismaMock.user.findFirst as jest.Mock).mockResolvedValue({ id: 'user-1' });
+        (prismaMock.verificationCode.findFirst as jest.Mock).mockResolvedValue(null);
+
+        await POST(forgot({ identifier: PHONE }));
+        await POST_reset({ identifier: PHONE, code: '123456', password: 'Dastiyor2026' });
+
+        const lookup = {
+            where: { phone: PHONE },
+            orderBy: [{ phoneVerified: 'desc' }, { createdAt: 'asc' }],
+            select: { id: true },
+        };
+        expect((prismaMock.user.findFirst as jest.Mock).mock.calls).toEqual([[lookup], [lookup]]);
+    });
+
+    it('leaves the phone unverified after a reset by email code', async () => {
+        (prismaMock.user.findUnique as jest.Mock).mockResolvedValue({ id: 'user-1', email: 'user@example.com' });
+        (prismaMock.passwordReset.findFirst as jest.Mock).mockResolvedValue({ id: 'reset-1' });
+        (prismaMock.$transaction as unknown as jest.Mock).mockResolvedValue([]);
+
+        const response = await POST_reset({ identifier: 'user@example.com', code: '123456', password: 'Dastiyor2026' });
+
+        expect(response.status).toBe(200);
+        expect((prismaMock.user.update as jest.Mock).mock.calls[0][0].data)
+            .toEqual({ password: 'new-hash', tokenVersion: { increment: 1 } });
+    });
+
     it('rejects a wrong SMS code without touching the password', async () => {
         (prismaMock.user.findFirst as jest.Mock).mockResolvedValue({ id: 'user-1', phone: PHONE });
         (prismaMock.verificationCode.findFirst as jest.Mock).mockResolvedValue(null);

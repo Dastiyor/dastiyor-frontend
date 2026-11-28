@@ -6,6 +6,7 @@ import { validatePassword, isValidPhone, normalizePhone } from '@/lib/validation
 import { logAction, getRequestIP } from '@/lib/audit';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 import { consumeOtp } from '@/lib/otp';
+import { findPhoneResetAccount } from '@/lib/phone-account';
 
 function hashOtp(userId: string, code: string): string {
     return `mobile:${userId}:` + crypto
@@ -56,7 +57,7 @@ export async function POST(request: Request) {
         }
 
         const user = phone
-            ? await prisma.user.findFirst({ where: { phone } })
+            ? await findPhoneResetAccount(phone)
             : await prisma.user.findUnique({ where: { email: identifier.toLowerCase() } });
 
         if (!user) {
@@ -89,7 +90,12 @@ export async function POST(request: Request) {
         await prisma.$transaction([
             prisma.user.update({
                 where: { id: user.id },
-                data: { password: hashedPassword, tokenVersion: { increment: 1 } },
+                data: {
+                    password: hashedPassword,
+                    tokenVersion: { increment: 1 },
+                    // The SMS code proves the number, so SMS login opens up too.
+                    ...(phone ? { phoneVerified: true } : {}),
+                },
             }),
             ...(resetTokenId
                 ? [prisma.passwordReset.update({ where: { id: resetTokenId }, data: { used: true } })]

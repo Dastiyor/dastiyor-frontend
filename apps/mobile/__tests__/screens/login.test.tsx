@@ -75,5 +75,16 @@ describe('LoginScreen', () => {
     fireEvent.changeText(getByPlaceholderText(L.passPh), 'whatever1');
     fireEvent.press(getByLabelText(L.btn));
     await waitFor(() => expect(getByLabelText(t.register.phone).props.value).toBe('901234567'));
+    // Not a failure: the title names the other method.
+    expect(Alert.alert).toHaveBeenCalledWith(L.byCode, 'no password');
+  });
+
+  it('moves to the password when the number is not verified', async () => {
+    mPost.mockRejectedValue(Object.assign(new Error('not verified'), { code: 'PASSWORD_REQUIRED' }));
+    const { getByLabelText } = setup();
+    fireEvent.changeText(getByLabelText(t.register.phone), '901234567');
+    fireEvent.press(getByLabelText(L.getCode));
+    await waitFor(() => expect(Alert.alert).toHaveBeenCalledWith(L.byPassword, 'not verified'));
+    expect(getByLabelText(L.emailLabel).props.value).toBe('+992901234567');
   });
 });

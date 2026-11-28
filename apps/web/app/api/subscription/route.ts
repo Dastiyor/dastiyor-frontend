@@ -5,6 +5,7 @@ import { requireAuth } from '@/lib/require-auth';
 import { SUBSCRIPTIONS_ENABLED } from '@/lib/features';
 import { subscriptionView } from '@/lib/payments/subscription-view';
 import { getResponseAllowance } from '@/lib/response-allowance';
+import { isSubscriptionSalesEnabled } from '@/lib/subscription-sales';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
@@ -24,7 +25,8 @@ export async function GET(request: Request) {
 
         // usage: responses this month against the plan's limit (limit null = unlimited).
         // Left out while the limit isn't enforced, so nobody sees a limit that doesn't apply.
-        const limitEnforced = process.env.SUBSCRIPTION_GATE_ENABLED !== 'false';
+        const limitEnforced = process.env.SUBSCRIPTION_GATE_ENABLED !== 'false'
+            && await isSubscriptionSalesEnabled();
         return NextResponse.json({
             subscription: subscriptionView(subscription),
             ...(limitEnforced && { usage: { used: usage.used, limit: usage.limit, periodStart: usage.periodStart } }),
@@ -39,8 +41,8 @@ export async function GET(request: Request) {
 // POST - Initiate subscription payment via SmartPay
 export async function POST(request: Request) {
     try {
-        // Subscriptions are temporarily hidden — see lib/features.ts
-        if (!SUBSCRIPTIONS_ENABLED) {
+        // Subscriptions are temporarily hidden (lib/features.ts) or switched off in the admin panel.
+        if (!SUBSCRIPTIONS_ENABLED || !(await isSubscriptionSalesEnabled())) {
             return NextResponse.json({ error: 'Подписки недоступны' }, { status: 404 });
         }
 

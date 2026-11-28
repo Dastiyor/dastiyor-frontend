@@ -196,6 +196,15 @@ describe('/api/responses', () => {
                 expect(data.code).toBe('SUBSCRIPTION_REQUIRED');
             });
 
+            it('lifts the limit while the admin has sales switched off', async () => {
+                (prismaMock.systemSetting.findUnique as jest.Mock).mockResolvedValueOnce({ value: '{"salesEnabled":false}' });
+                (prismaMock.subscription.findUnique as jest.Mock).mockResolvedValue(null);
+                (prismaMock.response.count as jest.Mock).mockResolvedValue(50);
+
+                const response = await send();
+                expect(response.status).not.toBe(403);
+            });
+
             it('lets a FREE provider send a 5th response', async () => {
                 (prismaMock.subscription.findUnique as jest.Mock).mockResolvedValue(null);
                 (prismaMock.response.count as jest.Mock).mockResolvedValue(4);

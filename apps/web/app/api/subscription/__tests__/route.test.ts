@@ -103,6 +103,17 @@ describe('/api/subscription', () => {
             expect(data.usage).toBeUndefined();
         });
 
+        it('leaves usage out while the admin has sales switched off', async () => {
+            delete process.env.SUBSCRIPTION_GATE_ENABLED;
+            (prismaMock.systemSetting.findUnique as jest.Mock).mockResolvedValueOnce({ value: '{"salesEnabled":false}' });
+            (prismaMock.subscription.findUnique as jest.Mock).mockResolvedValue(null);
+            (prismaMock.response.count as jest.Mock).mockResolvedValue(12);
+
+            const data = await (await GET(makeGetRequest())).json();
+
+            expect(data.usage).toBeUndefined();
+        });
+
         it('serves an old plan id as its replacement', async () => {
             (prismaMock.subscription.findUnique as jest.Mock).mockResolvedValue({
                 plan: 'basic', startDate: new Date(), endDate: new Date(Date.now() + 86400000), isActive: true,
@@ -144,6 +155,18 @@ describe('/api/subscription', () => {
 
             const response = await POST(request);
             expect(response.status).toBe(401);
+        });
+
+        it('refuses checkout while the admin has sales switched off', async () => {
+            (prismaMock.systemSetting.findUnique as jest.Mock).mockResolvedValueOnce({ value: '{"salesEnabled":false}' });
+
+            const response = await POST(new NextRequest('http://localhost/api/subscription', {
+                method: 'POST',
+                body: JSON.stringify({ plan: 'pro' }),
+            }));
+
+            expect(response.status).toBe(404);
+            expect(createSmartPayOrder).not.toHaveBeenCalled();
         });
 
         it('should return 400 if plan is missing or invalid', async () => {

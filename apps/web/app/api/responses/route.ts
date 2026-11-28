@@ -10,6 +10,7 @@ import { sendPushNotification } from '@/lib/web-push';
 import { requireAuth } from '@/lib/require-auth';
 import { getResponseAllowance, canRespond } from '@/lib/response-allowance';
 import { needsPhoneVerification, PHONE_VERIFICATION_REQUIRED } from '@/lib/phone-gate';
+import { isSubscriptionSalesEnabled } from '@/lib/subscription-sales';
 
 export async function POST(request: Request) {
     try {
@@ -53,9 +54,10 @@ export async function POST(request: Request) {
         }
 
         // Monthly response limit: FREE 5, PRO 30, PRO+ and BUSINESS unlimited.
-        // Off only when SUBSCRIPTION_GATE_ENABLED=false (see lib/features.ts).
+        // Off when SUBSCRIPTION_GATE_ENABLED=false (see lib/features.ts), and while
+        // the admin has sales switched off: no limit without a plan to buy.
         // The code stays SUBSCRIPTION_REQUIRED: both clients route it to the plans page.
-        if (process.env.SUBSCRIPTION_GATE_ENABLED !== 'false') {
+        if (process.env.SUBSCRIPTION_GATE_ENABLED !== 'false' && await isSubscriptionSalesEnabled()) {
             const allowance = await getResponseAllowance(payload.id as string);
             if (!canRespond(allowance)) {
                 return NextResponse.json(

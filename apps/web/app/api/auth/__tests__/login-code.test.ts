@@ -3,6 +3,7 @@ import { POST } from '../login/code/route';
 import { POST as passwordLogin } from '../login/route';
 import { prismaMock } from '../../../../__tests__/mocks/prisma';
 import { consumeOtp } from '@/lib/otp';
+import { logAction } from '@/lib/audit';
 
 jest.mock('@/lib/rate-limit', () => ({
     checkRateLimit: jest.fn(() => ({ allowed: true })),
@@ -50,6 +51,7 @@ describe('/api/auth/login/code', () => {
 
     it('says when the number has no account, without spending a code', async () => {
         prismaMock.user.findFirst.mockResolvedValue(null);
+        prismaMock.user.findMany.mockResolvedValue([]);
 
         const res = await POST(request({ phone: PHONE, code: '123456' }));
 
@@ -58,8 +60,41 @@ describe('/api/auth/login/code', () => {
         expect(consumeOtp).not.toHaveBeenCalled();
     });
 
-    it('never signs in to an account that has not verified the number', async () => {
-        prismaMock.user.findFirst.mockResolvedValueOnce(null).mockResolvedValueOnce({ id: 'u2' } as any);
+    const unverified = (...accounts: unknown[]) => {
+        prismaMock.user.findFirst.mockResolvedValue(null);
+        prismaMock.user.findMany.mockResolvedValue(accounts as any);
+    };
+
+    it('signs in the only account on a number and verifies it', async () => {
+        unverified(user);
+        prismaMock.user.update.mockResolvedValue({ ...user, phoneVerified: true } as any);
+        (consumeOtp as jest.Mock).mockResolvedValue(true);
+
+        const res = await POST(request({ phone: PHONE, code: '123456' }));
+
+        expect(res.status).toBe(200);
+        expect(await res.json()).toMatchObject({ user: { id: 'u1' } });
+        expect(prismaMock.user.findMany).toHaveBeenCalledWith({ where: { phone: PHONE }, take: 2 });
+        expect(prismaMock.user.update).toHaveBeenCalledWith({ where: { id: 'u1' }, data: { phoneVerified: true } });
+        expect(logAction).toHaveBeenCalledWith(expect.objectContaining({ action: 'PHONE_VERIFIED_BY_LOGIN', userId: 'u1' }));
+    });
+
+    it('verifies nothing on a wrong code', async () => {
+        unverified(user);
+        (consumeOtp as jest.Mock).mockResolvedValue(false);
+
+        const res = await POST(request({ phone: PHONE, code: '000000' }));
+
+        expect(res.status).toBe(400);
+        expect(prismaMock.user.update).not.toHaveBeenCalled();
+        expect(logAction).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        ['several unverified accounts share the number', [user, { ...user, id: 'u2' }]],
+        ['the only account is an admin', [{ ...user, role: 'ADMIN' }]],
+    ])('refuses when %s, without spending a code', async (_name, accounts) => {
+        unverified(...accounts);
 
         const res = await POST(request({ phone: PHONE, code: '123456' }));
 

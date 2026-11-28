@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { logAction, getRequestIP } from '@/lib/audit';
 import { checkRateLimit, getClientIP, rateLimitExceededResponse } from '@/lib/rate-limit';
 import { isValidPhone, normalizePhone } from '@/lib/validation';
 import { consumeOtp } from '@/lib/otp';
@@ -38,14 +40,24 @@ export async function POST(request: Request) {
         }
 
         // Before the code, so a number that cannot sign in never spends one
-        const { user, refusal } = await findSmsLoginUser(normalizedPhone);
+        const { user, verifiesPhone, refusal } = await findSmsLoginUser(normalizedPhone);
         if (!user) return NextResponse.json(refusal, { status: 401 });
 
         if (!(await consumeOtp(normalizedPhone, String(code), 'LOGIN'))) {
             return NextResponse.json({ error: 'Неверный или просроченный код' }, { status: 400 });
         }
 
-        return await signedInResponse(request, user, 'sms');
+        if (!verifiesPhone) return await signedInResponse(request, user, 'sms');
+
+        const verified = await prisma.user.update({ where: { id: user.id }, data: { phoneVerified: true } });
+        logAction({
+            action: 'PHONE_VERIFIED_BY_LOGIN',
+            userId: user.id,
+            entity: 'User',
+            entityId: user.id,
+            ipAddress: getRequestIP(request),
+        });
+        return await signedInResponse(request, verified, 'sms');
     } catch (error) {
         console.error('Code Login Error:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

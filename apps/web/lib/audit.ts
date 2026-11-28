@@ -4,6 +4,7 @@ export type AuditAction =
     | 'LOGIN'
     | 'LOGIN_FAILED'
     | 'OTP_REJECTED'
+    | 'PHONE_VERIFIED_BY_LOGIN'
     | 'LOGIN_OAUTH'
     | 'LOGIN_OAUTH_LINKED'
     | 'REGISTER'

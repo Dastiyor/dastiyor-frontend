@@ -113,10 +113,11 @@ describe('/api/auth/verify-send', () => {
     });
 
     it.each([
-        ['an unknown number', [null, null], 'ACCOUNT_NOT_FOUND'],
-        ['an unverified number', [null, { id: 'u1' }], 'PASSWORD_REQUIRED'],
-    ])('sends no login code to %s', async (_name, [verified, any], code) => {
-        (prismaMock.user.findFirst as jest.Mock).mockResolvedValueOnce(verified).mockResolvedValueOnce(any);
+        ['an unknown number', [], 'ACCOUNT_NOT_FOUND'],
+        ['an unverified number shared by several accounts', [{ id: 'u1' }, { id: 'u2' }], 'PASSWORD_REQUIRED'],
+    ])('sends no login code to %s', async (_name, accounts, code) => {
+        (prismaMock.user.findFirst as jest.Mock).mockResolvedValue(null);
+        (prismaMock.user.findMany as jest.Mock).mockResolvedValue(accounts);
 
         const response = await POST(req({ phone: '+992900000009', type: 'LOGIN' }));
 
@@ -124,6 +125,16 @@ describe('/api/auth/verify-send', () => {
         expect((await response.json()).code).toBe(code);
         expect(sendVerificationCode).not.toHaveBeenCalled();
         expect(prismaMock.verificationCode.create).not.toHaveBeenCalled();
+    });
+
+    it('sends a login code to the only account on an unverified number', async () => {
+        (prismaMock.user.findFirst as jest.Mock).mockResolvedValue(null);
+        (prismaMock.user.findMany as jest.Mock).mockResolvedValue([{ id: 'u1', role: 'CUSTOMER' }]);
+
+        const response = await POST(req({ phone: '+992900000009', type: 'LOGIN' }));
+
+        expect(response.status).toBe(200);
+        expect((prismaMock.verificationCode.create as jest.Mock).mock.calls[0][0].data.type).toBe('LOGIN');
     });
 
     it('sends a login code to a verified number', async () => {

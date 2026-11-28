@@ -35,8 +35,15 @@ describe('TaskAlertsRow', () => {
     expect(queryByText(s.title)).toBeNull();
   });
 
+  it('shows the switch with no description on free', async () => {
+    mApi.get.mockResolvedValue({ enabled: true, plan: 'free' });
+    const { findByLabelText, queryByText } = setup();
+    expect(await findByLabelText(s.title)).toBeTruthy();
+    expect(queryByText(s.hintPro)).toBeNull();
+    expect(queryByText(s.hintInstant)).toBeNull();
+  });
+
   it.each([
-    ['free', s.hintFree],
     ['pro', s.hintPro],
     ['pro_plus', s.hintInstant],
     ['business', s.hintInstant],

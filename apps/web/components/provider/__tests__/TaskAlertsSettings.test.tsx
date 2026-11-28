@@ -17,8 +17,13 @@ const reply = (body: unknown, ok = true) => Promise.resolve({ ok, json: () => Pr
 describe('TaskAlertsSettings', () => {
     beforeEach(() => fetchMock.mockReset());
 
+    it('shows the switch with no description on free', () => {
+        render(<TaskAlertsSettings initialEnabled plan="free" />);
+        expect(screen.getByRole('switch')).toBeInTheDocument();
+        expect(screen.queryByText(/taskAlerts\.hint/)).toBeNull();
+    });
+
     it.each([
-        ['free', 'taskAlerts.hintFree'],
         ['pro', 'taskAlerts.hintPro'],
         ['pro_plus', 'taskAlerts.hintInstant'],
         ['business', 'taskAlerts.hintInstant'],

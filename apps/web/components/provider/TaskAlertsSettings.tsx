@@ -43,9 +43,8 @@ export default function TaskAlertsSettings({ initialEnabled, plan }: { initialEn
         }
     };
 
-    const hint = plan === 'free'
-        ? t('taskAlerts.hintFree')
-        : plan === 'pro' ? t('taskAlerts.hintPro') : t('taskAlerts.hintInstant');
+    // Nothing on FREE: the client wants no line about plans here.
+    const hint = plan === 'free' ? null : plan === 'pro' ? t('taskAlerts.hintPro') : t('taskAlerts.hintInstant');
 
     return (
         // id: the empty task feed links here ("Получать уведомления о новых заданиях").
@@ -57,7 +56,7 @@ export default function TaskAlertsSettings({ initialEnabled, plan }: { initialEn
                         <h3 style={{ fontSize: '1rem', fontWeight: '700', color: '#1E293B', marginBottom: '4px' }}>
                             {t('taskAlerts.title')}
                         </h3>
-                        <p style={{ color: '#64748B', fontSize: '0.85rem', lineHeight: 1.5 }}>{hint}</p>
+                        {hint && <p style={{ color: '#64748B', fontSize: '0.85rem', lineHeight: 1.5 }}>{hint}</p>}
                     </div>
                 </div>
                 <button

@@ -12,7 +12,7 @@ type AlertState = { enabled: boolean; plan: AlertTier };
 
 /**
  * A provider's new-task alert switch (GET/PUT /api/profile/task-alerts), with
- * a line saying when alerts arrive on their plan. Hidden until the server has
+ * a line saying when alerts arrive on a paid plan. Hidden until the server has
  * answered, so it never shows a guessed value.
  */
 export function TaskAlertsRow() {
@@ -46,14 +46,15 @@ export function TaskAlertsRow() {
     }
   }
 
-  const hint = state.plan === 'free' ? s.hintFree : state.plan === 'pro' ? s.hintPro : s.hintInstant;
+  // Nothing on FREE: the client wants no line about plans here.
+  const hint = state.plan === 'free' ? null : state.plan === 'pro' ? s.hintPro : s.hintInstant;
 
   return (
     <View style={[styles.row, { backgroundColor: colors.surface }]}>
       <Icon name="notifications-outline" size={22} color={colors.accent} style={styles.icon} />
       <View style={styles.body}>
         <Text style={[styles.label, { color: colors.text }]}>{s.title}</Text>
-        <Text style={[styles.hint, { color: colors.textSecondary }]}>{hint}</Text>
+        {hint ? <Text style={[styles.hint, { color: colors.textSecondary }]}>{hint}</Text> : null}
       </View>
       <Switch
         value={state.enabled}

@@ -54,6 +54,10 @@ client_secret_*.json
 # Google Play submission credentials — never commit
 apps/mobile/google-service-account.json
 
+# Firebase config and server key (EAS holds both)
+apps/mobile/google-services.json
+*firebase-adminsdk*.json
+
 # vercel
 .vercel
 

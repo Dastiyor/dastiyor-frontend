@@ -183,7 +183,8 @@ Supabase (required). Optional, each degrading gracefully when unset: Brevo (emai
 - `ios/` and `android/` are generated (CNG) and git-ignored. Run `eas-cli` from `apps/mobile`, never the repo root (it writes stray `eas.json`/`app.json` there).
 - A local release build needs `ANDROID_HOME=$HOME/Library/Android/sdk` and `SENTRY_DISABLE_AUTO_UPLOAD=true` (no Sentry auth token locally): `npx expo prebuild --platform android --clean`, then `./gradlew :app:assembleRelease` in `android/`.
 - Gradle needs Java 17: `JAVA_HOME=/opt/homebrew/opt/openjdk@17` (Android Studio's bundled Java 25 fails).
-- **OTA runtimes follow the app version** (`runtimeVersion.policy: appVersion`). Store builds in use: iOS 1.2.1 and 1.2.0, iOS 1.1.1, iOS + Android 1.1.0. A JS-only change must be published to each: `eas update --branch production --environment production --platform ios` at the current `app.json` version, then set `app.json` `version` to each older one in turn (`1.2.0`, `1.1.1` iOS only, `1.1.0` with `--platform all`) and `git checkout app.json` afterwards. A change that adds a native module needs a store build, not an OTA.
+- **OTA runtimes follow the app version** (`runtimeVersion.policy: appVersion`). Store builds in use: iOS 1.2.1 and 1.2.0, iOS 1.1.1, iOS + Android 1.1.0. A JS-only change must be published to each: `eas update --branch production --environment production --platform ios` at the current `app.json` version, then set `app.json` `version` to each older one in turn (`1.2.0`, `1.1.1` iOS only, `1.1.0` with `--platform all`) and `git checkout app.json` afterwards. A change that adds a native module needs a store build, not an OTA. Android 1.2.2 is the first build with Firebase: once it is installed anywhere, publish the `1.2.2` update with `--platform all`.
+- **Android push needs Firebase** (project `dastiyor`, number 879800960695, the same one as Google sign-in; never delete it). `apps/mobile/app.config.js` adds `google-services.json` from the EAS file variable `GOOGLE_SERVICES_JSON` (production environment only; the `apk` profile inherits it) or a git-ignored local copy. The FCM V1 key is in the EAS Android credentials.
 
 ### App Store review (subscriptions)
 
@@ -204,7 +205,7 @@ From "Dastiyor website issues for development" (25 Nov 2026). State as of 27 Nov
 - Rejected SMS codes: read the `OTP_REJECTED` reasons in the action log after a few days (4.7).
 
 **Needs the user or the client**
-- App review (25 Nov 2026): Android push likely never worked (no `google-services.json`; needs Firebase, an FCM key in EAS and a new build); free new-task alerts need the client's decision.
+- App review (25 Nov 2026): Android push likely never worked; Firebase, `GOOGLE_SERVICES_JSON` and the FCM V1 key were set up 28 Nov 2026, and a new Android build still has to be released and tested on a phone; free new-task alerts need the client's decision.
 - Telegram or WhatsApp support handle; support is still an email link (4.12).
 - Human legal translation of Terms and Privacy; both are Russian only.
 - Native-speaker proofreading of the new Tajik: `lib/i18n/pages/`, task templates, home page, `/mobile-app`, `/sourcing`.

@@ -52,6 +52,23 @@ function loadModule(name: string): any | null {
 }
 
 /**
+ * Android 13+ shows the permission prompt only once the app has a notification
+ * channel, so create it first. A failure must not stop registration.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function ensureAndroidChannel(Notifications: any): Promise<void> {
+  if (getPlatform() !== 'android' || !Notifications.setNotificationChannelAsync) return;
+  try {
+    await Notifications.setNotificationChannelAsync('default', {
+      name: 'Dastiyor',
+      importance: Notifications.AndroidImportance?.HIGH,
+    });
+  } catch {
+    /* ignore */
+  }
+}
+
+/**
  * Ask for permission and return the Expo push token, or null if unavailable
  * (web, simulator, denied permission, or native module not installed).
  */
@@ -65,6 +82,7 @@ export async function getExpoPushToken(): Promise<string | null> {
   if (Device && Device.isDevice === false) return null;
 
   try {
+    await ensureAndroidChannel(Notifications);
     const settings = await Notifications.getPermissionsAsync();
     let status = settings?.status;
     if (status !== 'granted') {
